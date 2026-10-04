@@ -1,3 +1,4 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -16,14 +17,15 @@ import { useMyVote } from '@/hooks/useMyVote';
  */
 export default memo(function ShortAnswerVoter({ sessionId, questionId, disabled = false }) {
   const { myVote } = useMyVote(sessionId, questionId);
+  const { begin, finish, canRestore } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [answer, setAnswer] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (myVote && !submitted) { setAnswer(myVote); setSubmitted(true); }
-  }, [myVote, submitted]);
+    if (canRestore() && myVote && !submitted) { setAnswer(myVote); setSubmitted(true); }
+  }, [myVote, submitted, canRestore]);
 
   useEffect(() => {
     if (!error) return;
@@ -33,6 +35,7 @@ export default memo(function ShortAnswerVoter({ sessionId, questionId, disabled 
 
   const handleSubmit = useCallback(async () => {
     if (disabled || submitting || !answer.trim()) return;
+    const token = begin(); if (token === null) return;
     setSubmitting(true);
     try {
       const pid = getParticipantId();
@@ -41,13 +44,16 @@ export default memo(function ShortAnswerVoter({ sessionId, questionId, disabled 
         nickname: getNickname() || '익명',
         timestamp: serverTimestamp(),
       });
+      if (!finish(token)) return;
       setSubmitted(true);
     } catch (err) {
+      if (!finish(token)) return;
+      setSubmitted(false);
       logger.error('Short-answer vote failed:', err);
       setSubmitting(false);
       setError('답변 제출에 실패했습니다. 다시 시도해주세요.');
     }
-  }, [sessionId, questionId, answer, disabled, submitting]);
+  }, [sessionId, questionId, answer, disabled, submitting, begin, finish]);
 
   if (submitted) {
     return (

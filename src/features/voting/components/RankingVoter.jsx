@@ -1,3 +1,4 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -61,14 +62,29 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
   }, [questionId, options, pid]);
 
   const { myVote } = useMyVote(sessionId, questionId);
+  const { begin, finish, canRestore } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [order, setOrder] = useState(initialOrder);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  const savedOrder = useMemo(() => {
+    if (myVote == null) return null;
+    const parts = String(myVote).split(',');
+    if (!parts.every(part => /^\d+$/.test(part))) return null;
+    const candidate = parts.map(Number);
+    return candidate.length === options.length && new Set(candidate).size === options.length
+      && candidate.every(index => Number.isInteger(index) && index >= 0 && index < options.length)
+      ? candidate : null;
+  }, [myVote, options.length]);
+  const invalidSavedOrder = myVote != null && !savedOrder;
+
   useEffect(() => {
-    if (myVote && !submitted) setSubmitted(true);
-  }, [myVote, submitted]);
+    if (canRestore() && savedOrder && !submitted) {
+      setOrder(savedOrder);
+      setSubmitted(true);
+    }
+  }, [savedOrder, submitted, canRestore]);
 
   useEffect(() => {
     if (!error) return;
@@ -95,6 +111,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
 
   const handleSubmit = useCallback(async () => {
     if (disabled || submitting) return;
+    const token = begin(); if (token === null) return;
     setSubmitting(true);
     try {
       await set(ref(db, `sessions/${sessionId}/questions/${questionId}/votes/${pid}`), {
@@ -102,13 +119,16 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
         nickname: getNickname() || '익명',
         timestamp: serverTimestamp(),
       });
+      if (!finish(token)) return;
       setSubmitted(true);
     } catch (err) {
+      if (!finish(token)) return;
+      setSubmitted(false);
       logger.error('Ranking vote failed:', err);
       setSubmitting(false);
       setError('순위 제출에 실패했습니다. 다시 시도해주세요.');
     }
-  }, [sessionId, questionId, order, pid, disabled, submitting]);
+  }, [sessionId, questionId, order, pid, disabled, submitting, begin, finish]);
 
   if (submitted) {
     const answerStr = order.map((idx, pos) => `${pos + 1}. ${options[idx]}`).join(' → ');
@@ -126,6 +146,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
 
   return (
     <div className="space-y-3">
+    {invalidSavedOrder && <p role="alert" className="rounded-xl bg-amber-50 dark:bg-amber-900/20 p-4 text-sm text-amber-800 dark:text-amber-200">저장된 순서를 확인할 수 없어요. 순서를 다시 선택하고 제출해주세요.</p>}
     <AnimatePresence>
       {error && <VoteErrorToast message={error} />}
     </AnimatePresence>

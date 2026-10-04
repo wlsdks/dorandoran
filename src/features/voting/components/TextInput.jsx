@@ -1,3 +1,5 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -9,6 +11,7 @@ import Button from '@/components/ui/Button';
 import { useMyVote } from '@/hooks/useMyVote';
 
 function SubmitConfirm({ type, value }) {
+  const { available } = useAIAvailability();
   const isQnA = type === 'qna';
   const isSubjective = type === 'subjective';
   const isGuess = type === 'mysteryBox' || type === 'hintQuiz';
@@ -40,7 +43,7 @@ function SubmitConfirm({ type, value }) {
             {isGuess
               ? '정답 공개를 기다려주세요'
               : isSubjective
-                ? 'AI 채점 결과를 기다려주세요'
+                ? available ? 'AI 채점 결과를 기다려주세요' : '제출한 답변은 아래에서 확인할 수 있어요.'
                 : isQnA
                   ? '강사가 확인할 예정입니다'
                   : '워드클라우드에 반영되었습니다'}
@@ -65,19 +68,23 @@ function SubmitConfirm({ type, value }) {
 
 export default memo(function TextInput({ sessionId, questionId, type = 'wordcloud', placeholder, maxLength = 50, disabled = false, multiline = false }) {
   const { myVote } = useMyVote(sessionId, questionId);
+  const { begin, finish, canRestore, isCurrent } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [text, setText] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [submittedValue, setSubmittedValue] = useState('');
   const [error, setError] = useState(null);
 
   // 새로고침/재마운트 시 이미 제출한 답 복원 — 없으면 빈 입력창이 다시 떠서 중복 제출(덮어쓰기) 가능
   useEffect(() => {
-    if (myVote && !submitted) { setSubmittedValue(myVote); setSubmitted(true); }
-  }, [myVote, submitted]);
+    if (canRestore() && myVote && !submitted) { setSubmittedValue(myVote); setSubmitted(true); }
+  }, [myVote, submitted, canRestore]);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!text.trim() || disabled) return;
+    if (!text.trim() || disabled || submitting) return;
+    const token = begin(); if (token === null) return;
+    setSubmitting(true);
     setError(null);
     try {
       const pid = getParticipantId();
@@ -86,12 +93,16 @@ export default memo(function TextInput({ sessionId, questionId, type = 'wordclou
         nickname: getNickname() || '익명',
         timestamp: serverTimestamp(),
       });
+      if (!finish(token)) return;
       setSubmittedValue(text.trim());
       setSubmitted(true);
     } catch (err) {
+      if (!finish(token)) return;
+      setSubmitted(false);
+      setSubmittedValue('');
       logger.error('Submit failed:', err);
       setError('제출에 실패했습니다. 다시 시도해주세요.');
-    }
+    } finally { if (isCurrent(token)) setSubmitting(false); }
   }
 
   if (submitted) return <SubmitConfirm type={type} value={submittedValue} />;
@@ -151,7 +162,7 @@ export default memo(function TextInput({ sessionId, questionId, type = 'wordclou
         type="submit"
         variant="primary"
         size="lg"
-        disabled={!text.trim() || disabled}
+        disabled={!text.trim() || disabled || submitting}
         className="w-full"
       >
         <Send size={18} />

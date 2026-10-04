@@ -1,3 +1,4 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { hapticTap } from '@/lib/haptics';
@@ -63,7 +64,13 @@ export default memo(function QuizVoter({
   const {
     myVote
   } = useMyVoteFull(sessionId, questionId);
-  const currentVote = myVote || null;
+  const { begin, finish, canRestore, isCurrent } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
+  const [hasAcknowledged, setHasAcknowledged] = useState(false);
+  const [pending, setPending] = useState(false);
+  const currentVote = hasAcknowledged ? myVote : null;
+  useEffect(() => {
+    if (canRestore() && myVote) setHasAcknowledged(true);
+  }, [myVote, canRestore]);
   const [selected, setSelected] = useState(null);
   const [betMultiplier, setBetMultiplier] = useState(null);
   const [error, setError] = useState(null);
@@ -75,6 +82,8 @@ export default memo(function QuizVoter({
     return () => clearTimeout(t);
   }, [error]);
   async function submitVote(option, confidence) {
+    const token = begin(); if (token === null) return;
+    setPending(true);
     setSelected(option);
     setError(null);
     try {
@@ -90,11 +99,14 @@ export default memo(function QuizVoter({
         voteData.confidence = confidence;
       }
       await set(ref(db, `sessions/${sessionId}/questions/${questionId}/votes/${participantId}`), voteData);
+      if (finish(token)) setHasAcknowledged(true);
     } catch (err) {
+      if (!finish(token)) return;
+      setHasAcknowledged(false);
       logger.error('Quiz vote failed:', err);
       setSelected(null);
       setError('답안 제출에 실패했습니다. 다시 선택해주세요.');
-    }
+    } finally { if (isCurrent(token)) setPending(false); }
   }
   function handleVote(option) {
     if (disabled || selected !== null) return;
@@ -192,6 +204,7 @@ export default memo(function QuizVoter({
       </motion.div>;
   }
   return <div className="space-y-4 w-full">
+      {pending && <p role="status" className="text-center text-sm text-slate-500 dark:text-slate-300">답안을 보내는 중...</p>}
       <AnimatePresence>
         {error && <VoteErrorToast message={error} />}
       </AnimatePresence>

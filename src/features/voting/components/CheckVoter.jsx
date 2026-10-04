@@ -1,3 +1,4 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -12,12 +13,13 @@ import VoteErrorToast from './VoteErrorToast';
 
 export default memo(function CheckVoter({ sessionId, questionId, disabled = false }) {
   const { myVote } = useMyVote(sessionId, questionId);
+  const { begin, finish, canRestore } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [voted, setVoted] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (myVote && !voted) setVoted(true);
-  }, [myVote, voted]);
+    if (canRestore() && myVote && !voted) setVoted(true);
+  }, [myVote, voted, canRestore]);
 
   useEffect(() => {
     if (!error) return;
@@ -27,6 +29,7 @@ export default memo(function CheckVoter({ sessionId, questionId, disabled = fals
 
   async function handleCheck() {
     if (disabled || voted) return;
+    const token = begin(); if (token === null) return;
     hapticTap();
     setError(null);
     try {
@@ -36,8 +39,11 @@ export default memo(function CheckVoter({ sessionId, questionId, disabled = fals
         nickname: getNickname() || '익명',
         timestamp: serverTimestamp(),
       });
+      if (!finish(token)) return;
       setVoted(true);
     } catch (err) {
+      if (!finish(token)) return;
+      setVoted(false);
       logger.error('Check-in failed:', err);
       setError('체크에 실패했습니다. 다시 탭해주세요.');
     }

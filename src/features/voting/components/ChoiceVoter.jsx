@@ -1,3 +1,4 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -22,6 +23,7 @@ const OPTION_STYLES = [
 
 export default memo(function ChoiceVoter({ sessionId, questionId, options, disabled = false }) {
   const { myVote } = useMyVote(sessionId, questionId);
+  const { begin, finish, canRestore, isCurrent } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [voted, setVoted] = useState(false);
   const [changing, setChanging] = useState(false); // 답 바꾸기 중 — 복원 effect가 즉시 voted로 되돌리는 것 차단
   const [selected, setSelected] = useState(null);
@@ -30,11 +32,11 @@ export default memo(function ChoiceVoter({ sessionId, questionId, options, disab
 
   // Restore vote state from Firebase (handles refresh/re-activation)
   useEffect(() => {
-    if (myVote && !voted && !changing) {
+    if (canRestore() && myVote && !voted && !changing) {
       setSelected(myVote);
       setVoted(true);
     }
-  }, [myVote, voted, changing]);
+  }, [myVote, voted, changing, canRestore]);
 
   useEffect(() => {
     if (!error) return;
@@ -44,6 +46,7 @@ export default memo(function ChoiceVoter({ sessionId, questionId, options, disab
 
   async function handleVote(option) {
     if (disabled) return;
+    const token = begin(); if (token === null) return;
     setSelected(option);
     setSubmitting(true);
     setError(null);
@@ -54,14 +57,17 @@ export default memo(function ChoiceVoter({ sessionId, questionId, options, disab
         nickname: getNickname() || '익명',
         timestamp: serverTimestamp(),
       });
+      if (!finish(token)) return;
       setVoted(true);
       setChanging(false);
     } catch (err) {
+      if (!finish(token)) return;
+      setVoted(false);
       logger.error('Vote failed:', err);
       setSelected(null);
       setError('투표에 실패했습니다. 다시 선택해주세요.');
     } finally {
-      setSubmitting(false);
+      if (isCurrent(token)) setSubmitting(false);
     }
   }
 

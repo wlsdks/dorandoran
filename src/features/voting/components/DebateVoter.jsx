@@ -1,3 +1,4 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -76,6 +77,7 @@ function DebateLiveRatio({ sessionId, questionId, mySide }) {
 
 export default memo(function DebateVoter({ sessionId, questionId, disabled = false }) {
   const { myVote } = useMyVote(sessionId, questionId);
+  const { begin, finish, canRestore } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [side, setSide] = useState(null); // 'for' | 'against'
   const [opinion, setOpinion] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -85,13 +87,13 @@ export default memo(function DebateVoter({ sessionId, questionId, disabled = fal
   useEffect(() => {
     // 저장 형태는 `${side}:${opinion}`(예: "for:동의함") — side만 추출해 복원해야
     // 새로고침 시 찬/반 라벨·(나) 마커가 올바르게 표시되고 의견 텍스트도 살아난다.
-    if (myVote && !submitted) {
+    if (canRestore() && myVote && !submitted) {
       const ci = myVote.indexOf(':');
       setSide(ci >= 0 ? myVote.slice(0, ci) : myVote);
       if (ci >= 0) setOpinion(myVote.slice(ci + 1));
       setSubmitted(true);
     }
-  }, [myVote, submitted]);
+  }, [myVote, submitted, canRestore]);
 
   useEffect(() => {
     if (!error) return;
@@ -101,6 +103,7 @@ export default memo(function DebateVoter({ sessionId, questionId, disabled = fal
 
   const handleSubmit = useCallback(async () => {
     if (disabled || submitting || !side) return;
+    const token = begin(); if (token === null) return;
     setSubmitting(true);
     try {
       const pid = getParticipantId();
@@ -111,13 +114,16 @@ export default memo(function DebateVoter({ sessionId, questionId, disabled = fal
         nickname: getNickname() || '익명',
         timestamp: serverTimestamp(),
       });
+      if (!finish(token)) return;
       setSubmitted(true);
     } catch (err) {
+      if (!finish(token)) return;
+      setSubmitted(false);
       logger.error('Debate vote failed:', err);
       setSubmitting(false);
       setError('제출에 실패했습니다. 다시 시도해주세요.');
     }
-  }, [sessionId, questionId, side, opinion, disabled, submitting]);
+  }, [sessionId, questionId, side, opinion, disabled, submitting, begin, finish]);
 
   if (submitted) {
     return (

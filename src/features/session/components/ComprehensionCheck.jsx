@@ -1,4 +1,6 @@
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { ref, set, onValue, remove, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { getParticipantId } from '@/lib/participant';
@@ -17,14 +19,37 @@ const LEVELS = [
 function StudentComprehension({ sessionId, embedded = false }) {
   const [voted, setVoted] = useState(null);
   const pid = getParticipantId();
+  const { begin, finish, canRestore, isCurrent, reset } = useVoteAcknowledgement(`${sessionId}:comprehension:${pid}`);
+  const { value: savedVote, loading: voteLoading, error: voteLoadError } = useRealtimeValue(sessionId && pid ? `sessions/${sessionId}/comprehension/${pid}` : null);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const sawSavedVote = useRef(false);
+  useEffect(() => {
+    if (voteLoading || voteLoadError) return;
+    if (savedVote !== null) {
+      sawSavedVote.current = true;
+      if (canRestore() && LEVELS.some(item => item.key === savedVote?.level)) setVoted(savedVote.level);
+    } else if (sawSavedVote.current && voted !== null && !pending && reset()) {
+      // 저장 확인을 마친 응답이 서버에서 지워진 때만 새 라운드를 연다. 전송 중 rollback은 제외한다.
+      sawSavedVote.current = false;
+      setVoted(null);
+    }
+  }, [savedVote, voteLoading, voteLoadError, voted, pending, canRestore, reset]);
 
   async function handleVote(level) {
+    if (voted !== null || pending) return;
+    const token = begin(); if (token === null) return;
     hapticTap();
-    setVoted(level);
-    await set(ref(db, `sessions/${sessionId}/comprehension/${pid}`), {
-      level,
-      timestamp: serverTimestamp(),
-    });
+    setPending(true);
+    setError('');
+    try {
+      await set(ref(db, `sessions/${sessionId}/comprehension/${pid}`), { level, timestamp: serverTimestamp() });
+      if (finish(token)) setVoted(level);
+    } catch {
+      if (finish(token)) setError('응답을 저장하지 못했어요. 다시 선택해주세요.');
+    } finally {
+      if (isCurrent(token)) setPending(false);
+    }
   }
 
   return (
@@ -53,7 +78,7 @@ function StudentComprehension({ sessionId, embedded = false }) {
                 transition={{ type: 'spring', stiffness: 300, damping: 25, delay: i * 0.08 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => handleVote(level.key)}
-                disabled={hasVoted}
+                disabled={hasVoted || pending}
                 className={`flex-1 min-w-0 min-h-12 flex flex-col items-center gap-2 px-2 py-4 rounded-2xl transition-colors duration-150 ${
                   isSelected
                     ? `${level.color} text-white ring-4 ${level.ring} shadow-lg`
@@ -67,6 +92,8 @@ function StudentComprehension({ sessionId, embedded = false }) {
           })}
         </div>
 
+        {pending && <p role="status" className="text-sm text-slate-500 dark:text-slate-300">응답을 보내는 중...</p>}
+        {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         {voted && (
           <motion.p
             initial={{ opacity: 0 }}
@@ -107,7 +134,7 @@ function DonutChart({ counts, total, presenter = false }) {
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth}
           className="text-slate-100 dark:text-slate-700" />
-        {segments.map(seg => (
+        {segments.filter(seg => seg.count > 0).map(seg => (
           <motion.circle
             key={seg.key}
             cx={size / 2} cy={size / 2} r={radius}
@@ -139,6 +166,8 @@ function DonutChart({ counts, total, presenter = false }) {
 /** Presenter view — donut chart + breakdown */
 export function ComprehensionPresenter({ sessionId, onReset, presenter = false, readOnly = false }) {
   const [responses, setResponses] = useState({});
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState('');
 
   useEffect(() => {
     if (!sessionId) return;
@@ -178,11 +207,18 @@ export function ComprehensionPresenter({ sessionId, onReset, presenter = false, 
         })}
       </div>
 
-      {!readOnly && onReset && total > 0 && (
-        <Button onClick={async () => { await remove(ref(db, `sessions/${sessionId}/comprehension`)); onReset?.(); }} variant="secondary" size="sm">
-          <RotateCcw size={14} /> 초기화
+      {!readOnly && (total > 0 || resetting) && (
+        <Button onClick={async () => {
+          if (resetting) return;
+          setResetting(true); setResetError('');
+          try { await remove(ref(db, `sessions/${sessionId}/comprehension`)); onReset?.(); }
+          catch { setResetError('응답을 초기화하지 못했어요. 연결 상태를 확인하고 다시 시도해주세요.'); }
+          finally { setResetting(false); }
+        }} disabled={resetting} variant="secondary" size="sm" className="min-h-11">
+          <RotateCcw size={18} /> {resetting ? '초기화 중…' : '응답 초기화'}
         </Button>
       )}
+      {!readOnly && resetError && <p role="alert" className="text-sm text-red-500 dark:text-red-300">{resetError}</p>}
     </div>
   );
 }
