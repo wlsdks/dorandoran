@@ -22,6 +22,12 @@ try {
   await run('node', ['tests/support/realtime-stress.cjs']);
   await run('node', ['tests/support/presentation-qa.cjs']);
   await run('node', ['tests/support/student-qa.cjs']);
+  await run('node', ['tests/support/vote-ack-qa.cjs']);
+  await run('node', ['tests/support/quiz-awards-qa.cjs']);
+  await run('node', ['tests/support/lesson-event-qa.cjs']);
+  await run('node', ['tests/support/speed-quiz-qa.cjs']);
+  await run('node', ['tests/support/game-pages-qa.cjs']);
+  await run('node', ['tests/support/submission-qa.cjs']);
   await run('node', ['tests/support/audio-qa.cjs']);
   await run('node', ['tests/support/classroom-ui-qa.cjs']);
 } finally { for (const child of children) if (child.exitCode === null) child.kill('SIGTERM'); }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Hash, Target, Trophy, Flame, Copy, Check, Share2, CheckCircle, XCircle, Minus, Award, CheckCheck, Zap, Crown } from 'lucide-react';
+import { Hash, Target, Trophy, Flame, Copy, Check, CheckCircle, XCircle, Minus, Award, CheckCheck, Zap, Crown } from 'lucide-react';
 import { useReportData } from '@/features/report/api/useReportData';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Badge from '@/components/ui/Badge';
@@ -14,7 +14,7 @@ function getTitle({ answeredCount, correctRate, rank, totalParticipants, bestStr
   if (answeredCount === 0) return '참여해주셔서 감사합니다';
   if (rank === 1 && totalParticipants > 2) return '오늘의 1등!';
   if (achievementCount >= 4) return '업적 마스터!';
-  if (rank <= 3 && totalParticipants > 3) return '상위권 달성!';
+  if (rank > 0 && rank <= 3 && totalParticipants > 3) return '상위권 달성!';
   if (bestStreak >= 5) return '연승의 달인';
   if (correctRate >= 90 && answeredCount >= 3) return '완벽에 가까운 정답률';
   if (correctRate >= 70) return '잘 해냈어요!';
@@ -80,7 +80,7 @@ export default function ReportPage() {
   const participantId = searchParams.get('p');
   const [copied, setCopied] = useState(false);
 
-  const { stats, achievements, loading } = useReportData(sessionId, participantId);
+  const { stats, achievements, loading, authorized, error } = useReportData(sessionId, participantId);
 
   if (!sessionId || !participantId) {
     return (
@@ -98,6 +98,14 @@ export default function ReportPage() {
       </div>
     );
   }
+
+  if (!authorized || error) return <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
+    <div className="max-w-sm text-center space-y-4"><DoranDoranMascot size="lg" mood="waiting" />
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">이 리포트를 확인할 수 없습니다</h1>
+      <p className="text-base text-slate-500 dark:text-slate-300">수업에 참여한 기기에서 내 학습 리포트를 열어주세요.</p>
+      <a href={`/?s=${encodeURIComponent(sessionId)}`} className="min-h-12 inline-flex items-center justify-center px-5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900">수업으로 돌아가기</a>
+    </div>
+  </div>;
 
   if (loading) {
     return (
@@ -145,8 +153,8 @@ export default function ReportPage() {
             onClick={handleCopy}
             className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
           >
-            {copied ? <Check size={14} /> : <Share2 size={14} />}
-            {copied ? '복사됨' : '링크 공유'}
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            {copied ? '복사됨' : '내 링크 복사'}
           </button>
         </div>
       </div>
@@ -278,7 +286,7 @@ export default function ReportPage() {
             {copied ? <Check size={16} /> : <Copy size={16} />}
             {copied ? '링크 복사됨!' : '리포트 링크 복사'}
           </button>
-          <p className="text-xs text-slate-400">이 링크를 저장하면 언제든 다시 볼 수 있어요</p>
+          <p className="text-xs text-slate-400">수업에 참여한 이 기기에서 링크를 열어 확인하세요</p>
         </motion.div>
 
         {/* Footer */}

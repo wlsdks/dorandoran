@@ -4,6 +4,8 @@ import { db } from '@/lib/firebase';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
+import { getServerNow } from '@/features/timer/api/useTimer';
 
 const PRESETS = [
   { label: '1분', seconds: 60 },
@@ -18,7 +20,7 @@ function formatTime(s) {
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
-export default function DiscussionPresenter({ sessionId }) {
+export default function DiscussionPresenter({ sessionId, readOnly = false, presenter = false }) {
   const [discussion, setDiscussion] = useState(null);
   const [remaining, setRemaining] = useState(0);
   const [topic, setTopic] = useState('');
@@ -33,7 +35,7 @@ export default function DiscussionPresenter({ sessionId }) {
   useEffect(() => {
     if (!discussion?.endTime) { setRemaining(0); return; }
     function tick() {
-      setRemaining(Math.max(0, Math.ceil((discussion.endTime - Date.now()) / 1000)));
+      setRemaining(Math.max(0, Math.ceil((discussion.endTime - getServerNow()) / 1000)));
     }
     tick();
     const interval = setInterval(tick, 200);
@@ -41,7 +43,8 @@ export default function DiscussionPresenter({ sessionId }) {
   }, [discussion?.endTime]);
 
   async function startDiscussion() {
-    const endTime = Date.now() + selectedDuration * 1000;
+    if (readOnly) return;
+    const endTime = getServerNow() + selectedDuration * 1000;
     await set(ref(db, `sessions/${sessionId}/discussion`), {
       topic: topic.trim() || null,
       duration: selectedDuration,
@@ -51,6 +54,7 @@ export default function DiscussionPresenter({ sessionId }) {
   }
 
   async function resetDiscussion() {
+    if (readOnly) return;
     await remove(ref(db, `sessions/${sessionId}/discussion`));
   }
 
@@ -59,8 +63,22 @@ export default function DiscussionPresenter({ sessionId }) {
   const progress = discussion?.duration > 0 ? remaining / discussion.duration : 0;
   const isUrgent = remaining <= 10 && remaining > 0;
 
+  const [memoPage, setMemoPage] = useState(0);
+  const memoPageSize = memos.some(memo => (memo.text || '').length > 160) ? 1 : 3;
+  const memoPages = Math.max(1, Math.ceil(memos.length / memoPageSize));
+  useEffect(() => {
+    if (!presenter || !isFinished || memoPages < 2) return;
+    const timer = setInterval(() => setMemoPage(page => (page + 1) % memoPages), 12000);
+    return () => clearInterval(timer);
+  }, [presenter, isFinished, memoPages]);
+
   // Setup view
   if (!discussion?.endTime) {
+    if (readOnly) return <div className="paper-surface max-w-[1100px] text-center space-y-6 py-10">
+      <DoranDoranMascot size="lg" mood="waiting" />
+      <h3 className="classroom-question-title font-bold">함께 이야기할 준비를 해주세요</h3>
+      <p className="text-2xl text-slate-300">강사가 토론을 시작하면 주제와 남은 시간이 표시됩니다</p>
+    </div>;
     return (
       <div className="flex flex-col items-center gap-6 w-full max-w-md mx-auto" onClick={e => e.stopPropagation()}>
         <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">그룹 토론</h3>
@@ -99,9 +117,9 @@ export default function DiscussionPresenter({ sessionId }) {
   const sortedMemos = [...memos].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto" onClick={e => e.stopPropagation()}>
+    <div className={`flex flex-col items-center gap-6 w-full mx-auto ${presenter ? "paper-surface max-w-[1100px]" : "max-w-2xl"}`} onClick={e => e.stopPropagation()}>
       {discussion.topic && (
-        <p className="text-lg text-slate-500 dark:text-slate-400 text-center">{discussion.topic}</p>
+        <p className={`${presenter ? "text-3xl md:text-4xl text-slate-200" : "text-lg text-slate-500 dark:text-slate-400"} text-center leading-snug break-keep`}>{discussion.topic}</p>
       )}
 
       <motion.div
@@ -127,15 +145,15 @@ export default function DiscussionPresenter({ sessionId }) {
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-2"
         >
-          <p className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">토론 종료!</p>
-          <p className="text-slate-400">{memos.length}개 메모 수집됨</p>
+          <p className={`${presenter ? "text-3xl" : "text-xl"} font-bold text-slate-900 dark:text-slate-100 tracking-tight`}>토론 종료!</p>
+          <p className={presenter ? "text-2xl text-slate-300" : "text-slate-400"}>{memos.length}개 메모 수집됨</p>
         </motion.div>
       )}
 
       {/* Collected memos */}
       {memos.length > 0 && isFinished && (
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
-          {sortedMemos.map((m, i) => (
+        <div className={`w-full grid gap-3 ${presenter ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 max-h-[300px] overflow-y-auto"}`}>
+          {(presenter ? sortedMemos.slice((memoPage % memoPages) * memoPageSize, (memoPage % memoPages) * memoPageSize + memoPageSize) : sortedMemos).map((m, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 8 }}
@@ -143,14 +161,15 @@ export default function DiscussionPresenter({ sessionId }) {
               transition={{ delay: i * 0.05 }}
               className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-3"
             >
-              <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">{m.text}</p>
-              <p className="text-xs text-slate-400 mt-1">{m.nickname}</p>
+              <p className={`${presenter ? "text-2xl" : "text-sm"} text-slate-700 dark:text-slate-200 leading-relaxed break-words`}>{m.text}</p>
+              <p className={`${presenter ? "text-lg text-slate-300" : "text-xs text-slate-400"} mt-1`}>{m.nickname}</p>
             </motion.div>
           ))}
         </div>
       )}
 
-      {isFinished && (
+      {presenter && isFinished && memoPages > 1 && <p className="text-lg text-slate-300">메모 {(memoPage % memoPages) + 1} / {memoPages} · 12초마다 다음 메모</p>}
+      {isFinished && !readOnly && (
         <Button onClick={resetDiscussion} variant="secondary" size="md">새 토론</Button>
       )}
     </div>

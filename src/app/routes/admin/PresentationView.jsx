@@ -1,6 +1,6 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
-import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
 import { isQuizQuestion, normalizeQuizEvent } from '@/lib/quiz';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -76,18 +76,18 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
         role="control"
       />
     );
-    if (currentMode === 'breakTime') return <BreakTimer sessionId={sessionId} />;
-    if (currentMode === 'leaderboard') return <div className="w-full max-w-xl md:max-w-2xl [&_.max-w-xl]:max-w-2xl px-2 md:px-0"><Leaderboard entries={leaderboard} maxShow={10} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
-    if (currentMode === 'qaBoard') return <div className="w-full max-w-4xl"><ClassQABoard sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>;
-    if (currentMode === 'qaRanking') return <QARanking sessionId={sessionId} />;
+    if (currentMode === 'breakTime') return <BreakTimer sessionId={sessionId} presenter={presentMode} />;
+    if (currentMode === 'leaderboard') return <div className="w-full max-w-xl md:max-w-2xl [&_.max-w-xl]:max-w-2xl px-2 md:px-0" style={{ maxWidth: presentMode ? 1100 : undefined }}><Leaderboard presenter={presentMode} entries={leaderboard} maxShow={10} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
+    if (currentMode === 'qaBoard') return <div className="w-full max-w-4xl" style={{ maxWidth: presentMode ? 1100 : undefined }}><ClassQABoard presenter={presentMode} readOnly={presentMode} sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>;
+    if (currentMode === 'qaRanking') return <QARanking sessionId={sessionId} presenter={presentMode} readOnly={presentMode} />;
     if (currentMode === 'joinShow') return <JoinShow sessionId={sessionId} />;
-    if (currentMode === 'awards') return <AwardsCeremony assignmentId={session?.activeAssignmentId} />;
+    if (currentMode === 'awards') return <AwardsCeremony sessionId={sessionId} assignmentId={session?.activeAssignmentId} />;
     if (currentMode === 'randomPicker') return (
-      <RandomPicker participants={onlineList} onResult={(w) => onGameResult?.(w, 'randomPicker')} sessionId={sessionId} role="control" />
+      <RandomPicker presenter={presentMode} participants={onlineList} onResult={(w) => onGameResult?.(w, 'randomPicker')} sessionId={sessionId} role="control" />
     );
-    if (currentMode === 'comprehension') return <ComprehensionPresenter sessionId={sessionId} />;
-    if (currentMode === 'quickSurvey') return <SurveyPresenter sessionId={sessionId} />;
-    if (currentMode === 'discussion') return <DiscussionPresenter sessionId={sessionId} />;
+    if (currentMode === 'comprehension') return <ComprehensionPresenter sessionId={sessionId} presenter={presentMode} />;
+    if (currentMode === 'quickSurvey') return <SurveyPresenter sessionId={sessionId} presenter={presentMode} />;
+    if (currentMode === 'discussion') return <DiscussionPresenter sessionId={sessionId} presenter={presentMode} />;
     if (currentMode === 'combinedRanking') return <CombinedRanking session={session} />;
     if (currentMode === 'focus') return (
       <div className="flex flex-col items-center justify-center gap-4 md:gap-6 text-center">
@@ -134,14 +134,23 @@ export { MainContent };
 
 export function PresentRevealControls({ sessionId, session, onRevealQuiz, onRevealAnswer }) {
   const [drumroll, setDrumroll] = useState(false);
+  const [pendingReveal, setPendingReveal] = useState(null);
+  const [revealError, setRevealError] = useState(null);
+  const revealLock = useRef(null);
   const currentQId = session?.currentQuestion;
   const question = currentQId ? session?.questions?.[currentQId] : null;
+  const revealScope = `${sessionId}:${currentQId}`;
+  const isApplying = pendingReveal === revealScope;
+  useEffect(() => {
+    revealLock.current = null;
+    return () => { revealLock.current = null; };
+  }, [revealScope]);
   if (!question) return null;
 
   // 퀴즈도 발표 모드에서 두구두구/정답 공개 가능. 단, 퀴즈는 점수 반영(revealQuiz)이 필요해
   // useQuestionActions의 함수를 통해 처리 — 일반 정답형/MH는 단순 revealedAt만 찍음(revealAnswer).
   const isQuiz = isQuizQuestion(question);
-  const hasAnswer = isQuiz || question.correctAnswer;
+  const hasAnswer = isQuiz || question.correctAnswer || question.type === 'ranking';
   const isMH = ['mysteryBox', 'hintQuiz'].includes(question.type);
   if (!hasAnswer && !isMH) return null;
 
@@ -150,6 +159,11 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
   const revealedWinners = question.revealedWinners || 0;
   const canRevealWinner = question.revealedAt && isMH && presetWinners.length > 0 && revealedWinners < presetWinners.length;
 
+  if (isQuiz && question.revealedAt && !question.awardedAt) return <div className="flex items-center justify-center gap-3 flex-wrap">
+    <p role="status" className="text-base text-slate-600 dark:text-slate-300">{isApplying ? '점수를 반영하고 있어요' : '점수 반영이 아직 완료되지 않았어요'}</p>
+    <Button onClick={handleRevealAnswer} disabled={isApplying} variant="secondary" aria-label="퀴즈 점수 반영 다시 시도">{isApplying ? '반영 중...' : '점수 반영 다시 시도'}</Button>
+    {revealError?.scope === revealScope && <p role="alert" className="text-sm text-red-600 dark:text-red-300">{revealError.message}</p>}
+  </div>;
   if (question.revealedAt && !canRevealWinner) return null;
   if (question.revealedAt && canRevealWinner) {
     return (
@@ -179,15 +193,23 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
   }
 
   async function handleRevealAnswer() {
-    // 퀴즈는 useQuestionActions.revealQuiz가 점수 반영 + revealedAt까지 일괄 처리.
-    // 그 외(choice/ox/fillinblank/ranking/mysteryBox/hintQuiz)는 revealAnswer가 revealedAt만 찍음.
-    if (isQuiz) {
-      await onRevealQuiz?.(currentQId);
-    } else {
-      await onRevealAnswer?.(currentQId);
+    if (revealLock.current) return;
+    const token = { scope: revealScope };
+    revealLock.current = token;
+    setPendingReveal(revealScope);
+    setRevealError(null);
+    try {
+      const saved = isQuiz ? await onRevealQuiz?.(currentQId) : await onRevealAnswer?.(currentQId);
+      if (saved === false && revealLock.current === token) setRevealError({ scope: revealScope, message: '반영하지 못했어요. 다시 시도해주세요.' });
+    } catch {
+      if (revealLock.current === token) setRevealError({ scope: revealScope, message: '반영하지 못했어요. 다시 시도해주세요.' });
+    } finally {
+      if (revealLock.current === token) await update(ref(db, `sessions/${sessionId}`), { drumroll: null }).catch(() => {});
+      if (revealLock.current === token) {
+        revealLock.current = null;
+        setPendingReveal(null);
+      }
     }
-    // drumroll 잔여 상태 정리 (두구두구 경유든 직접 클릭이든 항상 false로)
-    await update(ref(db, `sessions/${sessionId}`), { drumroll: null });
   }
 
   return (
@@ -207,10 +229,11 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
         }} variant="ghost" size="lg">
           두구두구
         </Button>
-        <Button onClick={handleRevealAnswer} variant="primary" size="lg">
+        <Button onClick={handleRevealAnswer} disabled={isApplying} variant="primary" size="lg">
           <Eye size={20} />
           정답 공개
         </Button>
+        {revealError?.scope === revealScope && <p role="alert" className="text-sm text-red-600 dark:text-red-300">{revealError.message}</p>}
       </div>
     </>
   );
@@ -246,6 +269,10 @@ export default function PresentationView({ sessionId, session, currentMode, onli
     const q = session?.questions?.[qId];
     if (!q) return;
     const mode = isQuizQuestion(q) ? 'quiz' : 'poll';
+    if (isQuizQuestion(q) && (q.revealedAt || q.awardedAt)) {
+      await update(ref(db, `sessions/${sessionId}`), { currentQuestion: qId, currentMode: mode, speedQuiz: null, drumroll: null, timer: null });
+      return;
+    }
     const updates = {
       currentQuestion: qId, currentMode: mode,
       [`questions/${qId}/activatedAt`]: Date.now(),
@@ -291,6 +318,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
     const handler = (event) => {
       if (event.defaultPrevented || event.target?.closest('input,textarea,select,[contenteditable="true"],[role="dialog"]')) return;
       if (event.key === 'Escape') { exitPresent(); return; }
+      if (event.key === ' ' && event.target?.closest('button,a[href]')) return;
       const question = session?.questions?.[session?.currentQuestion];
       const slide = Number.isInteger(question?.currentSlide) ? question.currentSlide : 0;
       const images = question?.slideImages || [];

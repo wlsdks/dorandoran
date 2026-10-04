@@ -261,7 +261,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -4 }}
                       transition={{ duration: 0.15 }}
-                      className="text-xs text-red-400"
+                      className="text-sm text-red-500 dark:text-red-400"
                       role="alert"
                     >
                       {error || `${NICKNAME_MIN}자 이상 입력해주세요`}
@@ -273,7 +273,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className={`text-xs ${isValid ? 'text-emerald-500 dark:text-emerald-400 font-medium' : 'text-slate-400 dark:text-slate-500'}`}
+                      className={`text-sm ${isValid ? 'text-emerald-500 dark:text-emerald-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}
                     >
                       {isValid ? '참여 준비 완료' : '2~10자로 입력해주세요'}
                     </motion.span>
@@ -292,9 +292,9 @@ export default function JoinPage({ sessionId, onJoin }) {
                   <button
                     type="button"
                     onClick={() => setShowEmployeeId(true)}
-                    className="w-full text-center text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors py-1.5"
+                    className="w-full min-h-12 rounded-xl text-center text-sm text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors py-2.5"
                   >
-                    + 사번 입력하기 <span className="text-slate-300 dark:text-slate-600">(선택)</span>
+                    + 사번 입력하기 <span className="text-slate-500 dark:text-slate-400">(선택)</span>
                   </button>
                 ) : (
                   <motion.div
@@ -320,7 +320,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                           : 'border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 focus:border-indigo-500 dark:focus:border-indigo-400'
                       }`}
                     />
-                    <p className="text-[11px] text-center text-slate-400 dark:text-slate-500">
+                    <p className="text-sm text-center leading-relaxed text-slate-500 dark:text-slate-400">
                       {requireEmployeeId
                         ? '이 행사는 사번 입력이 필요해요'
                         : '선택사항이에요 — 입력하지 않아도 참여할 수 있어요'}

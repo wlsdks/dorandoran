@@ -1,9 +1,10 @@
-import { ref, onValue, update, set, remove, runTransaction, increment } from 'firebase/database';
+import { ref, onValue, update, set, remove, get } from 'firebase/database';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { db } from '@/lib/firebase';
-import { isQuizQuestion, getQuizReward } from '@/lib/quiz';
+import { isQuizQuestion } from '@/lib/quiz';
 import { logger } from '@/lib/logger';
 import { getServerNow } from '@/features/timer/api/useTimer';
+import { awardQuizRound, quizComboMultiplier } from '@/lib/quiz-awards';
 
 const SPEED_QUIZ_TIMER = 10; // seconds per question
 const REVEAL_PAUSE = 3500;   // ms to show answer before next question
@@ -16,29 +17,41 @@ const REVEAL_PAUSE = 3500;   // ms to show answer before next question
  * 3. After a 3.5s pause, auto-advances to the next quiz question
  * 4. At the end, shows the leaderboard
  */
-export function useSpeedQuiz(sessionId, session, { scores, participants, startTimer, stopTimer }) {
+export function useSpeedQuiz(sessionId, session, { startTimer, stopTimer }) {
   const [active, setActive] = useState(false);
   const [phase, setPhase] = useState('idle'); // idle | question | reveal | done
   const phaseTimerRef = useRef(null);
   const advancingRef = useRef(false); // prevent double-fire
   const sessionRef = useRef(session);
-  const scoresRef = useRef(scores);
-  const participantsRef = useRef(participants);
+  const runEpochRef = useRef(0);
+  const activeRef = useRef(false);
+  const observedRunRef = useRef(null);
 
   // Keep refs up to date
   useEffect(() => { sessionRef.current = session; }, [session]);
-  useEffect(() => { scoresRef.current = scores; }, [scores]);
-  useEffect(() => { participantsRef.current = participants; }, [participants]);
 
   // Listen for speedQuiz state from Firebase
   useEffect(() => {
     if (!sessionId) return;
     const speedRef = ref(db, `sessions/${sessionId}/speedQuiz`);
+    let subscribed = true;
     const unsub = onValue(speedRef, (snap) => {
+      if (!subscribed) return;
       const data = snap.val();
-      setActive(data?.active === true);
+      const run = data?.active === true ? (data.startedAt ?? 'legacy-active') : null;
+      if (run !== observedRunRef.current) {
+        observedRunRef.current = run;
+        runEpochRef.current += 1;
+        advancingRef.current = false;
+      }
+      activeRef.current = data?.active === true;
+      setActive(activeRef.current);
+      if (!activeRef.current) {
+        if (phaseTimerRef.current) { clearTimeout(phaseTimerRef.current); phaseTimerRef.current = null; }
+        setPhase('idle');
+      }
     });
-    return () => unsub();
+    return () => { subscribed = false; observedRunRef.current = null; unsub(); };
   }, [sessionId]);
 
   // Cleanup phase timer on unmount
@@ -47,6 +60,8 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
     mountedRef.current = true;
     return () => {
     mountedRef.current = false;
+    runEpochRef.current += 1;
+    activeRef.current = false;
     if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
     };
   }, [sessionId]);
@@ -78,6 +93,7 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
         currentQuestion: qId,
         currentMode: 'quiz',
         [`questions/${qId}/activatedAt`]: now,
+        [`questions/${qId}/speedQuizRound`]: now,
         [`questions/${qId}/revealedAt`]: null,
         [`questions/${qId}/awardedAt`]: null,
       });
@@ -92,6 +108,8 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
 
   // Internal end (no confirmation needed)
   const endSpeedQuizInternal = useCallback(async () => {
+    runEpochRef.current += 1;
+    activeRef.current = false;
     try {
       if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
       await remove(ref(db, `sessions/${sessionId}/speedQuiz`));
@@ -106,8 +124,9 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
 
   // Reveal the current question's answer and award scores
   const revealAndAdvance = useCallback(async () => {
-    if (advancingRef.current) return; // prevent double-fire
+    if (advancingRef.current || !activeRef.current) return; // prevent double-fire
     advancingRef.current = true;
+    const runEpoch = runEpochRef.current;
 
     const currentQId = sessionRef.current?.currentQuestion;
     const question = sessionRef.current?.questions?.[currentQId];
@@ -117,50 +136,11 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
     }
 
     try {
-      const now = getServerNow(); // revealedAt/awardedAt도 서버 기준으로 통일
-      const voteEntries = Object.entries(question.votes || {});
-      const updates = {
-        currentMode: 'quiz',
-        [`questions/${currentQId}/revealedAt`]: now,
-      };
-
-      // awardedAt 트랜잭션 선점 — 다중 기기 동시 리빌 시 이중 지급 방지 (revealQuiz와 동일 정책)
-      let iAward = false;
-      if (!question.awardedAt) {
-        const claim = await runTransaction(
-          ref(db, `sessions/${sessionId}/questions/${currentQId}/awardedAt`),
-          (cur) => (cur ? undefined : now)
-        );
-        iAward = claim.committed;
-      }
-      if (iAward) {
-        const currentScores = scoresRef.current;
-        const currentParticipants = participantsRef.current;
-
-        voteEntries.forEach(([participantId, vote]) => {
-          const reward = getQuizReward(question, vote);
-          const existingScore = currentScores[participantId] || {};
-          const nextStreak = reward.isCorrect ? (existingScore.streak || 0) + 1 : 0;
-          const nickname = currentParticipants[participantId]?.nickname ||
-            vote.nickname || existingScore.nickname || `P${participantId.slice(0, 4)}`;
-
-          // Apply combo multiplier for speed quiz streaks
-          const comboMultiplier = getComboMultiplier(nextStreak);
-          const boostedPoints = Math.round(reward.points * comboMultiplier);
-
-          updates[`scores/${participantId}/total`] = increment(boostedPoints);
-          updates[`scores/${participantId}/nickname`] = nickname;
-          updates[`scores/${participantId}/lastPoints`] = boostedPoints;
-          updates[`scores/${participantId}/streak`] = nextStreak;
-          updates[`scores/${participantId}/bestStreak`] = Math.max(existingScore.bestStreak || 0, nextStreak);
-          updates[`scores/${participantId}/lastQuestionId`] = currentQId;
-          updates[`scores/${participantId}/updatedAt`] = now;
-        });
-      }
-
-      // Stop the timer and apply updates
+      const result = await awardQuizRound(db, sessionId, currentQId, getServerNow());
+      if (result.status === 'not-quiz') throw new Error('QUIZ_CHANGED');
+      if (!mountedRef.current || runEpochRef.current !== runEpoch || !activeRef.current) return;
       await stopTimer();
-      await update(ref(db, `sessions/${sessionId}`), updates);
+      if (!mountedRef.current || runEpochRef.current !== runEpoch || !activeRef.current) return;
       setPhase('reveal');
 
       // Find next unrevealed quiz question
@@ -177,7 +157,27 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
 
       // After reveal pause, advance or finish
       phaseTimerRef.current = setTimeout(async () => {
-        if (!mountedRef.current) return;
+        if (!mountedRef.current || runEpochRef.current !== runEpoch || !activeRef.current) return;
+        // 다른 강사가 문항/모드를 바꾼 뒤 늦게 끝난 자동 진행이 그 화면을 덮지 않는다.
+        let activeQuestion, activeMode;
+        try {
+          [activeQuestion, activeMode] = await Promise.all([
+            get(ref(db, `sessions/${sessionId}/currentQuestion`)),
+            get(ref(db, `sessions/${sessionId}/currentMode`)),
+          ]);
+        } catch (e) {
+          if (!mountedRef.current || runEpochRef.current !== runEpoch) return;
+          advancingRef.current = false;
+          setPhase('idle');
+          logger.error('Speed quiz: state check failed', e);
+          return;
+        }
+        if (!mountedRef.current || runEpochRef.current !== runEpoch || !activeRef.current) return;
+        if (activeQuestion.val() !== currentQId || activeMode.val() !== 'quiz') {
+          advancingRef.current = false;
+          setPhase('idle');
+          return;
+        }
         if (nextQ) {
           await activateQuizQuestion(nextQ[0]);
         } else {
@@ -187,6 +187,7 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
             if (mountedRef.current) setPhase('done');
             // End speed quiz after leaderboard is shown
             phaseTimerRef.current = setTimeout(async () => {
+              if (!mountedRef.current || runEpochRef.current !== runEpoch || !activeRef.current) return;
               await endSpeedQuizInternal();
             }, 5000);
           } catch (e) {
@@ -197,51 +198,49 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
     } catch (e) {
       logger.error('Speed quiz: reveal failed', e);
       advancingRef.current = false;
+      if (mountedRef.current && runEpochRef.current === runEpoch && activeRef.current) await endSpeedQuizInternal();
     }
     // endSpeedQuizInternal은 같은 hook 내 함수 — 의도적 omit (recursive 호출이라 dep 추가 시 매 render 재생성)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, stopTimer, getQuizQuestions, activateQuizQuestion]);
 
-  // Watch the timer and auto-fire when it expires during speed quiz
+  // Timer는 session metadata에 포함되지 않는다. timer leaf snapshot마다 실제 마감 시각을
+  // 예약하고, 타이머 링이 만료 직후 endTime을 지워도 마지막 마감으로 공개를 완료한다.
   useEffect(() => {
     if (!active || phase !== 'question') return;
-
-    const timerRef = ref(db, `sessions/${sessionId}/timer`);
-    const unsub = onValue(timerRef, (snap) => {
-      const data = snap.val();
-      if (!data?.endTime || !data?.running) return;
-
-      const remaining = data.endTime - getServerNow();
-      if (remaining <= 0) {
-        // Timer expired, trigger reveal+advance
-        revealAndAdvance();
+    const questionId = session?.currentQuestion;
+    let subscribed = true;
+    let deadline = null;
+    let timeout = null;
+    const fire = () => {
+      if (!subscribed || !activeRef.current || sessionRef.current?.currentQuestion !== questionId) return;
+      revealAndAdvance();
+    };
+    const unsubscribe = onValue(ref(db, `sessions/${sessionId}/timer`), snapshot => {
+      if (!subscribed) return;
+      if (timeout) clearTimeout(timeout);
+      timeout = null;
+      const data = snapshot.val();
+      if (!data?.running || !Number.isFinite(data.endTime)) {
+        // 수동으로 일찍 멈춘 경우는 취소. 자연 만료로 ring이 정리한 경우는 공개한다.
+        if (Number.isFinite(deadline) && deadline <= getServerNow()) fire();
+        deadline = null;
+        return;
       }
-    });
-    return () => unsub();
-  }, [active, phase, sessionId, revealAndAdvance]);
-
-  // Also set a local setTimeout as backup for auto-advance
-  useEffect(() => {
-    if (!active || phase !== 'question') return;
-
-    const timer = sessionRef.current?.timer || {};
-    if (!timer || !timer.endTime) return;
-
-    // 서버 시간 기준 remaining — 강사 기기 시계와 endTime 기준(서버)이 어긋나도 정확.
-    const remaining = Math.max(0, timer.endTime - getServerNow()) + 500; // +500ms buffer
-    const id = setTimeout(() => {
-      if (phase === 'question') {
-        revealAndAdvance();
-      }
-    }, remaining);
-
-    return () => clearTimeout(id);
-  }, [active, phase, revealAndAdvance]);
+      deadline = data.endTime;
+      const remaining = deadline - getServerNow();
+      if (remaining <= 0) fire();
+      else timeout = setTimeout(fire, remaining);
+    }, () => { if (timeout) clearTimeout(timeout); });
+    return () => { subscribed = false; if (timeout) clearTimeout(timeout); unsubscribe(); };
+  }, [active, phase, sessionId, session?.currentQuestion, revealAndAdvance]);
 
   // Start speed quiz mode
   const startSpeedQuiz = useCallback(async () => {
-    const quizQs = getQuizQuestions();
-    if (quizQs.length === 0) return;
+    runEpochRef.current += 1;
+    activeRef.current = true;
+    const quizQs = getQuizQuestions().filter(([, question]) => !question.revealedAt && !question.awardedAt);
+    if (quizQs.length === 0) { activeRef.current = false; return; }
 
     try {
       await set(ref(db, `sessions/${sessionId}/speedQuiz`), {
@@ -252,6 +251,7 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
       // Activate first quiz question
       await activateQuizQuestion(quizQs[0][0]);
     } catch (e) {
+      activeRef.current = false;
       logger.error('Speed quiz: start failed', e);
     }
   }, [sessionId, getQuizQuestions, activateQuizQuestion]);
@@ -259,6 +259,8 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
 
   // End speed quiz mode (called by admin button)
   const endSpeedQuiz = useCallback(async () => {
+    runEpochRef.current += 1;
+    activeRef.current = false;
     try {
       if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
       await stopTimer();
@@ -277,7 +279,7 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
 
   const quizQuestions = useMemo(() => Object.entries(session?.questions || {}).filter(([, question]) => isQuizQuestion(question))
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0)), [session?.questions]);
-  const quizCount = quizQuestions.length;
+  const quizCount = active ? quizQuestions.length : quizQuestions.filter(([, question]) => !question.revealedAt && !question.awardedAt).length;
   const currentQuizIndex = quizQuestions.findIndex(([id]) => id === session?.currentQuestion) + 1;
 
   return {
@@ -295,9 +297,7 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
  * 1-2 streak: 1x, 3-4 streak: 1.2x, 5+ streak: 1.5x
  */
 export function getComboMultiplier(streak) {
-  if (streak >= 5) return 1.5;
-  if (streak >= 3) return 1.2;
-  return 1;
+  return quizComboMultiplier(streak);
 }
 
 /**

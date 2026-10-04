@@ -10,7 +10,7 @@ export default function LookupForm({ assignmentId, onFound }) {
   const [loading, setLoading] = useState(false);
 
   async function handleLookup() {
-    if (!name.trim() || (pin.length < 4 || pin.length > 8)) return;
+    if (!name.trim() || ! /^(?:\d{4}|\d{8})$/.test(pin)) return;
     setLoading(true);
     setError('');
     try {
@@ -18,6 +18,8 @@ export default function LookupForm({ assignmentId, onFound }) {
       if (result.error === 'NOT_FOUND') setError('해당 이름의 제출물을 찾을 수 없습니다. 제출 시 입력한 이름을 정확히 입력해주세요.');
       else if (result.error === 'PIN_MISMATCH') setError('이름 또는 조회용 비밀번호가 일치하지 않습니다. 다시 확인해주세요.');
       else onFound(result.submission);
+    } catch {
+      setError('조회하지 못했어요. 연결을 확인하고 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
@@ -46,7 +48,7 @@ export default function LookupForm({ assignmentId, onFound }) {
         />
       </div>
       {error && <p className="text-xs text-red-500">{error}</p>}
-      <Button onClick={handleLookup} variant="primary" size="lg" disabled={!name.trim() || (pin.length < 4 || pin.length > 8) || loading} className="w-full">
+      <Button onClick={handleLookup} variant="primary" size="lg" disabled={!name.trim() || ! /^(?:\d{4}|\d{8})$/.test(pin) || loading} className="w-full">
         {loading ? '조회 중...' : '조회하기'}
       </Button>
     </div>

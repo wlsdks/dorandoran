@@ -1,3 +1,4 @@
+import { submissionImages } from '@/lib/submission-images';
 import { auth, ensureAuthentication } from '@/lib/auth-session';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { logger } from '@/lib/logger';
@@ -14,7 +15,7 @@ import IdentityFields from './IdentityFields';
 import ScreenshotsField from './ScreenshotsField';
 
 const MAX_SCREENSHOTS = 10;
-const MAX_IMAGE_SIZE = 15 * 1024 * 1024; // 15MB per image
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // Storage rules와 같은 상한
 const MAX_PRD_CHARS = 10000;
 const MAX_CODE_CHARS = 50000; // HTML 코드 길이 제한 (라이브 AI 심사와 동일)
 
@@ -28,7 +29,7 @@ export default function SubmissionForm({ onSubmit, existingSubmission, assignmen
   const [pinConfirm, setPinConfirm] = useState('');
   const [prdContent, setPrdContent] = useState(existingSubmission?.prdContent || '');
   const [screenshots, setScreenshots] = useState(
-    Array.isArray(existingSubmission?.screenshots) ? existingSubmission.screenshots : []
+    submissionImages(existingSubmission?.screenshots)
   );
   const [code, setCode] = useState(existingSubmission?.code || '');
   const [codeFileName, setCodeFileName] = useState('');
@@ -85,7 +86,7 @@ export default function SubmissionForm({ onSubmit, existingSubmission, assignmen
             throw new Error('이미지 파일만 업로드 가능');
           }
           if (file.size > MAX_IMAGE_SIZE) {
-            throw new Error(`15MB 초과 (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+            throw new Error(`10MB 초과 (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
           }
           if (!assignmentId) {
             throw new Error('assignmentId 없음');

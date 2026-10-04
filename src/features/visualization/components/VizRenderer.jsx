@@ -14,6 +14,7 @@ import DebateChart from './DebateChart';
 import RankingChart from './RankingChart';
 import FillBlankChart from './FillBlankChart';
 import ShortAnswerChart from './ShortAnswerChart';
+import ClassroomResponseFeed from './ClassroomResponseFeed';
 import CheckProgress from './CheckProgress';
 import MysteryBoxPresenter from './MysteryBoxPresenter';
 import HintQuizPresenter from './HintQuizPresenter';
@@ -89,9 +90,11 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
   const isEnded = session?.status === 'ended' || session?.status === 'reviewing';
   const hasCorrectAnswer = Boolean(question.correctAnswer);
   const answerRevealed = Boolean(question.revealedAt) || isEnded;
+  const onDisplayPageChange = isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined;
+  const framed = isPresenter && !['imageSlide', 'webEmbed', 'aiJudge'].includes(question.type);
 
   return (
-    <div className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : isPresenter ? 'justify-center gap-5 py-3' : 'justify-center gap-6 py-4'} ${isPresenter && ['choice','quiz','wordcloud'].includes(question.type) ? 'paper-surface' : ''} relative`}>
+    <div className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : isPresenter ? 'justify-center gap-5 py-3' : 'justify-center gap-6 py-4'} ${framed ? 'paper-surface' : ''} relative`}>
       {confettiWave > 0 && hasCorrectAnswer && <Suspense fallback={null}>
         <div className="absolute right-10 top-12 pointer-events-none z-10 scale-75"><ConfettiBurst key={revealedAt} /></div>
       </Suspense>}
@@ -133,7 +136,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
 
       {/* Visualization */}
       <ErrorBoundary scope="visualization" fullPage={false}>
-        <div className={isFeed ? 'flex-1 overflow-y-auto px-4 py-3' : 'w-full'}>
+        <div data-kind={question.type} className={`${isFeed ? 'flex-1 overflow-y-auto px-4 py-3' : 'w-full'} ${isPresenter ? 'classroom-visualization' : ''}`}>
           {question.type === 'choice' && (
             <>
               <BarChart
@@ -199,10 +202,10 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
             </>
           )}
           {question.type === 'scale' && <ScaleChart sessionId={sessionId} questionId={currentQId} minLabel={question.minLabel} maxLabel={question.maxLabel} />}
-          {question.type === 'debate' && <DebateChart sessionId={sessionId} questionId={currentQId} />}
-          {question.type === 'ranking' && <RankingChart sessionId={sessionId} questionId={currentQId} items={options} />}
+          {question.type === 'debate' && <DebateChart sessionId={sessionId} questionId={currentQId} presenter={isPresenter} readOnly={isPresenter && !isAdmin} page={question.displayPage || 0} onPageChange={onDisplayPageChange} />}
+          {question.type === 'ranking' && <RankingChart sessionId={sessionId} questionId={currentQId} items={options} revealed={answerRevealed || !isPresenter} />}
           {question.type === 'fillinblank' && (
-            <FillBlankChart
+            <FillBlankChart presenter={isPresenter}
               sessionId={sessionId}
               questionId={currentQId}
               title={question.title}
@@ -211,7 +214,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
             />
           )}
           {question.type === 'shortAnswer' && (
-            <ShortAnswerChart
+            <ShortAnswerChart presenter={isPresenter}
               sessionId={sessionId}
               questionId={currentQId}
               correctAnswer={question.correctAnswer}
@@ -239,7 +242,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 revealed={answerRevealed}
               />
               {answerRevealed && (
-                <CorrectAnswerRanking
+                <CorrectAnswerRanking presenter={isPresenter}
                   sessionId={sessionId}
                   questionId={currentQId}
                   correctAnswer={question.correctAnswer}
@@ -256,7 +259,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 revealed={answerRevealed}
               />
               {answerRevealed && (
-                <CorrectAnswerRanking
+                <CorrectAnswerRanking presenter={isPresenter}
                   sessionId={sessionId}
                   questionId={currentQId}
                   correctAnswer={question.correctAnswer}
@@ -268,11 +271,11 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           {isQA && (
             <>
               {isAdmin && !isPresenter && <AISummaryBanner sessionId={sessionId} questionId={currentQId} questionTitle={question.title} questionType="qna" />}
-              <QACards sessionId={sessionId} questionId={currentQId} title={question.title} />
+              {isPresenter ? <ClassroomResponseFeed sessionId={sessionId} questionId={currentQId} question={question} onPageChange={onDisplayPageChange} /> : <QACards sessionId={sessionId} questionId={currentQId} title={question.title} />}
             </>
           )}
           {isSubjective && (
-            <SubjectiveResults sessionId={sessionId} questionId={currentQId} question={question} isAdmin={isAdmin} />
+            isPresenter ? <ClassroomResponseFeed sessionId={sessionId} questionId={currentQId} question={question} onPageChange={onDisplayPageChange} /> : <SubjectiveResults sessionId={sessionId} questionId={currentQId} question={question} isAdmin={isAdmin} />
           )}
           {question.type === 'aiJudge' && (
             <AiJudgeViz

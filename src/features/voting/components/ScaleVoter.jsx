@@ -1,3 +1,4 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -71,6 +72,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
     { value: 100, label: maxLabel || '매우' },
   ], [minLabel, maxLabel]);
   const { myVote } = useMyVote(sessionId, questionId);
+  const { begin, finish, canRestore } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [value, setValue] = useState(50);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -78,8 +80,8 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
   const trackRef = useRef(null);
 
   useEffect(() => {
-    if (myVote != null && !submitted) { setValue(Number(myVote)); setSubmitted(true); }
-  }, [myVote, submitted]);
+    if (canRestore() && myVote != null && !submitted) { setValue(Number(myVote)); setSubmitted(true); }
+  }, [myVote, submitted, canRestore]);
 
   useEffect(() => {
     if (!error) return;
@@ -89,6 +91,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
 
   const handleSubmit = useCallback(async () => {
     if (disabled || submitting) return;
+    const token = begin(); if (token === null) return;
     setSubmitting(true);
     try {
       const pid = getParticipantId();
@@ -97,13 +100,16 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
         nickname: getNickname() || '익명',
         timestamp: serverTimestamp(),
       });
+      if (!finish(token)) return;
       setSubmitted(true);
     } catch (err) {
+      if (!finish(token)) return;
+      setSubmitted(false);
       logger.error('Scale vote failed:', err);
       setSubmitting(false);
       setError('응답 제출에 실패했습니다. 다시 시도해주세요.');
     }
-  }, [sessionId, questionId, value, disabled, submitting]);
+  }, [sessionId, questionId, value, disabled, submitting, begin, finish]);
 
   if (submitted) {
     return (

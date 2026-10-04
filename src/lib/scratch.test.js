@@ -37,11 +37,19 @@ describe('buildScratchBoard', () => {
     }
   });
 
-  it('대상이 2명뿐이어도 규칙을 지킨다 (100판)', () => {
-    for (let i = 0; i < 100; i += 1) {
-      const board = buildScratchBoard(people(2));
-      expect(allTriples(board.cells)).toHaveLength(1);
-      expect(findWinningRow(board.cells)).toBe(board.winningRow);
+  it.each([0, 1, 2])('두 사람·당첨 행 %i: 같은 난수의 반복에도 당첨 줄은 하나다', (winningRow) => {
+    const list = people(2);
+    for (const winner of list) {
+      let calls = 0;
+      // 기존 무작위 수선은 이 순서에서 20회 모두 순환해 당첨 줄 두 개를 반환했다.
+      const random = () => calls++ === 0 ? (winningRow + 0.1) / 3 : 0;
+      const board = buildScratchBoard(list, { winner, random });
+      expect(board.winningRow).toBe(winningRow);
+      expect(board.winner).toBe(winner);
+      expect(allTriples(board.cells)).toEqual([ROW_LINES[winningRow]]);
+      expect(findWinningRow(board.cells)).toBe(winningRow);
+      expect(ROW_LINES[winningRow].every((index) => board.cells[index].id === winner.id)).toBe(true);
+      expect(board.cells.every((cell) => list.some((person) => person.id === cell.id && person.employeeId === cell.employeeId))).toBe(true);
     }
   });
 

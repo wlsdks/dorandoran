@@ -15,7 +15,7 @@ function getTitle({ answeredCount, correctRate, rank, totalParticipants, bestStr
   if (answeredCount === 0) return '참여해주셔서 감사합니다';
   if (rank === 1 && totalParticipants > 2) return '오늘의 1등!';
   if (achievementCount >= 4) return '업적 마스터!';
-  if (rank <= 3 && totalParticipants > 3) return '상위권 달성!';
+  if (rank > 0 && rank <= 3 && totalParticipants > 3) return '상위권 달성!';
   if (bestStreak >= 5) return '연승의 달인';
   if (correctRate >= 90 && answeredCount >= 3) return '완벽에 가까운 정답률';
   if (correctRate >= 70) return '잘 해냈어요!';

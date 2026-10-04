@@ -1,3 +1,4 @@
+import { participantIsOnline } from '@/lib/participants';
 import { authenticatedRequest } from '@/lib/auth-session';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -55,7 +56,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
           id,
           status: s.status,
           roundNumber: s.roundNumber || null,
-          participantCount: s.participants ? Object.values(s.participants).filter((p) => p.online).length : 0,
+          participantCount: s.participantCount ?? (s.participants ? Object.values(s.participants).filter(participantIsOnline).length : 0),
           createdAt: s.createdAt || 0,
         }))
         .sort((a, b) => b.createdAt - a.createdAt);

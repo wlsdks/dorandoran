@@ -82,7 +82,7 @@ export default function ScreenshotsField({
         <label className="group flex flex-col items-center gap-2 py-8 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-600 cursor-pointer hover:border-slate-300 dark:hover:border-slate-500 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-all">
           <Upload size={20} className="text-slate-300 dark:text-slate-500 group-hover:text-slate-400 transition-colors" />
           <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">스크린샷 선택</span>
-          <span className="text-xs text-slate-400 dark:text-slate-500">PNG · JPG · 최대 {maxScreenshots}장 · 장당 15MB</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">PNG · JPG · 최대 {maxScreenshots}장 · 장당 10MB</span>
           <input
             ref={fileInputRef}
             type="file"

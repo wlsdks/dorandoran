@@ -92,12 +92,12 @@ export default function QuestionCard({ question: originalQuestion, index, pid, n
             {isAdmin && onToggleHidden && (
               <button
                 onClick={() => onToggleHidden(q.id)}
-                className={`p-1.5 rounded-lg text-xs transition-colors duration-150 ${
+                className={`min-h-11 min-w-11 flex items-center justify-center p-1.5 rounded-lg text-xs transition-colors duration-150 ${
                   isHidden
                     ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-700'
                 }`}
-                title={isHidden ? '질문 공개' : '질문 숨기기'}
+                title={isHidden ? '질문 공개' : '질문 숨기기'} aria-label={isHidden ? '질문 공개' : '질문 숨기기'}
               >
                 {isHidden ? <Eye size={14} /> : <EyeOff size={14} />}
               </button>
@@ -106,13 +106,13 @@ export default function QuestionCard({ question: originalQuestion, index, pid, n
           </div>
         </div>
 
-        <p className={`text-sm md:text-base leading-snug line-clamp-2 ${isHidden ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-slate-100'}`}>{q.text}</p>
+        <p className={`text-base leading-snug line-clamp-2 ${isHidden ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-slate-100'}`}>{q.text}</p>
 
         {/* Actions row */}
-        <div className="flex items-center gap-4 pt-0.5">
+        <div className="flex flex-wrap items-center gap-3 pt-0.5">
           <button
-            disabled={readonly} onClick={() => onUpvote(q.id, pid)}
-            className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-150 ${
+            disabled={readonly} onClick={() => onUpvote(q.id, pid)} aria-label={hasUpvoted ? '질문 공감 취소' : '질문에 공감하기'} aria-pressed={!!hasUpvoted}
+            className={`min-h-11 min-w-11 px-2 flex items-center justify-center gap-1.5 text-sm font-medium transition-colors duration-150 ${
               hasUpvoted
                 ? 'text-slate-900 dark:text-slate-100'
                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
@@ -124,7 +124,8 @@ export default function QuestionCard({ question: originalQuestion, index, pid, n
 
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
+            aria-expanded={expanded}
+            className="min-h-11 px-2 flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
           >
             <MessageSquare size={14} />
             <span>{q.answerCount > 0 ? `답변 ${q.answerCount}개` : '답변하기'}</span>
@@ -162,13 +163,13 @@ export default function QuestionCard({ question: originalQuestion, index, pid, n
                   onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handlePostAnswer()}
                   placeholder="답변 작성..."
                   maxLength={500}
-                  className="flex-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  className="flex-1 min-w-0 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
                 <button
                   onClick={handlePostAnswer}
                   disabled={!answerText.trim() || posting}
                   aria-label="답변 등록"
-                  className="px-3 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg text-sm font-medium disabled:opacity-40 transition-colors duration-150 hover:bg-slate-800 dark:hover:bg-slate-200"
+                  className="min-h-11 min-w-11 flex items-center justify-center px-3 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg text-sm font-medium disabled:opacity-40 transition-colors duration-150 hover:bg-slate-800 dark:hover:bg-slate-200"
                 >
                   <Send size={14} />
                 </button>

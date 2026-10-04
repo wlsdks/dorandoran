@@ -104,7 +104,7 @@ export default memo(function ConfettiBurst() {
 
   return (
     <div
-      className="absolute inset-0 pointer-events-none z-10"
+      className="absolute inset-0 pointer-events-none z-10 overflow-clip"
       aria-hidden="true"
     >
       {particles.map((p) => (

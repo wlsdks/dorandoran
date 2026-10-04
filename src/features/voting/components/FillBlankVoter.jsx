@@ -1,3 +1,4 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -17,7 +18,7 @@ import { Users } from 'lucide-react';
 function SentencePreview({ title, answer }) {
   const parts = (title || '').split('___');
   return (
-    <p className="text-sm text-slate-600 leading-relaxed">
+    <p className="text-base text-slate-700 dark:text-slate-200 [word-break:keep-all] [overflow-wrap:anywhere] leading-relaxed">
       {parts.map((part, i) => (
         <span key={i}>
           {part}
@@ -25,9 +26,9 @@ function SentencePreview({ title, answer }) {
             <span className={`inline-block mx-0.5 px-2 py-0.5 rounded-md text-sm font-semibold border-b-2 ${
               answer?.trim()
                 ? 'bg-slate-100 text-slate-900 border-slate-400 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-500'
-                : 'bg-slate-50 text-slate-300 border-dashed border-slate-300 dark:bg-slate-700 dark:text-slate-500 dark:border-slate-500'
+                : 'bg-slate-100 text-slate-600 border-dashed border-slate-400 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-400'
             }`}>
-              {answer?.trim() || '???'}
+              {answer?.trim() || '빈칸'}
             </span>
           )}
         </span>
@@ -110,14 +111,15 @@ function AnswerDistribution({ sessionId, questionId, correctAnswer }) {
 
 export default memo(function FillBlankVoter({ sessionId, questionId, title, correctAnswer, disabled = false }) {
   const { myVote } = useMyVote(sessionId, questionId);
+  const { begin, finish, canRestore } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [answer, setAnswer] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (myVote && !submitted) { setAnswer(myVote); setSubmitted(true); }
-  }, [myVote, submitted]);
+    if (canRestore() && myVote && !submitted) { setAnswer(myVote); setSubmitted(true); }
+  }, [myVote, submitted, canRestore]);
 
   useEffect(() => {
     if (!error) return;
@@ -127,6 +129,7 @@ export default memo(function FillBlankVoter({ sessionId, questionId, title, corr
 
   const handleSubmit = useCallback(async () => {
     if (disabled || submitting || !answer.trim()) return;
+    const token = begin(); if (token === null) return;
     setSubmitting(true);
     try {
       const pid = getParticipantId();
@@ -135,13 +138,16 @@ export default memo(function FillBlankVoter({ sessionId, questionId, title, corr
         nickname: getNickname() || '익명',
         timestamp: serverTimestamp(),
       });
+      if (!finish(token)) return;
       setSubmitted(true);
     } catch (err) {
+      if (!finish(token)) return;
+      setSubmitted(false);
       logger.error('Fill-in-blank vote failed:', err);
       setSubmitting(false);
       setError('답변 제출에 실패했습니다. 다시 시도해주세요.');
     }
-  }, [sessionId, questionId, answer, disabled, submitting]);
+  }, [sessionId, questionId, answer, disabled, submitting, begin, finish]);
 
   if (submitted) {
     return (

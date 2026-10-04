@@ -26,7 +26,9 @@ export function useAdminKeyboardShortcuts({
   isQuizFn,
 }) {
   const handleKeyDown = useCallback((e) => {
-    if (!enabled) return;
+    if (!enabled || e.defaultPrevented || document.querySelector('[role="dialog"]')) return;
+    if (e.target?.closest?.('[role="tab"], [role="menu"], details[open]')) return;
+    if (e.key === ' ' && e.target?.closest?.('button, a[href]')) return;
 
     // Skip when user is typing in an input
     const tag = e.target.tagName;

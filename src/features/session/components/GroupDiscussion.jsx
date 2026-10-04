@@ -14,7 +14,7 @@ function formatTime(s) {
 }
 
 /** Student view — timer + memo input */
-function StudentDiscussion({ sessionId }) {
+function StudentDiscussion({ sessionId, embedded = false }) {
   const [discussion, setDiscussion] = useState(null);
   const [memo, setMemo] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -59,7 +59,7 @@ function StudentDiscussion({ sessionId }) {
 
   if (!discussion?.endTime) {
     return (
-      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
+      <div className={`${embedded ? "min-h-[50dvh]" : "min-h-dvh p-6"} bg-slate-50 dark:bg-slate-900 flex items-center justify-center`}>
         <div className="text-center space-y-3">
           <MessageSquare size={28} className="mx-auto text-slate-300" />
           <p className="text-slate-400 text-[15px]">토론이 곧 시작됩니다</p>
@@ -69,7 +69,7 @@ function StudentDiscussion({ sessionId }) {
   }
 
   return (
-    <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col p-5 pt-6">
+    <div className={`${embedded ? "min-h-[50dvh]" : "min-h-dvh p-5 pt-6"} bg-slate-50 dark:bg-slate-900 flex flex-col`}>
       {/* Topic */}
       {discussion.topic && (
         <motion.div

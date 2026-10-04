@@ -26,7 +26,7 @@ function formatTime(s) {
  * '동기화된' 카운트다운이 메인 플립시계 자리에서 −1초씩 흐르고, 0이 되면 종료 상태.
  * 기존 로컬 state 방식은 발표모드에서 눌러도 전자칠판에 안 보였음 — 세션 동기로 교체.
  */
-export default function BreakTimer({ sessionId }) {
+export default function BreakTimer({ sessionId, readOnly = false, presenter = false }) {
   const [endsAt, setEndsAt] = useState(null);      // 세션 동기: 종료 시각(ms)
   const [duration, setDuration] = useState(null);  // 세션 동기: 총 길이(s) — 진행바용
   const [nowTick, setNowTick] = useState(() => getServerNow());
@@ -56,12 +56,14 @@ export default function BreakTimer({ sessionId }) {
   const progress = running && duration ? remaining / duration : 0;
 
   function start(seconds) {
+    if (readOnly) return;
     update(ref(db, `sessions/${sessionId}`), {
       breakEndsAt: getServerNow() + seconds * 1000,
       breakDuration: seconds,
     }).catch(() => {});
   }
   function stop() {
+    if (readOnly) return;
     update(ref(db, `sessions/${sessionId}`), { breakEndsAt: null, breakDuration: null }).catch(() => {});
   }
 
@@ -73,7 +75,7 @@ export default function BreakTimer({ sessionId }) {
     : null;
 
   return (
-    <div className="flex flex-col items-center gap-8 md:gap-10 w-full" onClick={(e) => e.stopPropagation()}>
+    <div className={`flex flex-col items-center gap-8 md:gap-10 w-full ${presenter ? "max-w-[1200px] mx-auto" : ""}`} onClick={(e) => e.stopPropagation()}>
       {/* 라벨 + 마스코트 */}
       <motion.div
         initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
@@ -82,10 +84,10 @@ export default function BreakTimer({ sessionId }) {
       >
         <BreakMascot size={64} />
         <div className="text-left">
-          <p className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <p className={`${presenter ? "text-3xl md:text-4xl" : "text-2xl md:text-3xl"} font-bold tracking-tight text-slate-900 dark:text-slate-100`}>
             {isFinished ? '쉬는 시간 끝!' : '쉬는 시간'}
           </p>
-          <p className="text-sm text-slate-400 dark:text-slate-500">
+          <p className={presenter ? "text-2xl text-slate-300" : "text-sm text-slate-400 dark:text-slate-500"}>
             {isFinished ? '이제 수업을 다시 시작할게요'
               : running ? `${formatTime(remaining)} 후 수업을 이어갑니다`
               : '잠시 후 수업을 이어갑니다'}
@@ -103,7 +105,7 @@ export default function BreakTimer({ sessionId }) {
       </motion.div>
 
       {/* 컨트롤 영역 */}
-      {isFinished ? (
+      {!readOnly && (isFinished ? (
         <Button onClick={stop} variant="primary" size="lg">현재 시각으로 돌아가기</Button>
       ) : running ? (
         <div className="flex flex-col items-center gap-3 w-full max-w-md">
@@ -131,7 +133,7 @@ export default function BreakTimer({ sessionId }) {
             </motion.button>
           ))}
         </div>
-      )}
+      ))}
     </div>
   );
 }

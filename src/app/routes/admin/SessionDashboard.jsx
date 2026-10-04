@@ -135,7 +135,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
         <div className="flex items-center gap-3">
           {adminUser && <span className="text-sm text-slate-500 font-medium max-sm:hidden">{adminUser.displayName}</span>}
           {isMaster && <AdminApproval pendingAdmins={pendingAdmins} pendingCount={pendingCount} approveAdmin={approveAdmin} rejectAdmin={rejectAdmin} />}
-          <button onClick={onLogout} className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors duration-150 active:scale-[0.97]">
+          <button onClick={onLogout} className="flex items-center justify-center min-h-12 min-w-12 gap-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors duration-150 active:scale-[0.97]">
             <LogOut size={16} /><span className="max-sm:hidden">로그아웃</span>
           </button>
         </div>
@@ -143,13 +143,13 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
 
 
       {/* Content */}
-      <div ref={contentRef} className="flex-1 max-w-2xl mx-auto w-full px-6 max-sm:px-4 py-8 space-y-4 overflow-y-auto">
+      <div ref={contentRef} className="flex-1 max-w-3xl mx-auto w-full px-6 max-sm:px-4 py-8 space-y-4 overflow-y-auto">
         {/* Tab bar */}
         <LayoutGroup>
-          <div className="flex gap-1 mb-4 relative">
+          <div className="flex gap-1 mb-4 relative overflow-x-auto pb-1">
             {TABS.map((tab) => (
               <button key={tab.key} onClick={() => handleTabChange(tab.key)}
-                className={`relative px-4 max-sm:px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 active:scale-[0.97] whitespace-nowrap ${
+                className={`relative min-h-12 px-4 max-sm:px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 active:scale-[0.97] whitespace-nowrap ${
                   activeTab === tab.key ? 'text-white dark:text-slate-900' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}>
                 {activeTab === tab.key && (
                   <motion.div

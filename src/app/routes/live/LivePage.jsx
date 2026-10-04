@@ -155,16 +155,16 @@ export default function LivePage() {
                   {currentMode === 'scratchCard' && (
                     <ScratchCard sessionId={sessionId} role="view" presenter />
                   )}
-                  {currentMode === 'breakTime' && <BreakTimer sessionId={sessionId} />}
-                  {currentMode === 'leaderboard' && <div className="w-full max-w-2xl mx-auto [&_.max-w-xl]:max-w-none"><Leaderboard entries={leaderboard} maxShow={10} title="실시간 리더보드" /></div>}
-                  {currentMode === 'qaBoard' && <div className="w-full max-w-4xl mx-auto"><ClassQABoard sessionId={sessionId} showInput={false} role="viewer" /></div>}
-                  {currentMode === 'qaRanking' && <QARanking sessionId={sessionId} />}
+                  {currentMode === 'breakTime' && <BreakTimer sessionId={sessionId} presenter readOnly />}
+                  {currentMode === 'leaderboard' && <div className="w-full max-w-2xl mx-auto [&_.max-w-xl]:max-w-none" style={{ maxWidth: 1100 }}><Leaderboard presenter entries={leaderboard} maxShow={10} title="실시간 리더보드" /></div>}
+                  {currentMode === 'qaBoard' && <div className="w-full max-w-4xl mx-auto" style={{ maxWidth: 1100 }}><ClassQABoard presenter readOnly sessionId={sessionId} showInput={false} role="viewer" /></div>}
+                  {currentMode === 'qaRanking' && <QARanking sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'joinShow' && <JoinShow sessionId={sessionId} />}
-                  {currentMode === 'awards' && <AwardsCeremony assignmentId={session?.activeAssignmentId} readOnly />}
-                  {currentMode === 'randomPicker' && <RandomPicker participants={onlineList} sessionId={sessionId} role="view" />}
-                  {currentMode === 'comprehension' && <ComprehensionPresenter sessionId={sessionId} />}
-                  {currentMode === 'quickSurvey' && <SurveyPresenter sessionId={sessionId} />}
-                  {currentMode === 'discussion' && <DiscussionPresenter sessionId={sessionId} />}
+                  {currentMode === 'awards' && <AwardsCeremony sessionId={sessionId} assignmentId={session?.activeAssignmentId} readOnly />}
+                  {currentMode === 'randomPicker' && <RandomPicker participants={onlineList} sessionId={sessionId} role="view" presenter />}
+                  {currentMode === 'comprehension' && <ComprehensionPresenter sessionId={sessionId} presenter readOnly />}
+                  {currentMode === 'quickSurvey' && <SurveyPresenter sessionId={sessionId} presenter readOnly />}
+                  {currentMode === 'discussion' && <DiscussionPresenter sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'combinedRanking' && <CombinedRanking session={session} />}
                   {currentMode === 'focus' && (
                     <div className="flex flex-col items-center justify-center gap-6 text-center">

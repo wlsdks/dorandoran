@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useMemo, useEffect, lazy, Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Gift, Trophy, Monitor } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { buildScratchBoard, ROW_LINES, CELL_COUNT } from '@/lib/scratch';
@@ -8,6 +8,8 @@ import { useGameMirror } from '../api/useGameMirror';
 import { hapticSuccess } from '@/lib/haptics';
 import DrawDisplayToggle from './DrawDisplayToggle';
 import ScratchCell from './ScratchCell';
+import { getServerNow } from '@/features/timer/api/useTimer';
+import { unlockNotificationAudio, playCorrect } from '@/lib/chime';
 
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 
@@ -24,13 +26,18 @@ const EMPTY = { serial: 0, cells: null, winningRow: 0, revealed: [], won: false,
  * 같은 순서로 동전을 재생만 한다 — 관객이 보는 화면과 강사가 부르는 결과가 어긋나지 않게.
  */
 export default function ScratchCard({ participants = [], onResult, presenter = false, sessionId, role = 'control' }) {
+  const reduced = useReducedMotion();
   const isView = role === 'view';
   const { remote, publish } = useGameMirror(sessionId, { role, mode: 'scratchCard' });
 
   const [localState, setLocalState] = useState(EMPTY);
   const [active, setActive] = useState(null);      // 지금 동전이 훑는 칸(한 번에 하나)
-  const [played, setPlayed] = useState(() => new Set()); // 전자칠판에서 이미 재생한 칸
-  const [displayMode, setDisplayMode] = useDrawDisplay();
+  const [activeStartedAt, setActiveStartedAt] = useState(null);
+  const [mirrorError, setMirrorError] = useState(false);
+  const mountedRef = useRef(true);
+  const roundRef = useRef(0);
+  const [storedDisplayMode, setDisplayMode] = useDrawDisplay();
+  const displayMode = isView ? remote?.displayMode || storedDisplayMode : storedDisplayMode;
   const publishedRef = useRef(false);
 
   const state = isView ? (remote || EMPTY) : localState;
@@ -48,47 +55,39 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
     return rest.length > 0 ? rest : participants;
   }, [participants, localState.past]);
 
-  // 강사 화면의 상태 변화를 전자칠판으로 흘려보낸다
   useEffect(() => {
-    if (isView || !localState.cells) return;
-    publish(localState);
-  }, [isView, localState, publish]);
-
-  // 새 판이 오면 전자칠판의 재생 기록을 비운다
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; roundRef.current += 1; };
+  }, []);
+  // 긁기 시작부터 함께 재생한다. 확정 상태는 finish가 쓰기 응답을 확인한 뒤 결과를 발행한다.
   useEffect(() => {
-    if (!isView) return;
-    setPlayed(new Set());
-  }, [isView, remote?.serial]);
-
+    if (isView || !localState.cells || localState.won) return;
+    publish({ ...localState, activeIndex: active, activeStartedAt, displayMode });
+  }, [isView, localState, active, activeStartedAt, publish, displayMode]);
   const revealedSet = useMemo(() => new Set(state.revealed || []), [state.revealed]);
-  const rowPlayed = useMemo(
-    () => ROW_LINES[state.winningRow].every((i) => played.has(i)),
-    [played, state.winningRow]
-  );
-  // 전자칠판은 동전이 그 줄을 다 지나간 뒤에 축하한다 — 미리 터지면 김이 샌다
-  const won = isView ? (state.won && rowPlayed) : localState.won;
+  const won = Boolean(state.won) && !mirrorError;
 
-  const finish = useCallback(() => {
-    if (publishedRef.current || !winner) return;
+  const finish = useCallback(async () => {
+    if (isView || publishedRef.current || !winner) return;
     publishedRef.current = true;
-    hapticSuccess();
-    onResult?.([{ id: winner.id, nickname: winner.nickname, ...(winner.employeeId ? { employeeId: winner.employeeId } : {}) }]);
+    const round = roundRef.current;
+    const nextState = { ...localState, displayMode, won: true, activeIndex: null, activeStartedAt: null,
+      revealed: Array.from({ length: CELL_COUNT }, (_, i) => i), past: [...(localState.past || []), winner] };
     setActive(null);
-    setLocalState((prev) => ({
-      ...prev,
-      won: true,
-      // 당첨 줄이 드러나면 나머지 칸도 곧 열어 보여준다 — 확인은 시키되 기다리게 하지 않는다
-      revealed: Array.from({ length: CELL_COUNT }, (_, i) => i),
-      past: [...(prev.past || []), winner],
-    }));
-  }, [winner, onResult]);
+    setActiveStartedAt(null);
+    setLocalState(nextState);
+    const synchronized = await publish(nextState);
+    if (!mountedRef.current || roundRef.current !== round) return;
+    if (!synchronized) { setMirrorError(true); setLocalState({ ...nextState, past: localState.past || [] }); return; }
+    hapticSuccess();
+    playCorrect();
+    onResult?.([{ id: winner.id, nickname: winner.nickname, ...(winner.employeeId ? { employeeId: winner.employeeId } : {}) }]);
+  }, [isView, winner, onResult, localState, publish, displayMode]);
 
   const handleRevealed = useCallback((index) => {
-    if (isView) {
-      setPlayed((prev) => new Set(prev).add(index));
-      return;
-    }
+    if (isView || !mountedRef.current) return;
     setActive(null);
+    setActiveStartedAt(null);
     setLocalState((prev) => {
       const revealed = prev.revealed.includes(index) ? prev.revealed : [...prev.revealed, index];
       return { ...prev, revealed };
@@ -103,16 +102,24 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
 
   const startScratch = useCallback((index) => {
     if (isView || active !== null || revealedSet.has(index)) return;
+    unlockNotificationAudio();
+    setActiveStartedAt(getServerNow());
     setActive(index);
   }, [isView, active, revealedSet]);
 
   function dealBoard() {
+    if (isView || active !== null) return;
+    unlockNotificationAudio();
     const next = buildScratchBoard(pool);
     if (!next) return;
     publishedRef.current = false;
     setActive(null);
+    setActiveStartedAt(null);
+    setMirrorError(false);
+    roundRef.current += 1;
+    const serial = getServerNow();
     setLocalState((prev) => ({
-      serial: prev.serial + 1,
+      serial: Math.max(serial, prev.serial + 1),
       cells: next.cells,
       winningRow: next.winningRow,
       revealed: [],
@@ -131,7 +138,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
   }
 
   const boardShell = presenter ? 'gap-3 p-4' : 'gap-2 p-3';
-  const cellShell = presenter ? 'w-36 h-28 md:w-44 md:h-32' : 'w-24 h-20 sm:w-28 sm:h-24';
+  const cellShell = presenter ? 'w-[clamp(176px,18vw,340px)] h-[clamp(96px,13dvh,176px)]' : 'w-24 h-20 sm:w-28 sm:h-24';
 
   return (
     <div className={`flex flex-col items-center ${presenter ? 'gap-6' : 'gap-4'}`}>
@@ -141,11 +148,11 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
         </h3>
         <p className={`text-slate-400 ${presenter ? 'text-lg' : 'text-sm'}`}>
           {!cells && (isView ? '강사 화면에서 판을 깔면 여기에 그대로 나옵니다' : '판을 깔고 칸을 눌러보세요')}
-          {cells && !won && (isView ? '강사 화면에서 긁는 중' : '칸을 누르면 동전이 긁습니다. 한 줄 3칸이 같은 사람이면 당첨')}
+          {cells && !won && (mirrorError ? '결과 공유를 기다리고 있어요' : isView ? '강사 화면에서 긁는 중' : '칸을 누르면 동전이 긁습니다. 한 줄 3칸이 같은 사람이면 당첨')}
           {won && winner && (
             <span className="inline-flex items-center gap-2">
               <Trophy size={presenter ? 22 : 15} className="text-amber-500" />
-              <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+              <span className={`font-bold text-slate-900 dark:text-slate-100 tabular-nums ${presenter ? "text-[clamp(30px,2.8vw,52px)]" : ""}`}>
                 {drawPrimary(winner, displayMode)}
               </span>
               {drawSecondary(winner, displayMode) && (
@@ -157,7 +164,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
         </p>
       </div>
 
-      {hasEmployeeIds && <DrawDisplayToggle mode={displayMode} onChange={setDisplayMode} presenter={presenter} />}
+      {!isView && hasEmployeeIds && <DrawDisplayToggle mode={displayMode} onChange={setDisplayMode} presenter={presenter} />}
 
       <AnimatePresence mode="wait">
         {cells ? (
@@ -169,13 +176,13 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
             transition={{ type: 'spring', stiffness: 300, damping: 26 }}
             className={`relative flex flex-col ${presenter ? 'gap-4' : 'gap-3'}`}
           >
-            {won && <Suspense fallback={null}><ConfettiBurst /></Suspense>}
+            {won && !reduced && <Suspense fallback={null}><ConfettiBurst /></Suspense>}
             {/* 줄 단위로 끊어 놓는다 — 당첨 판정이 '가로 한 줄'이라 눈에도 줄로 보여야 한다. */}
             {ROW_LINES.map((line, rowIndex) => (
               <motion.div
                 key={`row-${rowIndex}`}
                 animate={{
-                  scale: won && rowIndex === state.winningRow ? 1.03 : 1,
+                  scale: !reduced && won && rowIndex === state.winningRow ? 1.025 : 1,
                   opacity: won && rowIndex !== state.winningRow ? 0.5 : 1,
                 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 24 }}
@@ -191,8 +198,9 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
                     primary={drawPrimary(cells[index], displayMode)}
                     secondary={drawSecondary(cells[index], displayMode)}
                     index={index}
-                    revealed={isView ? played.has(index) : revealedSet.has(index)}
-                    scratching={isView ? (revealedSet.has(index) && !played.has(index)) : active === index}
+                    revealed={revealedSet.has(index)}
+                    scratching={isView ? state.activeIndex === index : active === index}
+                    startedAt={isView ? state.activeStartedAt : activeStartedAt}
                     highlight={won && rowIndex === state.winningRow}
                     interactive={!isView}
                     presenter={presenter}
@@ -219,7 +227,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
                 {line.map((i) => (
                   <motion.div
                     key={i}
-                    animate={{ opacity: [0.35, 0.6, 0.35] }}
+                    animate={{ opacity: reduced ? 0.5 : [0.35, 0.6, 0.35] }}
                     transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.08, ease: 'easeInOut' }}
                     className={`rounded-2xl bg-slate-200 dark:bg-slate-700 ${cellShell}`}
                   />
@@ -242,6 +250,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
         </Button>
       )}
 
+      {mirrorError && !isView && <p role="alert" className="text-sm text-red-300">전자칠판 연결을 확인해주세요. 결과 알림은 아직 보내지 않았어요.</p>}
       {(state.past || []).length > 0 && (
         <p className={`text-slate-400 ${presenter ? 'text-base' : 'text-xs'}`}>
           지난 당첨{' '}

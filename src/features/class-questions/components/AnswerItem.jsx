@@ -30,18 +30,18 @@ export default function AnswerItem({ answer: a, questionId, pid, onUpvote }) {
           {isOwn && <span className="text-[10px] text-slate-400">나</span>}
           <span className="text-[10px] text-slate-400">{timeAgo(a.timestamp)}</span>
         </div>
-        <p className={`text-sm mt-0.5 leading-relaxed ${isOfficial ? 'text-slate-900 dark:text-slate-100' : 'text-slate-700 dark:text-slate-200'}`}>{a.text}</p>
+        <p className={`text-base mt-0.5 leading-relaxed break-words ${isOfficial ? 'text-slate-900 dark:text-slate-100' : 'text-slate-700 dark:text-slate-200'}`}>{a.text}</p>
         <button
           disabled={!onUpvote} onClick={() => onUpvote?.(questionId, a.id, pid)}
           aria-label={hasUpvoted ? '추천 취소' : '추천'}
           aria-pressed={!!hasUpvoted}
-          className={`flex items-center gap-1 mt-1 text-xs transition-colors duration-150 ${
+          className={`min-h-11 min-w-11 px-2 flex items-center justify-center gap-1.5 mt-1 text-sm transition-colors duration-150 ${
             hasUpvoted
               ? 'text-slate-900 dark:text-slate-100 font-semibold'
               : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
           }`}
         >
-          <ThumbsUp size={11} className={hasUpvoted ? 'fill-current' : ''} />
+          <ThumbsUp size={16} className={hasUpvoted ? 'fill-current' : ''} />
           {a.upvoteCount > 0 && <span className="tabular-nums">{a.upvoteCount}</span>}
         </button>
       </div>

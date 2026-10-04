@@ -1,8 +1,8 @@
 import { useMemo, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useVotes } from '@/hooks/useVotes';
 import { normalizeAnswer } from '@/lib/utils';
-import { Check, X } from 'lucide-react';
+import AnswerDistribution from './AnswerDistribution';
 
 /** Renders the sentence with the blank highlighted. */
 function SentenceDisplay({ title, correctAnswer, revealed }) {
@@ -23,7 +23,7 @@ function SentenceDisplay({ title, correctAnswer, revealed }) {
                   : 'bg-slate-50 dark:bg-slate-700 text-slate-300 border-dashed border-slate-300 dark:border-slate-500'
               }`}
             >
-              {revealed ? correctAnswer : '???'}
+              {revealed ? correctAnswer : '빈칸'}
             </motion.span>
           )}
         </span>
@@ -32,7 +32,7 @@ function SentenceDisplay({ title, correctAnswer, revealed }) {
   );
 }
 
-export default memo(function FillBlankChart({ sessionId, questionId, title, correctAnswer, revealed = false }) {
+export default memo(function FillBlankChart({ sessionId, questionId, title, correctAnswer, revealed = false, presenter = false }) {
   const { voteList, totalVotes } = useVotes(sessionId, questionId);
 
   const { correctCount, topAnswers } = useMemo(() => {
@@ -66,7 +66,6 @@ export default memo(function FillBlankChart({ sessionId, questionId, title, corr
   }, [voteList, correctAnswer]);
 
   const correctPct = totalVotes > 0 ? Math.round((correctCount / totalVotes) * 100) : 0;
-  const maxCount = topAnswers.length > 0 ? topAnswers[0].count : 1;
 
   return (
     <div className="space-y-6 w-full max-w-xl mx-auto px-8">
@@ -104,49 +103,7 @@ export default memo(function FillBlankChart({ sessionId, questionId, title, corr
           transition={{ delay: 0.15 }}
           className="space-y-2"
         >
-          <AnimatePresence mode="popLayout">
-            {topAnswers.slice(0, 10).map((a, i) => {
-              const widthPct = Math.max(8, (a.count / maxCount) * 100);
-              return (
-                <motion.div
-                  key={a.answer}
-                  layout
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 25, delay: i * 0.05 }}
-                  className="flex items-center gap-3"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="relative h-9 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden">
-                      <motion.div
-                        animate={{ width: `${widthPct}%` }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                        className={`absolute inset-y-0 left-0 rounded-lg ${
-                          revealed && a.isCorrect ? 'bg-slate-800' : 'bg-slate-300'
-                        }`}
-                      />
-                      <div className="absolute inset-0 flex items-center px-3 gap-2">
-                        {revealed && a.isCorrect && (
-                          <Check size={14} className="text-white shrink-0" />
-                        )}
-                        {revealed && !a.isCorrect && correctAnswer && (
-                          <X size={14} className="text-slate-400 shrink-0" />
-                        )}
-                        <span className={`text-sm font-medium truncate ${
-                          revealed && a.isCorrect ? 'text-white' : 'text-slate-700 dark:text-slate-200'
-                        }`}>
-                          {a.answer}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-sm font-semibold text-slate-500 tabular-nums w-8 text-right shrink-0">
-                    {a.count}
-                  </span>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+          <AnswerDistribution answers={topAnswers} revealed={revealed} presenter={presenter} />
         </motion.div>
       )}
 

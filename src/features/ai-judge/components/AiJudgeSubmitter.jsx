@@ -1,6 +1,6 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
-import { useState, useEffect, useRef, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef, useId, memo } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Check, Send, Sparkles, Trophy, Trash2, Edit3, AlertCircle, Image as ImageIcon, Code2, Upload } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ImageUpload from '@/components/ui/ImageUpload';
@@ -15,6 +15,8 @@ import LiveResultHero from './LiveResultHero';
  * 심사 완료 시: 본인 결과 + TOP 3 확인.
  */
 export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled }) {
+  const fieldId = useId();
+  const reducedMotion = useReducedMotion();
   const { available } = useAIAvailability();
   const participantId = getParticipantId();
   const nickname = getSessionNickname(sessionId) || '익명';
@@ -129,7 +131,7 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
     return (
       <motion.div
         key="result"
-        initial={{ opacity: 0, y: 8 }}
+        initial={reducedMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
@@ -159,7 +161,7 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
       <motion.div
         role="status"
         aria-live="polite"
-        initial={{ opacity: 0, y: 12 }}
+        initial={reducedMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         className="rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden"
       >
@@ -168,14 +170,14 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
             src={submission.imageUrl}
             alt="내 제출물"
             className="w-full max-h-40 object-cover"
-            animate={isMyTurn ? { scale: [1, 1.02, 1] } : { scale: 1 }}
+            animate={isMyTurn && !reducedMotion ? { scale: [1, 1.02, 1] } : { scale: 1 }}
             transition={isMyTurn ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0 }}
           />
         )}
         <div className="p-6 text-center space-y-4">
           {/* 두근거리는 sparkle — 본인 차례엔 indigo로 강조 + scale pulse */}
           <motion.div
-            animate={isMyTurn
+            animate={reducedMotion ? { rotate: 0, scale: 1 } : isMyTurn
               ? { rotate: 360, scale: [1, 1.15, 1] }
               : { rotate: 360 }}
             transition={isMyTurn
@@ -237,7 +239,7 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
       <motion.div
         role="status"
         aria-live="polite"
-        initial={{ opacity: 0, scale: 0.98 }}
+        initial={reducedMotion ? false : { opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         className="rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden"
       >
@@ -273,18 +275,19 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
             </details>
           )}
           <div className="flex items-center gap-2 pt-2">
-            <Button onClick={() => setEditing(true)} variant="secondary" size="md" className="flex-1 min-h-[44px]">
+            <Button onClick={() => setEditing(true)} disabled={submissionLocked || disabled} variant="secondary" size="md" className="flex-1 min-h-[44px]">
               <Edit3 size={15} /> 수정
             </Button>
             <button
               onClick={() => setWithdrawConfirmOpen(true)}
               aria-label="제출 취소"
+              disabled={submissionLocked || disabled}
               className="inline-flex items-center gap-1 px-3 py-2 min-h-[44px] text-sm text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
             >
               <Trash2 size={14} /> 취소
             </button>
           </div>
-          <p className="text-xs text-slate-400 text-center pt-1">심사 시작 전까지 수정 가능</p>
+          <p className="text-xs text-slate-400 text-center pt-1">{submissionLocked ? available ? '심사가 시작되어 수정할 수 없어요.' : isDone ? '제출이 마감됐어요.' : '제출 내용을 확인하고 있어요.' : available ? '심사 시작 전까지 수정 가능' : '마감 전까지 제출 내용을 수정할 수 있어요.'}</p>
         </div>
       </motion.div>
 
@@ -307,30 +310,32 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
     <>
     <motion.form
       onSubmit={handleSubmit}
-      initial={{ opacity: 0, y: 12 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 space-y-4"
     >
-      <div className="flex items-center gap-2">
-        <Trophy size={16} className="text-slate-400" />
-        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">내 작품 제출</p>
-        <span className="ml-auto text-[11px] text-slate-400">이미지 또는 코드 중 하나</span>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Trophy size={20} className="text-slate-500 dark:text-slate-300" />
+          <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200">내 자료 제출</h3>
+        </div>
+        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300 [word-break:keep-all]">이미지 또는 HTML 코드 중 하나를 첨부해주세요. 제목과 설명은 선택사항입니다.</p>
       </div>
 
       {/* 제출 방식 탭 — 이미지 | 코드 */}
-      <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-lg" role="tablist">
+      <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-lg" role="tablist" aria-label="필수 제출 자료 방식">
         <button
           type="button"
           role="tab"
           aria-selected={submitTab === 'image'}
           onClick={() => setSubmitTab('image')}
-          className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-semibold transition-colors ${
+          className={`flex-1 inline-flex items-center justify-center gap-1.5 min-h-11 py-2 rounded-md text-sm font-semibold transition-colors ${
             submitTab === 'image'
               ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm'
               : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
           }`}
         >
-          <ImageIcon size={13} /> 이미지
+          <ImageIcon size={18} /> 이미지
           {imageUrl && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-label="첨부됨" />}
         </button>
         <button
@@ -338,22 +343,22 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
           role="tab"
           aria-selected={submitTab === 'code'}
           onClick={() => setSubmitTab('code')}
-          className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-semibold transition-colors ${
+          className={`flex-1 inline-flex items-center justify-center gap-1.5 min-h-11 py-2 rounded-md text-sm font-semibold transition-colors ${
             submitTab === 'code'
               ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm'
               : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
           }`}
         >
-          <Code2 size={13} /> HTML 코드
+          <Code2 size={18} /> HTML 코드
           {code.trim() && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-label="입력됨" />}
         </button>
       </div>
 
       {submitTab === 'image' ? (
         <div>
-          <ImageUpload value={imageUrl} onChange={setImageUrl} folder="ai-judge" />
+          <ImageUpload value={imageUrl} onChange={setImageUrl} folder={`ai-judge/${sessionId}/${questionId}`} uploadLabel="이미지 첨부" />
           {!hasContent && (
-            <p className="text-[11px] text-slate-400 mt-1.5">작품 스크린샷이나 사진을 첨부해주세요</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">스크린샷이나 사진을 첨부하거나, HTML 코드 탭에서 자료를 넣어주세요.</p>
           )}
         </div>
       ) : (
@@ -363,9 +368,9 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); fileInputRef.current?.click(); }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[36px] text-[12px] font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
+              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-11 text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
             >
-              <Upload size={13} /> HTML 파일 선택
+              <Upload size={18} /> HTML 파일 선택
             </button>
             {codeFileName && (
               <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
@@ -390,7 +395,7 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
             aria-label="HTML 코드"
             rows={10}
             maxLength={100000}
-            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg px-3.5 py-2.5 text-[13px] font-mono text-slate-800 dark:text-slate-200 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-y leading-relaxed"
+            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg px-3.5 py-2.5 text-base font-mono text-slate-800 dark:text-slate-200 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-y leading-relaxed"
           />
           <div className="flex items-center justify-between text-[11px] text-slate-400">
             <span>파일 업로드 또는 직접 붙여넣기</span>
@@ -400,32 +405,30 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
       )}
 
       <div>
-        <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-          제목 <span className="text-slate-300 font-normal">선택</span>
-        </p>
+        <label htmlFor={`${fieldId}-title`} className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5">제목 <span className="font-normal">(선택)</span></label>
         <input
+          id={`${fieldId}-title`}
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="작품 제목"
           aria-label="작품 제목"
           maxLength={40}
-          className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+          className="w-full min-h-12 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3.5 py-2.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
         />
       </div>
 
       <div>
-        <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-          설명 <span className="text-slate-300 font-normal">선택</span>
-        </p>
+        <label htmlFor={`${fieldId}-description`} className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5">설명 <span className="font-normal">(선택)</span></label>
         <textarea
+          id={`${fieldId}-description`}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="이 작품이 어떤 건지 짧게 설명해주세요"
           aria-label="작품 설명"
           rows={3}
           maxLength={300}
-          className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none leading-relaxed"
+          className="w-full min-h-12 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3.5 py-2.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none leading-relaxed"
         />
       </div>
 
@@ -447,6 +450,7 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
         )}
       </AnimatePresence>
 
+      <p className="text-sm text-slate-500 dark:text-slate-400" role="status">{hasContent ? '자료가 준비되었어요. 제출할 수 있습니다.' : '이미지 또는 HTML 코드를 넣으면 제출할 수 있어요.'}</p>
       <div className="flex gap-2">
         {editing && (
           <Button type="button" onClick={() => setEditing(false)} variant="secondary" size="md" className="flex-1">

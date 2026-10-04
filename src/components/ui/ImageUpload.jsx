@@ -14,7 +14,7 @@ const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp';
  * ImageUpload — 이미지 업로드 + 미리보기.
  * Firebase Storage에 저장하고 URL을 반환.
  */
-export default memo(function ImageUpload({ value, onChange, folder = 'questions' }) {
+export default memo(function ImageUpload({ value, onChange, folder = 'questions', uploadLabel = '이미지 첨부 (선택)' }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
@@ -72,11 +72,12 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
               className="w-full max-h-48 object-cover"
             />
             <button
+              type="button"
               onClick={handleRemove}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-900/70 text-white flex items-center justify-center hover:bg-slate-900 transition-colors"
+              className="absolute top-2 right-2 w-11 h-11 rounded-full bg-slate-900/70 text-white flex items-center justify-center hover:bg-slate-900 transition-colors"
               aria-label="이미지 삭제"
             >
-              <X size={14} />
+              <X size={20} />
             </button>
           </motion.div>
         ) : (
@@ -88,7 +89,7 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
             type="button"
             onClick={(e) => { e.preventDefault(); inputRef.current?.click(); }}
             disabled={uploading}
-            className="w-full py-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500 hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 transition-colors flex items-center justify-center gap-2 text-sm active:scale-[0.98]"
+            className="w-full py-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 transition-colors flex items-center justify-center gap-2 text-sm active:scale-[0.98]"
           >
             {uploading ? (
               <>
@@ -98,7 +99,7 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
             ) : (
               <>
                 <ImagePlus size={16} />
-                이미지 첨부 (선택)
+                {uploadLabel}
               </>
             )}
           </motion.button>

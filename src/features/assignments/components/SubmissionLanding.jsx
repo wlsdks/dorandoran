@@ -95,7 +95,7 @@ export default function SubmissionLanding({
               pattern="[0-9]*"
               value={lookupPin}
               onChange={(e) => onLookupPinChange(e.target.value.replace(/\D/g, '').slice(0, 8))}
-              placeholder="조회용 비밀번호 (숫자 4~8자리)"
+              placeholder="조회용 비밀번호 (숫자 4자리 또는 8자리)"
               maxLength={8}
               onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onResultLookup()}
               className={`w-full bg-white dark:bg-slate-800 border rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all tracking-[0.3em] ${
@@ -107,7 +107,7 @@ export default function SubmissionLanding({
               onClick={onResultLookup}
               variant="primary"
               size="lg"
-              disabled={!lookupName.trim() || lookupPin.length !== 4 || resultLookupLoading}
+              disabled={!lookupName.trim() || ! /^(?:\d{4}|\d{8})$/.test(lookupPin) || resultLookupLoading}
               className="w-full"
             >
               {resultLookupLoading ? '조회 중...' : '내 결과 확인'}
@@ -146,7 +146,7 @@ export default function SubmissionLanding({
           <DoranDoranMascot size="lg" mood="waiting" />
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-6">과제가 마감되었습니다</h2>
           <p className="text-sm text-slate-400 mt-2 text-center leading-relaxed">
-            심사 결과가 나오면<br />이 페이지에서 확인할 수 있어요
+            {available ? <>평가 결과가 나오면<br />이 페이지에서 확인할 수 있어요</> : '내 제출물을 조회해 내용을 확인할 수 있어요'}
           </p>
           <div className="w-full mt-8">
             <Button onClick={onLookup} variant="secondary" size="lg" className="w-full">

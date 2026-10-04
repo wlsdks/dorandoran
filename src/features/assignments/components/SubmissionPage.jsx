@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Sun, Moon, Search } from 'lucide-react';
@@ -17,6 +18,7 @@ import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 // ─── Main ──────────────────────────────────────────
 export default function SubmissionPage({ assignmentId }) {
   const { assignment, loading } = useAssignment(assignmentId);
+  const { available } = useAIAvailability();
   const { awards } = useAwards(assignmentId);
   // 'landing' | 'submit' | 'lookup' | 'mySubmission' | 'edit' | 'result' | 'awardsView'
   const [view, setView] = useState('landing');
@@ -27,7 +29,7 @@ export default function SubmissionPage({ assignmentId }) {
   const [resultLookupError, setResultLookupError] = useState('');
 
   const { results } = useSubmissionResults(
-    view === 'result' ? assignmentId : null,
+    view === 'result' && available ? assignmentId : null,
     foundSubmission?.id
   );
 
@@ -38,7 +40,7 @@ export default function SubmissionPage({ assignmentId }) {
   const { isDark, setTheme } = useTheme();
 
   const handleResultLookup = useCallback(async () => {
-    if (!lookupName.trim() || lookupPin.length !== 4) return;
+    if (!lookupName.trim() || ! /^(?:\d{4}|\d{8})$/.test(lookupPin)) return;
     setResultLookupLoading(true);
     setResultLookupError('');
     try {
@@ -46,11 +48,13 @@ export default function SubmissionPage({ assignmentId }) {
       if (result.error === 'NOT_FOUND') {
         setResultLookupError('해당 이름의 제출물을 찾을 수 없습니다. 제출 시 입력한 이름을 정확히 입력해주세요.');
       } else if (result.error === 'PIN_MISMATCH') {
-        setResultLookupError('이름은 확인되었지만, 조회용 비밀번호가 일치하지 않습니다.');
+        setResultLookupError('이름 또는 조회용 비밀번호를 확인해주세요.');
       } else {
         setFoundSubmission(result.submission);
         setView('result');
       }
+    } catch {
+      setResultLookupError('조회하지 못했어요. 연결을 확인하고 다시 시도해주세요.');
     } finally {
       setResultLookupLoading(false);
     }
@@ -78,7 +82,7 @@ export default function SubmissionPage({ assignmentId }) {
   const isOpen = assignment.status === 'open';
   const isJudging = assignment.status === 'judging';
   const isClosed = assignment.status === 'closed';
-  const statusLabel = ASSIGNMENT_STATUS[assignment.status] || assignment.status;
+  const statusLabel = !available && ['judged','judging'].includes(assignment.status) ? '제출 마감' : ASSIGNMENT_STATUS[assignment.status] || assignment.status;
   const showBackButton = view !== 'landing';
 
   function handleBack() {
@@ -95,8 +99,8 @@ export default function SubmissionPage({ assignmentId }) {
       <header className="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-5 py-4 flex items-center gap-3">
           {showBackButton && (
-            <button onClick={handleBack}
-              className="p-1.5 -ml-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+            <button onClick={handleBack} aria-label="이전 화면"
+              className="inline-flex h-12 w-12 shrink-0 items-center justify-center -ml-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
               <ArrowLeft size={20} />
             </button>
           )}
@@ -110,7 +114,8 @@ export default function SubmissionPage({ assignmentId }) {
           </div>
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0"
+            className="inline-flex h-12 w-12 items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0"
+            aria-label={isDark ? '라이트 모드' : '다크 모드'}
             title={isDark ? '라이트 모드' : '다크 모드'}
           >
             {isDark ? <Sun size={16} /> : <Moon size={16} />}
@@ -141,9 +146,9 @@ export default function SubmissionPage({ assignmentId }) {
               <SubmissionLanding
                 assignment={assignment}
                 isOpen={isOpen}
-                isJudged={isJudged}
-                isJudging={isJudging}
-                isClosed={isClosed}
+                isJudged={isJudged && available}
+                isJudging={isJudging && available}
+                isClosed={isClosed || (!available && (isJudged || isJudging))}
                 awards={awards}
                 lookupName={lookupName}
                 lookupPin={lookupPin}
@@ -236,12 +241,12 @@ export default function SubmissionPage({ assignmentId }) {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
             >
-              <SubmissionResult submission={foundSubmission} results={results} awards={awards} passThreshold={assignment?.passThreshold ?? 3} />
+              {available ? <SubmissionResult submission={foundSubmission} results={results} awards={awards} passThreshold={assignment?.passThreshold ?? 3} /> : <MySubmissionView submission={foundSubmission} assignmentId={assignmentId} isOpen={isOpen} onBack={handleBack} onEdit={() => setView('edit')} />}
             </motion.div>
           )}
 
           {/* ── 시상 결과 (학생용) ── */}
-          {view === 'awardsView' && awards && (
+          {view === 'awardsView' && available && awards && (
             <motion.div
               key="awardsView"
               initial={{ opacity: 0, y: 12 }}

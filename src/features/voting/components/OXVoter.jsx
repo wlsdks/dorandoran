@@ -1,3 +1,4 @@
+import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { RotateCcw } from 'lucide-react';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
@@ -13,14 +14,16 @@ import VoteErrorToast from './VoteErrorToast';
 
 export default memo(function OXVoter({ sessionId, questionId, disabled = false }) {
   const { myVote } = useMyVote(sessionId, questionId);
+  const { begin, finish, canRestore, isCurrent } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [voted, setVoted] = useState(false);
   const [changing, setChanging] = useState(false); // 답 바꾸기 중 복원 차단
   const [selected, setSelected] = useState(null);
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (myVote && !voted && !changing) { setSelected(myVote); setVoted(true); }
-  }, [myVote, voted, changing]);
+    if (canRestore() && ['O', 'X'].includes(myVote) && !voted && !changing) { setSelected(myVote); setVoted(true); }
+  }, [myVote, voted, changing, canRestore]);
 
   useEffect(() => {
     if (!error) return;
@@ -30,6 +33,8 @@ export default memo(function OXVoter({ sessionId, questionId, disabled = false }
 
   async function handleVote(value) {
     if (disabled) return;
+    const token = begin(); if (token === null) return;
+    setPending(true);
     setSelected(value);
     setError(null);
     try {
@@ -39,13 +44,16 @@ export default memo(function OXVoter({ sessionId, questionId, disabled = false }
         nickname: getNickname() || '익명',
         timestamp: serverTimestamp(),
       });
+      if (!finish(token)) return;
       setVoted(true);
       setChanging(false);
     } catch (err) {
+      if (!finish(token)) return;
+      setVoted(false);
       logger.error('Vote failed:', err);
       setSelected(null);
       setError('투표에 실패했습니다. 다시 선택해주세요.');
-    }
+    } finally { if (isCurrent(token)) setPending(false); }
   }
 
   if (voted) {
@@ -74,6 +82,7 @@ export default memo(function OXVoter({ sessionId, questionId, disabled = false }
 
   return (
     <div className="space-y-3 w-full">
+      {pending && <p role="status" className="text-center text-sm text-slate-500 dark:text-slate-300">응답을 보내는 중...</p>}
       <AnimatePresence>
         {error && <VoteErrorToast message={error} />}
       </AnimatePresence>

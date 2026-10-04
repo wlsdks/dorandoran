@@ -1,17 +1,17 @@
 import { useState, useCallback, useMemo } from 'react';
-import { ref, set, remove, update, get, runTransaction, increment, query, orderByKey, limitToLast, endBefore } from 'firebase/database';
+import { ref, set, remove, update, get, query, orderByKey, limitToLast, endBefore } from 'firebase/database';
 import { getServerNow } from '@/features/timer/api/useTimer';
 import { db } from '@/lib/firebase';
 import { generateQuestionId } from '@/lib/utils';
 import {
   getQuestionMode,
-  getQuizReward,
   isQuizQuestion,
   normalizeQuizEvent,
 } from '@/lib/quiz';
 import { buildQuestionData, QUESTION_TYPE_FIELDS } from '@/lib/question';
 import { MODE_CARD_TYPE } from '@/lib/modes';
 import { useToast } from '@/hooks/useToast';
+import { awardQuizRound, quizAwardLocks as revealLocks, waitForQuizAwards as awaitRevealLock } from '@/lib/quiz-awards';
 
 // 서버 시간 기준 — 강사 기기 시계 오차 없이 activatedAt/revealedAt/awardedAt 등
 // 모든 시간 필드가 일관된 기준으로 저장됨 (timer의 endTime과 동일 기준).
@@ -19,15 +19,7 @@ function getNow() {
   return getServerNow();
 }
 
-// P1-6: revealQuiz가 점수 batch 도중에 currentQuestion이 바뀌면 학생이 lastPoints를
-// 보기 전에 다음 질문으로 넘어감. module-level Map으로 동일 세션 내 모든
-// useQuestionActions 인스턴스가 공유. revealQuiz Phase 2 시작 시 set, 끝나면 delete.
-const revealLocks = new Map();
-
-async function awaitRevealLock(sessionId) {
-  const pending = revealLocks.get(sessionId);
-  if (pending) await pending;
-}
+// 진행 잠금은 수동 공개와 스피드 퀴즈가 공유한다(quiz-awards).
 
 // P1-8: resetAllQuestions가 학생-write 영역(handRaises/urgentQuestions/chat)을 null로
 // 비우는 순간 인플라이트 학생 write가 도착하면 잔존 데이터 발생. 600ms 후 재-sweep으로
@@ -56,7 +48,7 @@ export async function trimEphemeralFeeds(sessionId) {
   }
 }
 
-export function useQuestionActions(sessionId, questions, currentQuestion, scores, participants) {
+export function useQuestionActions(sessionId, questions, currentQuestion, _scores, _participants) {
   const [error, setError] = useState(null);
   const { toast, showToast } = useToast();
 
@@ -88,6 +80,12 @@ export function useQuestionActions(sessionId, questions, currentQuestion, scores
     const question = questions?.[qId];
     if (!question) return;
 
+    // 점수 반영 중에는 게임/쉬는 시간 카드로도 먼저 넘어가지 않는다.
+    if (revealLocks.has(sessionId)) {
+      showToast('점수 반영 중... 잠시만 기다려주세요');
+      await awaitRevealLock(sessionId);
+    }
+
     // 모드 카드는 질문이 아니라 화면 전환이다. 목록에 미리 꽂아두고 순서대로 눌러 진행한다.
     if (question.type === MODE_CARD_TYPE) {
       try {
@@ -104,19 +102,18 @@ export function useQuestionActions(sessionId, questions, currentQuestion, scores
       return;
     }
 
-    // 진행 중인 reveal batch 완료 대기 — lastPoints 보존
-    if (revealLocks.has(sessionId)) {
-      showToast('정답 공개 중... 잠시만 기다려주세요');
-      await awaitRevealLock(sessionId);
-    }
-
     try {
       const updates = {
         currentQuestion: qId,
         currentMode: getQuestionMode(question),
       };
 
-      // 모든 질문 유형: 활성화 시 revealedAt 초기화
+      // 이미 공개한 퀴즈로 돌아가는 것은 결과 복습이다. 새 점수 round는 명시적 초기화 후에만 연다.
+      if (isQuizQuestion(question) && (question.revealedAt || question.awardedAt)) {
+        await update(ref(db, `sessions/${sessionId}`), { ...updates, timer: null });
+        return;
+      }
+      // 새 활동의 공개 상태를 준비한다.
       updates[`questions/${qId}/activatedAt`] = getNow();
       updates[`questions/${qId}/revealedAt`] = null;
       // 이전 질문의 타이머 잔존 시 다음 질문까지 "시간 종료" 잠금이 전파되던 버그 — 전환 시 정리
@@ -124,6 +121,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, scores
 
       if (isQuizQuestion(question)) {
         updates[`questions/${qId}/awardedAt`] = null;
+        updates[`questions/${qId}/speedQuizRound`] = null;
         if (nextEvent) {
           updates[`questions/${qId}/event`] = normalizeQuizEvent(nextEvent);
         }
@@ -265,67 +263,16 @@ export function useQuestionActions(sessionId, questions, currentQuestion, scores
   }
 
   async function revealQuiz(qId) {
-    const question = questions?.[qId];
-    if (!isQuizQuestion(question)) return;
-
     try {
-      const now = getNow();
-      const voteEntries = Object.entries(question.votes || {});
-
-      // Phase 1: Reveal answer
-      await update(ref(db, `sessions/${sessionId}`), {
-        currentMode: 'quiz',
-        [`questions/${qId}/revealedAt`]: now,
-      });
-
-      // awardedAt을 트랜잭션으로 '선점' — 강사 다중 기기(노트북+태블릿)가 동시에
-      // 정답공개를 눌러도 커밋 승자 1명만 Phase 2(점수 지급)를 실행. 로컬 스냅샷
-      // 가드(question.awardedAt)만으론 sync 지연 윈도우에서 이중 지급 가능했음.
-      let iAward = false;
-      if (!question.awardedAt) {
-        const claim = await runTransaction(
-          ref(db, `sessions/${sessionId}/questions/${qId}/awardedAt`),
-          (cur) => (cur ? undefined : now) // 이미 있으면 abort
-        );
-        iAward = claim.committed;
-      }
-
-      // Phase 2: Score updates in batches of 50 — lock으로 감싸 도중 currentQuestion 변경 방지
-      if (iAward) {
-        // 이전 reveal이 아직 batch 도중이면 (드물게) 완료 대기
-        await awaitRevealLock(sessionId);
-        let resolveLock;
-        const lockPromise = new Promise((r) => { resolveLock = r; });
-        revealLocks.set(sessionId, lockPromise);
-        try {
-          const BATCH_SIZE = 50;
-          for (let i = 0; i < voteEntries.length; i += BATCH_SIZE) {
-            const batch = voteEntries.slice(i, i + BATCH_SIZE);
-            const scoreUpdates = {};
-            batch.forEach(([participantId, vote]) => {
-              const reward = getQuizReward(question, vote);
-              const existingScore = (scores || {})[participantId] || {};
-              const nextStreak = reward.isCorrect ? (existingScore.streak || 0) + 1 : 0;
-              const nickname = (participants || {})[participantId]?.nickname || vote.nickname || existingScore.nickname || `참여자 ${participantId.slice(0, 4)}`;
-              // (예: 다른 점수 변경)을 stale 스냅샷으로 덮어 유실시킬 수 있음.
-              // (베팅 패널티로 이론상 0 미만 가능하나 표시 계층에서 무해 — 기본 이벤트는 항상 ≥0)
-              scoreUpdates[`scores/${participantId}/total`] = increment(reward.points);
-              scoreUpdates[`scores/${participantId}/nickname`] = nickname;
-              scoreUpdates[`scores/${participantId}/lastPoints`] = reward.points;
-              scoreUpdates[`scores/${participantId}/streak`] = nextStreak;
-              scoreUpdates[`scores/${participantId}/bestStreak`] = Math.max(existingScore.bestStreak || 0, nextStreak);
-              scoreUpdates[`scores/${participantId}/lastQuestionId`] = qId;
-              scoreUpdates[`scores/${participantId}/updatedAt`] = now;
-            });
-            await update(ref(db, `sessions/${sessionId}`), scoreUpdates);
-          }
-        } finally {
-          revealLocks.delete(sessionId);
-          resolveLock();
-        }
-      }
+      setError(null);
+      const result = await awardQuizRound(db, sessionId, qId, getNow());
+      if (result.status === 'not-quiz') return false;
+      return true;
     } catch {
-      setError('정답 공개와 점수 반영에 실패했습니다. 다시 시도해주세요.');
+      const message = '점수 반영을 완료하지 못했어요. 점수 확인 / 재시도로 이어서 반영할 수 있습니다.';
+      setError(message);
+      showToast(message);
+      return false;
     }
   }
 
@@ -362,15 +309,17 @@ export function useQuestionActions(sessionId, questions, currentQuestion, scores
 
   async function revealAnswer(qId) {
     const question = questions?.[qId];
-    if (!question) return;
+    if (!question) return false;
     // quiz 타입은 revealQuiz를 사용, 나머지 정답형은 여기서 처리
-    if (isQuizQuestion(question)) return;
+    if (isQuizQuestion(question)) return false;
     try {
       await update(ref(db, `sessions/${sessionId}`), {
         [`questions/${qId}/revealedAt`]: getNow(),
       });
+      return true;
     } catch {
       setError('정답 공개에 실패했습니다.');
+      return false;
     }
   }
 
@@ -410,6 +359,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, scores
         [`questions/${qId}/activatedAt`]: null,
         // awardedAt 미정리 시 재진행 후 정답공개가 선점 가드에 막혀 점수가 영영 안 나감
         [`questions/${qId}/awardedAt`]: null,
+        [`questions/${qId}/speedQuizRound`]: null,
         [`questions/${qId}/revealedHints`]: 0,
         [`questions/${qId}/revealedWinners`]: 0,
         [`questions/${qId}/currentSlide`]: 0,
@@ -448,6 +398,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, scores
         updates[`questions/${qId}/revealedAt`] = null;
         updates[`questions/${qId}/activatedAt`] = null;
         updates[`questions/${qId}/awardedAt`] = null;
+        updates[`questions/${qId}/speedQuizRound`] = null;
         updates[`questions/${qId}/revealedHints`] = 0;
         updates[`questions/${qId}/revealedWinners`] = 0;
         updates[`questions/${qId}/currentSlide`] = 0;
