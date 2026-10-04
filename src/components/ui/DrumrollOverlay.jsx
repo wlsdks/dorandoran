@@ -24,7 +24,7 @@ export default memo(function DrumrollOverlay({ active, onComplete, duration = 25
     if (!active || muted || localStorage.getItem('dorandoran_sound_muted') === 'true') return;
     let cancelled = false;
     const sources = [], nodes = [];
-    prepareNotificationAudio().then(ctx => {
+    Promise.resolve().then(() => prepareNotificationAudio()).then(ctx => {
       if (!ctx || cancelled) return;
       const start = ctx.currentTime + 0.025;
       const total = duration / 1000;
