@@ -1,0 +1,7 @@
+# Preserve reviewed upstream license bytes and generated concatenated notices.
+licenses/**/*.txt -text
+public/THIRD_PARTY_NOTICES.txt -text
+functions/THIRD_PARTY_NOTICES.txt -text
+public/LICENSE.txt -text
+functions/LICENSE.txt -text
+public/licenses/*.txt -text
