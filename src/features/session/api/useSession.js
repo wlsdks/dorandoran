@@ -37,7 +37,7 @@ export function useSession(sessionId, { participantId } = {}) {
   const questionSignature = Object.keys(visible || EMPTY_RECORD).sort().join(',');
   const questionIds = useMemo(() => questionSignature ? questionSignature.split(',') : [], [questionSignature]);
   const voteKeys = useMemo(() => questionIds.map(id => `${id}/votes/${participantId}`), [questionIds, participantId]);
-  const { value: ownVotes } = useRealtimeRecord(!privileged && participantId && sessionId && voteKeys.length ? `sessions/${sessionId}/questions` : null, voteKeys);
+  const { value: ownVotes, loading: ownLoading, error: ownError } = useRealtimeRecord(!privileged && participantId && sessionId && voteKeys.length ? `sessions/${sessionId}/questions` : null, voteKeys);
   const questions = useMemo(() => privileged ? value?.questions || EMPTY_RECORD : Object.fromEntries(Object.entries(visible || EMPTY_RECORD).map(([id, question]) => {
     const mine = ownVotes?.[`${id}/votes/${participantId}`];
     return [id, mine ? { ...question, votes: { [participantId]: mine } } : question];
@@ -60,10 +60,10 @@ export function useSession(sessionId, { participantId } = {}) {
       authenticatedRequest('/api/classroom/manifest', { sessionId }).catch(() => {});
     }
   }, [privileged, sessionId, viewLoading, visible]);
-  const pending = loading || (!privileged && viewLoading);
-  const session = useMemo(() => value && value.createdAt && !pending && !error && !viewError ? { ...value, questions } : null,
-    [value, pending, error, viewError, questions]);
-  return { session, loading: pending, error: error || viewError };
+  const pending = loading || (!privileged && (viewLoading || ownLoading));
+  const session = useMemo(() => value && value.createdAt && !pending && !error && !viewError && !ownError ? { ...value, questions } : null,
+    [value, pending, error, viewError, ownError, questions]);
+  return { session, loading: pending, error: error || viewError || ownError };
 }
 
 /** 헤더에 필요한 시작 시각과 상태만 구독한다. */
