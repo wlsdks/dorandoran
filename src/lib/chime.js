@@ -7,16 +7,20 @@
  */
 
 let audioCtx = null;
+let resumePromise = null;
 
-function getAudioContext() {
-  if (!audioCtx) {
+async function getAudioContext() {
+  // 실시간 데이터 도착은 사용자 조작이 아니다. 관객의 첫 조작까지 음성을 준비하지 않는다.
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return null;
+  if (!audioCtx || audioCtx.state === 'closed') {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  // Resume if suspended (autoplay policy)
   if (audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => {});
+    if (!resumePromise) resumePromise = audioCtx.resume().catch(() => {}).finally(() => { resumePromise = null; });
+    await resumePromise;
   }
-  return audioCtx;
+  // 재생이 허용되기 전에 oscillator를 쌓으면 다음 조작 때 과거 알림이 한꺼번에 재생된다.
+  return audioCtx.state === 'running' ? audioCtx : null;
 }
 
 /**
@@ -24,9 +28,10 @@ function getAudioContext() {
  * First note: C5 (523 Hz), Second note: E5 (659 Hz).
  * Total duration ~300ms. Volume: soft.
  */
-export function playChime() {
+export async function playChime() {
   try {
-    const ctx = getAudioContext();
+    const ctx = await getAudioContext();
+    if (!ctx) return;
     const now = ctx.currentTime;
 
     // Shared gain envelope
@@ -68,10 +73,11 @@ export function playChime() {
  * Three quick ascending notes: C5 → E5 → G5 (major triad, ~350ms).
  * Duolingo-inspired: happy, satisfying, not too long.
  */
-export function playCorrect() {
+export async function playCorrect() {
   if (localStorage.getItem('dorandoran_sound_muted') === 'true') return;
   try {
-    const ctx = getAudioContext();
+    const ctx = await getAudioContext();
+    if (!ctx) return;
     const now = ctx.currentTime;
 
     const notes = [
@@ -100,10 +106,11 @@ export function playCorrect() {
  * Play a soft descending "incorrect answer" tone.
  * Two descending notes: E4 → C4 (~250ms). Gentle, not punishing.
  */
-export function playIncorrect() {
+export async function playIncorrect() {
   if (localStorage.getItem('dorandoran_sound_muted') === 'true') return;
   try {
-    const ctx = getAudioContext();
+    const ctx = await getAudioContext();
+    if (!ctx) return;
     const now = ctx.currentTime;
 
     const notes = [
