@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
@@ -23,7 +23,9 @@ export default memo(function CollapsibleSection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [dismissedKeys, setDismissedKeys] = useState([]);
-  const expanded = open || autoOpenKeys.some(key => !dismissedKeys.includes(key));
+  const unseenRequest = autoOpenKeys.some(key => !dismissedKeys.includes(key));
+  const expanded = open || unseenRequest;
+  useEffect(() => { if (unseenRequest) setOpen(true); }, [unseenRequest]);
 
   function toggle() {
     if (expanded) {

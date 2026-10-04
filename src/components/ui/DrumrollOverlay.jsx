@@ -15,12 +15,13 @@ export default memo(function DrumrollOverlay({ active, onComplete, duration = 25
   useEffect(() => { onCompleteRef.current = onComplete; });
   useEffect(() => {
     if (!active) { setPhase(0); return; }
+    setMuted(localStorage.getItem('dorandoran_sound_muted') === 'true');
     const timers = [setTimeout(() => setPhase(1), duration * 0.3), setTimeout(() => setPhase(2), duration * 0.67),
       setTimeout(() => setPhase(3), duration * 0.9), setTimeout(() => onCompleteRef.current?.(), duration)];
     return () => timers.forEach(clearTimeout);
   }, [active, duration]);
   useEffect(() => {
-    if (!active || muted) return;
+    if (!active || muted || localStorage.getItem('dorandoran_sound_muted') === 'true') return;
     let cancelled = false;
     const sources = [], nodes = [];
     prepareNotificationAudio().then(ctx => {

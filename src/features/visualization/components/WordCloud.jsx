@@ -49,7 +49,7 @@ export default memo(function WordCloud({ sessionId, questionId, presenter = fals
               exit={{ opacity: 0, scale: 0.5 }}
               transition={{ type: 'spring', stiffness: 260, damping: 22, delay: Math.min(i, 12) * 0.008 }}
               style={{ fontSize: presenter ? `clamp(2rem, ${2 + 3 * word.count / maxCount}vw, 6rem)` : getFontSize(word.count) }}
-              className={`font-bold cursor-default max-w-full break-keep ${WORD_CLASSES[i % WORD_CLASSES.length]}`}
+              className={`wordcloud-token font-bold cursor-default max-w-full break-keep ${WORD_CLASSES[i % WORD_CLASSES.length]}`}
               title={`${word.text}: ${word.count}회`}
             >
               {word.text}

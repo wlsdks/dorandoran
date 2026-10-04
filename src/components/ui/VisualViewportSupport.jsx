@@ -12,7 +12,7 @@ export default function VisualViewportSupport() {
       const root = document.documentElement;
       root.style.setProperty('--app-visible-height', `${height}px`);
       root.style.setProperty('--app-visible-top', `${top}px`);
-      root.dataset.keyboardOpen = String(window.innerHeight - height - top > 120);
+      root.dataset.keyboardOpen = String((viewport?.scale || 1) <= 1.05 && window.innerHeight - height - top > 120);
     };
     const schedule = () => { if (frame === null) frame = requestAnimationFrame(measure); };
     measure(); viewport?.addEventListener('resize', schedule); viewport?.addEventListener('scroll', schedule);

@@ -10,4 +10,14 @@ await db.ref('sessions/runtime_alpha').set(a);await db.ref('sessions/runtime_bet
 await db.ref('assignments/runtime_alpha').set({title:'Alpha 과제',ownerId:uid,status:'open',awards:{first:{name:'Alpha'}},results:{one:{summary:{avgScore:8}}}});
 await db.ref('assignments/runtime_beta').set({title:'Beta 과제',ownerId:uid,status:'open'});
 await db.ref('sessions/qa_room/questions/slides/slideImages').set(['/tests/fixtures/slides/1.svg','/tests/fixtures/slides/2.svg','/tests/fixtures/slides/3.svg']);
+const base = (await db.ref('sessions/qa_room').get()).val();
+await db.ref('sessions/ui_audit').set({ ...base, participants: null, dm: null, dmByStudent: null, publicQuestions: null,
+  courseName: '도란도란 화면 점검', currentMode: 'poll', currentQuestion: 'slides', startedAt: Date.now(),
+  questions: {
+    slides: { title: '함께 배우는 수업', type: 'imageSlide', slideImages: ['/tests/fixtures/slides/1.svg','/tests/fixtures/slides/2.svg','/tests/fixtures/slides/3.svg'], currentSlide: 2, order: 0 },
+    q1: { title: '배운 내용을 어떻게 활용하고 싶나요?', type: 'quiz', options: ['수업에서 바로 활용할 수 있어요','실습을 통해 이해했어요'], correctAnswer: '실습을 통해 이해했어요', order: 1 },
+    q2: { title: '오늘 떠오른 생각을 한 단어로 적어주세요', type: 'wordcloud', order: 2 },
+    many: { title: '다양한 생각을 함께 살펴봅니다', type: 'choice', options: Array.from({length:15},(_,i)=>`${i+1}. 다양한 관점에서 생각해볼 수 있어요`), order: 3 },
+  },
+});
 console.log('Isolated runtime fixture seeded');process.exit(0)})().catch(e=>{console.error(e.message);process.exit(1)});
