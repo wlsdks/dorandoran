@@ -198,7 +198,7 @@ export default memo(function DebateVoter({ sessionId, questionId, disabled = fal
                 placeholder="이유를 한 줄로 적어주세요"
                 aria-label="한 줄 의견"
                 enterKeyHint="done"
-                className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 rounded-lg px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-colors duration-150"
+                className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 rounded-lg px-4 py-3 text-base placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-colors duration-150"
               />
             </div>
 

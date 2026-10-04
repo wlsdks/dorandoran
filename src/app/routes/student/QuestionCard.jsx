@@ -62,7 +62,7 @@ export default function QuestionCard({ question, questionId, questionProgress })
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           loading="eager"
-          className="mt-4 w-full max-h-52 object-cover rounded-lg"
+          className="mt-4 w-full max-h-52 object-contain rounded-lg"
         />
       )}
     </motion.div>

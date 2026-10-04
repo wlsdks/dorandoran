@@ -1,5 +1,6 @@
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { motion as motionTokens } from '@/lib/design-tokens';
+import VisualViewportSupport from '@/components/ui/VisualViewportSupport';
 import AuthenticationBoundary from '@/components/ui/AuthenticationBoundary';
 import { onDisconnect, onValue, ref, remove, set } from 'firebase/database';
 import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
@@ -166,6 +167,7 @@ function App() {
   return (
     <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
     <BrowserRouter>
+      <VisualViewportSupport />
       <AuthenticationBoundary>
       <Routes>
         <Route path="/" element={

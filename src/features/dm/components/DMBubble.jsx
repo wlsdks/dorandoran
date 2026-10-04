@@ -158,7 +158,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
         className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50" onClick={onClose} />
       <motion.div key="dm-panel" initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="fixed inset-x-0 bottom-0 top-[10vh] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[400px] sm:h-[520px] bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden">
+        className="mobile-conversation fixed inset-x-0 bottom-0 top-[10vh] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[400px] sm:h-[520px] bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden">
 
         {/* Drag handle (mobile only) */}
         <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
@@ -170,7 +170,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-700 shrink-0">
               <div className="flex items-center gap-2 min-w-0">
                 <button onClick={() => setSelectedDM(null)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 shrink-0"
+                  className="w-12 h-12 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 shrink-0"
                   aria-label="목록으로"><ArrowLeft size={16} /></button>
                 <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate">
                   {isWaiting ? '도움 요청' : currentDM.staffName || '스태프'}
@@ -181,7 +181,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
                 {isResolved && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 shrink-0"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />해결됨</span>}
                 {isWaiting && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 shrink-0">대기중</span>}
               </div>
-              <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150" aria-label="닫기"><X size={16} /></button>
+              <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150" aria-label="닫기"><X size={16} /></button>
             </div>
             <AnimatePresence>
               {activeTypers.length > 0 && !isResolved && (
@@ -244,9 +244,9 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
                   <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                     placeholder="메시지를 입력하세요" aria-label="도움 요청 메시지" maxLength={200} autoFocus
-                    className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150" />
+                    className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150" />
                   <button onClick={handleSend} disabled={!inputText.trim() || sending}
-                    className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0"
+                    className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0"
                     aria-label="보내기"><Send size={16} /></button>
                 </div>
               </>
@@ -258,7 +258,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
             <div className="px-5 pt-4 pb-0 shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100">도움</span>
-                <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150" aria-label="닫기"><X size={16} /></button>
+                <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150" aria-label="닫기"><X size={16} /></button>
               </div>
               <div className="flex gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
                 <button onClick={() => setTab('list')} className={TAB_CLS(tab === 'list')}>

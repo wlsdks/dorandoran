@@ -138,7 +138,7 @@ export default memo(function WaitingPage({ sessionId, pendingEvent = null, cours
   }, [gameResult, isWinner, currentMode, showsWinner]);
 
   return (
-    <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 pb-[calc(10rem+env(safe-area-inset-bottom))] pt-20">
+    <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]">
       <StudentHeader sessionId={sessionId} />
 
       {/* 🎉 당첨 풀스크린 블라스트 */}
