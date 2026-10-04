@@ -98,8 +98,18 @@ export default memo(function AdminSessionHeader({
     function handleClick(e) {
       if (timerRef.current && !timerRef.current.contains(e.target)) setTimerOpen(false);
     }
+    function handleEscape(event) {
+      if (event.key !== 'Escape') return;
+      event.preventDefault(); event.stopPropagation();
+      setTimerOpen(false);
+      timerRef.current?.querySelector('button')?.focus();
+    }
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleEscape, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleEscape, true);
+    };
   }, [timerOpen]);
 
   return (

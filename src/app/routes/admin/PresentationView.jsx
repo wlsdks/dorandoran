@@ -291,6 +291,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
     const handler = (event) => {
       if (event.defaultPrevented || event.target?.closest('input,textarea,select,[contenteditable="true"],[role="dialog"]')) return;
       if (event.key === 'Escape') { exitPresent(); return; }
+      if (event.key === ' ' && event.target?.closest('button,a[href]')) return;
       const question = session?.questions?.[session?.currentQuestion];
       const slide = Number.isInteger(question?.currentSlide) ? question.currentSlide : 0;
       const images = question?.slideImages || [];
