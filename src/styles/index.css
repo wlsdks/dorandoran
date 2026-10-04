@@ -102,3 +102,34 @@ input, textarea, select {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 수업 화면: 조작 영역은 흐름에, 전자칠판 내용은 화면 크기에 맞춘다. */
+.presentation-button { display:inline-flex;align-items:center;justify-content:center;gap:.5rem;height:48px;min-width:48px;padding:0 1rem;border-radius:12px;background:#1e293b;color:#f8fafc;border:1px solid #475569;font-weight:600;white-space:nowrap; }
+.presentation-button:hover { background:#334155; }
+.presentation-button:focus-visible { outline:3px solid #a5b4fc;outline-offset:3px; }
+.presentation-footer { position:absolute;left:0;right:0;bottom:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:1rem 1.5rem max(1rem,env(safe-area-inset-bottom));background:#0f172a;border-top:1px solid #334155; }
+.presentation-canvas { padding-top:6rem;padding-bottom:7rem; }
+.presentation-footer button { min-height:48px; }
+.participation-qr svg { width:min(70vw,46dvh,420px);height:auto;display:block; }
+.classroom-stage { --stage-title:clamp(2rem,3.6vw,4.5rem);--stage-label:clamp(1.5rem,2.5vw,3rem);--stage-count:clamp(2rem,3.2vw,4rem); }
+.classroom-question-title { font-size:var(--stage-title);line-height:1.17;max-width:28ch;margin-inline:auto;text-wrap:balance; }
+.classroom-results { width:min(100%,1600px);margin-inline:auto; }
+.classroom-option-label { font-size:var(--stage-label);line-height:1.25;overflow-wrap:anywhere; }
+.classroom-option-count { font-size:var(--stage-count); }
+@media (max-width:1100px) {
+ .presentation-footer { justify-content:center;padding:.75rem;gap:.75rem; }
+ .presentation-canvas { padding-bottom:11rem; }
+ .presentation-footer > :first-child { display:none; }
+}
+@media (max-width:640px) {
+ .presentation-canvas { padding-top:5rem;padding-bottom:14rem; }
+ .presentation-footer { font-size:.875rem; }
+ .presentation-footer button { padding-inline:.75rem;font-size:.875rem; }
+}
+.viewport-overlay { top:var(--app-visible-top,0px);height:var(--app-visible-height,100dvh);bottom:auto; }
+.viewport-overlay > [role='dialog'] { max-height:calc(var(--app-visible-height,100dvh) - 2rem); }
+@media (max-width:639px) {
+ .mobile-conversation { top:calc(var(--app-visible-top,0px) + 1rem);bottom:auto;height:calc(var(--app-visible-height,100dvh) - 1rem);max-height:calc(var(--app-visible-height,100dvh) - 1rem); }
+ .mobile-conversation input,.mobile-conversation textarea { font-size:16px;min-width:0; }
+ html[data-keyboard-open='true'] .mobile-learning-tools { display:none; }
+}

@@ -1,9 +1,9 @@
 import { memo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Users, Maximize, Minimize, QrCode, Hand, AlertCircle } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Badge from '@/components/ui/Badge';
-import QRCodeComponent from '@/components/ui/QRCode';
+import ParticipationQR from '@/components/ui/ParticipationQR';
 import ElapsedTime from '@/components/ui/ElapsedTime';
 import { usePresentationScreen } from '@/hooks/usePresentationScreen';
 
@@ -35,7 +35,7 @@ export default memo(function LiveHeader({ courseName, roundNumber, count, handCo
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {fullscreenSupported && <button onClick={toggleFullscreen} aria-label={isFullscreen ? '전체화면 해제' : '전체화면 보기'}
-          className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
+          className="h-12 w-12 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
           {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
         </button>}
         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -80,33 +80,19 @@ export default memo(function LiveHeader({ courseName, roundNumber, count, handCo
         {studentUrl && (
           <button
             onClick={() => setQrOpen(v => !v)}
-            className={`p-1.5 rounded-lg transition-colors ${
+            className={`h-12 w-12 flex items-center justify-center rounded-lg transition-colors ${
               qrOpen
                 ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
             }`}
-            title="QR 코드"
+            title="QR 코드" aria-label="참여 QR 보기"
           >
             <QrCode size={16} />
           </button>
         )}
       </div>
 
-      {/* QR 팝오버 */}
-      <AnimatePresence>
-        {qrOpen && studentUrl && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: -8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -8 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="absolute top-full right-0 mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 z-50 flex flex-col items-center gap-3"
-          >
-            <QRCodeComponent url={studentUrl} size={220} />
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium text-center max-w-[240px] break-all leading-tight">{studentUrl}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ParticipationQR open={qrOpen} onClose={() => setQrOpen(false)} url={studentUrl} sessionId={sessionId} count={count} />
     </header>
   );
 });

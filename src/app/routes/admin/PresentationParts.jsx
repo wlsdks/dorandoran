@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, QrCode, X, Copy, Check, Hand, MessageSquare, ChevronDown, Trophy, Medal, Ticket, Coffee, Award, HelpCircle, UserPlus, Zap, Timer } from 'lucide-react';
+import { Users, QrCode, X, Hand, MessageSquare, ChevronDown, Trophy, Medal, Ticket, Coffee, Award, HelpCircle, UserPlus, Zap, Timer } from 'lucide-react';
 import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import QRCode from '@/components/ui/QRCode';
+import ParticipationQR from '@/components/ui/ParticipationQR';
 import { modeGroups } from '@/lib/modes';
 import Badge from '@/components/ui/Badge';
 import HandRaiseList from '@/features/hand-raise/components/HandRaiseList';
@@ -45,89 +46,11 @@ export function PresentEmptyState({ sessionId, studentUrl, count }) {
 }
 
 export function PresentQROverlay({ sessionId, studentUrl, count }) {
-  const [expanded, setExpanded] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  async function handleCopy(e) {
-    e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(studentUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch { /* ignore */ }
-  }
-
-  function toggle(e) {
-    e.stopPropagation();
-    setExpanded((v) => !v);
-  }
-
-  return (
-    <div className="fixed bottom-3 right-3 md:bottom-5 md:right-5 z-20" onClick={(e) => e.stopPropagation()}>
-      <AnimatePresence mode="wait">
-        {expanded ? (
-          <motion.div
-            key="expanded"
-            initial={{ opacity: 0, scale: 0.9, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 8 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-4 md:p-5 w-56 md:w-64"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-slate-900 dark:text-slate-100 text-sm font-semibold">참여 QR코드</span>
-              <button
-                onClick={toggle}
-                className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150"
-                aria-label="QR 닫기"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="flex justify-center">
-              <QRCode url={studentUrl} size={160} />
-            </div>
-            <div className="mt-3 text-center">
-              <span className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-wider">{sessionId}</span>
-            </div>
-            <button
-              onClick={handleCopy}
-              className="mt-3 w-full flex items-center justify-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-150"
-            >
-              {copied ? <Check size={12} /> : <Copy size={12} />}
-              {copied ? '복사됨' : '링크 복사'}
-            </button>
-            <div className="mt-1 flex items-center justify-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-slate-400 dark:text-slate-500 text-xs">{count}명 접속 중</span>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.button
-            key="collapsed"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.15 }}
-            onClick={toggle}
-            className="flex items-center gap-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl shadow-md px-4 py-3 hover:shadow-lg transition-shadow group"
-            aria-label="QR코드 열기"
-          >
-            <div className="bg-slate-900 rounded-lg p-2">
-              <QrCode size={20} className="text-white" />
-            </div>
-            <div className="text-left">
-              <span className="text-slate-900 dark:text-slate-100 text-base font-bold tracking-wider block leading-tight">{sessionId}</span>
-              <span className="text-slate-400 dark:text-slate-500 text-xs flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-                {count}명
-              </span>
-            </div>
-          </motion.button>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+  const [open, setOpen] = useState(false);
+  return <>
+    <button onClick={() => setOpen(true)} aria-label="QR코드 열기" className="presentation-button"><QrCode size={20} /><span>참여 QR</span></button>
+    <ParticipationQR open={open} onClose={() => setOpen(false)} url={studentUrl} sessionId={sessionId} count={count} />
+  </>;
 }
 
 export const GameFallback = () => (
@@ -228,11 +151,11 @@ export function ExitHint({ onExit }) {
   return (
     <button
       onClick={onExit}
-      className="bg-slate-900/80 dark:bg-slate-700/80 hover:bg-slate-900 dark:hover:bg-slate-600 text-white px-5 py-3 rounded-xl text-base font-medium transition-all duration-150 flex items-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
+      className="presentation-button"
     >
       <X size={18} />
-      <span className="hidden sm:inline">나가기</span>
-      <span className="hidden md:inline text-white/50 ml-1">ESC</span>
+      <span className="hidden lg:inline">제어 화면</span>
+      <span className="hidden xl:inline text-white/50 ml-1">ESC</span>
     </button>
   );
 }
@@ -246,7 +169,7 @@ export function PresentTimerButton({ isRunning, onStart, onStop }) {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="타이머"
-        className={`flex items-center gap-2 px-5 py-3 rounded-xl text-base font-medium shadow-lg hover:shadow-xl transition-all duration-150 active:scale-95 backdrop-blur-sm ${
+        className={`presentation-button ${
           isRunning
             ? 'bg-indigo-600 hover:bg-indigo-500 text-white ring-1 ring-indigo-400/40'
             : open
@@ -255,7 +178,7 @@ export function PresentTimerButton({ isRunning, onStart, onStop }) {
         }`}
       >
         <Timer size={18} />
-        <span className="hidden sm:inline">{isRunning ? '진행 중' : '타이머'}</span>
+        <span className="hidden lg:inline">{isRunning ? '진행 중' : '타이머'}</span>
       </button>
       {open && (
         <div className="absolute top-full right-0 mt-2 w-64 bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-xl p-3 shadow-xl ring-1 ring-white/10">
