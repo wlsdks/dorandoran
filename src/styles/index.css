@@ -144,7 +144,7 @@ input, textarea, select {
  .classroom-stage { --stage-title:clamp(2rem,3vw,3rem);--stage-label:clamp(1.5rem,2.1vw,2rem);--stage-count:clamp(1.75rem,2.4vw,2.25rem); }
 }
 @media (max-width:640px) { .classroom-results { width:100%; } }
-.paper-surface { width:min(84vw,1280px);margin-inline:auto;padding:clamp(24px,3vw,44px)!important;background:#f8faff;border-radius:20px;color:#17203c;box-shadow:0 20px 60px rgb(2 6 23 / .16); }
+.paper-surface { width:min(84vw,1280px);margin-inline:auto;padding:clamp(24px,3vw,44px)!important;background:#dde3ed;border-radius:20px;color:#17203c;box-shadow:0 20px 60px rgb(2 6 23 / .16); }
 .paper-surface .classroom-question-title { color:#17203c;font-size:clamp(28px,2.8vw,44px);font-weight:700;letter-spacing:-.035em; }
 .paper-surface .classroom-results { width:100%; }
 .paper-surface .classroom-result-grid { gap:24px; }
@@ -175,3 +175,8 @@ input, textarea, select {
 .poll-waiting-note { position:absolute;left:0;right:0;top:28%;display:flex;align-items:center;justify-content:center;gap:12px;margin:0; }
 .poll-waiting-note p { text-align:left;font-weight:600;line-height:1.45; }
 .poll-waiting-note span { display:block;font-size:.8em;font-weight:400; }
+
+/* 밝은 면의 휘도와 주변 대비를 함께 낮춘 전자칠판 톤. */
+.classroom-stage { background:#253249; }
+.poll-columns[data-empty='true'] .poll-column-bar-area { height:clamp(130px,19dvh,200px); }
+.paper-surface .poll-waiting-note { color:#526079; }

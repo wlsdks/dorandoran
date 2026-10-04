@@ -53,7 +53,7 @@ export default function LivePage() {
   const { session, loading } = useSession(sessionId);
   const { onlineList, count } = useParticipants(sessionId);
   const { isRunning, endTime, duration } = useTimer(sessionId);
-  const { scores, leaderboard } = useScores(sessionId);
+  const { leaderboard } = useScores(['leaderboard','combinedRanking'].includes(session?.currentMode) ? sessionId : null);
   const { count: handCount } = useHandRaises(sessionId);
   const { unreadCount: urgentCount } = useUrgentQuestions(sessionId);
 
@@ -68,7 +68,7 @@ export default function LivePage() {
     () => currentMode === 'lottery' || currentMode === 'scratchCard'
       ? onlineList
       : [],
-    [onlineList, scores, currentMode]
+    [onlineList, currentMode]
   );
 
   // 결과 발행은 하지 않는다 — 전자칠판은 보기 전용이고, 당첨자 기록은 강사 화면 한 곳에서만

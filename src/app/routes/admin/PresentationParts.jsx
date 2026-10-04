@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, QrCode, X, Hand, MessageSquare, ChevronDown, Trophy, Medal, Ticket, Coffee, Award, HelpCircle, UserPlus, Zap, Timer } from 'lucide-react';
+import { Users, QrCode, X, Hand, MessageSquare, ChevronDown, Trophy, Medal, Coffee, Award, HelpCircle, UserPlus, Zap, Timer } from 'lucide-react';
 import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import QRCode from '@/components/ui/QRCode';
