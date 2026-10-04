@@ -56,7 +56,7 @@ export default memo(function BottomSheet({ open, onClose, ariaLabel, children })
           onClick={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
           <motion.div ref={dialogRef} initial={reducedMotion ? false : { y: '100%' }} animate={{ y: 0 }} exit={reducedMotion ? { opacity: 0 } : { y: '100%' }}
             transition={reducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 25 }}
-            drag="y" dragControls={dragControls} dragListener={false} dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: 0.15 }}
+            drag="y" dragControls={dragControls} dragListener={false} dragConstraints={{ top: 0 }} dragElastic={{ top: 0, bottom: 0.15 }}
             onDragEnd={(_, info) => { if (info.offset.y > 100 || info.velocity.y > 500) onClose?.(); }}
             role="dialog" aria-modal="true" aria-label={ariaLabel || '상세 패널'} tabIndex={-1} onKeyDown={trapFocus}
             className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-t-2xl shadow-xl max-h-[85dvh] min-h-0 flex flex-col overflow-hidden outline-none"
