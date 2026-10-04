@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
@@ -15,7 +16,6 @@ import HandRaiseList from '@/features/hand-raise/components/HandRaiseList';
 import UrgentQuestionList from '@/features/questions/components/UrgentQuestionList';
 import ReactionOverlay from '@/features/reactions/components/ReactionOverlay';
 import ChatBubbleOverlay from '@/features/reactions/components/ChatBubbleOverlay';
-import AnswerBubbleOverlay from '@/features/voting/components/AnswerBubbleOverlay';
 import { useGameResultPublisher } from '@/features/games/api/useGameResult';
 import Leaderboard from '@/features/quiz/components/Leaderboard';
 import PersistentAssignmentBar from '@/features/ai-judge/components/PersistentAssignmentBar';
@@ -202,8 +202,8 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
           </Button>
         )}
         <Button onClick={async () => {
-          await update(ref(db, `sessions/${sessionId}`), { drumroll: true });
           setDrumroll(true);
+          try { await update(ref(db, `sessions/${sessionId}`), { drumroll: true }); } catch { setDrumroll(false); }
         }} variant="ghost" size="lg">
           두구두구
         </Button>
@@ -220,6 +220,7 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
 
 export default function PresentationView({ sessionId, session, currentMode, onlineList, leaderboard, drawParticipants, studentUrl, count, onExit, scores, participants }) {
 
+  const { available: aiAvailable } = useAIAvailability();
   // 발표 모드에 있는 동안만 전체화면 + 화면 꺼짐 방지
   const { isFullscreen, toggleFullscreen, fullscreenSupported, exitFullscreen } = usePresentationScreen();
   const exitPresent = useCallback(() => { exitFullscreen(); onExit(); }, [exitFullscreen, onExit]);
@@ -256,7 +257,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
     if (q.type === 'imageSlide' && !Number.isInteger(q.currentSlide)) updates[`questions/${qId}/currentSlide`] = 0;
     if (q.type === 'hintQuiz') updates[`questions/${qId}/revealedHints`] = 0;
     if (['mysteryBox', 'hintQuiz'].includes(q.type)) updates[`questions/${qId}/revealedWinners`] = 0;
-    // 발표모드에서도 이벤트(2배점수/티켓러시/잭팟) 적용 — 대시보드 빠른진행과 동일 경로
+    // 발표모드에서도 점수 이벤트 적용 — 대시보드 빠른진행과 동일 경로
     updates[`questions/${qId}/event`] = nextEvent && isQuizQuestion(q) ? normalizeQuizEvent(nextEvent) : null;
     updates.pendingEvent = null; // 예고 소진
     await update(ref(db, `sessions/${sessionId}`), updates);
@@ -315,10 +316,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
       <JoinToast sessionId={sessionId} />
       <ReactionOverlay sessionId={sessionId} />
       <ChatBubbleOverlay sessionId={sessionId} />
-      <AnswerBubbleOverlay
-        sessionId={sessionId}
-        questionId={session?.currentQuestion}
-      />
+
 
       <SideNoticesPanel sessionId={sessionId} />
 
@@ -342,7 +340,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
 
       {/* 상시 과제 바 — 발표 모드에서도 강사가 제출 상태/심사 상태 확인 가능.
           단, 상시 과제 자체가 현재 활성 질문일 때는 메인 뷰에 이미 노출되므로 중복 방지 (학생 VoteModeContent와 동일 규칙). */}
-      {session?.persistentAssignmentId && session?.currentQuestion !== session?.persistentAssignmentId && (
+      {aiAvailable && session?.persistentAssignmentId && session?.currentQuestion !== session?.persistentAssignmentId && (
         <div className="fixed top-3 left-1/2 -translate-x-1/2 z-20 w-[min(42rem,calc(100vw-6rem))] pointer-events-auto">
           <PersistentAssignmentBar
             sessionId={sessionId}

@@ -7,7 +7,7 @@
  * 키 없이 이 함수를 경유한다.
  *
  * Hosting rewrite로 `/api/gemini/**` → 이 함수에 연결된다. 앱과 같은 출처라 CORS가 필요 없다.
- * 클라이언트(@google/generative-ai)는 requestOptions.baseUrl을 `/api/gemini`로 두고,
+ * 클라이언트(@google/genai)는 requestOptions.baseUrl을 `/api/gemini`로 두고,
  * `{baseUrl}/v1beta/models/{model}:generateContent` 형태로 요청하며 키를 `x-goog-api-key`
  * 헤더에 싣는다 — 그 헤더는 여기서 버리고 진짜 키로 교체한다.
  *
@@ -25,6 +25,7 @@ const { createAssignmentService } = require('./assignment-service');
 const { createClassroomService } = require('./classroom-service');
 const { createHttpApi } = require('./http-api');
 const { verifiedUser, verifiedStaff, createRateLimit } = require('./access');
+const { readStaffProfile } = require('./staff-profile');
 
 const adminApp = getApps()[0] || initializeApp(process.env.APP_DATABASE_URL ? { databaseURL: process.env.APP_DATABASE_URL } : undefined);
 const adminAuth = getAuth(adminApp);
@@ -117,11 +118,58 @@ exports.geminiProxy = onRequest(
     }
 
     // Origin은 인증이 아니다. 서버가 검증한 Firebase 사용자와 승인된 강사만 호출할 수 있다.
-    try { await verifiedUser(req, adminAuth); await verifiedStaff(req, adminAuth, adminDb); }
-    catch (err) { return deny(res, err.status || 403, '승인된 강사 로그인이 필요합니다.'); }
+    let actor;
+    try { actor = await verifiedUser(req, adminAuth); }
+    catch (err) { return deny(res, err.status || 401, '로그인이 필요합니다.'); }
 
     // Hosting rewrite는 원본 경로(/api/gemini/v1beta/...)를 그대로 전달한다.
     const path = (req.path || '').replace(/^\/api\/gemini/, '');
+    if (path === '/status') {
+      res.set('Cache-Control', 'no-store');
+      res.set('X-Content-Type-Options', 'nosniff');
+      if (rateLimited(`status-user:${actor.uid}`) || rateLimited(`status-ip:${req.ip || 'unknown'}`)) return deny(res, 429, '잠시 후 다시 확인해주세요.');
+      if (Buffer.byteLength(JSON.stringify(req.body || {}), 'utf8') > 2048) return deny(res, 413, '요청이 너무 큽니다.');
+      const profile = await readStaffProfile(adminDb, actor.uid);
+      const approved = profile?.approved && ['master','admin','staff'].includes(profile.role);
+      const sessionId = req.body?.sessionId;
+      const assignmentId = req.body?.assignmentId;
+      if (assignmentId != null && (typeof assignmentId !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(assignmentId))) return deny(res, 400, '과제를 확인해주세요.');
+      if (sessionId != null && (typeof sessionId !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(sessionId))) return deny(res, 400, '수업을 확인해주세요.');
+      if (!sessionId && !assignmentId && !approved) return deny(res, 403, '승인된 강사만 연결 설정을 확인할 수 있습니다.');
+      let enabledForScope = !sessionId;
+      if (sessionId) {
+        const fields = ['createdAt','creatorId','courseId','aiEnabled'];
+        const snapshots = await Promise.all(fields.map(field => adminDb.ref(`sessions/${sessionId}/${field}`).get()));
+        const session = Object.fromEntries(fields.map((field,index) => [field,snapshots[index].val()]));
+        if (!session.createdAt) return deny(res, 404, '수업을 찾을 수 없습니다.');
+        const assigned = session.courseId && (await adminDb.ref(`staffCourses/${actor.uid}/${session.courseId}`).get()).val() === true;
+        if (approved && !(profile.role === 'master' || (profile.role === 'admin' && session.creatorId === actor.uid) || (profile.role === 'staff' && assigned))) return deny(res, 403, '이 수업의 AI 설정을 확인할 권한이 없습니다.');
+        const courseEnabled = session.courseId && (await adminDb.ref(`courses/${session.courseId}/aiEnabled`).get()).val() === true;
+        enabledForScope = session.aiEnabled === true || (session.aiEnabled == null && courseEnabled);
+      }
+      if (assignmentId && !sessionId) {
+        const fields = ['title','ownerId','hasJudging'];
+        const snapshots = await Promise.all(fields.map(field => adminDb.ref(`assignments/${assignmentId}/${field}`).get()));
+        const assignment = Object.fromEntries(fields.map((field,index) => [field,snapshots[index].val()]));
+        if (!assignment.title) return deny(res, 404, '과제를 찾을 수 없습니다.');
+        if (approved && profile.role !== 'master' && assignment.ownerId !== actor.uid) {
+          const courseId = (await adminDb.ref(`assignmentAccess/${assignmentId}/courseId`).get()).val();
+          const courseOwner = courseId && (await adminDb.ref(`courses/${courseId}/ownerId`).get()).val();
+          const staffAssigned = courseId && (await adminDb.ref(`staffCourses/${actor.uid}/${courseId}`).get()).val() === true;
+          if (!(profile.role === 'admin' && courseOwner === actor.uid) && !(profile.role === 'staff' && staffAssigned)) return deny(res, 403, '이 과제의 AI 설정을 확인할 권한이 없습니다.');
+        }
+        enabledForScope = assignment.hasJudging === true;
+      }
+      let key = '';
+      try { key = GEMINI_API_KEY.value() || ''; } catch { /* 비연결 환경 */ }
+      // 데모 업스트림/테스트 시크릿은 실제 서비스 연결의 증거가 아니다.
+      const configured = Boolean(key && !key.startsWith('test-only-') && UPSTREAM === 'https://generativelanguage.googleapis.com');
+      return res.json({ configured, available: configured && enabledForScope, studentFeaturesAvailable: false,
+        reason: !configured ? 'AI 연결 필요' : !enabledForScope ? '이 수업의 AI 사용이 설정되지 않았어요.' : 'AI 연결 설정이 준비되어 있어요.' });
+    }
+    try { await verifiedStaff(req, adminAuth, adminDb); }
+    catch (err) { return deny(res, err.status || 403, '승인된 강사 로그인이 필요합니다.'); }
+
     const match = PATH_RE.exec(path);
     if (!match) {
       return deny(res, 404, '지원하지 않는 경로입니다.');

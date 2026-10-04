@@ -17,7 +17,7 @@ import QuickProgressCard from './QuickProgressCard';
 import ImportFromLibraryModal from './ImportFromLibraryModal';
 import QuestionPreview from './QuestionPreview';
 import AIQuestionGenerator from '@/features/questions/components/AIQuestionGenerator';
-import { isGeneratorReady } from '@/features/questions/api/generateQuestions';
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 
 function TooltipIconButton({ onClick, label, children, hoverColor = 'hover:text-slate-600 dark:hover:text-slate-300', ...props }) {
   const [show, setShow] = useState(false);
@@ -64,6 +64,7 @@ export default function QuestionManager({
   modeButton = null,
   mobileStickyProgress = false,
 }) {
+  const { available, reason } = useAIAvailability();
   const [showForm, setShowForm] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -194,9 +195,10 @@ export default function QuestionManager({
                 {showForm && !onAddClick ? '취소' : <><Plus size={14} /> 문항 추가</>}
               </Button>
               {adminUid && <Button onClick={() => setLibraryOpen(true)} variant="secondary" size="sm" className="min-h-11"><BookmarkPlus size={14} /> 보관함</Button>}
-              {isGeneratorReady() && <Button onClick={() => setAiGenOpen(true)} variant="secondary" size="sm" className="min-h-11"><Sparkles size={14} /> AI 생성</Button>}
+              <Button onClick={() => setAiGenOpen(true)} disabled={!available} title={!available ? reason : undefined} variant="secondary" size="sm" className="min-h-11"><Sparkles size={14} /> AI 생성</Button>
               {questionList.length > 0 && <Button onClick={() => setResetConfirmOpen(true)} variant="ghost" size="sm" className="min-h-11 text-slate-500"><RotateCcw size={14} /> 답변 초기화</Button>}
             </div>
+            {!available && <p className="text-xs text-slate-500 dark:text-slate-400">{reason}</p>}
             {modeSlot}
             <AnimatePresence>{showForm && !onAddClick && <QuestionForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} error={error} />}</AnimatePresence>
           </div>

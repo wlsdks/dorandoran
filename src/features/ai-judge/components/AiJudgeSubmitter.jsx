@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Send, Sparkles, Trophy, Trash2, Edit3, AlertCircle, Image as ImageIcon, Code2, Upload } from 'lucide-react';
@@ -14,6 +15,7 @@ import LiveResultHero from './LiveResultHero';
  * 심사 완료 시: 본인 결과 + TOP 3 확인.
  */
 export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled }) {
+  const { available } = useAIAvailability();
   const participantId = getParticipantId();
   const nickname = getSessionNickname(sessionId) || '익명';
   const submission = useMySubmission(sessionId, questionId, participantId);
@@ -123,7 +125,7 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
   }
 
   // 심사 완료 후: 결과 화면 (TOP 공개는 강사 제어에 따라 단계적)
-  if (isDone && top3) {
+  if (available && isDone && top3) {
     return (
       <motion.div
         key="result"
@@ -144,7 +146,7 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
   }
 
   // 심사 중 — 학생 폰 화면. 현재 누가 심사 중인지 + 내 차례까지 N건 안내.
-  if (isJudging) {
+  if (available && isJudging) {
     const cur = judgeState?.current || 0;
     const total = judgeState?.total || 0;
     const pct = total ? Math.min(100, (cur / total) * 100) : 0;
@@ -427,8 +429,8 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
         />
       </div>
 
-      {title.trim() === '' && imageUrl && (
-        <p className="text-xs text-slate-400 text-center">제목·설명을 적으면 AI가 더 구체적인 심사평을 줘요</p>
+      {available && title.trim() === '' && imageUrl && (
+        <p className="text-xs text-slate-400 text-center">제목·설명을 적으면 더 구체적인 심사평을 받을 수 있어요</p>
       )}
 
       <AnimatePresence>

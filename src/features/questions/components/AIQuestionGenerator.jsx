@@ -1,7 +1,8 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, Loader2, Plus, RefreshCw, Check } from 'lucide-react';
-import { generateQuestions, isGeneratorReady } from '@/features/questions/api/generateQuestions';
+import { generateQuestions } from '@/features/questions/api/generateQuestions';
 
 const TYPE_LABELS = {
   choice: '객관식',
@@ -11,6 +12,7 @@ const TYPE_LABELS = {
 };
 
 export default function AIQuestionGenerator({ open, onClose, onUse, onUseMany }) {
+  const { configured, reason } = useAIAvailability();
   const [topic, setTopic] = useState('');
   const [count, setCount] = useState(4);
   const [loading, setLoading] = useState(false);
@@ -19,7 +21,7 @@ export default function AIQuestionGenerator({ open, onClose, onUse, onUseMany })
   const [usedIndexes, setUsedIndexes] = useState(new Set());
 
   async function handleGenerate() {
-    if (!topic.trim() || loading) return;
+    if (!configured || !topic.trim() || loading) return;
     setLoading(true);
     setError('');
     setDrafts([]);
@@ -97,9 +99,9 @@ export default function AIQuestionGenerator({ open, onClose, onUse, onUseMany })
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {!isGeneratorReady() ? (
+          {!configured ? (
             <div className="text-center py-12">
-              <p className="text-sm text-slate-500">Gemini API 키가 설정되어 있지 않습니다.</p>
+              <p className="text-sm text-slate-500">{reason}</p>
             </div>
           ) : (
             <>

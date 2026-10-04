@@ -108,3 +108,20 @@ test('가입 시 master 승격·짧은 비밀번호·기존 아이디 탈취를 
   assert.equal((await api('/api/staff/register', { username: 'qa-master', password, displayName: '탈취시도', role: 'admin' })).status, 409);
   assert.equal((await api('/api/staff/approve', { uid: 'pending_teacher' })).status, 401);
 });
+
+test('AI 상태 확인은 비인증을 거부하고 테스트 연결을 실제 연결로 표시하지 않는다', async () => {
+  assert.equal((await api('/api/gemini/status', { sessionId: 'qa_room' })).status, 401);
+  const signup = await fetch('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-key', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ returnSecureToken: true }),
+  });
+  const { idToken } = await signup.json();
+  const status = await api('/api/gemini/status', { sessionId: 'qa_room' }, idToken);
+  assert.equal(status.status, 200);
+  assert.equal(status.body.configured, false);
+  assert.equal(status.body.available, false);
+  assert.equal(status.body.studentFeaturesAvailable, false);
+  assert.equal(status.body.key, undefined);
+  assert.equal(status.body.token, undefined);
+  assert.equal((await api('/api/gemini/status', {}, idToken)).status, 403);
+  assert.equal((await api('/api/gemini/v1beta/models/gemini-2.5-flash:generateContent', { contents: '금지된 요청' }, idToken)).status, 403);
+});

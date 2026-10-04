@@ -1,5 +1,7 @@
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { motion as motionTokens } from '@/lib/design-tokens';
+import AIAvailabilityProvider from '@/components/ui/AIAvailabilityProvider';
+import AudioInteractionSupport from '@/components/ui/AudioInteractionSupport';
 import VisualViewportSupport from '@/components/ui/VisualViewportSupport';
 import AuthenticationBoundary from '@/components/ui/AuthenticationBoundary';
 import { onDisconnect, onValue, ref, remove, set } from 'firebase/database';
@@ -168,7 +170,9 @@ function App() {
     <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
     <BrowserRouter>
       <VisualViewportSupport />
+      <AudioInteractionSupport />
       <AuthenticationBoundary>
+      <AIAvailabilityProvider>
       <Routes>
         <Route path="/" element={
           <ErrorBoundary scope="student">
@@ -205,6 +209,7 @@ function App() {
         } />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </AIAvailabilityProvider>
       </AuthenticationBoundary>
     </BrowserRouter>
     </MotionConfig>

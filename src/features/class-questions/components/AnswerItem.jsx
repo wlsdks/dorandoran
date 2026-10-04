@@ -32,7 +32,7 @@ export default function AnswerItem({ answer: a, questionId, pid, onUpvote }) {
         </div>
         <p className={`text-sm mt-0.5 leading-relaxed ${isOfficial ? 'text-slate-900 dark:text-slate-100' : 'text-slate-700 dark:text-slate-200'}`}>{a.text}</p>
         <button
-          onClick={() => onUpvote(questionId, a.id, pid)}
+          disabled={!onUpvote} onClick={() => onUpvote?.(questionId, a.id, pid)}
           aria-label={hasUpvoted ? '추천 취소' : '추천'}
           aria-pressed={!!hasUpvoted}
           className={`flex items-center gap-1 mt-1 text-xs transition-colors duration-150 ${

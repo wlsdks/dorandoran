@@ -61,7 +61,7 @@ export default function AssignmentsTab({ sessions }) {
         ) : assignments.length === 0 ? (
           <EmptyState
             title="아직 등록된 과제가 없습니다"
-            description="과제를 등록하고 학생들의 제출물을 AI로 심사해보세요"
+            description="과제를 등록하고 학습자의 제출물을 모아보세요"
             mascotSize="lg"
             mood="waiting"
             className="py-16"

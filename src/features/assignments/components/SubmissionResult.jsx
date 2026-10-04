@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { motion } from 'framer-motion';
 import { Trophy, Clock } from 'lucide-react';
 import { JUDGES, AWARDS, getAwardById } from '@/lib/judging/judges';
@@ -8,6 +9,11 @@ import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
  * SubmissionResult — 학생이 본인 심사 결과를 확인하는 화면.
  */
 export default function SubmissionResult({ submission, results, awards, passThreshold = 3 }) {
+  const { available } = useAIAvailability();
+  if (!available) return <div className="text-center rounded-xl bg-white dark:bg-slate-800 p-6 space-y-2">
+    <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">제출이 완료되었습니다</p>
+    <p className="text-sm text-slate-500 dark:text-slate-300">강사가 확인하고 다음 안내를 드릴 거예요.</p>
+  </div>;
   if (!results) {
     return (
       <motion.div

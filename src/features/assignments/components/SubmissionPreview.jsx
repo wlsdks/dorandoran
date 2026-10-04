@@ -1,7 +1,8 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Check, TrendingUp, Zap, Loader2 } from 'lucide-react';
-import { previewSubmission, isGeminiReady } from '@/lib/judging/gemini';
+import { previewSubmission } from '@/lib/judging/gemini';
 
 const COOLDOWN_MS = 2 * 60 * 1000; // 2분
 const STORAGE_KEY = 'dorandoran_preview_last_ts';
@@ -33,12 +34,15 @@ function useCooldown() {
 }
 
 export default function SubmissionPreview({ submission, disabled }) {
+  const { studentFeaturesAvailable } = useAIAvailability();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const { remaining, markUsed } = useCooldown();
 
-  const canUse = !disabled && !loading && remaining === 0 && isGeminiReady();
+  if (!studentFeaturesAvailable) return null;
+
+  const canUse = !disabled && !loading && remaining === 0 && studentFeaturesAvailable;
 
   async function handlePreview() {
     if (!canUse) return;
@@ -57,10 +61,10 @@ export default function SubmissionPreview({ submission, disabled }) {
 
   const label = loading ? 'AI가 살펴보는 중...'
     : remaining > 0 ? `잠시 후 다시 시도 (${remaining}초)`
-    : !isGeminiReady() ? 'AI 예심 준비 안 됨'
+    : !studentFeaturesAvailable ? 'AI 예심 준비 안 됨'
     : disabled ? 'PRD와 스크린샷을 먼저 입력하세요'
-    : 'AI 예심 받기 (무료)';
-  const showSparklesIcon = canUse && !loading && remaining === 0 && isGeminiReady() && !disabled;
+    : 'AI 예심 받기';
+  const showSparklesIcon = canUse && !loading && remaining === 0 && studentFeaturesAvailable && !disabled;
 
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">

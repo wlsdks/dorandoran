@@ -13,7 +13,6 @@ import { useUrgentQuestions } from '@/features/questions/api/useUrgentQuestions'
 import VizRenderer from '@/features/visualization/components/VizRenderer';
 import ReactionOverlay from '@/features/reactions/components/ReactionOverlay';
 import ChatBubbleOverlay from '@/features/reactions/components/ChatBubbleOverlay';
-import AnswerBubbleOverlay from '@/features/voting/components/AnswerBubbleOverlay';
 import JoinToast from '@/features/participants/components/JoinToast';
 import TimerCountdown from '@/features/timer/components/TimerCountdown';
 import Badge from '@/components/ui/Badge';
@@ -63,11 +62,11 @@ export default function LivePage() {
   const question = currentQId ? session?.questions?.[currentQId] : null;
   const { totalVotes } = useVotes(sessionId, currentQId);
 
-  // drawParticipants: onlineList enriched with ticket data for weighted lottery.
+  // 추첨 대상은 현재 참여자이며 모두 같은 확률로 선택한다.
   // 추첨 모드에서만 계산 — 그 외엔 scores 변경마다 300명 재계산하던 비용 제거.
   const drawParticipants = useMemo(
     () => currentMode === 'lottery' || currentMode === 'scratchCard'
-      ? onlineList.map((p) => ({ ...p, ...scores[p.id], tickets: scores[p.id]?.tickets || 0 }))
+      ? onlineList
       : [],
     [onlineList, scores, currentMode]
   );
@@ -131,10 +130,7 @@ export default function LivePage() {
       <ReactionOverlay sessionId={sessionId} />
       <ChatBubbleOverlay sessionId={sessionId} />
       <DrumrollOverlay active={!!session?.drumroll} />
-      <AnswerBubbleOverlay
-        sessionId={sessionId}
-        questionId={session?.currentQuestion}
-      />
+
 
       {/* 정렬: items-start + 자식 my-auto = 콘텐츠가 뷰포트보다 짧으면 정중앙(프로젝터 여백낭비 방지),
           넘치면(aiJudge 그리드 등) 상단부터 스크롤되어 상단 잘림도 방지 — 두 요구를 동시 충족.
@@ -161,7 +157,7 @@ export default function LivePage() {
                   )}
                   {currentMode === 'breakTime' && <BreakTimer sessionId={sessionId} />}
                   {currentMode === 'leaderboard' && <div className="w-full max-w-2xl mx-auto [&_.max-w-xl]:max-w-none"><Leaderboard entries={leaderboard} maxShow={10} title="실시간 리더보드" /></div>}
-                  {currentMode === 'qaBoard' && <div className="w-full max-w-4xl mx-auto"><ClassQABoard sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>}
+                  {currentMode === 'qaBoard' && <div className="w-full max-w-4xl mx-auto"><ClassQABoard sessionId={sessionId} showInput={false} role="viewer" /></div>}
                   {currentMode === 'qaRanking' && <QARanking sessionId={sessionId} />}
                   {currentMode === 'joinShow' && <JoinShow sessionId={sessionId} />}
                   {currentMode === 'awards' && <AwardsCeremony assignmentId={session?.activeAssignmentId} readOnly />}

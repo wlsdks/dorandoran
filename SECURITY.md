@@ -49,3 +49,5 @@ firebase deploy --only database,storage,hosting
 2026-10-04 읽기 전용 점검 당시 기존 계정 19개의 UID/역할을 삭제하거나 수정하는 작업은 포함하지 않습니다. `publicQuestions`, 과제 조회 권한, 강의 연결 권한은 원자료를 덮어쓰지 않는 별도 데이터입니다. 학생의 과거 로컬 UUID는 인증 증명이 아니므로 보안 전환 후 다시 참여해야 할 수 있습니다. 과거 운영 데이터가 공개됐는지 여부나 운영 Auth/App Check·quota 설정은 저장소 테스트로 확정할 수 없습니다. 공개됐던 자격 증명의 교체는 원자료 보존 정책과 별도로 운영자가 결정해야 합니다.
 
 참고: [Firebase 읽기·쓰기와 구독 해제](https://firebase.google.com/docs/database/web/read-and-write), [Firebase custom-token 인증](https://firebase.google.com/docs/auth/admin/create-custom-tokens), [Firebase Rules 권한 조건](https://firebase.google.com/docs/database/security/rules-conditions), [OWASP CSV Injection](https://owasp.org/www-community/attacks/CSV_Injection).
+
+AI 표시 정책: 공개 프록시 URL만으로 연결을 판단하지 않습니다. 인증된 상태 확인은 서버 Secret Manager 설정과 명시된 수업/클래스 `aiEnabled=true`를 함께 확인합니다. 과제는 기존 `hasJudging` 설정을 존중합니다. 수업별 명시 설정이 없으면 AI를 사용 가능한 것으로 표시하지 않습니다. 이 작업은 기존 데이터에 설정 값을 일괄 추가하지 않았습니다. 연결 상태 응답에는 키·토큰을 포함하지 않으며, 학생의 직접 AI 생성 권한은 추가하지 않습니다. 설정 상태 확인은 실제 모델 응답·품질·과금을 검증하는 호출이 아닙니다.

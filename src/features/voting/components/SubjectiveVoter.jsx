@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { Star } from 'lucide-react';
 import { useState, useEffect, memo } from 'react';
 import { ref, onValue } from 'firebase/database';
@@ -47,6 +48,7 @@ function GradeCard({ grade }) {
 }
 
 export default memo(function SubjectiveVoter({ sessionId, questionId, disabled }) {
+  const { available } = useAIAvailability();
   const [grade, setGrade] = useState(null);
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export default memo(function SubjectiveVoter({ sessionId, questionId, disabled }
     </motion.div>
   );
 
-  if (grade && typeof grade.score === 'number') return <div className="space-y-3">{spotBanner}<GradeCard grade={grade} /></div>;
+  if (available && grade && typeof grade.score === 'number') return <div className="space-y-3">{spotBanner}<GradeCard grade={grade} /></div>;
 
   return (
     <div className="space-y-3">

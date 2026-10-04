@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { useAssignmentActions } from '@/features/assignments/api/useAssignments';
@@ -5,12 +6,13 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 
 function CreateAssignmentContent({ sessions, onClose }) {
+  const { configured, reason } = useAIAvailability();
   const { createAssignment } = useAssignmentActions();
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedRound, setSelectedRound] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [hasJudging, setHasJudging] = useState(true);
+  const [hasJudging, setHasJudging] = useState(false);
   const [passThreshold, setPassThreshold] = useState(3);
   const [creating, setCreating] = useState(false);
 
@@ -39,7 +41,7 @@ function CreateAssignmentContent({ sessions, onClose }) {
         title: title.trim(),
         description: description.trim(),
         roundNumber: selectedRound ? Number(selectedRound) : null,
-        hasJudging,
+        hasJudging: configured && hasJudging,
         passThreshold,
       });
       onClose();
@@ -130,19 +132,21 @@ function CreateAssignmentContent({ sessions, onClose }) {
         <button
           type="button"
           onClick={() => setHasJudging(!hasJudging)}
-          className="w-full flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          disabled={!configured}
+          aria-pressed={configured && hasJudging}
+          className="w-full flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
         >
           <div>
             <p className="text-[15px] font-medium text-slate-900 dark:text-slate-100 text-left">AI 심사</p>
-            <p className="text-xs text-slate-400 mt-0.5 text-left">7명의 AI 심사위원이 제출물을 평가합니다</p>
+            <p className="text-xs text-slate-400 mt-0.5 text-left">{configured ? '7명의 AI 심사위원이 제출물을 평가합니다' : reason}</p>
           </div>
-          <div className={`w-11 h-6 rounded-full p-0.5 transition-colors ${hasJudging ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-200 dark:bg-slate-600'}`}>
-            <div className={`w-5 h-5 rounded-full bg-white dark:bg-slate-900 shadow-sm transition-transform ${hasJudging ? 'translate-x-5' : 'translate-x-0'}`} />
+          <div className={`w-11 h-6 rounded-full p-0.5 transition-colors ${configured && hasJudging ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-200 dark:bg-slate-600'}`}>
+            <div className={`w-5 h-5 rounded-full bg-white dark:bg-slate-900 shadow-sm transition-transform ${configured && hasJudging ? 'translate-x-5' : 'translate-x-0'}`} />
           </div>
         </button>
 
         {/* 통과 기준 — AI 심사 켰을 때만 */}
-        {hasJudging && (
+        {configured && hasJudging && (
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 space-y-2.5">
             <div className="flex items-center justify-between">
               <p className="text-[15px] font-medium text-slate-900 dark:text-slate-100">합격 기준</p>

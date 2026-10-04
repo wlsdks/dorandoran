@@ -1,9 +1,9 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, ThumbsUp, Check, HelpCircle, MessageSquare, ChevronDown, ChevronUp, ShieldAlert, Sparkles } from 'lucide-react';
 import { useClassQuestions } from '@/features/class-questions/api/useClassQuestions';
-import { isAiAnswerReady } from '@/features/class-questions/api/aiAnswer';
 import { getParticipantId, getNickname, getLastSeen, saveLastSeen } from '@/lib/participant';
 import { timeAgo } from '@/lib/utils';
 
@@ -182,6 +182,7 @@ const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, on
 });
 
 export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuestion }) {
+  const { studentFeaturesAvailable } = useAIAvailability();
   const { questions, postQuestion, toggleUpvote, postAnswer, canPost, canAnswer, loading } =
     useClassQuestions(sessionId);
   const [inputText, setInputText] = useState('');
@@ -225,7 +226,7 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
     if (!text || !canPost || posting) return;
     setPosting(true);
     setPostError('');
-    const ok = await postQuestion(text, nickname, participantId, { aiAllowed });
+    const ok = await postQuestion(text, nickname, participantId, { aiAllowed: studentFeaturesAvailable && aiAllowed });
     if (ok) setInputText('');
     else setPostError('질문 등록에 실패했습니다. 잠시 후 다시 시도해주세요.');
     setPosting(false);
@@ -339,7 +340,7 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
             </div>
 
             {/* AI toggle */}
-            {isAiAnswerReady() && (
+            {studentFeaturesAvailable && (
               <div className="px-4 pt-2 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 shrink-0">
                 <button
                   type="button"

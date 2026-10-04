@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ref, set, update, get, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
@@ -10,6 +11,7 @@ import { logger } from '@/lib/logger';
  * 강사가 "심사 시작" 누르면 모든 제출물을 순차 심사.
  */
 export function useJudging(assignmentId) {
+  const { configured } = useAIAvailability();
   const [isJudging, setIsJudging] = useState(false);
   const [progress, setProgress] = useState(null); // { current, total, currentJudge, currentSubmission }
   const abortRef = useRef(false);
@@ -20,18 +22,18 @@ export function useJudging(assignmentId) {
   useEffect(() => () => { abortRef.current = true; }, []);
 
   const startJudging = useCallback(async () => {
-    if (!assignmentId || judgingRef.current) return;
+    if (!configured || !assignmentId || judgingRef.current) return false;
     judgingRef.current = true;
     abortRef.current = false;
     setIsJudging(true);
 
     try {
-      // Update assignment status
-      await update(ref(db, `assignments/${assignmentId}`), { status: 'judging' });
-
-      // Read passThreshold (default 3 for backward compatibility)
+      // 심사를 선택하지 않은 과제는 상태를 바꾸거나 AI를 호출하지 않는다.
       const assignSnap = await get(ref(db, `assignments/${assignmentId}`));
-      const passThreshold = assignSnap.val()?.passThreshold ?? 3;
+      const assignment = assignSnap.val();
+      if (!assignment || assignment.hasJudging === false) return false;
+      const passThreshold = assignment.passThreshold ?? 3;
+      await update(ref(db, `assignments/${assignmentId}`), { status: 'judging' });
 
       // Fetch all submissions
       const subsSnap = await get(ref(db, `assignments/${assignmentId}/submissions`));
@@ -101,7 +103,7 @@ export function useJudging(assignmentId) {
       setIsJudging(false);
       setProgress(null);
     }
-  }, [assignmentId]);
+  }, [assignmentId, configured]);
 
   const abort = useCallback(() => {
     abortRef.current = true;

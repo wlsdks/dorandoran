@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { memo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +13,7 @@ import { getParticipantId } from '@/lib/participant';
  * 다른 질문·콘텐츠와 시각적으로 충돌하지 않게 한다.
  */
 export default memo(function PersistentAssignmentCard({ sessionId, questionId, questionTitle }) {
+  const { available } = useAIAvailability();
   const [open, setOpen] = useState(false);
   const participantId = getParticipantId();
   const mySubmission = useMySubmission(sessionId, questionId, participantId);
@@ -19,8 +21,8 @@ export default memo(function PersistentAssignmentCard({ sessionId, questionId, q
 
   const hasSubmitted = !!mySubmission;
   const status = judgeState?.status;
-  const isJudging = status === 'judging';
-  const isDone = status === 'done' && top3;
+  const isJudging = available && status === 'judging';
+  const isDone = available && status === 'done' && top3;
 
   const stateLabel = isDone ? '결과 확인하기'
     : isJudging ? 'AI 심사 진행 중'

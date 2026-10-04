@@ -1,3 +1,5 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { memo, useMemo } from 'react';
 import BarChart from './BarChart';
 import OXBattle from './OXBattle';
@@ -34,6 +36,7 @@ const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 import { TYPE_LABELS } from '@/lib/question-types';
 
 export default memo(function VizRenderer({ sessionId, session, isAdmin = false, isPresenter = false }) {
+  const { available } = useAIAvailability();
   const currentQId = session?.currentQuestion;
   const currentMode = session?.currentMode;
   const currentQuestion = session?.questions?.[currentQId];
@@ -45,7 +48,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
   useEffect(() => {
     if (!revealedAt) { setConfettiWave(0); return; }
     setConfettiWave(1);
-    const t2 = setTimeout(() => setConfettiWave(2), 600);
+    const t2 = setTimeout(() => setConfettiWave(0), 1400);
     return () => { clearTimeout(t2); };
   }, [revealedAt]);
 
@@ -71,6 +74,11 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
 
   const question = currentQuestion;
   if (!question) return null;
+  if (isPresenter && question.type === 'aiJudge' && !available) return <div className="text-center space-y-5">
+    <DoranDoranMascot size={160} mood="waiting" />
+    <h2 className="text-3xl lg:text-4xl font-semibold text-slate-100">다음 활동을 준비하고 있어요</h2>
+    <p className="text-xl text-slate-300">잠시 후 함께 시작해요</p>
+  </div>;
   if (isPresenter && question.type === 'imageSlide') return <ImageSlidePresenter presenter images={question.slideImages || []}
     currentSlide={question.currentSlide || 0} onSlideChange={isAdmin ? index => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { currentSlide: index }) : undefined} />;
 
@@ -83,25 +91,10 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
   const answerRevealed = Boolean(question.revealedAt) || isEnded;
 
   return (
-    <div className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : isPresenter ? 'justify-center gap-5 py-3' : 'justify-center gap-6 py-4'} relative`}>
-      {/* 정답 공개 폭죽 — 다양한 위치에서 터짐 */}
-      {confettiWave > 0 && hasCorrectAnswer && (
-        <Suspense fallback={null}>
-          {/* 1차: 좌상, 중앙, 우상 */}
-          <div className="absolute inset-0 pointer-events-none z-10">
-            <div style={{ position: 'absolute', left: '20%', top: '15%' }}><ConfettiBurst key={`a1-${revealedAt}`} /></div>
-            <div style={{ position: 'absolute', left: '50%', top: '10%' }}><ConfettiBurst key={`a2-${revealedAt}`} /></div>
-            <div style={{ position: 'absolute', left: '80%', top: '15%' }}><ConfettiBurst key={`a3-${revealedAt}`} /></div>
-          </div>
-          {/* 2차: 좌하, 우하 */}
-          {confettiWave >= 2 && (
-            <div className="absolute inset-0 pointer-events-none z-10">
-              <div style={{ position: 'absolute', left: '30%', top: '50%' }}><ConfettiBurst key={`b1-${revealedAt}`} /></div>
-              <div style={{ position: 'absolute', left: '70%', top: '45%' }}><ConfettiBurst key={`b2-${revealedAt}`} /></div>
-            </div>
-          )}
-        </Suspense>
-      )}
+    <div className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : isPresenter ? 'justify-center gap-5 py-3' : 'justify-center gap-6 py-4'} ${isPresenter && ['choice','quiz','wordcloud'].includes(question.type) ? 'paper-surface' : ''} relative`}>
+      {confettiWave > 0 && hasCorrectAnswer && <Suspense fallback={null}>
+        <div className="absolute right-10 top-12 pointer-events-none z-10 scale-75"><ConfettiBurst key={revealedAt} /></div>
+      </Suspense>}
 
       {/* Header — hidden for Q&A, or when hideTitle is set.
           aiJudge + isPresenter 조합은 상단 공간이 커서 그리드 잘림 → 제목/간격 축소. */}
@@ -111,7 +104,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           <div className={`text-center self-center ${compact ? 'space-y-1' : 'space-y-2'}`}>
             <Badge variant="primary">{TYPE_LABELS[question.type] || question.type}</Badge>
             <h2 className={`${compact ? 'text-xl' : isPresenter ? 'classroom-question-title' : 'text-3xl'} font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight`}>{question.title}</h2>
-            {hasCorrectAnswer && isQuizQuestion(question) && (
+            {hasCorrectAnswer && isQuizQuestion(question) && (!answerRevealed || options.length > 6 || !['choice','quiz','ox'].includes(question.type)) && (
               <p className={isPresenter ? "text-slate-200 text-xl lg:text-2xl" : "text-slate-400 text-sm"}>
                 {answerRevealed ? <span className="inline-block rounded-xl bg-indigo-100 text-indigo-950 px-5 py-2 font-bold">정답 · {question.correctAnswer}</span> : '휴대폰에서 답을 골라주세요'}
               </p>

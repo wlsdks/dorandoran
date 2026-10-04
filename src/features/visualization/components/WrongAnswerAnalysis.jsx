@@ -1,10 +1,12 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2, TrendingDown, Lightbulb, AlertCircle } from 'lucide-react';
 import { useVotes } from '@/hooks/useVotes';
-import { analyzeWrongAnswers, isAnalyzerReady } from '@/features/questions/api/analyzeWrongAnswers';
+import { analyzeWrongAnswers } from '@/features/questions/api/analyzeWrongAnswers';
 
 export default function WrongAnswerAnalysis({ sessionId, questionId, questionTitle, options, correctAnswer }) {
+  const { available, reason } = useAIAvailability();
   const { voteList } = useVotes(sessionId, questionId);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -23,13 +25,12 @@ export default function WrongAnswerAnalysis({ sessionId, questionId, questionTit
   const wrongCount = totalVotes - correctCount;
 
   // Hide if AI not ready, no correct answer set, too few responses, or all correct
-  if (!isAnalyzerReady()) return null;
   if (!correctAnswer || !options?.length) return null;
   if (totalVotes < 3) return null;
   if (wrongCount === 0) return null;
 
   async function handleAnalyze() {
-    if (loading) return;
+    if (!available || loading) return;
     setLoading(true);
     setError('');
     try {
@@ -57,14 +58,14 @@ export default function WrongAnswerAnalysis({ sessionId, questionId, questionTit
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">AI 오답 분석</p>
             <p className="text-[11px] text-slate-400">
-              {wrongCount}명이 오답을 선택 · 원인 분석 후 부연 설명 추천
+              {available ? `${wrongCount}명이 오답을 선택 · 원인 분석 후 부연 설명 추천` : reason}
             </p>
           </div>
           <button
             onClick={handleAnalyze}
-            disabled={loading}
+            disabled={loading || !available}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
-              loading
+              loading || !available
                 ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
                 : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200'
             }`}

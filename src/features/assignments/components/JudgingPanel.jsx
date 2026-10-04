@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, AlertCircle, Loader2 } from 'lucide-react';
-import { AI_ENABLED, AI_DISABLED_MESSAGE } from '@/lib/gemini/client';
-import { isGeminiReady } from '@/lib/judging/gemini';
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useJudging } from '@/features/assignments/api/useJudging';
 import { useAssignmentActions } from '@/features/assignments/api/useAssignments';
 import Button from '@/components/ui/Button';
@@ -11,35 +9,17 @@ import Button from '@/components/ui/Button';
  * JudgingPanel — 강사가 심사를 실행하고 진행률을 보는 패널.
  */
 export default function JudgingPanel({ assignmentId, submissionCount, passThreshold = 3 }) {
+  const { configured, reason } = useAIAvailability();
   const { startJudging, isJudging, progress, abort } = useJudging(assignmentId);
   const { updateAssignment } = useAssignmentActions();
-  // 이 패널은 심사 실패를 화면에 표시하지 않는다(useJudging이 Firebase의 judgeError에만 남김).
-  // AI 중단 안내만이라도 클릭 즉시 보이도록 로컬 상태로 잡는다.
-  const [notice, setNotice] = useState('');
-
   function handleStart() {
-    if (!AI_ENABLED) {
-      setNotice(AI_DISABLED_MESSAGE);
-      return;
-    }
+    if (!configured) return;
     startJudging();
   }
 
   function handleThresholdChange(v) {
     const next = Math.max(1, Math.min(7, Number(v) || 3));
     if (next !== passThreshold) updateAssignment(assignmentId, { passThreshold: next });
-  }
-
-  if (!isGeminiReady()) {
-    return (
-      <div className="space-y-2">
-        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-          <AlertCircle size={14} className="text-amber-500" />
-          AI 심사 사용 불가
-        </p>
-        <p className="text-xs text-slate-400">Gemini 프록시가 설정되지 않았습니다. 운영자에게 환경 변수(VITE_GEMINI_PROXY_URL) 설정을 요청해주세요.</p>
-      </div>
-    );
   }
 
   if (isJudging && progress) {
@@ -79,19 +59,14 @@ export default function JudgingPanel({ assignmentId, submissionCount, passThresh
           onClick={handleStart}
           variant="primary"
           size="sm"
-          disabled={submissionCount === 0}
+          disabled={!configured || submissionCount === 0}
         >
           <Play size={14} />
           심사 시작 ({submissionCount}건)
         </Button>
       </div>
 
-      {notice && (
-        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-          <AlertCircle size={12} className="text-amber-500 shrink-0" />
-          {notice}
-        </p>
-      )}
+      {!configured && <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><AlertCircle size={12} className="shrink-0" />{reason}</p>}
 
       {/* 합격 기준 — 심사 전후 모두 변경 가능. 변경 시 합격/불합격 표시가 즉시 반영됨. */}
       <div className="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2">
