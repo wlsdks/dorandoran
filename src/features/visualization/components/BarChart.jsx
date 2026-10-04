@@ -1,144 +1,51 @@
-import { useMemo, memo, useRef, useEffect, useState } from 'react';
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useVotes } from '@/hooks/useVotes';
 import { formatPercent } from '@/lib/utils';
-import { Check } from 'lucide-react';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
 
-/** Animated counter that smoothly ticks to the target value. */
-function AnimatedCount({ value, className }) {
-  const [display, setDisplay] = useState(value);
-  const rafRef = useRef(null);
-  const startRef = useRef({ from: value, to: value, startTime: null });
-
-  useEffect(() => {
-    const from = display;
-    const to = value;
-    if (from === to) return;
-
-    // Cancel any in-flight animation
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-
-    const duration = Math.min(400, Math.abs(to - from) * 40 + 120);
-    startRef.current = { from, to, startTime: null };
-
-    function tick(timestamp) {
-      if (!startRef.current.startTime) startRef.current.startTime = timestamp;
-      const elapsed = timestamp - startRef.current.startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(startRef.current.from + (startRef.current.to - startRef.current.from) * eased);
-      setDisplay(current);
-      if (progress < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      }
-    }
-
-    rafRef.current = requestAnimationFrame(tick);
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return <span className={className}>{display}</span>;
-}
-
-// 선택지 개수에 따라 크기 자동 조절 — 적을수록 크게(임팩트), 많을수록 컴팩트(스크롤 방지).
-// 전자칠판/발표모드에서 문항 수가 달라도 세로 스크롤 없이 "딱 맞게" 채운다.
-function sizeTier(n) {
-  if (n <= 4) return { gap: 'space-y-5', bar: 'h-14', label: 'text-xl lg:text-2xl', count: 'text-4xl lg:text-5xl', pct: 'text-base', check: 'w-6 h-6', checkIcon: 14, ring: 'p-3 -mx-3' };
-  if (n <= 6) return { gap: 'space-y-4', bar: 'h-11', label: 'text-lg lg:text-xl', count: 'text-3xl lg:text-4xl', pct: 'text-sm', check: 'w-5 h-5', checkIcon: 12, ring: 'p-3 -mx-3' };
-  return { gap: 'space-y-2.5', bar: 'h-9', label: 'text-base lg:text-lg', count: 'text-2xl lg:text-3xl', pct: 'text-sm', check: 'w-5 h-5', checkIcon: 12, ring: 'p-2 -mx-2' };
-}
-
-export default memo(function BarChart({ sessionId, questionId, options, correctValue = null, revealed = false }) {
+export default memo(function BarChart({ sessionId, questionId, options, correctValue = null, revealed = false, presenter = false, page = 0, onPageChange }) {
   const { totalVotes, countByValue } = useVotes(sessionId, questionId);
-  const S = sizeTier(options.length);
-
-  // Pre-compute counts once so rankMap doesn't depend on the function reference
-  const counts = useMemo(
-    () => options.map((o) => countByValue(o)),
-    [options, countByValue]
-  );
-
-  // Rank options by count (descending) to assign color intensity
-  const rankMap = useMemo(() => {
-    const sorted = [...counts].sort((a, b) => b - a);
-    const map = {};
-    counts.forEach((c, i) => {
-      map[i] = sorted.indexOf(c);
-    });
-    return map;
-  }, [counts]);
-
-  return (
-    <div className={`${S.gap} w-full max-w-xl mx-auto px-4`}>
-      {options.map((option, i) => {
-        const count = counts[i];
-        const pct = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
-        const isCorrect = revealed && correctValue === option;
-        const isWrong = revealed && correctValue && correctValue !== option;
-        const rank = rankMap[i] || 0;
-
-        // Color by rank: top = darkest, stronger contrast for projectors
-        const barColor = isCorrect
-          ? 'bg-indigo-500'
-          : isWrong
-            ? 'bg-slate-300 dark:bg-slate-600'
-            : rank === 0
-              ? 'bg-indigo-500'
-              : rank === 1
-                ? 'bg-indigo-400'
-                : 'bg-slate-300 dark:bg-slate-500';
-
-        const countColor = count > 0 && rank === 0 ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400';
-
-        return (
-          <motion.div
-            key={option}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03, type: 'spring', stiffness: 300, damping: 25 }}
-            className={`space-y-1.5 transition-opacity duration-300 ${isCorrect ? `rounded-lg ring-2 ring-indigo-500/30 ${S.ring} bg-slate-50/50 dark:bg-slate-800/50` : isWrong ? 'opacity-60' : ''}`}
-          >
-            <div className="flex justify-between items-baseline gap-2">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                {isCorrect && (
-                  <motion.span
-                    initial={{ scale: 0, rotate: -45 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30, delay: 0.15 }}
-                    className={`flex items-center justify-center ${S.check} rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shrink-0`}
-                  >
-                    <Check size={S.checkIcon} strokeWidth={3} />
-                  </motion.span>
-                )}
-                <span className={`font-medium ${S.label} truncate ${isCorrect ? 'text-indigo-700 dark:text-indigo-400 font-semibold' : isWrong ? 'text-slate-400' : 'text-slate-700 dark:text-slate-200'}`}>
-                  {option}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <AnimatedCount
-                  value={count}
-                  className={`font-bold ${S.count} tabular-nums ${isCorrect ? 'text-indigo-700 dark:text-indigo-400' : countColor}`}
-                />
-                <span className={`${S.pct} tabular-nums ${isCorrect ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                  {formatPercent(count, totalVotes)}
-                </span>
-              </div>
+  const counts = useMemo(() => options.map(option => countByValue(option)), [options, countByValue]);
+  const paged = presenter && options.length > 8;
+  const pages = paged ? Math.ceil(options.length / 6) : 1;
+  const currentPage = Math.min(Math.max(Number.isInteger(page) ? page : 0, 0), pages - 1);
+  const shown = paged ? options.slice(currentPage * 6, currentPage * 6 + 6) : options;
+  const twoColumns = presenter && shown.length > 4;
+  return <div className={presenter ? 'classroom-results' : 'w-full max-w-xl mx-auto px-4'}>
+    <div className={`grid ${twoColumns ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} ${presenter ? 'gap-4 lg:gap-5' : 'gap-4'}`}>
+      {shown.map((option, offset) => {
+        const index = (paged ? currentPage * 6 : 0) + offset;
+        const count = counts[index];
+        const percent = totalVotes ? count / totalVotes * 100 : 0;
+        const correct = revealed && correctValue === option;
+        return <motion.div key={`${questionId}:${index}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+          className={`rounded-2xl border-2 p-4 ${presenter ? 'lg:p-5' : ''} ${correct ? 'border-indigo-300 bg-indigo-100 text-indigo-950 shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100'}`}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              {correct && <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-900 text-white px-3 py-1 mb-2 text-sm lg:text-lg font-bold"><Check size={20} />정답</span>}
+              <p className={`${presenter ? 'classroom-option-label' : 'text-lg'} font-semibold leading-snug break-words`}>{option}</p>
             </div>
-            <div className={`${S.bar} ${isWrong ? 'bg-slate-50 dark:bg-slate-800' : 'bg-slate-100 dark:bg-slate-700'} rounded-lg overflow-hidden`}>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.max(pct, count > 0 ? 2 : 0)}%` }}
-                transition={{ type: 'spring', stiffness: 120, damping: 18, delay: i * 0.02 }}
-                className={`h-full rounded-lg ${barColor}`}
-              />
+            <div className="text-right shrink-0">
+              <AnimatedNumber value={count} className={`${presenter ? 'classroom-option-count' : 'text-3xl'} leading-none font-bold tabular-nums`} />
+              <p className={`${presenter ? 'text-lg lg:text-2xl' : 'text-sm'} mt-1 font-medium ${correct ? 'text-indigo-800' : 'text-slate-600 dark:text-slate-300'}`}>{formatPercent(count, totalVotes)}</p>
             </div>
-          </motion.div>
-        );
+          </div>
+          <div className={`mt-3 ${presenter && shown.length <= 4 ? 'h-5 lg:h-7' : 'h-3'} rounded-full overflow-hidden ${correct ? 'bg-indigo-200' : 'bg-slate-200 dark:bg-slate-600'}`}>
+            <motion.div initial={false} animate={{ scaleX: percent / 100 }} transition={{ type: 'spring', stiffness: 150, damping: 26 }}
+              className={`h-full w-full origin-left ${correct ? 'bg-indigo-700' : 'bg-indigo-500'}`} />
+          </div>
+        </motion.div>;
       })}
-      <div className="text-center text-slate-400 dark:text-slate-500 text-sm mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-        총 <AnimatedCount value={totalVotes} className="text-slate-600 dark:text-slate-300 font-semibold tabular-nums" />명 투표
-      </div>
     </div>
-  );
+    <div className={`flex items-center justify-center gap-4 mt-4 ${presenter ? 'text-lg lg:text-2xl' : 'text-sm'} text-slate-600 dark:text-slate-300`}>
+      <span>총 <AnimatedNumber value={totalVotes} className="font-bold tabular-nums" />명 응답</span>
+      {paged && <div className="inline-flex items-center gap-3">
+        {onPageChange && <button className="presentation-button" aria-label="이전 보기 페이지" disabled={currentPage === 0} onClick={() => onPageChange(currentPage - 1)}><ChevronLeft size={20} /></button>}
+        <span className="tabular-nums text-base">보기 {currentPage + 1} / {pages}</span>
+        {onPageChange && <button className="presentation-button" aria-label="다음 보기 페이지" disabled={currentPage === pages - 1} onClick={() => onPageChange(currentPage + 1)}><ChevronRight size={20} /></button>}
+      </div>}
+    </div>
+  </div>;
 });

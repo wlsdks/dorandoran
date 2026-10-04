@@ -121,7 +121,7 @@ export default function LivePage() {
   }
 
   return (
-    <div className="dark h-dvh bg-slate-900 flex flex-col overflow-hidden">
+    <div className="dark classroom-stage h-dvh bg-slate-900 flex flex-col overflow-hidden">
       <LiveHeader courseName={session?.courseName} roundNumber={session?.roundNumber} count={count}
         handCount={handCount} urgentCount={urgentCount}
         sessionId={sessionId} startedAt={session?.startedAt} status={session?.status} />
@@ -140,7 +140,7 @@ export default function LivePage() {
           넘치면(aiJudge 그리드 등) 상단부터 스크롤되어 상단 잘림도 방지 — 두 요구를 동시 충족.
           폭은 QHD(2560) 프로젝터에서 작게 떠 보이지 않도록 2xl 이상에서 확장. */}
       <div className="flex-1 flex justify-center items-start overflow-y-auto px-8 pt-4 pb-10">
-        <div className={`w-full mx-auto my-auto ${question?.type === 'imageSlide' ? 'max-w-none' : 'max-w-5xl 2xl:max-w-6xl'}`} >
+        <div className={`w-full mx-auto my-auto ${question?.type === 'imageSlide' ? 'max-w-none' : 'max-w-[1600px]'}`} >
           <AnimatePresence mode="wait">
             {isGameMode ? (
               <motion.div
@@ -160,7 +160,7 @@ export default function LivePage() {
                     <ScratchCard sessionId={sessionId} role="view" presenter />
                   )}
                   {currentMode === 'breakTime' && <BreakTimer sessionId={sessionId} />}
-                  {currentMode === 'leaderboard' && <div className="w-full max-w-2xl mx-auto [&_.max-w-xl]:max-w-2xl"><Leaderboard entries={leaderboard} maxShow={10} title="실시간 리더보드" /></div>}
+                  {currentMode === 'leaderboard' && <div className="w-full max-w-2xl mx-auto [&_.max-w-xl]:max-w-none"><Leaderboard entries={leaderboard} maxShow={10} title="실시간 리더보드" /></div>}
                   {currentMode === 'qaBoard' && <div className="w-full max-w-4xl mx-auto"><ClassQABoard sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>}
                   {currentMode === 'qaRanking' && <QARanking sessionId={sessionId} />}
                   {currentMode === 'joinShow' && <JoinShow sessionId={sessionId} />}
@@ -194,7 +194,7 @@ export default function LivePage() {
                   </div>
                 )}
 
-                <div className="w-full [&_.max-w-xl]:max-w-2xl">
+                <div className="w-full [&_.max-w-xl]:max-w-none">
                   <VizRenderer sessionId={sessionId} session={session} isPresenter />
                 </div>
 

@@ -781,6 +781,9 @@
             },
             "$other": {
               ".validate": false
+            },
+            "displayPage": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
             }
           }
         }

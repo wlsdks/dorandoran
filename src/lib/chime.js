@@ -134,3 +134,5 @@ export async function playIncorrect() {
   } catch { /* */ }
 }
 
+
+export { getAudioContext as prepareNotificationAudio };

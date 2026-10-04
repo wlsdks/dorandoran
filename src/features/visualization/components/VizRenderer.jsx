@@ -83,7 +83,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
   const answerRevealed = Boolean(question.revealedAt) || isEnded;
 
   return (
-    <div className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : 'justify-center gap-6 py-4'} relative`}>
+    <div className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : isPresenter ? 'justify-center gap-5 py-3' : 'justify-center gap-6 py-4'} relative`}>
       {/* 정답 공개 폭죽 — 다양한 위치에서 터짐 */}
       {confettiWave > 0 && hasCorrectAnswer && (
         <Suspense fallback={null}>
@@ -110,14 +110,14 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
         return (
           <div className={`text-center self-center ${compact ? 'space-y-1' : 'space-y-2'}`}>
             <Badge variant="primary">{TYPE_LABELS[question.type] || question.type}</Badge>
-            <h2 className={`${compact ? 'text-xl' : 'text-3xl'} font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight`}>{question.title}</h2>
+            <h2 className={`${compact ? 'text-xl' : isPresenter ? 'classroom-question-title' : 'text-3xl'} font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight`}>{question.title}</h2>
             {hasCorrectAnswer && isQuizQuestion(question) && (
-              <p className="text-slate-400 text-sm">
-                {answerRevealed ? `정답: ${question.correctAnswer}` : '정답 공개 전입니다. 먼저 답안을 모아보세요.'}
+              <p className={isPresenter ? "text-slate-200 text-xl lg:text-2xl" : "text-slate-400 text-sm"}>
+                {answerRevealed ? <span className="inline-block rounded-xl bg-indigo-100 text-indigo-950 px-5 py-2 font-bold">정답 · {question.correctAnswer}</span> : '휴대폰에서 답을 골라주세요'}
               </p>
             )}
             {question.imageUrl && (
-              <img src={question.imageUrl} alt={question.title || '질문 이미지'} className="mt-3 max-h-48 rounded-xl object-cover mx-auto" />
+              <img src={question.imageUrl} alt={question.title || '질문 이미지'} className="mt-3 max-h-[28dvh] max-w-full rounded-xl object-contain mx-auto" />
             )}
           </div>
         );
@@ -147,10 +147,13 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 sessionId={sessionId}
                 questionId={currentQId}
                 options={options}
+                presenter={isPresenter}
+                page={question.displayPage || 0}
+                onPageChange={isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined}
                 correctValue={question.correctAnswer}
                 revealed={hasCorrectAnswer && answerRevealed}
               />
-              {isAdmin && hasCorrectAnswer && answerRevealed && (
+              {isAdmin && !isPresenter && hasCorrectAnswer && answerRevealed && (
                 <WrongAnswerAnalysis
                   sessionId={sessionId}
                   questionId={currentQId}
@@ -167,6 +170,9 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 sessionId={sessionId}
                 questionId={currentQId}
                 options={options}
+                presenter={isPresenter}
+                page={question.displayPage || 0}
+                onPageChange={isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined}
                 correctValue={question.correctAnswer}
                 revealed={answerRevealed}
               />
@@ -174,7 +180,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
               {question.betting && (
                 <BetDistribution sessionId={sessionId} questionId={currentQId} />
               )}
-              {isAdmin && answerRevealed && (
+              {isAdmin && !isPresenter && answerRevealed && (
                 <WrongAnswerAnalysis
                   sessionId={sessionId}
                   questionId={currentQId}
@@ -195,8 +201,8 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           )}
           {question.type === 'wordcloud' && (
             <>
-              {isAdmin && <AISummaryBanner sessionId={sessionId} questionId={currentQId} questionTitle={question.title} questionType="wordcloud" />}
-              <WordCloud sessionId={sessionId} questionId={currentQId} />
+              {isAdmin && !isPresenter && <AISummaryBanner sessionId={sessionId} questionId={currentQId} questionTitle={question.title} questionType="wordcloud" />}
+              <WordCloud sessionId={sessionId} questionId={currentQId} presenter={isPresenter} />
             </>
           )}
           {question.type === 'scale' && <ScaleChart sessionId={sessionId} questionId={currentQId} minLabel={question.minLabel} maxLabel={question.maxLabel} />}
@@ -268,7 +274,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           )}
           {isQA && (
             <>
-              {isAdmin && <AISummaryBanner sessionId={sessionId} questionId={currentQId} questionTitle={question.title} questionType="qna" />}
+              {isAdmin && !isPresenter && <AISummaryBanner sessionId={sessionId} questionId={currentQId} questionTitle={question.title} questionType="qna" />}
               <QACards sessionId={sessionId} questionId={currentQId} title={question.title} />
             </>
           )}
