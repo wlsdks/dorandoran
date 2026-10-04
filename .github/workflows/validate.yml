@@ -1,0 +1,32 @@
+name: Validate
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix functions
+      - run: npm run check
+        env:
+          VITE_FIREBASE_API_KEY: demo-key
+          VITE_FIREBASE_PROJECT_ID: demo-dorandoran
+          VITE_FIREBASE_DATABASE_URL: https://demo-dorandoran.firebaseio.com
+          VITE_GEMINI_API_KEY: ''
+      - run: npm audit --audit-level=low
+      - run: npm audit --prefix functions --audit-level=low
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:integration

@@ -1,3 +1,4 @@
+if (process.env.FIREBASE_DATABASE_EMULATOR_HOST !== '127.0.0.1:9000') throw new Error('부하/정리 도구는 로컬 demo 에뮬레이터에서만 실행하세요.');
 /**
  * 실제 사용 느낌 시나리오 — 300명이 자연스럽게 사용(순간 폭주 X, 시간 분산 O).
  *  - 입장: ~25초에 걸쳐 파도치듯 분산
@@ -14,8 +15,8 @@ import { getDatabase, ref, set, push, update, remove, get, serverTimestamp } fro
 const firebaseConfig = {
   apiKey: "AIzaSyCsRs1BTT1NphOpbkoAwKn7rnrdQk16R2I",
   authDomain: "jinan-6c884.firebaseapp.com",
-  databaseURL: "https://jinan-6c884-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "jinan-6c884",
+  databaseURL: "http://127.0.0.1:9000/?ns=demo-dorandoran",
+  projectId: "demo-dorandoran",
   storageBucket: "jinan-6c884.firebasestorage.app",
   messagingSenderId: "956378670080",
   appId: "1:956378670080:web:2147d0766564dd00dde4e5",

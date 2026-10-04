@@ -4,7 +4,9 @@
  */
 
 // Firebase REST API base
-const DB_URL = 'https://jinan-6c884-default-rtdb.asia-southeast1.firebasedatabase.app';
+const DB_URL = process.env.TEST_DATABASE_URL || 'http://127.0.0.1:9000';
+const TEST_NAMESPACE = 'demo-dorandoran';
+function databaseUrl(path) { const url = new URL(DB_URL); if (!['127.0.0.1','localhost'].includes(url.hostname)) throw new Error('테스트는 로컬 에뮬레이터에서만 실행하세요.'); url.pathname = '/' + path + '.json'; url.searchParams.set('ns', TEST_NAMESPACE); url.searchParams.set('auth', 'owner'); return url.href; }
 
 /** Unique test session ID to avoid collisions. */
 export function testSessionId() {
@@ -13,7 +15,7 @@ export function testSessionId() {
 
 /** Write data to Firebase RTDB via REST. */
 export async function firebaseSet(path, data) {
-  const res = await fetch(`${DB_URL}/${path}.json`, {
+  const res = await fetch(databaseUrl(path), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -24,14 +26,14 @@ export async function firebaseSet(path, data) {
 
 /** Read data from Firebase RTDB via REST. */
 export async function firebaseGet(path) {
-  const res = await fetch(`${DB_URL}/${path}.json`);
+  const res = await fetch(databaseUrl(path));
   if (!res.ok) throw new Error(`Firebase GET ${path} failed: ${res.status}`);
   return res.json();
 }
 
 /** Delete data from Firebase RTDB via REST. */
 export async function firebaseDelete(path) {
-  const res = await fetch(`${DB_URL}/${path}.json`, { method: 'DELETE' });
+  const res = await fetch(databaseUrl(path), { method: 'DELETE' });
   if (!res.ok) throw new Error(`Firebase DELETE ${path} failed: ${res.status}`);
 }
 

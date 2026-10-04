@@ -1,0 +1,17 @@
+const root=require('node:path').resolve(__dirname,'../..');
+process.env.GCLOUD_PROJECT='demo-dorandoran';
+process.env.FIREBASE_CONFIG=JSON.stringify({projectId:'demo-dorandoran',databaseURL:'https://demo-dorandoran.firebaseio.com',storageBucket:'demo-dorandoran.appspot.com'});
+process.env.APP_DATABASE_URL='https://demo-dorandoran.firebaseio.com';
+process.env.FIREBASE_AUTH_EMULATOR_HOST='127.0.0.1:9099';
+process.env.FIREBASE_DATABASE_EMULATOR_HOST='127.0.0.1:9000';
+process.env.FUNCTIONS_EMULATOR='true';
+process.env.APP_ALLOWED_ORIGINS='http://127.0.0.1:5175';
+process.env.GEMINI_API_KEY='test-only-upstream-secret';
+process.env.GEMINI_UPSTREAM='http://127.0.0.1:5002';
+const express=require(root+'/functions/node_modules/express');
+const api=require(root+'/functions');
+const app=express();app.use(express.json({limit:'7mb'}));
+app.use('/api/staff',api.staffApi);app.use('/api/assignments',api.assignmentApi);app.use('/api/classroom',api.classroomApi);app.use('/api/gemini',api.geminiProxy);
+for(const [name,handler] of [['staffApi',api.staffApi],['assignmentApi',api.assignmentApi],['classroomApi',api.classroomApi],['geminiProxy',api.geminiProxy]])app.use('/demo-dorandoran/asia-northeast3/'+name,handler);
+app.listen(5001,'127.0.0.1',()=>console.log('Isolated API ready on 127.0.0.1:5001'));
+const upstream=express();upstream.use(express.json({limit:'7mb'}));upstream.post('/v1beta/models/:model', (req,res)=>{if(req.get('x-goog-api-key')!==process.env.GEMINI_API_KEY)return res.status(403).json({error:'wrong-key'});res.json({candidates:[{content:{role:'model',parts:[{text:'{"ok":true}'}]},finishReason:'STOP'}]});});upstream.listen(5002,'127.0.0.1');

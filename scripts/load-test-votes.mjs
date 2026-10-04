@@ -1,3 +1,4 @@
+if (process.env.FIREBASE_DATABASE_EMULATOR_HOST !== '127.0.0.1:9000') throw new Error('부하/정리 도구는 로컬 demo 에뮬레이터에서만 실행하세요.');
 /**
  * Vote 부하 테스트 — 객관식/OX/퀴즈/워드클라우드 등 다양한 질문 유형 30명 동시 답변.
  *
@@ -14,8 +15,8 @@ import { getDatabase, ref, set, get, remove, serverTimestamp } from 'firebase/da
 const FB_CONFIG = {
   apiKey: 'AIzaSyCsRs1BTT1NphOpbkoAwKn7rnrdQk16R2I',
   authDomain: 'jinan-6c884.firebaseapp.com',
-  databaseURL: 'https://jinan-6c884-default-rtdb.asia-southeast1.firebasedatabase.app',
-  projectId: 'jinan-6c884',
+  databaseURL: 'http://127.0.0.1:9000/?ns=demo-dorandoran',
+  projectId: 'demo-dorandoran',
   storageBucket: 'jinan-6c884.firebasestorage.app',
   messagingSenderId: '956378670080',
   appId: '1:956378670080:web:2147d0766564dd00dde4e5',

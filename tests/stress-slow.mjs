@@ -1,10 +1,11 @@
+if (process.env.FIREBASE_DATABASE_EMULATOR_HOST !== '127.0.0.1:9000') throw new Error('부하/정리 도구는 로컬 demo 에뮬레이터에서만 실행하세요.');
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getDatabase, ref, set, push, update, get } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCsRs1BTT1NphOpbkoAwKn7rnrdQk16R2I",
-  databaseURL: "https://jinan-6c884-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "jinan-6c884",
+  databaseURL: "http://127.0.0.1:9000/?ns=demo-dorandoran",
+  projectId: "demo-dorandoran",
 };
 
 const SID = 's_stress_test';
