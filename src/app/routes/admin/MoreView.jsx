@@ -1,3 +1,5 @@
+import { version } from '../../../../package.json';
+import { QUESTION_TYPES } from '@/lib/question-types';
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ProfileSection from './ProfileSection';
@@ -147,7 +149,7 @@ function AppInfo() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm text-slate-500 dark:text-slate-400">버전</span>
-          <span className="text-sm font-mono text-slate-600 dark:text-slate-300">1.0.0</span>
+          <span className="text-sm font-mono text-slate-600 dark:text-slate-300">{version}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm text-slate-500 dark:text-slate-400">플랫폼</span>
@@ -156,12 +158,13 @@ function AppInfo() {
         <div className="flex items-center justify-between">
           <span className="text-sm text-slate-500 dark:text-slate-400">지원 유형</span>
           <div className="flex gap-1.5">
-            {['객관식', 'O/X', '퀴즈', '+4'].map((t) => (
+            {['객관식', 'O/X', '퀴즈', `+${QUESTION_TYPES.length - 3}`].map((t) => (
               <span key={t} className="px-2 py-0.5 bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs rounded-full font-medium">{t}</span>
             ))}
           </div>
         </div>
         <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
+          <a href="/THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener noreferrer" className="min-h-11 flex items-center justify-center text-sm text-slate-600 dark:text-slate-300 hover:underline">오픈소스 라이선스 고지</a>
           <p className="text-xs text-slate-400 dark:text-slate-500 text-center">도란도란 &mdash; 실시간 강의 참여 플랫폼</p>
         </div>
       </div>

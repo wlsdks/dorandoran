@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Inter v4.1, unmodified upstream variable font. License: /licenses/Inter-v4.1-OFL.txt. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/InterVariable-v4.1.woff2') format('woff2');
+}
+
 /* Dark mode: class-based strategy */
 @custom-variant dark (&:where(.dark, .dark *));
 

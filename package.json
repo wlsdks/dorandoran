@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run licenses:check && vite build",
+    "licenses:check": "node scripts/generate-third-party-notices.mjs --check",
+    "licenses:generate": "node scripts/generate-third-party-notices.mjs",
     "check": "npm run lint && npm run test -- --run && npm run build",
     "lint": "eslint .",
     "test": "vitest",
