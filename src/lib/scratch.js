@@ -72,7 +72,7 @@ export function buildScratchBoard(participants, opts = {}) {
     if (!cells[i]) cells[i] = draw();
   }
 
-  repairAccidentalTriples(cells, winningRow, people, winner, random);
+  repairAccidentalTriples(cells, winningRow, people, winner);
 
   return {
     cells: cells.map((person) => ({
@@ -86,31 +86,39 @@ export function buildScratchBoard(participants, opts = {}) {
 }
 
 /**
- * 당첨 줄이 아닌 곳에 생긴 3개 일치를 지운다.
- * 한 칸을 바꾸면 그 칸이 낀 다른 선이 새로 3개가 될 수 있어, 더 이상 바뀌지 않을 때까지 돈다.
+ * 당첨 줄은 고정하고 나머지 여섯 칸만 탐색한다.
+ * 원래 이름을 먼저 시도하고, 당첨자와 다른 한 사람을 대안으로 쓴다.
+ * 두 사람만으로도 모든 당첨 행에 유효한 판을 만들 수 있어 최대 3^6 조합 안에 끝난다.
+ * 한 칸의 무작위 교체를 반복하면 다른 선을 다시 완성해 순환할 수 있다.
  */
-function repairAccidentalTriples(cells, winningRow, people, winner, random) {
+function repairAccidentalTriples(cells, winningRow, people, winner) {
   const winningLine = ROW_LINES[winningRow];
-  const MAX_PASSES = 20; // 이론상 몇 회면 끝나지만, 대상이 1~2명인 판에서 무한루프를 막는 상한
+  const other = people.find((person) => person.id !== winner.id);
+  if (!other) return; // 대상 한 명일 때만 전체가 같은 사람인 판을 허용한다.
 
-  for (let pass = 0; pass < MAX_PASSES; pass += 1) {
-    let changed = false;
-    for (const line of LINES) {
-      if (line === winningLine) continue;
-      if (!isTriple(cells, line)) continue;
+  const forbiddenLines = LINES.filter((line) => !line.every((index, position) => index === winningLine[position]));
+  if (!forbiddenLines.some((line) => isTriple(cells, line))) return;
 
-      // 당첨 줄에 속하지 않은 칸을 골라 다른 사람으로 바꾼다(당첨 줄은 건드리면 안 된다)
-      const swappable = line.filter((index) => !winningLine.includes(index));
-      if (swappable.length === 0) continue; // 대상 1명짜리 판 — 바꿀 수 있는 칸이 없다
-      const target = swappable[Math.floor(random() * swappable.length)];
-      const replacement = people.find((p) => p.id !== cells[target].id)
-        || (cells[target].id !== winner.id ? winner : null);
-      if (!replacement) continue; // 사람이 한 명뿐 — 더 손쓸 수 없다
-      cells[target] = replacement;
-      changed = true;
+  const freeIndices = cells.map((_, index) => index).filter((index) => !winningLine.includes(index));
+  const candidates = freeIndices.map((index) => {
+    const choices = [cells[index], winner, other];
+    return choices.filter((person, position) => choices.findIndex((choice) => choice.id === person.id) === position);
+  });
+  freeIndices.forEach((index) => { cells[index] = null; });
+
+  function fill(position) {
+    if (position === freeIndices.length) return true;
+    const index = freeIndices[position];
+    for (const person of candidates[position]) {
+      cells[index] = person;
+      if (!forbiddenLines.some((line) => isTriple(cells, line)) && fill(position + 1)) return true;
     }
-    if (!changed) return;
+    cells[index] = null;
+    return false;
   }
+
+  // 유효한 두 사람 배치가 항상 후보에 포함된다. 실패한 판을 반환하지 않는다.
+  if (!fill(0)) throw new Error('스크래치 판의 당첨 줄을 하나로 만들 수 없습니다.');
 }
 
 /** 판에서 3개가 같은 가로줄을 찾는다. 화면에서 당첨 줄을 강조할 때 쓴다. */
