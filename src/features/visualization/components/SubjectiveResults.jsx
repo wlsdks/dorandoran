@@ -101,7 +101,7 @@ export default memo(function SubjectiveResults({ sessionId, questionId, question
   // 가장 오래된 칸부터 순환 교체. 재배치·밀림이 없어 어지럽지 않다. 0.8초에 딱 한 장씩만
   // 흘리고, '한 번도 안 보여준 진짜 신규'만 테두리 glow(indigo)로 표시 → 새 답변이 명확.
   const sortedRef = useRef(sorted);
-  sortedRef.current = sorted;
+  useEffect(() => { sortedRef.current = sorted; }, [sorted]);
   const slotsRef = useRef([]);
   const ptrRef = useRef(0);
   const seenRef = useRef(new Set()); // 한 번이라도 벽에 올린 답변 id(영구) — 재등장·재반짝 방지

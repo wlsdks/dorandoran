@@ -1,3 +1,4 @@
+import { auth, ensureAuthentication } from '@/lib/auth-session';
 import { useState, useRef, memo } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
@@ -7,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
 
 const MAX_SIZE_MB = 20; // 압축 전 원본 허용 (압축 후 1-2MB)
-const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg';
+const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp';
 
 /**
  * ImageUpload — 이미지 업로드 + 미리보기.
@@ -23,6 +24,7 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
     if (!file) return;
     if (inputRef.current) inputRef.current.value = '';
 
+    if (!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)) { setError('JPG, PNG, GIF, WebP 이미지만 가능합니다'); return; }
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
       setError(`${MAX_SIZE_MB}MB 이하 이미지만 가능합니다`);
       setTimeout(() => setError(null), 3000);
@@ -32,10 +34,11 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
     setUploading(true);
     setError(null);
     try {
+      await ensureAuthentication();
       // 2MB 이하면 압축 생략 (Edge 호환성)
-      const blob = file.size < 2 * 1024 * 1024 ? file : await compressImage(file);
+      const blob = await compressImage(file);
       const ext = blob.type === 'image/jpeg' ? 'jpg' : file.name.split('.').pop() || 'jpg';
-      const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const path = `${folder}/${auth.currentUser.uid}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const storageRef = ref(storage, path);
       await uploadBytes(storageRef, blob, { contentType: blob.type || 'image/jpeg' });
       const url = await getDownloadURL(storageRef);

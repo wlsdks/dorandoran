@@ -1,3 +1,4 @@
+import { motion as motionTokens } from '@/lib/design-tokens';
 import { motion } from 'framer-motion';
 
 const sizes = {
@@ -26,7 +27,7 @@ export default function IconButton({
   return (
     <motion.button
       whileTap={{ scale: 0.9 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+      transition={motionTokens.spring.stiff}
       className={`inline-flex items-center justify-center rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/50 focus-visible:ring-offset-1 ${sizes[size]} ${variants[variant]} ${className}`}
       aria-label={label}
       {...props}

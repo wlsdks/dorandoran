@@ -1,14 +1,14 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Sun, Moon, QrCode, Hand, AlertCircle } from 'lucide-react';
+import { Users, Maximize, Minimize, QrCode, Hand, AlertCircle } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Badge from '@/components/ui/Badge';
 import QRCodeComponent from '@/components/ui/QRCode';
 import ElapsedTime from '@/components/ui/ElapsedTime';
-import { useTheme } from '@/hooks/useTheme';
+import { usePresentationScreen } from '@/hooks/usePresentationScreen';
 
 export default memo(function LiveHeader({ courseName, roundNumber, count, handCount = 0, urgentCount = 0, sessionId, startedAt, status }) {
-  const { isDark, setTheme } = useTheme();
+  const { isFullscreen, toggleFullscreen, fullscreenSupported } = usePresentationScreen();
   const [qrOpen, setQrOpen] = useState(false);
   const studentUrl = sessionId ? `${window.location.origin}/?s=${sessionId}` : '';
 
@@ -34,13 +34,10 @@ export default memo(function LiveHeader({ courseName, roundNumber, count, handCo
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        <button
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-          title={isDark ? '라이트 모드' : '다크 모드'}
-        >
-          {isDark ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+        {fullscreenSupported && <button onClick={toggleFullscreen} aria-label={isFullscreen ? '전체화면 해제' : '전체화면 보기'}
+          className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
+          {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+        </button>}
         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         {/* P1-4: 손들기/긴급질문 카운트 — 강사 호명용. 명단은 프라이버시상 미노출 */}
         {handCount > 0 && (
