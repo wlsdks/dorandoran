@@ -161,7 +161,7 @@ export default function LivePage() {
                   {currentMode === 'qaRanking' && <QARanking sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'joinShow' && <JoinShow sessionId={sessionId} />}
                   {currentMode === 'awards' && <AwardsCeremony sessionId={sessionId} assignmentId={session?.activeAssignmentId} readOnly />}
-                  {currentMode === 'randomPicker' && <RandomPicker participants={onlineList} sessionId={sessionId} role="view" />}
+                  {currentMode === 'randomPicker' && <RandomPicker participants={onlineList} sessionId={sessionId} role="view" presenter />}
                   {currentMode === 'comprehension' && <ComprehensionPresenter sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'quickSurvey' && <SurveyPresenter sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'discussion' && <DiscussionPresenter sessionId={sessionId} presenter readOnly />}

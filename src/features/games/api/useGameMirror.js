@@ -22,10 +22,14 @@ export function useGameMirror(sessionId, { role, mode }) {
   const remote = value?.mode === mode ? value : null;
 
   const publish = useCallback((state) => {
-    if (!sessionId || role !== 'control') return;
-    update(ref(db, `sessions/${sessionId}`), {
+    if (role !== 'control') return Promise.resolve(false);
+    if (!sessionId) return Promise.resolve(true);
+    const preparing = state.phase === 'idle' || state.phase === 'rolling' || state.picking === true
+      || ('selected' in state && !state.selected) || ('won' in state && !state.won);
+    return update(ref(db, `sessions/${sessionId}`), {
       gameState: { mode, ...state },
-    }).catch(() => { /* 전자칠판 미러링 실패가 강사 화면 추첨을 막지는 않는다 */ });
+      ...(preparing ? { gameResult: null } : {}),
+    }).then(() => true).catch(() => false);
   }, [sessionId, role, mode]);
 
   return { remote, publish };
