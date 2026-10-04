@@ -47,7 +47,7 @@ export function useAdminSession() {
 
   const { session, loading } = useSession(sessionId);
   const { participants, onlineList, count } = useParticipants(sessionId);
-  const { scores, leaderboard, totalTickets, resetScores } = useScores(sessionId);
+  const { scores, leaderboard, resetScores } = useScores(sessionId);
   const { isRunning: timerRunning, endTime, duration, startTimer, stopTimer } = useTimer(sessionId);
   const { pendingAdmins, pendingCount, approveAdmin, rejectAdmin } = useAdminApprovals(adminUser?.role === 'master');
 
@@ -95,8 +95,8 @@ export function useAdminSession() {
 
   const studentUrl = useMemo(() => `${window.location.origin}/?s=${sessionId}`, [sessionId]);
   const drawParticipants = useMemo(
-    () => onlineList.map((p) => ({ ...p, ...scores[p.id], tickets: scores[p.id]?.tickets || 0 })),
-    [onlineList, scores]
+    () => onlineList,
+    [onlineList]
   );
 
   /**
@@ -238,7 +238,7 @@ export function useAdminSession() {
     // Approvals
     pendingAdmins, pendingCount, approveAdmin, rejectAdmin,
     // Participants & scores
-    participants, onlineList, count, scores, leaderboard, totalTickets, resetScores,
+    participants, onlineList, count, scores, leaderboard, resetScores,
     voteCounts, drawParticipants, studentUrl, questionProgress, addModeCard,
     // Timer
     timerRunning, endTime, duration, startTimer, stopTimer,

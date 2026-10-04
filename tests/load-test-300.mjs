@@ -61,8 +61,6 @@ const qQuiz = addQ({
   options: ['서울', '부산', '대구', '인천'],
   correctAnswer: '서울',
   points: 100,
-  participationTickets: 1,
-  correctBonusTickets: 2,
   speedWindowMs: 30000,
   maxSpeedBonus: 50,
 });

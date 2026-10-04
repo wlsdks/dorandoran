@@ -6,19 +6,19 @@ export function createCooldown(milliseconds, scope) {
   let timer = null;
   const listeners = new Set();
   const notify = () => listeners.forEach((listener) => listener());
-  const valid = (ticket) => active && ticket === generation;
+  const valid = (attempt) => active && attempt === generation;
   return {
     scope,
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
     getSnapshot: () => !busy,
     activate() { active = true; },
     begin() { if (!active || busy) return null; busy = true; notify(); return ++generation; },
-    finish(ticket) {
-      if (!valid(ticket)) return false;
+    finish(attempt) {
+      if (!valid(attempt)) return false;
       timer = setTimeout(() => { timer = null; busy = false; notify(); }, milliseconds);
       return true;
     },
-    fail(ticket) { if (valid(ticket)) { busy = false; notify(); } },
+    fail(attempt) { if (valid(attempt)) { busy = false; notify(); } },
     dispose() { active = false; generation++; if (timer !== null) clearTimeout(timer); timer = null; busy = false; },
   };
 }

@@ -51,7 +51,7 @@ export function usePublishGameResult(sessionId) {
  *
  * @param {string} sessionId
  * @param {Array<{id,nickname}>} onlineList 일반 게임용 참여자
- * @param {Array<{id,nickname,tickets}>} drawParticipants 추첨용 참여자(가중)
+ * @param {Array<{id,nickname}>} drawParticipants 균등 추첨 참여자
  * @returns {{ handleGameResult: (resultNames, mode) => void }}
  */
 export function useGameResultPublisher(sessionId, onlineList, drawParticipants) {

@@ -16,13 +16,13 @@ export function useRealtimeMessages(sessionId, channel, { enabled = true, limit 
   const sendMessage = useCallback(async (text, sender, senderType) => {
     const trimmed = text?.trim();
     if (!path || !trimmed) return false;
-    const ticket = begin();
-    if (ticket === null) return false;
+    const attempt = begin();
+    if (attempt === null) return false;
     try {
       await push(ref(db, path), { text: trimmed, sender: sender || (channel === 'staffChat' ? '스태프' : '익명'),
         senderType: senderType || (channel === 'staffChat' ? 'staff' : 'student'), timestamp: serverTimestamp() });
-      return finish(ticket);
-    } catch (err) { fail(ticket); logger.error('채팅 전송 실패:', err); return false; }
+      return finish(attempt);
+    } catch (err) { fail(attempt); logger.error('채팅 전송 실패:', err); return false; }
   }, [path, channel, begin, finish, fail]);
   return { messages, loading, error, canSend: Boolean(path) && canSend, sendMessage };
 }

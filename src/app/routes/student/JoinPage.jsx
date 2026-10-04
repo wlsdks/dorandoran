@@ -94,7 +94,7 @@ export default function JoinPage({ sessionId, onJoin }) {
   async function handleJoin(event) {
     event.preventDefault();
     if (!canJoin || exists === false || drawOnly) return;
-    const ticket = join.begin(); if (ticket === null) return;
+    const attempt = join.begin(); if (attempt === null) return;
     setError(null);
     try {
       const participantId = getParticipantId();
@@ -102,10 +102,10 @@ export default function JoinPage({ sessionId, onJoin }) {
       const existing = (await get(participant)).val();
       await update(participant, { nickname: trimmed, employeeId: employeeId.trim() || null,
         joinedAt: existing?.joinedAt || serverTimestamp() });
-      if (!join.finish(ticket)) return;
+      if (!join.finish(attempt)) return;
       saveNickname(trimmed);
       onJoin(participantId, trimmed, employeeId.trim());
-    } catch { join.fail(ticket); setError('참여하지 못했어요. 연결을 확인하고 다시 시도해주세요.'); }
+    } catch { join.fail(attempt); setError('참여하지 못했어요. 연결을 확인하고 다시 시도해주세요.'); }
   }
 
   if (exists === false) {

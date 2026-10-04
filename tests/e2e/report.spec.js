@@ -35,7 +35,6 @@ test.describe('학습 리포트 페이지', () => {
     await firebaseSet(`sessions/${sessionId}/scores/test_student`, {
       nickname: '리포트학생',
       total: 250,
-      tickets: 3,
       streak: 2,
       bestStreak: 2,
     });

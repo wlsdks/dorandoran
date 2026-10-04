@@ -21,15 +21,15 @@ export function useClassQuestions(sessionId) {
   })).sort((a, b) => Number(Boolean(a.answered)) - Number(Boolean(b.answered)) || b.upvoteCount - a.upvoteCount || (b.timestamp || 0) - (a.timestamp || 0)), [raw]);
   const postQuestion = useCallback(async (text) => {
     if (!sessionId || !text?.trim()) return false;
-    const ticket = beginPost(); if (ticket === null) return false;
-    try { await authenticatedRequest('/api/classroom/question', { sessionId, text: text.trim() }); return finishPost(ticket); }
-    catch { failPost(ticket); return false; }
+    const attempt = beginPost(); if (attempt === null) return false;
+    try { await authenticatedRequest('/api/classroom/question', { sessionId, text: text.trim() }); return finishPost(attempt); }
+    catch { failPost(attempt); return false; }
   }, [sessionId, beginPost, finishPost, failPost]);
   const postAnswer = useCallback(async (questionId, text) => {
     if (!sessionId || !questionId || !text?.trim()) return false;
-    const ticket = beginAnswer(); if (ticket === null) return false;
-    try { await authenticatedRequest('/api/classroom/answer', { sessionId, questionId, text: text.trim() }); return finishAnswer(ticket); }
-    catch { failAnswer(ticket); return false; }
+    const attempt = beginAnswer(); if (attempt === null) return false;
+    try { await authenticatedRequest('/api/classroom/answer', { sessionId, questionId, text: text.trim() }); return finishAnswer(attempt); }
+    catch { failAnswer(attempt); return false; }
   }, [sessionId, beginAnswer, finishAnswer, failAnswer]);
   const toggleUpvote = useCallback(async (questionId, participantId) => {
     if (!sessionId || !questionId || !participantId) return;
