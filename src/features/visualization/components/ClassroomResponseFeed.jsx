@@ -7,7 +7,7 @@ import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 export default memo(function ClassroomResponseFeed({ sessionId, questionId, question, onPageChange }) {
   const { voteList } = useVotes(sessionId, questionId);
   const responses = useMemo(() => [...voteList].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)), [voteList]);
-  const pageSize = responses.some(item => String(item.value).length > 180) ? 2 : 4;
+  const pageSize = responses.some(item => String(item.value).length > 180) ? 1 : 4;
   const pages = Math.max(1, Math.ceil(responses.length / pageSize));
   const page = Math.min(Math.max(Number.isInteger(question.displayPage) ? question.displayPage : 0, 0), pages - 1);
   const spotlight = question.spotlight;
