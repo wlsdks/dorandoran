@@ -2,14 +2,14 @@ import { memo, useState, useEffect, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Tooltip from '@/components/ui/Tooltip';
-import { GripVertical, BookmarkPlus, Check, Copy, MessageSquare, Pencil, Play, Square, Trash2, Trophy, Loader2, Pin, PinOff, RotateCcw } from 'lucide-react';
+import { GripVertical, BookmarkPlus, Check, Copy, MessageSquare, Pencil, Play, Square, Trash2, Trophy, Loader2, Pin, PinOff, RotateCcw, MoreHorizontal } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import { isQuizQuestion } from '@/lib/quiz';
 import { QUESTION_TYPES } from '@/lib/question-types';
 import { MODE_CARD_TYPE, SPECIAL_MODES } from '@/lib/modes';
 
-const primaryBtnClass = 'p-2 sm:p-2.5 lg:p-1.5 rounded-lg sm:rounded-md bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 text-white transition-colors duration-150 active:scale-90';
-const stopBtnClass = 'p-2 sm:p-2.5 lg:p-1.5 rounded-lg sm:rounded-md bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors duration-150 active:scale-90';
+const primaryBtnClass = 'min-h-11 min-w-11 flex items-center justify-center p-2 rounded-lg sm:rounded-md bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 text-white transition-colors duration-150 active:scale-90';
+const stopBtnClass = 'min-h-11 min-w-11 flex items-center justify-center p-2 rounded-lg sm:rounded-md bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors duration-150 active:scale-90';
 
 /** Button with brief loading feedback to prevent double-clicks. */
 function ActionButton({ onClick, className, children, 'aria-label': ariaLabel, feedbackMs = 600 }) {
@@ -43,7 +43,7 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
   const Icon = qType?.icon || MessageSquare;
   const isActive = currentQuestion === qId;
   const isQuiz = !isModeCard && isQuizQuestion(q);
-  const hasAnswer = !isQuiz && q.correctAnswer;
+  const hasAnswer = !isQuiz && (q.correctAnswer || q.type === 'ranking');
   const hasReveal = isQuiz || hasAnswer;
   const isAiJudge = q.type === 'aiJudge';
   // 모드 카드는 답변·정답·보관함 개념이 없다 — 해당 버튼을 감춘다
@@ -97,65 +97,48 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
             {!isActive ? (
               <Tooltip label={isModeCard ? '이 화면으로 전환' : '질문 활성화'}>
                 <ActionButton onClick={() => onActivate(qId)} className={primaryBtnClass} aria-label={isModeCard ? '이 화면으로 전환' : '질문 활성화'}>
-                  <Play size={12} />
+                  <Play size={18} />
                 </ActionButton>
               </Tooltip>
             ) : (
               <>
                 {hasReveal && !q.revealedAt && (
                   <Tooltip label="정답 공개"><ActionButton onClick={handleReveal} className={primaryBtnClass} aria-label="정답 공개">
-                    <Check size={12} />
+                    <Check size={18} />
                   </ActionButton></Tooltip>
                 )}
                 {isQuiz && q.revealedAt && (
                   <Tooltip label="리더보드 보기"><ActionButton onClick={onShowLeaderboard} className={primaryBtnClass} aria-label="리더보드 보기">
-                    <Trophy size={12} />
+                    <Trophy size={18} />
                   </ActionButton></Tooltip>
                 )}
                 <Tooltip label="질문 중지"><ActionButton onClick={onClearActive} className={stopBtnClass} aria-label="질문 중지">
-                  <Square size={12} />
+                  <Square size={18} />
                 </ActionButton></Tooltip>
               </>
             )}
-            {isAiJudge && onTogglePersistent && (
-              <Tooltip label={isPersistent ? '상시 과제 해제' : '상시 과제로 설정 (학생 화면에 항상 노출)'}>
-                <button
-                  onClick={() => onTogglePersistent(qId)}
-                  className={`p-1.5 rounded-md transition-colors duration-150 active:scale-90 ${
-                    isPersistent
-                      ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-500/30'
-                      : 'text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-200'
-                  }`}
-                  aria-label={isPersistent ? '상시 과제 해제' : '상시 과제로 설정'}
-                >
-                  {isPersistent ? <PinOff size={12} /> : <Pin size={12} />}
-                </button>
-              </Tooltip>
-            )}
-            {onSaveToLibrary && !isModeCard && (
-              <Tooltip label="보관함에 저장"><button onClick={() => onSaveToLibrary(qId)} className="p-1.5 rounded-md text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-200 transition-colors duration-150 active:scale-90" aria-label="보관함에 저장">
-                <BookmarkPlus size={12} />
-              </button></Tooltip>
-            )}
-            {onEdit && !isModeCard && (
-              <Tooltip label="질문 수정"><button onClick={() => onEdit(qId)} className="p-1.5 rounded-md text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-200 transition-colors duration-150 active:scale-90" aria-label="질문 수정">
-                <Pencil size={12} />
-              </button></Tooltip>
-            )}
-            <Tooltip label="질문 복제"><button onClick={() => onDuplicate(qId)} className="p-1.5 rounded-md text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-200 transition-colors duration-150 active:scale-90" aria-label="질문 복제">
-              <Copy size={12} />
-            </button></Tooltip>
-            {onReset && hasVotes && (
-              <Tooltip label="이 질문 응답 초기화"><button onClick={() => onReset(qId)} className="p-1.5 rounded-md text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-200 transition-colors duration-150 active:scale-90" aria-label="이 질문 응답 초기화">
-                <RotateCcw size={12} />
-              </button></Tooltip>
-            )}
-            <Tooltip label="질문 삭제"><button onClick={() => onDelete(qId)} className="p-1.5 rounded-md text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-150 active:scale-90" aria-label="질문 삭제">
-              <Trash2 size={12} />
-            </button></Tooltip>
+
           </div>
         )}
       </div>
+
+      {!readOnly && <details className="mt-3 border-t border-slate-100 dark:border-slate-700 pt-1" onPointerDown={stopDrag}>
+        <summary aria-label={`문항 관리: ${q.title}`} className="min-h-11 flex items-center justify-between cursor-pointer list-none text-sm text-slate-500 dark:text-slate-300 rounded-lg px-2 hover:bg-slate-50 dark:hover:bg-slate-700">
+          문항 관리 <MoreHorizontal size={20} />
+        </summary>
+        <div className="grid grid-cols-2 gap-1 pt-1">
+          {[
+            ...(onEdit && !isModeCard ? [{ label: '질문 수정', icon: Pencil, action: () => onEdit(qId) }] : []),
+            { label: '질문 복제', icon: Copy, action: () => onDuplicate(qId) },
+            ...(onSaveToLibrary && !isModeCard ? [{ label: '보관함에 저장', icon: BookmarkPlus, action: () => onSaveToLibrary(qId) }] : []),
+            ...(isAiJudge && onTogglePersistent ? [{ label: isPersistent ? '상시 과제 해제' : '상시 과제로 설정', icon: isPersistent ? PinOff : Pin, action: () => onTogglePersistent(qId) }] : []),
+            ...(onReset && hasVotes ? [{ label: '응답 초기화', icon: RotateCcw, action: () => onReset(qId) }] : []),
+            { label: '질문 삭제', icon: Trash2, action: () => onDelete(qId), danger: true },
+          ].map(item => <button key={item.label} type="button" aria-label={item.label} onClick={event => { event.currentTarget.closest('details').open = false; item.action(); }} className={`min-h-11 flex items-center gap-2 rounded-lg px-2 text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-700 ${item.danger ? 'text-red-600 dark:text-red-300' : 'text-slate-600 dark:text-slate-200'}`}>
+            <item.icon size={18} className="shrink-0" />{item.label}
+          </button>)}
+        </div>
+      </details>}
 
       {/* Mobile: action buttons row below content */}
       {!readOnly && (

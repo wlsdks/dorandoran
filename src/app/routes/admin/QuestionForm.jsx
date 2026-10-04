@@ -20,12 +20,15 @@ import {
   ShortAnswerSection,
 } from './QuestionFormSections';
 
+const COMMON_TYPES = ['choice', 'quiz', 'ox', 'wordcloud', 'subjective', 'check'];
+
 const INPUT = 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150';
 
 export default function QuestionForm({ onSubmit, onCancel, error, initialData }) {
   const { available, reason } = useAIAvailability();
   const isEdit = !!initialData;
   const [type, setType] = useState(initialData?.type || 'choice');
+  const [showMoreTypes, setShowMoreTypes] = useState(Boolean(initialData?.type && !COMMON_TYPES.includes(initialData.type)));
   const [title, setTitle] = useState(initialData?.title || '');
   const [options, setOptions] = useState(
     initialData?.options?.length ? [...initialData.options] : ['', '']
@@ -119,12 +122,12 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
       {/* 질문 유형 */}
       <div>
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">질문 유형</p>
-        <div className="grid grid-cols-5 max-sm:grid-cols-4 gap-1.5">
-          {QUESTION_TYPES.map((t) => {
+        <div className="grid grid-cols-3 gap-2">
+          {QUESTION_TYPES.filter(t => showMoreTypes || COMMON_TYPES.includes(t.value)).map((t) => {
             const Icon = t.icon;
             const selected = type === t.value;
             return (
-              <motion.button key={t.value} disabled={t.value === 'aiJudge' && !available} title={t.value === 'aiJudge' && !available ? reason : undefined}
+              <motion.button key={t.value} aria-pressed={type === t.value} disabled={t.value === 'aiJudge' && !available} title={t.value === 'aiJudge' && !available ? reason : undefined}
                 whileTap={{ scale: 0.93 }}
                 onClick={() => {
                   setType(t.value); setLocalError(null);
@@ -134,11 +137,14 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
                   selected ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm'
                     : 'text-slate-400 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-300'}`}>
                 <Icon size={20} strokeWidth={selected ? 2 : 1.6} />
-                <span className="text-[11px] font-medium leading-tight">{t.label}</span>
+                <span className="text-sm font-medium leading-tight">{t.label}</span>
               </motion.button>
             );
           })}
         </div>
+        <button type="button" onClick={() => setShowMoreTypes(value => !value)} aria-expanded={showMoreTypes} className="mt-2 min-h-12 w-full rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+          {showMoreTypes ? '자주 쓰는 유형만 보기' : `다른 문항 유형 ${QUESTION_TYPES.length - COMMON_TYPES.length}개 보기`}
+        </button>
       </div>
 
       {/* 질문 내용 */}
