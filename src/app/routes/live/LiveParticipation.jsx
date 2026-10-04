@@ -1,25 +1,6 @@
-import { memo, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
-
-/** Animated number counter for live view. */
-function AnimatedNumber({ value, className }) {
-  const motionVal = useMotionValue(0);
-  const rounded = useTransform(motionVal, (v) => Math.round(v));
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const unsub = rounded.on('change', (v) => {
-      if (ref.current) ref.current.textContent = v;
-    });
-    const controls = animate(motionVal, value, {
-      duration: 0.6,
-      ease: [0.25, 0.1, 0.25, 1],
-    });
-    return () => { controls.stop(); unsub(); };
-  }, [value, motionVal, rounded]);
-
-  return <span ref={ref} className={className}>{value}</span>;
-}
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
+import { memo } from 'react';
+import { motion } from 'framer-motion';
 
 export default memo(function LiveParticipation({ voted, total }) {
   const pct = total > 0 ? Math.min(100, Math.round((voted / total) * 100)) : 0;
@@ -40,9 +21,9 @@ export default memo(function LiveParticipation({ voted, total }) {
       </div>
       <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
         <motion.div
-          className="h-full bg-indigo-500 rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
+          className="h-full w-full origin-left bg-indigo-500 rounded-full"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: pct / 100 }}
           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
         />
       </div>

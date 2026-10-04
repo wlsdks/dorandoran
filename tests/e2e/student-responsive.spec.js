@@ -38,9 +38,9 @@ for (const res of DEVICES) {
 
     // 입장 완료 마킹 → VotePage 진입
     await page.evaluate(({ sid, pid }) => {
-      localStorage.setItem('pinggo_participant_id', pid);
-      localStorage.setItem('pinggo_nickname', '김학생');
-      localStorage.setItem('pinggo_joined_sessions', JSON.stringify({ [sid]: { participantId: pid, nickname: '김학생' } }));
+      localStorage.setItem('dorandoran_participant_id', pid);
+      localStorage.setItem('dorandoran_nickname', '김학생');
+      localStorage.setItem('dorandoran_joined_sessions', JSON.stringify({ [sid]: { participantId: pid, nickname: '김학생' } }));
     }, { sid, pid: PID });
 
     // 2) 대기 상태 (활성 질문 없음)

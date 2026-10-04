@@ -1,10 +1,12 @@
+import { useRealtimeRecord } from '@/hooks/useRealtimeRecord';
+import { useCooldown } from '@/hooks/useCooldown';
 import { useState, useEffect, useRef } from 'react';
-import { ref, get } from 'firebase/database';
+import { ref, get, update, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { getParticipantId, getNickname, setNickname as saveNickname, getSessionNickname, getSessionEmployeeId } from '@/lib/participant';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, ArrowRight } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 
@@ -14,29 +16,11 @@ const EMPLOYEE_ID_MAX = 20;
 const FORM_ID = 'join-form';
 
 /** Fetch session course name + 행사모드(사번 필수) flag for display (lightweight one-time read). */
+const SESSION_INFO_FIELDS = ['courseName', 'requireEmployeeId', 'drawOnly', 'createdAt'];
 function useSessionInfo(sessionId) {
-  const [courseName, setCourseName] = useState(null);
-  const [requireEmployeeId, setRequireEmployeeId] = useState(false);
-  // 추첨 전용 세션 — 입장을 막는다. 들어온 사람이 그대로 추첨 대상이 되어 명단을 오염시키기 때문.
-  const [drawOnly, setDrawOnly] = useState(false);
-  // null=확인 중, true/false=판정 — 오타 코드로 조인하면 유령 세션이 생기고 무한 대기하므로 사전 차단
-  const [exists, setExists] = useState(null);
-  useEffect(() => {
-    if (!sessionId) return;
-    get(ref(db, `sessions/${sessionId}/courseName`))
-      .then((snap) => setCourseName(snap.val() || null))
-      .catch(() => {});
-    get(ref(db, `sessions/${sessionId}/requireEmployeeId`))
-      .then((snap) => setRequireEmployeeId(snap.val() === true))
-      .catch(() => {});
-    get(ref(db, `sessions/${sessionId}/drawOnly`))
-      .then((snap) => setDrawOnly(snap.val() === true))
-      .catch(() => {});
-    get(ref(db, `sessions/${sessionId}/createdAt`))
-      .then((snap) => setExists(snap.exists()))
-      .catch(() => setExists(true)); // 네트워크 오류로 확인 불가 시엔 낙관적으로 통과
-  }, [sessionId]);
-  return { courseName, requireEmployeeId, drawOnly, exists };
+  const { value, loading, error } = useRealtimeRecord(sessionId ? `sessions/${sessionId}` : null, SESSION_INFO_FIELDS);
+  return { courseName: value?.courseName || null, requireEmployeeId: value?.requireEmployeeId === true,
+    drawOnly: value?.drawOnly === true, exists: loading ? null : !error && value?.createdAt != null };
 }
 
 /**
@@ -69,7 +53,8 @@ function useKeyboardDetect() {
 
 export default function JoinPage({ sessionId, onJoin }) {
   const [nickname, setNickname] = useState(() => getSessionNickname(sessionId) || getNickname());
-  const [joining, setJoining] = useState(false);
+  const join = useCooldown(sessionId, 0);
+  const joining = !join.canSend;
   const [error, setError] = useState(null);
   const [touched, setTouched] = useState(false);
   // 사번(선택) — 기본 닫힘. 이전에 입력했으면 펼친 채로 복원.
@@ -106,20 +91,23 @@ export default function JoinPage({ sessionId, onJoin }) {
     }, 200);
   }
 
-  function handleJoin(e) {
-    e.preventDefault();
+  async function handleJoin(event) {
+    event.preventDefault();
     if (!canJoin || exists === false || drawOnly) return;
-    setJoining(true);
+    const ticket = join.begin(); if (ticket === null) return;
     setError(null);
-    // presence 기록(participant 노드 + onDisconnect)은 App.jsx의 syncPresence가 일원화 담당.
-    // 여기서 직접 write하지 않아 (1) join 시 중복 full-set 제거, (2) 약한 네트워크에서
-    // write를 await하다 "입장 중…"에 무한 대기하던 문제를 피한다(낙관적 입장).
-    const participantId = getParticipantId();
-    saveNickname(trimmed);
-    onJoin(participantId, trimmed, employeeId.trim());
+    try {
+      const participantId = getParticipantId();
+      const participant = ref(db, `sessions/${sessionId}/participants/${participantId}`);
+      const existing = (await get(participant)).val();
+      await update(participant, { nickname: trimmed, employeeId: employeeId.trim() || null,
+        joinedAt: existing?.joinedAt || serverTimestamp() });
+      if (!join.finish(ticket)) return;
+      saveNickname(trimmed);
+      onJoin(participantId, trimmed, employeeId.trim());
+    } catch { join.fail(ticket); setError('참여하지 못했어요. 연결을 확인하고 다시 시도해주세요.'); }
   }
 
-  // 존재하지 않는 세션 코드 — 참여를 막고 코드 재확인 안내 (유령 세션 생성 방지)
   if (exists === false) {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center px-5">
@@ -128,7 +116,7 @@ export default function JoinPage({ sessionId, onJoin }) {
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           className="text-center space-y-4 max-w-sm"
         >
-          <div className="flex justify-center"><PickMascot size="md" mood="sad" /></div>
+          <div className="flex justify-center"><DoranDoranMascot size="md" mood="sad" /></div>
           <div className="space-y-1.5">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">세션을 찾을 수 없어요</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -150,7 +138,7 @@ export default function JoinPage({ sessionId, onJoin }) {
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           className="text-center space-y-4 max-w-sm"
         >
-          <div className="flex justify-center"><PickMascot size="md" mood="waiting" /></div>
+          <div className="flex justify-center"><DoranDoranMascot size="md" mood="waiting" /></div>
           <div className="space-y-1.5">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">추첨 전용 세션이에요</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -186,10 +174,10 @@ export default function JoinPage({ sessionId, onJoin }) {
               }}
               className="flex justify-center mb-1"
             >
-              <PickMascot size="md" />
+              <DoranDoranMascot size="md" />
             </motion.div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Pick</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</h1>
               <p className={`text-sm mt-1.5 ${courseName ? 'text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
                 {courseName || '닉네임을 정하고 참여하세요'}
               </p>
@@ -208,7 +196,7 @@ export default function JoinPage({ sessionId, onJoin }) {
             className="overflow-hidden"
           >
             <div className="flex items-center gap-2">
-              <span className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">Pick</span>
+              <span className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</span>
               {courseName && (
                 <span className="text-sm text-slate-400 dark:text-slate-500 truncate">{courseName}</span>
               )}

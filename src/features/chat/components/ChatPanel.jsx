@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, MessageCircle, Shield } from 'lucide-react';
 import { hapticTap } from '@/lib/haptics';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { useChat } from '@/features/chat/api/useChat';
 import { useStaffChat } from '@/features/dm/api/useStaffChat';
 import { getLastSeen, saveLastSeen } from '@/lib/participant';
@@ -112,7 +112,7 @@ export default memo(function ChatPanel({ sessionId, senderName, senderType, open
           {loading && messages.length === 0 && <div className="flex-1 flex items-center justify-center"><span className="text-sm text-slate-400 dark:text-slate-500">불러오는 중...</span></div>}
           {!loading && messages.length === 0 && (
             <div className="flex-1 flex flex-col items-center justify-center gap-2">
-              <PickMascot size="sm" mood="waiting" />
+              <DoranDoranMascot size="sm" mood="waiting" />
               <p className="text-sm text-slate-400 dark:text-slate-500 text-center leading-relaxed">아직 메시지가 없습니다<br /><span className="text-xs">{emptyMsg}</span></p>
             </div>
           )}
@@ -167,7 +167,7 @@ export default memo(function ChatPanel({ sessionId, senderName, senderType, open
               {loading && messages.length === 0 && <div className="flex-1 flex items-center justify-center"><span className="text-sm text-slate-400 dark:text-slate-500">불러오는 중...</span></div>}
               {!loading && messages.length === 0 && (
                 <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                  <PickMascot size="sm" mood="waiting" />
+                  <DoranDoranMascot size="sm" mood="waiting" />
                   <p className="text-sm text-slate-400 dark:text-slate-500 text-center leading-relaxed">아직 메시지가 없습니다<br /><span className="text-xs">{emptyMsg}</span></p>
                 </div>
               )}

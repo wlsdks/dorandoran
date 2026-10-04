@@ -1,5 +1,6 @@
+if (process.env.FIREBASE_DATABASE_EMULATOR_HOST !== '127.0.0.1:9000') throw new Error('부하/정리 도구는 로컬 demo 에뮬레이터에서만 실행하세요.');
 /**
- * Pick — 200명 동시접속 부하 테스트
+ * DoranDoran — 200명 동시접속 부하 테스트
  *
  * 테스트 시나리오:
  * 1. 200명 학생이 세션에 순차 입장 (5명씩 배치)
@@ -17,8 +18,8 @@ import { getDatabase, ref, set, push, onValue, update, remove, serverTimestamp }
 const firebaseConfig = {
   apiKey: "AIzaSyCsRs1BTT1NphOpbkoAwKn7rnrdQk16R2I",
   authDomain: "jinan-6c884.firebaseapp.com",
-  databaseURL: "https://jinan-6c884-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "jinan-6c884",
+  databaseURL: "http://127.0.0.1:9000/?ns=demo-dorandoran",
+  projectId: "demo-dorandoran",
   storageBucket: "jinan-6c884.firebasestorage.app",
   messagingSenderId: "956378670080",
   appId: "1:956378670080:web:2147d0766564dd00dde4e5"
@@ -318,7 +319,7 @@ function p95(arr) {
 
 // --- Main ---
 async function main() {
-  log(`🚀 Pick 부하 테스트 시작 — ${USER_COUNT}명 동시접속\n`);
+  log(`🚀 DoranDoran 부하 테스트 시작 — ${USER_COUNT}명 동시접속\n`);
 
   try {
     await createConnections();

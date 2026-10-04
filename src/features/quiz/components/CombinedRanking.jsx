@@ -2,7 +2,7 @@ import { memo, useMemo, useState, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Medal, Search, Crown, Award } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { isAnswerCorrect } from '@/lib/quiz';
 
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
@@ -76,7 +76,7 @@ export default memo(function CombinedRanking({ session }) {
         transition={SPRING_BOUNCY}
         className="text-center space-y-2 mb-6 shrink-0"
       >
-        <PickMascot size="md" mood="happy" className="mx-auto mb-2" />
+        <DoranDoranMascot size="md" mood="happy" className="mx-auto mb-2" />
         <div className="flex items-center justify-center gap-2">
           <Medal size={28} className="text-amber-500" />
           <h3 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">합산 랭킹</h3>

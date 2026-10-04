@@ -1,7 +1,7 @@
 /**
  * AI 심사위원단 — 7인의 다양한 관점
  * Ported from ai-judge project.
- * Pick design: no emoji avatars (use initial-based Avatar component)
+ * DoranDoran design: no emoji avatars (use initial-based Avatar component)
  */
 
 /** 라이브 심사 중 전자칠판에 띄울 판사별 thinking 문구 풀 — 실제 LLM 응답 기다리는 동안 재미있게 */

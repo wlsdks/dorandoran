@@ -1,4 +1,4 @@
-// Pick Service Worker — safe static asset caching
+// DoranDoran Service Worker — safe static asset caching
 //
 // Strategy:
 // - Hashed assets (/assets/*): Cache-first (immutable by design — content change = new filename)
@@ -11,7 +11,7 @@
 // 2. index.html is never cached → new deployments work immediately
 // 3. Firebase data is never cached → always real-time
 
-const CACHE_NAME = 'pick-assets-v3';
+const CACHE_NAME = 'dorandoran-assets-v3';
 
 // Install: activate immediately
 self.addEventListener('install', () => {

@@ -1,3 +1,4 @@
+import { motion as motionTokens } from '@/lib/design-tokens';
 import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 
@@ -21,8 +22,8 @@ const Button = forwardRef(function Button(
   return (
     <motion.button
       ref={ref}
-      whileTap={{ scale: disabled ? 1 : 0.97 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+      whileTap={{ scale: disabled ? 1 : 0.965 }}
+      transition={motionTokens.spring.stiff}
       className={`inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${variants[variant]} ${sizes[size]} ${disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} ${className}`}
       disabled={disabled}
       {...props}

@@ -1,5 +1,5 @@
 /**
- * Demo data seed script for Pick
+ * Demo data seed script for DoranDoran
  * Run: node --env-file=.env scripts/seed-demo.mjs
  *
  * Creates 5+ classes with various rounds, statuses, questions, participants, and votes.

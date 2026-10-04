@@ -38,9 +38,9 @@ test.describe('역할 간 상호작용', () => {
 
     // Clear prior join state
     await studentPage.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await studentPage.reload();
 
@@ -60,7 +60,7 @@ test.describe('역할 간 상호작용', () => {
     expect(liveContent).toBeTruthy();
 
     // Check Firebase for the vote
-    const pid = await studentPage.evaluate(() => localStorage.getItem('pinggo_participant_id'));
+    const pid = await studentPage.evaluate(() => localStorage.getItem('dorandoran_participant_id'));
     const vote = await firebaseGet(`sessions/${sessionId}/questions/q1/votes/${pid}`);
     expect(vote).toBeTruthy();
 
@@ -83,9 +83,9 @@ test.describe('역할 간 상호작용', () => {
 
       // Clear state
       await page.evaluate(() => {
-        localStorage.removeItem('pinggo_joined_sessions');
-        localStorage.removeItem('pinggo_participant_id');
-        localStorage.removeItem('pinggo_nickname');
+        localStorage.removeItem('dorandoran_joined_sessions');
+        localStorage.removeItem('dorandoran_participant_id');
+        localStorage.removeItem('dorandoran_nickname');
       });
       await page.reload();
 
@@ -98,7 +98,7 @@ test.describe('역할 간 상호작용', () => {
       await page.getByText(options[i]).click();
       await waitForSync(page, 1500);
 
-      const pid = await page.evaluate(() => localStorage.getItem('pinggo_participant_id'));
+      const pid = await page.evaluate(() => localStorage.getItem('dorandoran_participant_id'));
       pids.push(pid);
       await ctx.close();
     }
@@ -121,9 +121,9 @@ test.describe('역할 간 상호작용', () => {
     const studentPage = await studentCtx.newPage();
     await studentPage.goto(`http://localhost:5173/?s=${sessionId}`);
     await studentPage.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await studentPage.reload();
 
@@ -148,9 +148,9 @@ test.describe('역할 간 상호작용', () => {
     await page.goto(`http://localhost:5173/?s=${sessionId}`);
 
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 

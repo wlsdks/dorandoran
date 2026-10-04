@@ -1,18 +1,10 @@
-import { ref, onValue } from 'firebase/database';
-import { useState, useEffect, useMemo } from 'react';
-import { db } from '@/lib/firebase';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { EMPTY_RECORD } from '@/lib/realtime';
+import { useMemo } from 'react';
 
 export function useUrgentQuestions(sessionId) {
-  const [questions, setQuestions] = useState({});
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const questionsRef = ref(db, `sessions/${sessionId}/urgentQuestions`);
-    const unsub = onValue(questionsRef, (snapshot) => {
-      setQuestions(snapshot.val() || {});
-    });
-    return () => unsub();
-  }, [sessionId]);
+  const { value } = useRealtimeValue(sessionId ? `sessions/${sessionId}/urgentQuestions` : null);
+  const questions = value || EMPTY_RECORD;
 
   const questionList = useMemo(
     () =>

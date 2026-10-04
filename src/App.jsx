@@ -1,13 +1,16 @@
-import { onDisconnect, onValue, ref, set, update, serverTimestamp } from 'firebase/database';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { motion as motionTokens } from '@/lib/design-tokens';
+import AuthenticationBoundary from '@/components/ui/AuthenticationBoundary';
+import { onDisconnect, onValue, ref, remove, set } from 'firebase/database';
 import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import JoinPage from '@/app/routes/student/JoinPage';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { SuspenseFallback } from '@/components/ui/Skeleton';
 import { db } from '@/lib/firebase';
-import { getNickname, getParticipantId, hasJoinedSession, markSessionJoined, getSessionNickname, getSessionEmployeeId } from '@/lib/participant';
+import { getParticipantId, hasJoinedSession, markSessionJoined } from '@/lib/participant';
 import { logger } from '@/lib/logger';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -26,7 +29,7 @@ function NotFoundPage() {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         className="text-center space-y-5 max-w-xs"
       >
-        <PickMascot size="lg" mood="thinking" className="mx-auto" />
+        <DoranDoranMascot size="lg" mood="thinking" className="mx-auto" />
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">페이지를 찾을 수 없습니다</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
@@ -56,44 +59,35 @@ function StudentRouter() {
   // Listen for nickname change requests from StudentHeader
   useEffect(() => {
     const handler = () => setJoined(false);
-    window.addEventListener('pick:change-nickname', handler);
-    return () => window.removeEventListener('pick:change-nickname', handler);
+    window.addEventListener('dorandoran:change-nickname', handler);
+    return () => window.removeEventListener('dorandoran:change-nickname', handler);
   }, []);
 
   useEffect(() => {
     if (!joined || !sessionId) return;
 
-    const nickname = (getSessionNickname(sessionId) || getNickname()).trim();
-    if (!nickname) return;
-    const employeeId = getSessionEmployeeId(sessionId).trim();
 
     const participantId = getParticipantId();
-    const participantRef = ref(db, `sessions/${sessionId}/participants/${participantId}`);
-    const onlineRef = ref(db, `sessions/${sessionId}/participants/${participantId}/online`);
-
-    // 최초 1회만 참여자 메타 기록 — joinedAt은 여기서만 찍고 재접속마다 갱신하지 않음.
-    // (JoinPage가 아닌 App.jsx 한 곳에서 presence를 일원화 — 중복 write 제거)
-    set(participantRef, {
-      nickname,
-      joinedAt: serverTimestamp(),
-      online: true,
-      ...(employeeId ? { employeeId } : {}), // 사번(선택) — 입력했을 때만 기록
-    }).catch((err) => logger.warn('[presence] init failed', err));
-
-    // 재접속(.info/connected) 시: online만 갱신(이미 true면 무변경 → 리스너 미발화) + onDisconnect 재무장.
-    // 전체 노드 set/joinedAt 재기록을 하지 않아, 교실 Wi-Fi 블립에 300명이 동시에 full-node write를
-    // 쏟아내 강사·전자칠판이 프리징되던 fan-out 폭주를 방지한다. joinedAt churn(리포트 참여시간 왜곡)도 제거.
-    const connRef = ref(db, '.info/connected');
-    const unsub = onValue(connRef, (snap) => {
-      if (snap.val() !== true) return;
-      update(participantRef, { online: true }).catch((err) => logger.warn('[presence] reconnect failed', err));
-      onDisconnect(onlineRef).set(false).catch((err) => logger.warn('[presence] onDisconnect failed', err));
+    const connectionRef = ref(db, `sessions/${sessionId}/participants/${participantId}/connections/${crypto.randomUUID()}`);
+    let active = true;
+    const disconnect = onDisconnect(connectionRef);
+    const unsub = onValue(ref(db, '.info/connected'), async (snapshot) => {
+      if (!snapshot.val() || !active) return;
+      try {
+        // 서버가 끊김 처리를 접수한 뒤 연결을 표시한다. 늦게 완료된 등록도 해제한다.
+        await disconnect.remove();
+        if (!active) { await disconnect.cancel(); return; }
+        await refConnection();
+      } catch (error) { logger.warn('접속 상태 갱신 실패', error?.code); }
     });
-
-    // cleanup: 리스너 해제 + 이전 세션의 onDisconnect 무장 해제(세션 전환 시 잔존 방지)
+    async function refConnection() {
+      if (active) await set(connectionRef, true);
+      if (!active) await remove(connectionRef).catch(() => {});
+    }
     return () => {
-      unsub();
-      onDisconnect(onlineRef).cancel().catch(() => { /* 이미 해제됨 무시 */ });
+      active = false; unsub();
+      disconnect.cancel().catch(() => {});
+      remove(connectionRef).catch(() => {});
     };
   }, [joined, sessionId]);
 
@@ -101,48 +95,30 @@ function StudentRouter() {
     return (
       <div className="relative min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: motionTokens.duration.normal }}
           className="text-center space-y-5 max-w-xs"
         >
-          <motion.div
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.1 }}
-            className="flex justify-center"
-          >
-            <PickMascot size="lg" mood="waiting" />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-            className="space-y-2"
-          >
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Pick</h1>
+          <div className="flex justify-center">
+            <DoranDoranMascot size="lg" mood="waiting" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
               강사가 공유한 링크 또는 QR코드를<br />통해 접속해주세요
             </p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.45 }}
-            className="flex items-center justify-center gap-2"
-          >
+          </div>
+          <div className="flex items-center justify-center gap-2">
             <span className="text-xs text-slate-400 dark:text-slate-500">실시간 강의 참여 플랫폼</span>
-          </motion.div>
-          <motion.a
-            href="/admin"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors underline underline-offset-2"
-          >
-            강사이신가요? 로그인
-          </motion.a>
+          </div>
         </motion.div>
+        <a
+          href="/admin"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors underline underline-offset-2"
+        >
+          강사이신가요? 로그인
+        </a>
       </div>
     );
   }
@@ -185,10 +161,12 @@ function StudentRouter() {
 function App() {
   // Apply theme at app root so it's always active (not just on MoreView mount)
   useTheme();
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
 
   return (
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
     <BrowserRouter>
+      <AuthenticationBoundary>
       <Routes>
         <Route path="/" element={
           <ErrorBoundary scope="student">
@@ -225,6 +203,7 @@ function App() {
         } />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </AuthenticationBoundary>
     </BrowserRouter>
     </MotionConfig>
   );

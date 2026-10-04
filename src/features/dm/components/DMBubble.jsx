@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, Send, X, Plus, ArrowLeft, Headset, CheckCircle2, Clipboard } from 'lucide-react';
 import { formatChatTime } from '@/lib/utils';
 import Button from '@/components/ui/Button';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { useDMTyping } from '@/features/dm/api/useDMTyping';
 
 const DMMessage = memo(function DMMessage({ msg, isOwn }) {
@@ -285,7 +285,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full gap-4 py-12">
-                      <PickMascot size="sm" mood="waiting" />
+                      <DoranDoranMascot size="sm" mood="waiting" />
                       <p className="text-[15px] text-slate-400 dark:text-slate-500 text-center">도움 요청 내역이 없습니다</p>
                       <motion.button whileTap={{ scale: 0.96 }} onClick={() => setTab('new')}
                         className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-medium transition-colors duration-150">

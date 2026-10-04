@@ -71,6 +71,9 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
 
   const question = currentQuestion;
   if (!question) return null;
+  if (isPresenter && question.type === 'imageSlide') return <ImageSlidePresenter presenter images={question.slideImages || []}
+    currentSlide={question.currentSlide || 0} onSlideChange={isAdmin ? index => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { currentSlide: index }) : undefined} />;
+
 
   const isQA = question.type === 'qna';
   const isSubjective = question.type === 'subjective';
@@ -219,6 +222,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           {question.type === 'check' && <CheckProgress sessionId={sessionId} questionId={currentQId} />}
           {question.type === 'imageSlide' && (
             <ImageSlidePresenter
+                presenter={isPresenter}
               images={question.slideImages || []}
               currentSlide={question.currentSlide || 0}
               onSlideChange={isAdmin ? (idx) => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { currentSlide: idx }) : undefined}

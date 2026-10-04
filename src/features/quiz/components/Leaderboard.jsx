@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { Trophy } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import LeaderboardRow from './LeaderboardRow';
 
 export default memo(function Leaderboard({
@@ -46,7 +46,7 @@ export default memo(function Leaderboard({
   if (visible.length === 0) {
     return (
       <div className="text-center py-10 space-y-2 flex flex-col items-center">
-        <PickMascot size="sm" />
+        <DoranDoranMascot size="sm" />
         <p className="text-slate-400 text-sm">{emptyLabel}</p>
         <p className="text-slate-400 dark:text-slate-500 text-xs">퀴즈에 정답을 맞히면 점수가 올라갑니다</p>
       </div>

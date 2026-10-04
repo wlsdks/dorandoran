@@ -1,5 +1,5 @@
 /**
- * Pick Notification Chime — Web Audio API
+ * DoranDoran Notification Chime — Web Audio API
  *
  * Synthesizes a subtle two-tone ascending chime.
  * No external audio files needed.
@@ -69,7 +69,7 @@ export function playChime() {
  * Duolingo-inspired: happy, satisfying, not too long.
  */
 export function playCorrect() {
-  if (localStorage.getItem('pinggo_sound_muted') === 'true') return;
+  if (localStorage.getItem('dorandoran_sound_muted') === 'true') return;
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
@@ -101,7 +101,7 @@ export function playCorrect() {
  * Two descending notes: E4 → C4 (~250ms). Gentle, not punishing.
  */
 export function playIncorrect() {
-  if (localStorage.getItem('pinggo_sound_muted') === 'true') return;
+  if (localStorage.getItem('dorandoran_sound_muted') === 'true') return;
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;

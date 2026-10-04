@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase } from 'firebase/database';
+import { getDatabase, connectDatabaseEmulator } from 'firebase/database';
 
 // Firebase Web SDK config — 환경 변수(.env / .env.local)에서 주입.
 // 정책상 secret 아니지만(rules로 보호) fork 사용자가 본인 프로젝트로 갈음할 수 있도록 분리.
@@ -25,3 +25,5 @@ if (!firebaseConfig.apiKey || !firebaseConfig.databaseURL) {
 
 export const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
+
+if (import.meta.env.VITE_FIREBASE_EMULATORS === 'true') connectDatabaseEmulator(db, '127.0.0.1', 9000);

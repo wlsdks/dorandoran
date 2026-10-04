@@ -43,7 +43,7 @@ test.describe('스태프 플로우', () => {
     // Navigate to session
     await page.goto(`http://localhost:5173/admin?s=${sessionId}`);
     await page.evaluate((user) => {
-      sessionStorage.setItem('pinggo_admin', JSON.stringify(user));
+      sessionStorage.setItem('dorandoran_admin', JSON.stringify(user));
     }, { uid: 'e2e_admin_staff', username: 'test_staff', displayName: '테스트 스태프', role: 'staff' });
     await page.reload();
     await waitForSync(page, 4000);
@@ -61,7 +61,7 @@ test.describe('스태프 플로우', () => {
 
     await page.goto(`http://localhost:5173/admin?s=${sessionId}`);
     await page.evaluate((user) => {
-      sessionStorage.setItem('pinggo_admin', JSON.stringify(user));
+      sessionStorage.setItem('dorandoran_admin', JSON.stringify(user));
     }, { uid: 'e2e_admin_staff', username: 'test_staff', displayName: '테스트 스태프', role: 'staff' });
     await page.reload();
     await waitForSync(page, 4000);
@@ -88,7 +88,7 @@ test.describe('스태프 플로우', () => {
 
     await page.goto(`http://localhost:5173/admin?s=${sessionId}`);
     await page.evaluate((user) => {
-      sessionStorage.setItem('pinggo_admin', JSON.stringify(user));
+      sessionStorage.setItem('dorandoran_admin', JSON.stringify(user));
     }, { uid: 'e2e_admin_staff', username: 'test_staff', displayName: '테스트 스태프', role: 'staff' });
     await page.reload();
     await waitForSync(page, 4000);

@@ -23,7 +23,7 @@ test.describe('강사(Admin) 플로우', () => {
   test('로그인 페이지 렌더링', async ({ page }) => {
     await page.goto('/admin');
     // Should show login form
-    await expect(page.getByText('Pick')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('도란도란')).toBeVisible({ timeout: 10000 });
     await expect(page.getByPlaceholder(/아이디/i).or(page.locator('input[type="text"]').first())).toBeVisible();
   });
 
@@ -42,7 +42,7 @@ test.describe('강사(Admin) 플로우', () => {
     await page.goto(`http://localhost:5173/admin?s=${sessionId}`);
     // Re-inject admin credentials after navigation
     await page.evaluate((user) => {
-      sessionStorage.setItem('pinggo_admin', JSON.stringify(user));
+      sessionStorage.setItem('dorandoran_admin', JSON.stringify(user));
     }, { uid: 'e2e_admin_admin', username: 'test_admin', displayName: '테스트 강사', role: 'admin' });
     await page.reload();
 
@@ -77,7 +77,7 @@ test.describe('강사 질문 관리', () => {
 
     await page.goto(`http://localhost:5173/admin?s=${sid}`);
     await page.evaluate((user) => {
-      sessionStorage.setItem('pinggo_admin', JSON.stringify(user));
+      sessionStorage.setItem('dorandoran_admin', JSON.stringify(user));
     }, { uid: 'e2e_admin_admin', username: 'test_admin', displayName: '테스트 강사', role: 'admin' });
     await page.reload();
     await waitForSync(page, 4000);

@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
  * 자리에서는 사번이 무의미하다. 어느 쪽이 주인공인지는 행사마다 달라서 강사가 고르게 한다.
  * 강사 단말의 취향이라 세션(Firebase)이 아니라 localStorage에 남긴다.
  */
-const STORAGE_KEY = 'pick_draw_display';
+const STORAGE_KEY = 'dorandoran_draw_display';
 
 export const DRAW_DISPLAY = { NAME: 'name', EMPLOYEE_ID: 'employeeId' };
 

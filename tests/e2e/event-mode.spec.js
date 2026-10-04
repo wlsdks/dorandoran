@@ -13,7 +13,7 @@ async function gotoJoin(page, baseURL, sid, pid) {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${baseURL}/?s=${sid}`);
   // 알려진 participantId로 고정 — 이후 participants/{pid} 검증
-  await page.evaluate((p) => localStorage.setItem('pinggo_participant_id', p), pid);
+  await page.evaluate((p) => localStorage.setItem('dorandoran_participant_id', p), pid);
   await page.reload();
   await waitForSync(page, 1500);
 }

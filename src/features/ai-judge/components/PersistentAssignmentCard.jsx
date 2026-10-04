@@ -30,7 +30,7 @@ export default memo(function PersistentAssignmentCard({ sessionId, questionId, q
   // 심사 완료 직후 자동으로 모달 열어 결과 노출 (탭 세션 내에서 한 번만).
   // sessionStorage로 기억하지 않으면 WaitingPage↔ActivePollView 전환 시 컴포넌트
   // 재마운트마다 state 초기화 → 학생이 이미 확인/닫은 결과를 자동 재팝업하는 UX 혼란.
-  const autoOpenKey = `pick_autoOpened_${sessionId}_${questionId}`;
+  const autoOpenKey = `dorandoran_autoOpened_${sessionId}_${questionId}`;
   const [autoOpenedForResult, setAutoOpenedForResult] = useState(() => {
     try { return sessionStorage.getItem(autoOpenKey) === '1'; } catch { return false; }
   });

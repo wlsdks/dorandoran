@@ -10,13 +10,13 @@ export default function LookupForm({ assignmentId, onFound }) {
   const [loading, setLoading] = useState(false);
 
   async function handleLookup() {
-    if (!name.trim() || pin.length !== 4) return;
+    if (!name.trim() || (pin.length < 4 || pin.length > 8)) return;
     setLoading(true);
     setError('');
     try {
       const result = await lookupSubmission(assignmentId, name.trim(), pin);
       if (result.error === 'NOT_FOUND') setError('해당 이름의 제출물을 찾을 수 없습니다. 제출 시 입력한 이름을 정확히 입력해주세요.');
-      else if (result.error === 'PIN_MISMATCH') setError('이름은 확인되었지만, 조회용 비밀번호가 일치하지 않습니다. 다시 확인해주세요.');
+      else if (result.error === 'PIN_MISMATCH') setError('이름 또는 조회용 비밀번호가 일치하지 않습니다. 다시 확인해주세요.');
       else onFound(result.submission);
     } finally {
       setLoading(false);
@@ -37,8 +37,8 @@ export default function LookupForm({ assignmentId, onFound }) {
       <div>
         <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-2">조회용 비밀번호</p>
         <input type="password" inputMode="numeric" pattern="[0-9]*" value={pin}
-          onChange={(e) => { setPin(e.target.value.replace(/\D/g, '').slice(0, 4)); setError(''); }}
-          placeholder="••••" maxLength={4}
+          onChange={(e) => { setPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
+          placeholder="조회용 비밀번호" maxLength={8}
           onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleLookup()}
           className={`w-full bg-white dark:bg-slate-800 border rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all tracking-[0.3em] ${
             error ? 'border-red-400 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500'
@@ -46,7 +46,7 @@ export default function LookupForm({ assignmentId, onFound }) {
         />
       </div>
       {error && <p className="text-xs text-red-500">{error}</p>}
-      <Button onClick={handleLookup} variant="primary" size="lg" disabled={!name.trim() || pin.length !== 4 || loading} className="w-full">
+      <Button onClick={handleLookup} variant="primary" size="lg" disabled={!name.trim() || (pin.length < 4 || pin.length > 8) || loading} className="w-full">
         {loading ? '조회 중...' : '조회하기'}
       </Button>
     </div>

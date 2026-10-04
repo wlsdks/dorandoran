@@ -75,7 +75,7 @@ function CurrentContext({ session }) {
 export default function StaffMobileView({ sessionId, session, adminUser, onBack, onLogout }) {
   const [activeTab, setActiveTab] = useState('questions');
   const { count } = useParticipants(sessionId);
-  const courseName = session?.courseName || 'Pick';
+  const courseName = session?.courseName || '도란도란';
   const round = session?.roundNumber ? `${session.roundNumber}차` : '';
 
   return (

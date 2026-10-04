@@ -4,7 +4,7 @@ import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { Eye, Hand } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { useMyHandRaise } from '@/features/hand-raise/api/useHandRaises';
 import { getParticipantId, getNickname } from '@/lib/participant';
 
@@ -41,7 +41,7 @@ export default memo(function FocusOverlay({ sessionId }) {
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <PickMascot size="lg" mood="happy" />
+          <DoranDoranMascot size="lg" mood="happy" />
         </motion.div>
 
         <div className="space-y-3">

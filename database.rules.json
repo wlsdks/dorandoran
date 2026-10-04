@@ -1,133 +1,192 @@
 {
   "rules": {
     "admins": {
-      ".read": true,
-      ".write": true,
       "$uid": {
         ".validate": "newData.hasChild('username') && newData.hasChild('passwordHash')",
-        "username": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 20" },
-        "passwordHash": { ".validate": "newData.isString()" },
-        "displayName": { ".validate": "newData.isString() && newData.val().length <= 20" },
-        "role": { ".validate": "newData.isString() && newData.val().matches(/^(master|admin|staff)$/)" },
-        "approved": { ".validate": "newData.isBoolean()" },
-        "createdAt": { ".validate": true }
-      }
+        "username": {
+          ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 20"
+        },
+        "passwordHash": {
+          ".validate": "newData.isString()"
+        },
+        "displayName": {
+          ".validate": "newData.isString() && newData.val().length <= 20"
+        },
+        "role": {
+          ".validate": "newData.isString() && newData.val().matches(/^(master|admin|staff)$/)"
+        },
+        "approved": {
+          ".validate": "newData.isBoolean()"
+        },
+        "createdAt": {
+          ".validate": true
+        }
+      },
+      ".indexOn": [
+        "username"
+      ]
     },
     "courseTemplates": {
-      ".read": true,
-      ".write": true,
       "$courseId": {
         ".validate": "newData.hasChild('name')",
-        "name": { ".validate": "newData.isString() && newData.val().length <= 100" },
-        "createdAt": { ".validate": true },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 100"
+        },
+        "createdAt": {
+          ".validate": true
+        },
         "questions": {
-          ".write": true,
           "$qId": {
             ".validate": "newData.hasChild('title') && newData.hasChild('type')",
-            "title": { ".validate": "newData.isString() && newData.val().length <= 500" },
-            "embedUrl": { ".validate": "newData.isString() && newData.val().length <= 2000 && newData.val().matches(/^https?:\\/\\//)" },
-            "mode": { ".validate": "newData.isString() && newData.val().length <= 30" },
-            "type": { ".validate": "newData.isString() && newData.val().matches(/^(choice|ox|quiz|wordcloud|qna|scale|debate|ranking|fillinblank|check|mysteryBox|hintQuiz|imageSlide|webEmbed|modeCard|aiJudge|subjective|shortAnswer)$/)" },
-            "$other": { ".validate": true }
+            "title": {
+              ".validate": "newData.isString() && newData.val().length <= 500"
+            },
+            "embedUrl": {
+              ".validate": "newData.isString() && newData.val().length <= 2000 && newData.val().matches(/^https?:\\/\\//)"
+            },
+            "mode": {
+              ".validate": "newData.isString() && newData.val().length <= 30"
+            },
+            "type": {
+              ".validate": "newData.isString() && newData.val().matches(/^(choice|ox|quiz|wordcloud|qna|scale|debate|ranking|fillinblank|check|mysteryBox|hintQuiz|imageSlide|webEmbed|modeCard|aiJudge|subjective|shortAnswer)$/)"
+            },
+            "$other": {
+              ".validate": true
+            }
           }
-        }
-      }
+        },
+        ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('courses').child($courseId).child('ownerId').val() === auth.uid))"
+      },
+      ".read": "(auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || (auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin')))"
     },
     "questionLibrary": {
-      ".read": true,
-      ".write": true,
       "$adminUid": {
         "$qId": {
           ".validate": "newData.hasChild('title') && newData.hasChild('type')",
-          "title": { ".validate": "newData.isString() && newData.val().length <= 500" },
-          "type": { ".validate": "newData.isString() && newData.val().matches(/^(choice|ox|quiz|wordcloud|qna|scale|debate|ranking|fillinblank|check|mysteryBox|hintQuiz|imageSlide|webEmbed|modeCard|aiJudge|subjective|shortAnswer)$/)" },
-          "savedAt": { ".validate": "newData.isNumber()" },
-          "updatedAt": { ".validate": "newData.isNumber()" },
-          "$other": { ".validate": true }
-        }
+          "title": {
+            ".validate": "newData.isString() && newData.val().length <= 500"
+          },
+          "type": {
+            ".validate": "newData.isString() && newData.val().matches(/^(choice|ox|quiz|wordcloud|qna|scale|debate|ranking|fillinblank|check|mysteryBox|hintQuiz|imageSlide|webEmbed|modeCard|aiJudge|subjective|shortAnswer)$/)"
+          },
+          "savedAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": true
+          }
+        },
+        ".read": "(auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && auth.uid === $adminUid)",
+        ".write": "(auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && auth.uid === $adminUid)"
       }
     },
     "courses": {
-      ".read": true,
-      ".write": true,
       "$courseId": {
         ".validate": "newData.hasChild('name') && newData.hasChild('ownerId')",
-        "name": { ".validate": "newData.isString() && newData.val().length <= 100" },
-        "ownerId": { ".validate": "newData.isString()" },
-        "ownerName": { ".validate": "newData.isString() && newData.val().length <= 20" },
-        "createdAt": { ".validate": "newData.isNumber()" },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 100"
+        },
+        "ownerId": {
+          ".validate": "newData.isString() && (!data.exists() || data.val() === newData.val())"
+        },
+        "ownerName": {
+          ".validate": "newData.isString() && newData.val().length <= 20"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
         "staff": {
           "$staffUid": {
             ".validate": "newData.hasChild('displayName')",
-            "displayName": { ".validate": "newData.isString() && newData.val().length <= 20" },
-            "assignedAt": { ".validate": "newData.isNumber()" }
+            "displayName": {
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "assignedAt": {
+              ".validate": "newData.isNumber()"
+            }
           }
-        }
-      }
+        },
+        ".read": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('courses').child($courseId).child('ownerId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child($courseId).val() === true)",
+        ".write": "(auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && ((!data.exists() && newData.child('ownerId').val() === auth.uid) || data.child('ownerId').val() === auth.uid))"
+      },
+      ".read": "(auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master')))",
+      ".indexOn": [
+        "ownerId"
+      ]
     },
-
     "staffCourses": {
-      ".read": true,
-      ".write": true,
       "$staffUid": {
         "$courseId": {
-          ".validate": "newData.isBoolean()"
-        }
+          ".validate": "newData.isBoolean()",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('courses').child($courseId).child('ownerId').val() === auth.uid))"
+        },
+        ".read": "(auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || (auth != null && auth.uid === $staffUid)"
       }
     },
-
     "sessions": {
-      ".read": true,
-      "$sessionId": {
-        ".write": true,
-
+      "$sid": {
         "creatorId": {
-          ".validate": "newData.isString() && newData.val().length <= 50"
+          ".read": "auth != null",
+          ".validate": "newData.isString() && (!data.exists() || data.val() === newData.val())"
         },
         "courseId": {
-          ".validate": "newData.isString() && newData.val().length <= 50"
+          ".validate": "newData.isString() && newData.val().length <= 50",
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
         "requireEmployeeId": {
-          ".validate": "newData.isBoolean()"
+          ".validate": "newData.isBoolean()",
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
         "drawOnly": {
-          ".validate": "newData.isBoolean()"
+          ".validate": "newData.isBoolean()",
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "status": {
-          ".write": true,
-          ".validate": "newData.isString() && newData.val().length <= 20"
+          ".validate": "newData.isString() && newData.val().length <= 20",
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
         "currentQuestion": {
-          ".write": true,
-          ".validate": "newData.isString() || !newData.exists()"
+          ".validate": "newData.isString() || !newData.exists()",
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
         "persistentAssignmentId": {
-          ".write": true,
-          ".validate": "newData.isString() || !newData.exists()"
+          ".validate": "newData.isString() || !newData.exists()",
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
         "currentMode": {
-          ".write": true,
-          ".validate": "newData.isString() && newData.val().length <= 20"
+          ".validate": "newData.isString() && newData.val().length <= 20",
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
         "pendingEvent": {
-          ".write": true
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
         "createdAt": {
-          ".write": true
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
         "courseName": {
-          ".write": true,
-          ".validate": "newData.isString() && newData.val().length <= 100"
+          ".validate": "newData.isString() && newData.val().length <= 100",
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
         "roundNumber": {
-          ".write": true,
-          ".validate": "newData.isNumber()"
+          ".validate": "newData.isNumber()",
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "questions": {
-          ".write": true,
-          "$questionId": {
+          "$qId": {
             ".validate": "newData.hasChild('title') && newData.hasChild('type')",
             "title": {
               ".validate": "newData.isString() && newData.val().length <= 500"
@@ -140,91 +199,122 @@
             },
             "votes": {
               "$participantId": {
-                ".validate": "newData.hasChild('value') && root.child('sessions').child($sessionId).child('participants').child($participantId).exists() && !root.child('sessions').child($sessionId).child('questions').child($questionId).child('revealedAt').exists() && (!root.child('sessions').child($sessionId).child('timer').child('endTime').exists() || now < root.child('sessions').child($sessionId).child('timer').child('endTime').val() + 2000)",
+                ".validate": "newData.hasChild('value') && root.child('sessions').child($sid).child('participants').child($participantId).exists() && !root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists() && (!root.child('sessions').child($sid).child('timer').child('endTime').exists() || now < root.child('sessions').child($sid).child('timer').child('endTime').val() + 2000)",
                 "value": {
                   ".validate": "newData.isString() && newData.val().length <= 500"
                 },
                 "nickname": {
                   ".validate": "newData.isString() && newData.val().length <= 10"
+                },
+                ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && auth.uid === $participantId && root.child('sessions').child($sid).child('currentQuestion').val() === $qId && !root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists())",
+                ".read": "auth != null && auth.uid === $participantId",
+                "bet": {
+                  ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === 2 || newData.val() === 3)"
+                },
+                "timestamp": {
+                  ".validate": "newData.isNumber() && newData.val() <= now + 1000 && newData.val() >= now - 10000"
                 }
-              }
+              },
+              ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))) && (root.child('sessions').child($sid).child('questions').child($qId).child('type').val() !== 'quiz' || root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists())"
             },
-
             "submissions": {
               "$participantId": {
-                ".validate": "newData.hasChild('name')",
-                "name": { ".validate": "newData.isString() && newData.val().length <= 20" },
-                "title": { ".validate": "newData.isString() && newData.val().length <= 200" },
-                "description": { ".validate": "newData.isString() && newData.val().length <= 500" },
-                "imageUrl": { ".validate": "newData.isString() && newData.val().length <= 2000" },
-                "code": { ".validate": "newData.isString() && newData.val().length <= 100000" },
-                "submittedAt": { ".validate": true }
+                ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && auth.uid === $participantId)",
+                ".validate": "newData.hasChildren(['name', 'submittedAt']) && newData.child('name').isString() && newData.child('name').val().length <= 20 && (!newData.child('code').exists() || (newData.child('code').isString() && newData.child('code').val().length <= 100000))",
+                ".read": "auth != null && auth.uid === $participantId"
               }
             },
-
             "aiResults": {
               "$participantId": {
-                ".validate": "newData.hasChild('summary')",
-                "summary": {
-                  "avgScore": { ".validate": "newData.isNumber()" },
-                  "totalScore": { ".validate": "newData.isNumber()" },
-                  "totalJudges": { ".validate": "newData.isNumber()" },
-                  "erroredJudges": { ".validate": "newData.isNumber()" },
-                  "imageFailed": { ".validate": "newData.isBoolean()" }
-                },
-                "judges": { ".validate": true },
-                "judgedAt": { ".validate": true }
+                ".read": "auth != null && auth.uid === $participantId"
               }
             },
-
             "aiGrades": {
               "$participantId": {
-                ".validate": "newData.hasChild('score')",
-                "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
-                "feedback": { ".validate": "newData.isString() && newData.val().length <= 500" },
-                "gradedAt": { ".validate": true }
+                ".read": "auth != null && auth.uid === $participantId"
               }
             },
-
             "aiTop3": {
               ".validate": true,
-              "first":  { ".validate": "newData.hasChild('submissionId')" },
-              "second": { ".validate": "newData.hasChild('submissionId')" },
-              "third":  { ".validate": "newData.hasChild('submissionId')" }
+              "first": {
+                ".read": "(((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))) && root.child('sessions').child($sid).child('questions').child($qId).child('aiJudgeState').child('revealedUpTo').val() >= 1"
+              },
+              "second": {
+                ".read": "(((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))) && root.child('sessions').child($sid).child('questions').child($qId).child('aiJudgeState').child('revealedUpTo').val() >= 2"
+              },
+              "third": {
+                ".read": "(((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))) && root.child('sessions').child($sid).child('questions').child($qId).child('aiJudgeState').child('revealedUpTo').val() >= 3"
+              },
+              ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))"
             },
-
             "aiJudgeState": {
               ".validate": true,
-              "status": { ".validate": "newData.isString() && newData.val().matches(/^(idle|judging|done|aborted|error)$/)" },
-              "revealedUpTo": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3" },
-              "current": { ".validate": "newData.isNumber()" },
-              "total": { ".validate": "newData.isNumber()" },
-              "currentName": { ".validate": "newData.isString() && newData.val().length <= 30" },
-              "message": { ".validate": "newData.isString() && newData.val().length <= 500" },
-              "startedAt": { ".validate": true },
-              "completedAt": { ".validate": true }
+              "status": {
+                ".validate": "newData.isString() && newData.val().matches(/^(idle|judging|done|aborted|error)$/)"
+              },
+              "revealedUpTo": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
+              },
+              "current": {
+                ".validate": "newData.isNumber()"
+              },
+              "total": {
+                ".validate": "newData.isNumber()"
+              },
+              "currentName": {
+                ".validate": "newData.isString() && newData.val().length <= 30"
+              },
+              "message": {
+                ".validate": "newData.isString() && newData.val().length <= 500"
+              },
+              "startedAt": {
+                ".validate": true
+              },
+              "completedAt": {
+                ".validate": true
+              },
+              ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))"
             },
-
             "aiJudgeLog": {
               ".validate": true,
-              "currentSubmissionId": { ".validate": "newData.isString() && newData.val().length <= 100" },
-              "currentName": { ".validate": "newData.isString() && newData.val().length <= 30" },
-              "startedAt": { ".validate": true },
+              "currentSubmissionId": {
+                ".validate": "newData.isString() && newData.val().length <= 100"
+              },
+              "currentName": {
+                ".validate": "newData.isString() && newData.val().length <= 30"
+              },
+              "startedAt": {
+                ".validate": true
+              },
               "judges": {
                 "$judgeId": {
-                  "name": { ".validate": "newData.isString() && newData.val().length <= 20" },
-                  "state": { ".validate": "newData.isString() && newData.val().matches(/^(thinking|done|error)$/)" },
-                  "hint": { ".validate": "newData.isString() && newData.val().length <= 200" },
-                  "score": { ".validate": "newData.isNumber() || !newData.exists()" },
-                  "at": { ".validate": "newData.isNumber()" }
+                  "name": {
+                    ".validate": "newData.isString() && newData.val().length <= 20"
+                  },
+                  "state": {
+                    ".validate": "newData.isString() && newData.val().matches(/^(thinking|done|error)$/)"
+                  },
+                  "hint": {
+                    ".validate": "newData.isString() && newData.val().length <= 200"
+                  },
+                  "score": {
+                    ".validate": "newData.isNumber() || !newData.exists()"
+                  },
+                  "at": {
+                    ".validate": "newData.isNumber()"
+                  }
                 }
-              }
+              },
+              ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))"
+            },
+            "spotlight": {
+              ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))"
             }
-          }
+          },
+          ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "participants": {
-          ".write": true,
           "$participantId": {
             ".validate": "newData.hasChild('nickname')",
             "nickname": {
@@ -238,12 +328,14 @@
             },
             "order": {
               ".validate": "newData.isNumber()"
-            }
-          }
+            },
+            ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || (auth != null && auth.uid === $participantId && root.child('sessions').child($sid).child('createdAt').exists() && (data.exists() || root.child('sessions').child($sid).child('drawOnly').val() !== true))",
+            ".read": "auth != null && auth.uid === $participantId"
+          },
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "reactions": {
-          ".write": true,
           "$reactionId": {
             ".validate": "newData.hasChild('type') && newData.hasChild('timestamp')",
             "type": {
@@ -251,13 +343,14 @@
             },
             "timestamp": {
               ".validate": "newData.isNumber()"
-            }
-          }
+            },
+            ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && !data.exists())"
+          },
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "urgentQuestions": {
-          ".write": true,
-          "$questionId": {
+          "$qId": {
             ".validate": "newData.hasChild('text') && newData.hasChild('timestamp')",
             "text": {
               ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
@@ -270,23 +363,27 @@
             },
             "reviewing": {
               ".validate": "newData.isBoolean()"
-            }
-          }
+            },
+            ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && !data.exists() && newData.child('participantId').val() === auth.uid && newData.child('read').val() === false)"
+          },
+          ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && query.orderByChild === 'participantId' && query.equalTo === auth.uid)",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
+          ".indexOn": [
+            "participantId"
+          ]
         },
-
         "timerEnd": {
-          ".write": true,
-          ".validate": "newData.isNumber() || !newData.exists()"
+          ".validate": "newData.isNumber() || !newData.exists()",
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "timerDuration": {
-          ".write": true,
-          ".validate": "newData.isNumber()"
+          ".validate": "newData.isNumber()",
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "classQuestions": {
-          ".write": true,
-          "$questionId": {
+          "$qId": {
             ".validate": "newData.hasChild('text') && newData.hasChild('nickname')",
             "text": {
               ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
@@ -301,130 +398,202 @@
               ".validate": true
             },
             "answered": {
-              ".validate": "newData.isBoolean()"
+              ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))"
             },
             "upvotes": {
-              ".write": true
+              "$participantId": {
+                ".write": "(auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && auth.uid === $participantId",
+                ".validate": "newData.val() === true"
+              }
             },
-            "answeredBy": { ".validate": "newData.isString()" },
-            "answeredByRole": { ".validate": "newData.isString()" },
-            "hidden": { ".validate": "newData.isBoolean()" },
+            "answeredBy": {
+              ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))"
+            },
+            "answeredByRole": {
+              ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))"
+            },
+            "hidden": {
+              ".validate": "newData.isBoolean()"
+            },
             "answers": {
-              ".write": true,
               "$answerId": {
                 ".validate": "newData.hasChild('text') && newData.hasChild('nickname')",
-                "text": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 500" },
-                "nickname": { ".validate": "newData.isString() && newData.val().length <= 20" },
-                "participantId": { ".validate": "newData.isString()" },
-                "timestamp": { ".validate": true },
-                "role": { ".validate": "newData.isString()" },
-                "upvotes": { ".write": true }
+                "text": {
+                  ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 500"
+                },
+                "nickname": {
+                  ".validate": "newData.isString() && newData.val().length <= 20"
+                },
+                "participantId": {
+                  ".validate": "newData.isString()"
+                },
+                "timestamp": {
+                  ".validate": true
+                },
+                "role": {
+                  ".validate": "newData.isString()"
+                },
+                "upvotes": {
+                  "$participantId": {
+                    ".write": "(auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && auth.uid === $participantId",
+                    ".validate": "newData.val() === true"
+                  }
+                }
               }
             }
-          }
+          },
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "qaStats": {
-          ".read": true,
-          ".write": true,
-          "$participantId": {
-            "nickname": { ".validate": "newData.isString()" },
-            "questions": { ".validate": "newData.isNumber()" },
-            "answers": { ".validate": "newData.isNumber()" }
-          }
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": false
         },
-
         "chatBubbles": {
-          ".write": true,
           "$bubbleId": {
             ".validate": "newData.hasChild('text') && newData.hasChild('nickname')",
-            "text": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" },
-            "nickname": { ".validate": "newData.isString() && newData.val().length <= 20" },
-            "participantId": { ".validate": "newData.isString()" },
-            "timestamp": { ".validate": true }
-          }
+            "text": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20"
+            },
+            "nickname": {
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "participantId": {
+              ".validate": "newData.isString()"
+            },
+            "timestamp": {
+              ".validate": true
+            },
+            ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && !data.exists())"
+          },
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "chat": {
-          ".write": true,
           "$messageId": {
             ".validate": "newData.hasChild('text') && newData.hasChild('sender')",
-            "text": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 500" },
-            "sender": { ".validate": "newData.isString() && newData.val().length <= 20" },
-            "senderType": { ".validate": "newData.isString()" },
-            "timestamp": { ".validate": true }
-          }
+            "text": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 500"
+            },
+            "sender": {
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "senderType": {
+              ".validate": "newData.isString()"
+            },
+            "timestamp": {
+              ".validate": true
+            },
+            ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && !data.exists() && newData.child('senderType').val() === 'student')"
+          },
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "staffChat": {
-          ".write": true,
           "$messageId": {
             ".validate": "newData.hasChild('text') && newData.hasChild('sender')",
-            "text": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 500" },
-            "sender": { ".validate": "newData.isString() && newData.val().length <= 20" },
-            "senderType": { ".validate": "newData.isString()" },
-            "timestamp": { ".validate": true }
-          }
+            "text": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 500"
+            },
+            "sender": {
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "senderType": {
+              ".validate": "newData.isString()"
+            },
+            "timestamp": {
+              ".validate": true
+            }
+          },
+          ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))",
+          ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))"
         },
-
         "dmByStudent": {
-          ".write": true,
           "$studentId": {
-            ".validate": "newData.isString() && newData.val().length <= 100"
-          }
+            ".validate": "newData.isString() && newData.val().length <= 100",
+            ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || (auth != null && auth.uid === $studentId)",
+            ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && auth.uid === $studentId)"
+          },
+          ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "dm": {
-          ".write": true,
           "$dmId": {
             ".validate": "newData.hasChild('studentId') && newData.hasChild('status')",
             "studentId": {
               ".validate": "newData.isString() && (!data.exists() || data.val() === newData.val())"
             },
-            "studentName": { ".validate": "newData.isString() && newData.val().length <= 20" },
-            "staffId": { ".validate": "newData.isString() || !newData.exists()" },
-            "staffName": { ".validate": "newData.isString() || !newData.exists()" },
-            "status": { ".validate": "newData.isString() && newData.val().matches(/^(waiting|active|resolved)$/)" },
+            "studentName": {
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "staffId": {
+              ".validate": "newData.isString() || !newData.exists()"
+            },
+            "staffName": {
+              ".validate": "newData.isString() || !newData.exists()"
+            },
+            "status": {
+              ".validate": "newData.isString() && newData.val().matches(/^(waiting|active|resolved)$/)"
+            },
             "createdAt": {
               ".validate": "!data.exists() || data.val() === newData.val()"
             },
             "messages": {
               "$messageId": {
                 ".validate": "newData.hasChild('text') && newData.hasChild('sender') && (!data.exists() || data.child('sender').val() === newData.child('sender').val())",
-                "text": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 500" },
-                "sender": { ".validate": "newData.isString() && newData.val().length <= 20" },
+                "text": {
+                  ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 500"
+                },
+                "sender": {
+                  ".validate": "newData.isString() && newData.val().length <= 20"
+                },
                 "senderType": {
                   ".validate": "newData.isString() && newData.val().matches(/^(student|staff|instructor|system)$/)"
                 },
-                "timestamp": { ".validate": true },
-                "contextQuestionId": { ".validate": "newData.isString() && newData.val().length <= 100" }
+                "timestamp": {
+                  ".validate": true
+                },
+                "contextQuestionId": {
+                  ".validate": "newData.isString() && newData.val().length <= 100"
+                },
+                ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true) && data.parent().parent().child('staffId').val() === auth.uid) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && data.parent().parent().child('studentId').val() === auth.uid && !data.exists() && newData.child('senderType').val() === 'student')"
               }
             },
             "typing": {
               "$userId": {
-                "name": { ".validate": "newData.isString() && newData.val().length <= 20" },
-                "at": { ".validate": "newData.isNumber()" }
+                "name": {
+                  ".validate": "newData.isString() && newData.val().length <= 20"
+                },
+                "at": {
+                  ".validate": "newData.isNumber()"
+                },
+                ".write": "auth != null && auth.uid === $userId && ((((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || data.parent().parent().child('studentId').val() === auth.uid)"
               }
-            }
+            },
+            ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || (auth != null && data.child('studentId').val() === auth.uid) || (auth != null && !data.exists() && root.child('sessions').child($sid).child('dmByStudent').child(auth.uid).val() === $dmId)",
+            ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true) && (!data.exists() || !data.child('staffId').exists() || data.child('staffId').val() === auth.uid)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && !data.exists() && newData.child('studentId').val() === auth.uid && newData.child('status').val() === 'waiting' && !newData.child('staffId').exists())"
+          },
+          ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
+        },
+        "handRaises": {
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
+          "$participantId": {
+            ".write": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)) || ((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && auth.uid === $participantId)"
           }
         },
-
-        "handRaises": {
-          ".write": true
-        },
-
         "speedQuiz": {
-          ".write": true,
-          ".validate": "!newData.exists() || newData.hasChild('active')"
+          ".validate": "!newData.exists() || newData.hasChild('active')",
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "teamBattle": {
-          ".write": true,
-          ".validate": "!newData.exists() || newData.hasChild('active')"
+          ".validate": "!newData.exists() || newData.hasChild('active')",
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
         },
-
         "scores": {
-          ".write": true,
           "$participantId": {
             ".validate": "newData.hasChild('nickname') && newData.hasChild('total')",
             "nickname": {
@@ -436,33 +605,191 @@
             "tickets": {
               ".validate": "newData.isNumber()"
             }
+          },
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
+        },
+        "gameResult": {
+          ".validate": "newData.hasChild('mode') && newData.hasChild('winners') && newData.hasChild('resultId')",
+          "mode": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "winners": {
+            ".validate": true
+          },
+          "resultId": {
+            ".validate": "newData.isString() && newData.val().length <= 50"
+          },
+          "timestamp": {
+            ".validate": "newData.isNumber()"
+          },
+          "allParticipantIds": {
+            ".validate": true
+          },
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
+        },
+        "$other": {
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))"
+        },
+        ".write": "(auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && ((!data.exists() && newData.child('creatorId').val() === auth.uid) || data.child('creatorId').val() === auth.uid))",
+        ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))",
+        "startedAt": {
+          ".read": "auth != null"
+        },
+        "reviewingUntil": {
+          ".read": "auth != null"
+        },
+        "drumroll": {
+          ".read": "auth != null"
+        },
+        "gameState": {
+          ".read": "auth != null"
+        },
+        "activeAssignmentId": {
+          ".read": "auth != null"
+        },
+        "comprehension": {
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
+          "$participantId": {
+            ".write": "(auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && auth.uid === $participantId"
           }
         },
-
-        "gameResult": {
-          ".write": true,
-          ".validate": "newData.hasChild('mode') && newData.hasChild('winners') && newData.hasChild('resultId')",
-          "mode": { ".validate": "newData.isString() && newData.val().length <= 20" },
-          "winners": { ".validate": true },
-          "resultId": { ".validate": "newData.isString() && newData.val().length <= 50" },
-          "timestamp": { ".validate": "newData.isNumber()" },
-          "allParticipantIds": { ".validate": true }
+        "quickSurvey": {
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
+          "$participantId": {
+            ".write": "(auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && auth.uid === $participantId"
+          }
         },
-
-        "$other": {
-          ".write": true
+        "discussion": {
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
+          "memos": {
+            "$memoId": {
+              ".write": "(auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && !data.exists()"
+            }
+          }
+        },
+        "publicQuestions": {
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
+          "$qId": {
+            "correctAnswer": {
+              ".validate": "root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists() || root.child('sessions').child($sid).child('questions').child($qId).child('answerRevealed').val() === true"
+            },
+            "acceptableAnswers": {
+              ".validate": "root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists() || root.child('sessions').child($sid).child('questions').child($qId).child('answerRevealed').val() === true"
+            },
+            "title": {
+              ".validate": true
+            },
+            "type": {
+              ".validate": true
+            },
+            "options": {
+              ".validate": true
+            },
+            "order": {
+              ".validate": true
+            },
+            "imageUrl": {
+              ".validate": true
+            },
+            "mode": {
+              ".validate": true
+            },
+            "embedUrl": {
+              ".validate": true
+            },
+            "hideTitle": {
+              ".validate": true
+            },
+            "slideImages": {
+              ".validate": true
+            },
+            "currentSlide": {
+              ".validate": true
+            },
+            "minLabel": {
+              ".validate": true
+            },
+            "maxLabel": {
+              ".validate": true
+            },
+            "hints": {
+              ".validate": true
+            },
+            "revealedHints": {
+              ".validate": true
+            },
+            "betting": {
+              ".validate": true
+            },
+            "event": {
+              ".validate": true
+            },
+            "activatedAt": {
+              ".validate": true
+            },
+            "revealedAt": {
+              ".validate": true
+            },
+            "answerRevealed": {
+              ".validate": true
+            },
+            "wallExpanded": {
+              ".validate": true
+            },
+            "timerDuration": {
+              ".validate": true
+            },
+            "maxLength": {
+              ".validate": true
+            },
+            "allowMultiple": {
+              ".validate": true
+            },
+            "description": {
+              ".validate": true
+            },
+            "instructions": {
+              ".validate": true
+            },
+            "pointMultiplier": {
+              ".validate": true
+            },
+            "participationTickets": {
+              ".validate": true
+            },
+            "correctBonusTickets": {
+              ".validate": true
+            },
+            "mysteryItems": {
+              ".validate": true
+            },
+            "revealedItems": {
+              ".validate": true
+            },
+            "winners": {
+              ".validate": true
+            },
+            "revealedWinners": {
+              ".validate": true
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
         }
       }
     },
-
     "assignments": {
-      ".read": true,
       "$assignmentId": {
-        ".write": true,
         "submissions": {
           "$submissionId": {
-            ".read": true,
-            ".write": true,
             ".validate": "newData.hasChild('name')",
             "name": {
               ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 30 && (!data.exists() || data.child('name').val() === newData.child('name').val())"
@@ -476,23 +803,103 @@
             "code": {
               ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 100000)"
             },
-            "screenshots": { ".validate": true },
-            "submittedAt": { ".validate": true },
-            "updatedAt": { ".validate": "!newData.exists() || newData.isNumber()" }
-          }
+            "screenshots": {
+              ".validate": true
+            },
+            "submittedAt": {
+              ".validate": true
+            },
+            "updatedAt": {
+              ".validate": "!newData.exists() || newData.isNumber()"
+            },
+            ".read": "(auth != null && data.child('ownerId').val() === auth.uid) || auth != null && root.child('submissionGrants').child(auth.uid).child($assignmentId).child($submissionId).val() > now",
+            ".write": false
+          },
+          ".indexOn": [
+            "name"
+          ]
         },
         "results": {
           "$submissionId": {
-            ".read": true,
-            ".write": true,
-            "summary": { ".validate": true },
-            "judges": { ".validate": true },
-            "judgedAt": { ".validate": true }
+            "summary": {
+              ".validate": true
+            },
+            "judges": {
+              ".validate": true
+            },
+            "judgedAt": {
+              ".validate": true
+            },
+            ".read": "(auth != null && root.child('assignments').child($assignmentId).child('submissions').child($submissionId).child('ownerId').val() === auth.uid) || (auth != null && root.child('submissionGrants').child(auth.uid).child($assignmentId).child($submissionId).val() > now)"
           }
         },
         "awards": {
-          ".read": true,
-          ".write": true
+          ".read": "auth != null && root.child('assignments').child($assignmentId).child('status').val() === 'judged'"
+        },
+        ".write": "(auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && ((!data.exists() && newData.child('ownerId').val() === auth.uid) || data.child('ownerId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('courses').child(root.child('assignmentAccess').child($assignmentId).child(auth.uid).val()).child('ownerId').val() === auth.uid)",
+        ".read": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && data.child('ownerId').val() === auth.uid) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('courses').child(root.child('assignmentAccess').child($assignmentId).child(auth.uid).val()).child('ownerId').val() === auth.uid))",
+        "title": {
+          ".read": "auth != null"
+        },
+        "description": {
+          ".read": "auth != null"
+        },
+        "courseName": {
+          ".read": "auth != null"
+        },
+        "roundNumber": {
+          ".read": "auth != null"
+        },
+        "hasJudging": {
+          ".read": "auth != null"
+        },
+        "passThreshold": {
+          ".read": "auth != null"
+        },
+        "status": {
+          ".read": "auth != null"
+        },
+        "createdAt": {
+          ".read": "auth != null"
+        },
+        "closedAt": {
+          ".read": "auth != null"
+        },
+        "judgedAt": {
+          ".read": "auth != null"
+        }
+      }
+    },
+    ".read": false,
+    ".write": false,
+    "staffProfiles": {
+      ".read": "(auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master')))",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    },
+    "staffUsernames": {
+      ".read": false,
+      ".write": false
+    },
+    "submissionGrants": {
+      ".read": false,
+      ".write": false
+    },
+    "assignmentNames": {
+      ".read": false,
+      ".write": false
+    },
+    "assignmentAccess": {
+      ".read": false,
+      ".write": false
+    },
+    "sessionViewers": {
+      "$sid": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && root.child('sessions').child($sid).child('createdAt').exists()",
+          ".validate": "newData.val() === true"
         }
       }
     }

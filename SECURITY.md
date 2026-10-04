@@ -1,47 +1,51 @@
 # Security Policy
 
-## 지원되는 버전
+취약점은 [GitHub Security Advisory](https://github.com/wlsdks/dorandoran/security/advisories/new)로 비공개 신고해주세요. 계정, 토큰, PIN, 학생 제출물은 공개 이슈에 포함하지 마세요.
 
-Pick은 현재 단일 active 브랜치(`main`)만 운영합니다. 보안 패치는 최신 release에만 적용됩니다.
+## 인증과 권한
 
-## 보안 취약점 신고
+- 강사는 서버가 자격 증명을 검증한 뒤 Firebase custom token으로 로그인합니다. 브라우저는 `admins`나 비밀번호 해시를 읽지 않습니다.
+- 기존 강사 UID, 아이디, 비밀번호, 역할, 승인 상태는 그대로 사용합니다. 로그인 시 기존 RTDB 계정을 수정하거나 재발급하지 않습니다. 새 계정은 scrypt 자격 증명을 사용하며, 강사와 스태프 모두 관리자 승인을 기다립니다. 공개 가입으로 `master`가 되지 않습니다.
+- 학생은 Firebase 익명 인증 UID로 참여합니다. 다른 사람의 투표·DM·점수·권한은 수정할 수 없습니다. 과거 참여 기록은 삭제하지 않습니다.
+- 강사는 본인 강의를 제어하고, 스태프는 배정된 강의의 지원 업무만 수행합니다. 권한은 브라우저 저장 값이 아닌 DB의 승인 기록과 검증된 Firebase 사용자로 확인합니다.
+- 질문 원본은 제어자에게만 제공합니다. `publicQuestions`는 공개 가능한 필드만 담는 별도 뷰입니다. 미공개 정답과 제출물·원본 투표는 여기에 포함하지 않습니다. 원본 질문 노드는 변경하지 않습니다.
+- 새 제출 PIN은 8자리이며 scrypt로 저장합니다. 기존 4자리 PIN과 제출물은 변경하지 않고 서버에서 확인합니다. 확인 후 사용자별 임시 조회 권한만 별도로 부여합니다. 전체 제출물과 PIN을 학생 브라우저로 내려보내지 않습니다.
+- 공개 클래스 링크를 가진 사용자는 해당 수업에 참여하거나 관객 화면을 볼 수 있습니다. 공개 투표 결과·참여 순위와 개인 DM·과제 자격 증명은 권한이 다릅니다.
 
-**공개 GitHub 이슈에 보안 취약점을 게시하지 마세요.**
+## 파일·프록시·내보내기
 
-다음 중 하나로 비공개로 신고해주세요:
+Storage는 인증된 소유자 경로에만 JPG/PNG/WebP/GIF를 허용합니다. SVG/HTML 업로드와 비인증 업로드는 거부하고 파일 크기를 제한합니다. 과제 HTML 미리보기는 `allow-scripts`만 가진 sandbox에서 실행하며 `allow-same-origin`을 부여하지 않습니다.
 
-1. **GitHub Security Advisory** (권장) — repo의 Security 탭 → "Report a vulnerability"
-2. **이메일** — [@wlsdks](https://github.com/wlsdks) 프로필의 연락처
+Gemini 키는 Functions Secret Manager에만 둡니다. 클라이언트는 같은 출처 프록시만 호출하고, 프록시는 Firebase 로그인·승인·모델·경로·본문 크기·호출 빈도를 검사합니다. 업스트림 오류와 키를 그대로 반환하지 않습니다. AI의 운영 활성화 여부는 별도로 확인해야 합니다.
 
-신고에 다음을 포함해주세요:
-- 취약점 유형 (예: XSS, 권한 우회, 데이터 노출)
-- 영향 받는 컴포넌트/파일/엔드포인트
-- 재현 단계 (가능하면 PoC)
-- 잠재적 영향 범위
+CSV는 Excel 열람 시 사용자 문자열이 수식으로 실행되지 않게 인용된 필드에 탭을 붙입니다. 이 탭은 프로그램으로 CSV를 다시 읽을 때 보존되므로, 자동 처리 파이프라인에서는 명시적으로 처리해야 합니다.
 
-## 응답 시간
+## 검증
 
-- **24~72시간 내**: 접수 확인
-- **7일 내**: 초기 평가 + 수정 ETA
-- **취약점 패치 후**: 신고자 동의 시 advisory 공개 + credit
+```sh
+npm ci
+npm ci --prefix functions
+VITE_GEMINI_API_KEY= npm run check
+npm run test:integration
+npm audit
+npm audit --prefix functions
+```
 
-## 알려진 보안 trade-off (의도된)
+통합 검증은 `demo-dorandoran`의 Auth/Database/Storage 에뮬레이터에서만 수행합니다. 운영 프로젝트의 데이터는 쓰거나 정리하지 않습니다. SDK 구독 계측은 Vite `qa` 모드에서만 사용합니다.
 
-이 프로젝트는 **현재 Firebase Auth 미사용** 구조입니다:
+## 운영 반영
 
-- 강사 로그인은 클라이언트가 `admins` 노드를 직접 read해서 username/passwordHash 비교
-- `sessions`/`assignments` root listing이 강사 대시보드에 필요해 read 차단 불가
-- 학생은 익명 (sessionId + participantId localStorage)
+코드 머지는 운영 배포나 현재 서버의 보안 상태를 증명하지 않습니다. 운영 데이터 삭제·초기화·일괄 계정 이관을 하지 않습니다. 반영 전 활성 수업을 확인하고, 운영 규칙을 별도로 보관한 뒤 아래를 준비하세요.
 
-→ 동일 인스턴스 내에서 sessionId/assignmentId만 알면 다른 강사의 세션 데이터 read 가능. 진정한 owner-scoping은 Firebase Auth 도입이 선행되어야 합니다 (별도 로드맵).
+1. Firebase Authentication 익명 로그인을 활성화하고 기존 계정과 같은 UID의 custom-token 로그인이 가능한 서버 서비스 계정을 준비합니다. 토큰 서명에 필요한 `iam.serviceAccounts.signBlob` 권한은 해당 서명 계정에만 부여합니다.
+2. Functions Node.js 22, `APP_DATABASE_URL`, 실제 운영 출처의 `APP_ALLOWED_ORIGINS`를 설정합니다. 운영 도메인은 DNS나 저장소명 변경과 별개입니다.
+3. 아래 **이 프로젝트의 함수만 지정**해 배포합니다. 같은 Firebase 프로젝트의 다른 함수는 변경하지 않습니다.
 
-이 구조는 README의 §보안 참고에 명시되어 있고, 현재 단계에서는 강의용 도구로서 받아들인 trade-off입니다. 신고 시 이 항목들은 **이미 알려진 사항**이므로 반복 신고는 불필요합니다.
+```sh
+firebase deploy --only functions:staffApi,functions:assignmentApi,functions:classroomApi,functions:geminiProxy
+firebase deploy --only database,storage,hosting
+```
 
-## 안전 사용 권장
+2026-10-04 읽기 전용 점검 당시 기존 계정 19개의 UID/역할을 삭제하거나 수정하는 작업은 포함하지 않습니다. `publicQuestions`, 과제 조회 권한, 강의 연결 권한은 원자료를 덮어쓰지 않는 별도 데이터입니다. 학생의 과거 로컬 UUID는 인증 증명이 아니므로 보안 전환 후 다시 참여해야 할 수 있습니다. 과거 운영 데이터가 공개됐는지 여부나 운영 Auth/App Check·quota 설정은 저장소 테스트로 확정할 수 없습니다. 공개됐던 자격 증명의 교체는 원자료 보존 정책과 별도로 운영자가 결정해야 합니다.
 
-운영자(self-host)는 다음을 확인해주세요:
-
-- **Gemini API key**: `.env`로만 주입 + Google AI Studio에서 HTTP referrer 제한 + rate limit
-- **Firebase rules**: `database.rules.json` 그대로 deploy (`firebase deploy --only database`)
-- **secret rotation**: 운영 중 키 노출이 의심되면 즉시 rotate 후 재배포
-- **PIN 정책**: 과제 제출 PIN은 평문으로 RTDB 저장 (RTDB rules로 read 제한). 민감 데이터에는 사용 자제
+참고: [Firebase 읽기·쓰기와 구독 해제](https://firebase.google.com/docs/database/web/read-and-write), [Firebase custom-token 인증](https://firebase.google.com/docs/auth/admin/create-custom-tokens), [Firebase Rules 권한 조건](https://firebase.google.com/docs/database/security/rules-conditions), [OWASP CSV Injection](https://owasp.org/www-community/attacks/CSV_Injection).

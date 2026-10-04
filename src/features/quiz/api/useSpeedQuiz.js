@@ -43,10 +43,13 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
 
   // Cleanup phase timer on unmount
   const mountedRef = useRef(true);
-  useEffect(() => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
     mountedRef.current = false;
     if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
-  }, []);
+    };
+  }, [sessionId]);
 
   // Get quiz questions sorted by order
   const getQuizQuestions = useCallback(() => {
@@ -57,7 +60,7 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
   }, []);
 
   // Find the current quiz question index (1-based) among quiz-type questions
-  const getCurrentQuizIndex = useCallback(() => {
+  const _getCurrentQuizIndex = useCallback(() => {
     const quizQs = getQuizQuestions();
     const currentQId = sessionRef.current?.currentQuestion;
     if (!currentQId) return 0;
@@ -86,6 +89,20 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
       advancingRef.current = false;
     }
   }, [sessionId, startTimer]);
+
+  // Internal end (no confirmation needed)
+  const endSpeedQuizInternal = useCallback(async () => {
+    try {
+      if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
+      await remove(ref(db, `sessions/${sessionId}/speedQuiz`));
+      setActive(false);
+      setPhase('idle');
+      advancingRef.current = false;
+    } catch (e) {
+      logger.error('Speed quiz: end failed', e);
+    }
+  }, [sessionId]);
+
 
   // Reveal the current question's answer and award scores
   const revealAndAdvance = useCallback(async () => {
@@ -197,7 +214,7 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
       const data = snap.val();
       if (!data?.endTime || !data?.running) return;
 
-      const remaining = data.endTime - Date.now();
+      const remaining = data.endTime - getServerNow();
       if (remaining <= 0) {
         // Timer expired, trigger reveal+advance
         revealAndAdvance();
@@ -242,18 +259,6 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
     }
   }, [sessionId, getQuizQuestions, activateQuizQuestion]);
 
-  // Internal end (no confirmation needed)
-  const endSpeedQuizInternal = useCallback(async () => {
-    try {
-      if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
-      await remove(ref(db, `sessions/${sessionId}/speedQuiz`));
-      setActive(false);
-      setPhase('idle');
-      advancingRef.current = false;
-    } catch (e) {
-      logger.error('Speed quiz: end failed', e);
-    }
-  }, [sessionId]);
 
   // End speed quiz mode (called by admin button)
   const endSpeedQuiz = useCallback(async () => {
@@ -273,12 +278,10 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
     }
   }, [sessionId, stopTimer]);
 
-  // Derive counts from session data — recompute when questions or current question changes.
-  // getQuizQuestions / getCurrentQuizIndex는 hook 내 stable 함수 (변경되어도 같은 결과). 매 render 재생성 회피
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const quizCount = useMemo(() => getQuizQuestions().length, [session?.questions]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const currentQuizIndex = useMemo(() => getCurrentQuizIndex(), [session?.currentQuestion, session?.questions]);
+  const quizQuestions = useMemo(() => Object.entries(session?.questions || {}).filter(([, question]) => isQuizQuestion(question))
+    .sort((a, b) => (a[1].order || 0) - (b[1].order || 0)), [session?.questions]);
+  const quizCount = quizQuestions.length;
+  const currentQuizIndex = quizQuestions.findIndex(([id]) => id === session?.currentQuestion) + 1;
 
   return {
     active,

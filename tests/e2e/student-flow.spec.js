@@ -22,7 +22,7 @@ test.describe('학생 플로우', () => {
 
   test('세션 ID 없이 접속하면 랜딩 페이지 표시', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('Pick')).toBeVisible();
+    await expect(page.getByText('도란도란')).toBeVisible();
     await expect(page.getByText('강사가 공유한 링크')).toBeVisible();
   });
 
@@ -47,9 +47,9 @@ test.describe('학생 플로우', () => {
 
     // Clear any prior join state
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 
@@ -66,9 +66,9 @@ test.describe('학생 플로우', () => {
     // Join first
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 
@@ -91,9 +91,9 @@ test.describe('학생 플로우', () => {
     // Join
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 
@@ -110,7 +110,7 @@ test.describe('학생 플로우', () => {
     await waitForSync(page, 2000);
 
     // Verify vote was recorded in Firebase
-    const pid = await page.evaluate(() => localStorage.getItem('pinggo_participant_id'));
+    const pid = await page.evaluate(() => localStorage.getItem('dorandoran_participant_id'));
     const vote = await firebaseGet(`sessions/${sessionId}/questions/q1/votes/${pid}`);
     expect(vote).toBeTruthy();
   });
@@ -120,9 +120,9 @@ test.describe('학생 플로우', () => {
 
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 
@@ -137,7 +137,7 @@ test.describe('학생 플로우', () => {
       await waitForSync(page, 1500);
 
       // Verify in Firebase
-      const pid = await page.evaluate(() => localStorage.getItem('pinggo_participant_id'));
+      const pid = await page.evaluate(() => localStorage.getItem('dorandoran_participant_id'));
       const handRaise = await firebaseGet(`sessions/${sessionId}/handRaises/${pid}`);
       expect(handRaise?.raised).toBe(true);
     }
@@ -148,9 +148,9 @@ test.describe('학생 플로우', () => {
 
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 

@@ -1,4 +1,6 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { participationLeader } from '@/lib/participation';
+import { getStaffSession, logoutStaff } from '@/lib/auth-session';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { ref, set, update, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -12,17 +14,7 @@ import { useTimer } from '@/features/timer/api/useTimer';
 import { useSpeedQuiz } from '@/features/quiz/api/useSpeedQuiz';
 import { useQuestionActions } from '@/hooks/useQuestionActions';
 
-function getAdminUser() {
-  try {
-    const raw = sessionStorage.getItem('pinggo_admin');
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && parsed.uid && parsed.username) return parsed;
-    return null;
-  } catch {
-    return null;
-  }
-}
+const getAdminUser = getStaffSession;
 
 function getUrlParam(key) {
   return new URLSearchParams(window.location.search).get(key) || '';
@@ -57,12 +49,20 @@ export function useAdminSession() {
   const { participants, onlineList, count } = useParticipants(sessionId);
   const { scores, leaderboard, totalTickets, resetScores } = useScores(sessionId);
   const { isRunning: timerRunning, endTime, duration, startTimer, stopTimer } = useTimer(sessionId);
-  const { pendingAdmins, pendingCount, approveAdmin, rejectAdmin } = useAdminApprovals();
+  const { pendingAdmins, pendingCount, approveAdmin, rejectAdmin } = useAdminApprovals(adminUser?.role === 'master');
 
   const { active: speedQuizActive, startSpeedQuiz, endSpeedQuiz, quizCount: speedQuizCount } = useSpeedQuiz(
     sessionId, session, { scores, participants, startTimer, stopTimer }
   );
 
+
+  const spotlight = useMemo(() => participationLeader(session?.questions, participants), [session?.questions, participants]);
+  const spotlightKey = spotlight ? `${sessionId}:${spotlight.id}:${spotlight.milestone}` : null;
+  const spotlightPayload = JSON.stringify(spotlight ? { ...spotlight, count: spotlight.milestone } : null);
+  useEffect(() => {
+    if (!sessionId || !spotlightKey || adminUser?.role === 'staff') return;
+    update(ref(db, `sessions/${sessionId}`), { participationSpotlight: JSON.parse(spotlightPayload) }).catch(() => {});
+  }, [sessionId, spotlightKey, spotlightPayload, adminUser?.role]);
 
   const { handleSubmit: submitQuestion, updateQuestion, revealQuiz, revealAnswer } = useQuestionActions(sessionId, session?.questions || {}, session?.currentQuestion, scores, participants);
 
@@ -122,7 +122,7 @@ export function useAdminSession() {
   const handleLogin = useCallback(() => { setAdminUser(getAdminUser()); }, []);
   const handleSelectSession = useCallback((id, isReadOnly) => { setSessionId(id); setReadOnly(isReadOnly); setUrlParams({ s: id }); }, []);
   const handleBack = useCallback(() => { setSessionId(''); setReadOnly(false); setPresentMode(false); setUrlParams({}); }, []);
-  const handleLogout = useCallback(() => { sessionStorage.removeItem('pinggo_admin'); setAdminUser(null); setSessionId(''); setUrlParams({}); }, []);
+  const handleLogout = useCallback(() => { setAdminUser(null); setSessionId(''); setUrlParams({}); logoutStaff().catch(() => {}); }, []);
 
   // UI toggles
   const handleChatToggle = useCallback(() => {

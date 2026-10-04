@@ -69,7 +69,7 @@ export default memo(function ClassesTab({
         </div>
         <EmptyState
           title="첫 클래스를 만들어보세요"
-          description="Pick과 함께 학생 참여를 이끌어보세요"
+          description="도란도란과 함께 학생 참여를 이끌어보세요"
           steps={['위의 버튼으로 클래스를 만드세요', '객관식, 퀴즈, 워드클라우드 등 질문을 추가하세요', 'QR코드를 공유하면 학생들이 바로 참여합니다']}
           mascotSize="lg"
           mood="happy"

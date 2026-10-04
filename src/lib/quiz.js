@@ -117,7 +117,7 @@ export const BET_OPTIONS = [
 ];
 
 export function getQuizReward(question, vote) {
-  const isCorrect = vote?.value === question?.correctAnswer;
+  const isCorrect = typeof question?.correctAnswer === 'string' && question.correctAnswer.length > 0 && vote?.value === question.correctAnswer;
   const event = normalizeQuizEvent(question?.event);
   const participationTickets = (question?.participationTickets ?? QUIZ_DEFAULTS.participationTickets)
     + (event?.participationBonusTickets || 0);
@@ -126,8 +126,9 @@ export function getQuizReward(question, vote) {
 
   // Betting multiplier (1x/2x/3x) — only active when question has betting enabled
   const betEnabled = question?.betting === true;
-  const betMultiplier = betEnabled ? (parseInt(vote?.bet, 10) || 1) : 1;
-  const betOption = BET_OPTIONS.find((b) => b.multiplier === betMultiplier) || BET_OPTIONS[0];
+  const requestedBet = betEnabled ? Number(vote?.bet) : 1;
+  const betOption = BET_OPTIONS.find((option) => option.multiplier === requestedBet) || BET_OPTIONS[0];
+  const betMultiplier = betOption.multiplier;
 
   if (!isCorrect) {
     return {
@@ -139,13 +140,14 @@ export function getQuizReward(question, vote) {
   }
 
   const activatedAt = typeof question?.activatedAt === 'number' ? question.activatedAt : 0;
-  const submittedAt = typeof vote?.timestamp === 'number' ? vote.timestamp : activatedAt;
+  const validTimestamp = Number.isFinite(vote?.timestamp) && vote.timestamp >= activatedAt;
+  const submittedAt = validTimestamp ? vote.timestamp : activatedAt;
   const speedWindowMs = question?.speedWindowMs ?? QUIZ_DEFAULTS.speedWindowMs;
   const maxSpeedBonus = question?.maxSpeedBonus ?? QUIZ_DEFAULTS.maxSpeedBonus;
   const basePoints = question?.points ?? QUIZ_DEFAULTS.points;
   const pointMultiplier = event?.pointMultiplier ?? 1;
   const elapsedMs = Math.max(0, submittedAt - activatedAt);
-  const speedRatio = Math.max(0, 1 - (elapsedMs / speedWindowMs));
+  const speedRatio = validTimestamp ? Math.max(0, 1 - (elapsedMs / speedWindowMs)) : 0;
   const totalPoints = basePoints + Math.round(speedRatio * maxSpeedBonus);
 
   return {

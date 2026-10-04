@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Medal, Monitor } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { isAnswerCorrect } from '@/lib/quiz';
 import { getParticipantId } from '@/lib/participant';
 
@@ -30,7 +30,7 @@ export default function StudentResultCard({ session }) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[62vh] text-center gap-6 px-6">
-      <PickMascot size="lg" mood="happy" />
+      <DoranDoranMascot size="lg" mood="happy" />
       <div className="flex items-center gap-2">
         <Medal size={24} className="text-amber-500" />
         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">합산 랭킹 발표 중</h2>

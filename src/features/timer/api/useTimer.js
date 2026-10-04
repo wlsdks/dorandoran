@@ -1,5 +1,6 @@
 import { ref, onValue, update, serverTimestamp } from 'firebase/database';
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { db } from '@/lib/firebase';
 
 // 서버 시간 오프셋 캐시 — 모든 useTimer 인스턴스가 공유.
@@ -7,13 +8,20 @@ import { db } from '@/lib/firebase';
 // 타이머가 어긋났음. Firebase의 .info/serverTimeOffset은 "서버시간 - 클라이언트시간"(ms)
 // 이므로 Date.now() + offset = 서버 시간 기준 now.
 let cachedOffset = 0;
-let offsetSubscribed = false;
+let offsetConsumers = 0;
+let offsetUnsubscribe = null;
 function subscribeServerOffset() {
-  if (offsetSubscribed) return;
-  offsetSubscribed = true;
-  onValue(ref(db, '.info/serverTimeOffset'), (snap) => {
+  offsetConsumers++;
+  if (!offsetUnsubscribe) offsetUnsubscribe = onValue(ref(db, '.info/serverTimeOffset'), (snap) => {
     cachedOffset = snap.val() || 0;
   });
+  return () => {
+    if (--offsetConsumers === 0) {
+      offsetUnsubscribe?.();
+      offsetUnsubscribe = null;
+      cachedOffset = 0;
+    }
+  };
 }
 
 // Consumer가 보정된 now를 직접 쓸 수 있도록 export — remaining 계산 시 Date.now() 대신 사용.
@@ -22,16 +30,9 @@ export function getServerNow() {
 }
 
 export function useTimer(sessionId) {
-  const [timerData, setTimerData] = useState(null);
-
+  const { value: timerData } = useRealtimeValue(sessionId ? `sessions/${sessionId}/timer` : null);
   useEffect(() => {
-    subscribeServerOffset();
-    if (!sessionId) return;
-    const timerRef = ref(db, `sessions/${sessionId}/timer`);
-    const unsub = onValue(timerRef, (snap) => {
-      setTimerData(snap.val());
-    });
-    return () => unsub();
+    if (sessionId) return subscribeServerOffset();
   }, [sessionId]);
 
   const startTimer = useCallback(async (durationSeconds) => {

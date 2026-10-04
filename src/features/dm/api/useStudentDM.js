@@ -1,4 +1,7 @@
-import { ref, push, onValue, update, serverTimestamp, runTransaction, get } from 'firebase/database';
+import { ensureDMThread } from '@/lib/dm';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { EMPTY_RECORD } from '@/lib/realtime';
+import { ref, push, serverTimestamp } from 'firebase/database';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -10,30 +13,9 @@ import { logger } from '@/lib/logger';
  * @returns {{ activeDM, sendMessage, requestHelp }}
  */
 export function useStudentDM(sessionId, participantId) {
-  const [threads, setThreads] = useState({});
-
-  useEffect(() => {
-    if (!sessionId || !participantId) return;
-
-    // 본인 DM만 구독 — 전체 /dm 트리를 받아 클라에서 필터링하면 (1) 타 학생의 1:1 상담 메시지
-    // 본문까지 모든 학생 단말로 내려가는 사생활 노출, (2) 불필요한 전체 다운로드가 발생한다.
-    // dmByStudent/{pid} 포인터(직접 key) → 본인 스레드(직접 key)만 구독해 둘 다 해소(쿼리/인덱스 불필요).
-    const pointerRef = ref(db, `sessions/${sessionId}/dmByStudent/${participantId}`);
-    let threadUnsub = null;
-
-    const ptrUnsub = onValue(pointerRef, (ptrSnap) => {
-      const dmId = ptrSnap.val();
-      if (threadUnsub) { threadUnsub(); threadUnsub = null; }
-      if (!dmId) { setThreads({}); return; }
-      const threadRef = ref(db, `sessions/${sessionId}/dm/${dmId}`);
-      threadUnsub = onValue(threadRef, (tSnap) => {
-        const t = tSnap.val();
-        setThreads(t ? { [dmId]: t } : {});
-      });
-    });
-
-    return () => { ptrUnsub(); if (threadUnsub) threadUnsub(); };
-  }, [sessionId, participantId]);
+  const { value: dmId } = useRealtimeValue(sessionId && participantId ? `sessions/${sessionId}/dmByStudent/${participantId}` : null);
+  const { value: thread } = useRealtimeValue(sessionId && participantId && dmId ? `sessions/${sessionId}/dm/${dmId}` : null, { scope: participantId });
+  const threads = useMemo(() => thread ? { [dmId]: thread } : EMPTY_RECORD, [thread, dmId]);
 
   // All DM threads (including resolved) with messages
   const allActiveDMs = useMemo(() => {
@@ -60,69 +42,7 @@ export function useStudentDM(sessionId, participantId) {
   const requestHelp = useCallback(async (text, studentName) => {
     if (!sessionId || !participantId || !text?.trim()) return false;
     try {
-      const pointerRef = ref(db, `sessions/${sessionId}/dmByStudent/${participantId}`);
-
-      // 1) 포인터 fast path
-      let targetDmId = null;
-      const ptrSnap = await get(pointerRef);
-      const ptrDmId = ptrSnap.val();
-      if (ptrDmId) {
-        const threadSnap = await get(ref(db, `sessions/${sessionId}/dm/${ptrDmId}`));
-        if (threadSnap.exists() && threadSnap.val()?.status !== 'resolved') {
-          targetDmId = ptrDmId;
-        }
-      }
-
-      // 2) 레거시: studentId 일치하는 기존 DM 흡수
-      if (!targetDmId) {
-        const legacyEntry = Object.entries(threads).find(
-          ([, t]) => t.status !== 'resolved'
-        );
-        if (legacyEntry) {
-          const [legacyId] = legacyEntry;
-          const tx = await runTransaction(pointerRef, (cur) => (cur ? cur : legacyId));
-          targetDmId = tx.snapshot.val() || legacyId;
-        }
-      }
-
-      // 3) 신규 생성 — 경합 안전
-      if (!targetDmId) {
-        const newCandidateId = push(ref(db, `sessions/${sessionId}/dm`)).key;
-        let wonRace = false;
-        const tx = await runTransaction(pointerRef, (cur) => {
-          if (cur) return cur;
-          wonRace = true;
-          return newCandidateId;
-        });
-        const committedId = tx.snapshot.val();
-        if (!committedId) throw new Error('DM 포인터 확보 실패');
-
-        if (!wonRace) {
-          // 패자: 승자의 DM 생성 대기 (최대 1.5s)
-          let found = false;
-          for (let i = 0; i < 15; i++) {
-            const s = await get(ref(db, `sessions/${sessionId}/dm/${committedId}`));
-            if (s.exists()) { found = true; targetDmId = committedId; break; }
-            await new Promise((r) => setTimeout(r, 100));
-          }
-          if (!found) {
-            targetDmId = push(ref(db, `sessions/${sessionId}/dm`)).key;
-            await runTransaction(pointerRef, () => targetDmId);
-          }
-        } else {
-          targetDmId = committedId;
-        }
-
-        // 신규 노드 생성
-        await update(ref(db, `sessions/${sessionId}/dm/${targetDmId}`), {
-          studentId: participantId,
-          studentName: studentName || '익명',
-          staffId: null,
-          staffName: null,
-          status: 'waiting',
-          createdAt: serverTimestamp(),
-        });
-      }
+      const { dmId: targetDmId } = await ensureDMThread(sessionId, { studentId: participantId, studentName });
 
       await push(ref(db, `sessions/${sessionId}/dm/${targetDmId}/messages`), {
         text: text.trim(),
@@ -135,7 +55,7 @@ export function useStudentDM(sessionId, participantId) {
       logger.error('Request help failed:', err);
       return false;
     }
-  }, [sessionId, participantId, threads]);
+  }, [sessionId, participantId]);
 
   const sendMessage = useCallback(async (text, senderName) => {
     if (!activeDM?.id || !text?.trim()) return false;
@@ -151,7 +71,7 @@ export function useStudentDM(sessionId, participantId) {
       logger.error('DM send failed:', err);
       return false;
     }
-  }, [sessionId, activeDM?.id]);
+  }, [sessionId, activeDM]);
 
   // Track newly resolved DMs — fires once per resolution
   const [newlyResolved, setNewlyResolved] = useState(null);

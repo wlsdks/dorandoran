@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Send, Search, Scale, CheckCircle2, Trophy } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Button from '@/components/ui/Button';
 
 /** Landing view for SubmissionPage — shown when view === 'landing'. */
@@ -30,7 +30,7 @@ export default function SubmissionLanding({
           <div className="w-full space-y-6">
             {/* 마스코트 + 과제 안내 */}
             <div className="flex flex-col items-center">
-              <PickMascot size="lg" mood="happy" />
+              <DoranDoranMascot size="lg" mood="happy" />
               {assignment.description && (
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 mt-5 w-full">
                   <p className="text-[15px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
@@ -92,9 +92,9 @@ export default function SubmissionLanding({
               inputMode="numeric"
               pattern="[0-9]*"
               value={lookupPin}
-              onChange={(e) => onLookupPinChange(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              placeholder="조회용 비밀번호 (숫자 4자리)"
-              maxLength={4}
+              onChange={(e) => onLookupPinChange(e.target.value.replace(/\D/g, '').slice(0, 8))}
+              placeholder="조회용 비밀번호 (숫자 4~8자리)"
+              maxLength={8}
               onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onResultLookup()}
               className={`w-full bg-white dark:bg-slate-800 border rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all tracking-[0.3em] ${
                 resultLookupError ? 'border-red-400 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500'
@@ -129,7 +129,7 @@ export default function SubmissionLanding({
       {isJudging && (
         <div className="flex flex-col items-center justify-center" style={{ minHeight: 'calc(100dvh - 160px)' }}>
           <motion.div animate={{ scale: [1, 1.03, 1] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}>
-            <PickMascot size="lg" mood="happy" />
+            <DoranDoranMascot size="lg" mood="happy" />
           </motion.div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-6">심사가 진행 중입니다</h2>
           <p className="text-sm text-slate-400 mt-2 text-center leading-relaxed">
@@ -141,7 +141,7 @@ export default function SubmissionLanding({
       {/* Closed: 마감 */}
       {isClosed && (
         <div className="flex flex-col items-center justify-center" style={{ minHeight: 'calc(100dvh - 160px)' }}>
-          <PickMascot size="lg" mood="waiting" />
+          <DoranDoranMascot size="lg" mood="waiting" />
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-6">과제가 마감되었습니다</h2>
           <p className="text-sm text-slate-400 mt-2 text-center leading-relaxed">
             심사 결과가 나오면<br />이 페이지에서 확인할 수 있어요

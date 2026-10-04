@@ -1,6 +1,6 @@
-const PARTICIPANT_ID_KEY = 'pinggo_participant_id';
-const NICKNAME_KEY = 'pinggo_nickname';
-const JOINED_SESSIONS_KEY = 'pinggo_joined_sessions';
+import { auth } from './auth-session';
+const NICKNAME_KEY = 'dorandoran_nickname';
+const JOINED_SESSIONS_KEY = 'dorandoran_joined_sessions';
 
 function readJoinedSessions() {
   try {
@@ -19,23 +19,7 @@ function writeJoinedSessions(nextSessions) {
  * @returns {string} UUID stored in localStorage
  */
 export function getParticipantId() {
-  let id;
-  try { id = localStorage.getItem(PARTICIPANT_ID_KEY); } catch { /* private browsing */ }
-  if (!id) {
-    // Inline UUID v4 with fallback for older browsers (Safari <15.3)
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-      id = crypto.randomUUID();
-    } else {
-      const bytes = new Uint8Array(16);
-      crypto.getRandomValues(bytes);
-      bytes[6] = (bytes[6] & 0x0f) | 0x40;
-      bytes[8] = (bytes[8] & 0x3f) | 0x80;
-      const h = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
-      id = `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
-    }
-    try { localStorage.setItem(PARTICIPANT_ID_KEY, id); } catch { /* quota/private */ }
-  }
-  return id;
+  return auth.currentUser?.uid || '';
 }
 
 /**
@@ -127,7 +111,7 @@ export function clearSessionJoined(sessionId) {
  */
 export function getLastSeen(sessionId, channel) {
   try {
-    const v = localStorage.getItem(`pick_${channel}_seen_${sessionId}`);
+    const v = localStorage.getItem(`dorandoran_${channel}_seen_${sessionId}`);
     return v !== null ? parseInt(v, 10) : -1;
   } catch {
     return -1;
@@ -142,6 +126,6 @@ export function getLastSeen(sessionId, channel) {
  */
 export function saveLastSeen(sessionId, channel, count) {
   try {
-    localStorage.setItem(`pick_${channel}_seen_${sessionId}`, String(count));
+    localStorage.setItem(`dorandoran_${channel}_seen_${sessionId}`, String(count));
   } catch { /* silent */ }
 }

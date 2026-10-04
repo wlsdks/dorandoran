@@ -1,95 +1,60 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { prepareImage, retainImageCache } from '@/lib/presentation-images';
+import Button from '@/components/ui/Button';
 
-const SPRING = { type: 'spring', stiffness: 300, damping: 30 };
-
-/**
- * ImageSlidePresenter — 이미지 슬라이드 뷰.
- * currentSlide가 제공되면 Firebase 동기화 (강사 제어).
- * 없으면 로컬 state (호환).
- */
-export default memo(function ImageSlidePresenter({ images = [], currentSlide = 0, onSlideChange }) {
-  // 다음 슬라이드 미리 로드
+/** 관객 화면은 크게, 제어는 발표자에게만. 준비된 이미지끼리 짧게 교차 전환한다. */
+export default memo(function ImageSlidePresenter({ images = [], currentSlide = 0, onSlideChange, presenter = false }) {
+  const current = Math.max(0, Math.min(Number.isInteger(currentSlide) ? currentSlide : 0, images.length - 1));
+  const url = images[current];
+  const series = JSON.stringify(images);
+  const frames = useMemo(() => JSON.parse(series), [series]);
+  const [snapshot, setSnapshot] = useState(null);
+  const [revision, setRevision] = useState(0);
+  useEffect(() => retainImageCache(), []);
   useEffect(() => {
-    const next = currentSlide + 1;
-    if (next < images.length) {
-      const img = new Image();
-      img.src = images[next];
-    }
-  }, [currentSlide, images]);
-
-  const [loaded, setLoaded] = useState(false);
-
-  // 슬라이드 변경 시 로딩 상태 리셋
-  useEffect(() => { setLoaded(false); }, [currentSlide]);
-
-  if (images.length === 0) return null;
-
-  const current = Math.min(currentSlide, images.length - 1);
-  const hasPrev = current > 0;
-  const hasNext = current < images.length - 1;
-
-  function goPrev() { if (hasPrev && onSlideChange) onSlideChange(current - 1); }
-  function goNext() { if (hasNext && onSlideChange) onSlideChange(current + 1); }
-
+    if (!url) return;
+    let active = true;
+    prepareImage(url, 'high').then(src => { if (active) setSnapshot({ series, src, current, error: null }); })
+      .catch(error => { if (active && error.name !== 'AbortError') setSnapshot(previous => ({ series, src: previous?.series === series ? previous.src : null, current, error })); });
+    // 인접 이미지의 디코딩을 끝내 다음/이전 조작에서 다시 기다리지 않는다.
+    for (const index of [current + 1, current - 1]) if (frames[index]) prepareImage(frames[index]).catch(() => {});
+    return () => { active = false; };
+  }, [url, series, current, revision, frames]); // images 자체의 재생성은 로딩을 재시작하지 않는다.
+  if (!images.length) return <p className="text-slate-400 text-center">등록된 슬라이드가 없습니다</p>;
+  const displayed = snapshot?.series === series ? snapshot : null;
+  const pending = displayed?.src !== url && !displayed?.error;
+  const controls = onSlideChange && !presenter;
   return (
-    <div className="w-full max-w-5xl mx-auto px-4">
-      <div className="relative rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800" style={{ aspectRatio: '16/9', maxHeight: '75vh' }}>
-        {/* 로딩 스피너 — 이미지 로드 전에만 */}
-        {!loaded && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-            <div className="w-8 h-8 border-2 border-slate-300 dark:border-slate-600 border-t-slate-500 dark:border-t-slate-400 rounded-full animate-spin" />
-          </div>
-        )}
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={current}
-            src={images[current]}
-            alt={`슬라이드 ${current + 1}`}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            transition={SPRING}
-            loading="eager"
-            onLoad={() => setLoaded(true)}
-            onError={() => setLoaded(true)}
-            className="w-full h-full object-contain relative z-10"
-          />
+    <div className={`w-full mx-auto ${presenter ? 'h-full min-h-0' : 'max-w-5xl px-4'}`}>
+      <div className={`relative overflow-hidden ${presenter ? 'w-full h-[calc(100dvh-11rem)]' : 'rounded-2xl aspect-video bg-slate-100 dark:bg-slate-800'}`} aria-busy={pending}>
+        <AnimatePresence initial={false} mode="sync">
+          {displayed?.src && <motion.img key={displayed.src} src={displayed.src} alt={`슬라이드 ${displayed.current + 1}`}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
+            decoding="async" fetchPriority="high" className="absolute inset-0 h-full w-full object-contain" />}
         </AnimatePresence>
-
-        {hasPrev && onSlideChange && (
-          <button onClick={goPrev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors backdrop-blur-sm"
-            aria-label="이전">
-            <ChevronLeft size={24} />
-          </button>
-        )}
-        {hasNext && onSlideChange && (
-          <button onClick={goNext}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors backdrop-blur-sm"
-            aria-label="다음">
-            <ChevronRight size={24} />
-          </button>
-        )}
-
-        {images.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs font-medium">
-            {current + 1} / {images.length}
-          </div>
-        )}
+        {pending && <div role="status" className={`absolute ${displayed?.src ? 'right-4 bottom-4' : 'inset-0 flex items-center justify-center'} text-sm text-slate-400`}>
+          <span className="px-3 py-2 rounded-lg bg-slate-900/80 text-slate-100">슬라이드 준비 중…</span>
+        </div>}
+        {displayed?.error && <div role="alert" className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-900/90 text-slate-100">
+          <p>이미지를 불러오지 못했어요</p><Button onClick={() => setRevision(value => value + 1)}><RefreshCw size={16} />다시 시도</Button>
+        </div>}
+        {controls && <>
+          <button onClick={() => onSlideChange(current - 1)} disabled={current === 0} aria-label="이전 슬라이드"
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-slate-900/70 text-white flex items-center justify-center disabled:opacity-30"><ChevronLeft size={24} /></button>
+          <button onClick={() => onSlideChange(current + 1)} disabled={current === images.length - 1} aria-label="다음 슬라이드"
+            className="absolute right-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-slate-900/70 text-white flex items-center justify-center disabled:opacity-30"><ChevronRight size={24} /></button>
+        </>}
+        {!(presenter && onSlideChange) && <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-900/70 px-3 py-1.5 text-white text-xs tabular-nums">
+          {(displayed?.current ?? current) + 1} / {images.length}
+        </div>}
       </div>
-
-      {images.length > 1 && (
-        <div className="flex items-center justify-center gap-1.5 mt-3">
-          {images.map((_, i) => (
-            <button key={i} onClick={() => onSlideChange?.(i)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                i === current ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500'
-              }`} aria-label={`슬라이드 ${i + 1}`} />
-          ))}
-        </div>
-      )}
+      {controls && <div className="flex justify-center gap-1.5 mt-3">
+        {images.map((_, index) => index).filter(index => Math.abs(index - current) <= 3).map(index => <button key={index}
+          onClick={() => onSlideChange(index)} aria-label={`슬라이드 ${index + 1}`} aria-current={index === current ? 'page' : undefined}
+          className={`h-10 w-10 rounded-lg text-sm tabular-nums ${index === current ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>{index + 1}</button>)}
+      </div>}
     </div>
   );
 });

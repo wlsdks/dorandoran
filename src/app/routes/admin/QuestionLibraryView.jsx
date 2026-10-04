@@ -4,7 +4,7 @@ import { Loader2, Plus } from 'lucide-react';
 import { useQuestionLibrary } from '@/features/questions/api/useQuestionLibrary';
 import Button from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Toast from '@/components/ui/Toast';
 import QuestionForm from './QuestionForm';
 import TemplatePacks from './TemplatePacks';
@@ -175,7 +175,7 @@ export default memo(function QuestionLibraryView({ adminUid }) {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center text-center py-10 space-y-2"
             >
-              <PickMascot size="sm" mood="waiting" />
+              <DoranDoranMascot size="sm" mood="waiting" />
               <p className="text-slate-400 text-sm">일치하는 질문이 없습니다</p>
               <p className="text-slate-400 dark:text-slate-500 text-xs">검색어나 필터를 변경해보세요</p>
             </motion.div>

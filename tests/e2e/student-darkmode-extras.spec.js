@@ -30,10 +30,10 @@ async function seedSession(sid) {
 async function join(page, baseURL, sid, theme) {
   await page.goto(`${baseURL}/?s=${sid}`);
   await page.evaluate(({ sid, pid, theme }) => {
-    localStorage.setItem('pinggo_participant_id', pid);
-    localStorage.setItem('pinggo_nickname', '김참가');
-    localStorage.setItem('pinggo_joined_sessions', JSON.stringify({ [sid]: { participantId: pid, nickname: '김참가' } }));
-    if (theme) localStorage.setItem('pinggo_theme', theme);
+    localStorage.setItem('dorandoran_participant_id', pid);
+    localStorage.setItem('dorandoran_nickname', '김참가');
+    localStorage.setItem('dorandoran_joined_sessions', JSON.stringify({ [sid]: { participantId: pid, nickname: '김참가' } }));
+    if (theme) localStorage.setItem('dorandoran_theme', theme);
   }, { sid, pid: PID, theme });
 }
 async function activate(sid, qid, mode = 'poll') {

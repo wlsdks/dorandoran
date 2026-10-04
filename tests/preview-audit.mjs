@@ -6,7 +6,7 @@
 import { chromium } from '@playwright/test';
 
 const BASE = 'http://localhost:5173';
-const OUT = '/private/tmp/claude-501/-Users-stark-dev-campfire/b4d22bcb-b832-4cf8-baba-92aa2d9269c8/scratchpad/preview';
+const OUT = '/tmp/dorandoran-preview';
 const ADMIN = { uid: 'e2e_admin_master', username: 'test_master', displayName: '테스트 강사', role: 'master' };
 
 const problems = [];
@@ -31,7 +31,7 @@ try {
   });
 
   await page.goto(`${BASE}/admin`);
-  await page.evaluate((u) => sessionStorage.setItem('pinggo_admin', JSON.stringify(u)), ADMIN);
+  await page.evaluate((u) => sessionStorage.setItem('dorandoran_admin', JSON.stringify(u)), ADMIN);
   await page.goto(`${BASE}/admin`);
   await page.waitForTimeout(2500);
 

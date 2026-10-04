@@ -1,3 +1,4 @@
+import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
 import { isQuizQuestion, QUIZ_EVENT_PRESETS, normalizeQuizEvent } from '@/lib/quiz';
@@ -6,7 +7,7 @@ import { Users, QrCode, X, Copy, Check, Hand, MessageSquare, ChevronDown, Chevro
 import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import Button from '@/components/ui/Button';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import QRCode from '@/components/ui/QRCode';
 import VizRenderer from '@/features/visualization/components/VizRenderer';
 import JoinToast from '@/features/participants/components/JoinToast';
@@ -39,13 +40,13 @@ const JoinShow = lazy(() => import('@/features/games/components/JoinShow'));
 // Mode-specific transition variants (MainContent 전용 로컬 헬퍼)
 function getModeVariants(mode) {
   if (mode === 'leaderboard') {
-    return { initial: { opacity: 0, y: -30 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 30 } };
+    return { initial: { opacity: 0, y: -12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 12 } };
   }
   if (['lottery', 'scratchCard', 'breakTime', 'awards', 'randomPicker', 'comprehension', 'quickSurvey', 'discussion', 'focus', 'combinedRanking', 'qaRanking', 'joinShow'].includes(mode)) {
-    return { initial: { opacity: 0, scale: 0.88 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 1.06 } };
+    return { initial: { opacity: 0, scale: 0.98 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.98 } };
   }
   if (['poll', 'quiz'].includes(mode)) {
-    return { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -16 } };
+    return { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -12 } };
   }
   return { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
 }
@@ -90,7 +91,7 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
     if (currentMode === 'combinedRanking') return <CombinedRanking session={session} />;
     if (currentMode === 'focus') return (
       <div className="flex flex-col items-center justify-center gap-4 md:gap-6 text-center">
-        <PickMascot size="lg" mood="focus" />
+        <DoranDoranMascot size="lg" mood="focus" />
         <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">집중 모드</p>
         <p className="text-slate-400 dark:text-white/40 text-sm md:text-lg">학생 화면이 잠겼습니다</p>
       </div>
@@ -218,9 +219,10 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
 
 
 export default function PresentationView({ sessionId, session, currentMode, onlineList, leaderboard, drawParticipants, studentUrl, count, onExit, scores, participants }) {
-  const exitPresent = useCallback(() => onExit(), [onExit]);
+
   // 발표 모드에 있는 동안만 전체화면 + 화면 꺼짐 방지
-  const { isFullscreen, toggleFullscreen, fullscreenSupported } = usePresentationScreen();
+  const { isFullscreen, toggleFullscreen, fullscreenSupported, exitFullscreen } = usePresentationScreen();
+  const exitPresent = useCallback(() => { exitFullscreen(); onExit(); }, [exitFullscreen, onExit]);
 
   // 발표 모드에서도 퀴즈/정답형 정답 공개를 트리거할 수 있도록 reveal 함수를 가져옴.
   // QuestionManager는 이 모드에서 마운트되지 않으므로 PresentationView가 직접 hook 호출.
@@ -247,9 +249,10 @@ export default function PresentationView({ sessionId, session, currentMode, onli
       currentQuestion: qId, currentMode: mode,
       [`questions/${qId}/activatedAt`]: Date.now(),
       [`questions/${qId}/revealedAt`]: null,
+      speedQuiz: null,
       timer: null, // 이전 질문 타이머 잔존 → 다음 질문 학생 잠금 전파 방지
     };
-    if (q.type === 'imageSlide') updates[`questions/${qId}/currentSlide`] = 0;
+    if (q.type === 'imageSlide' && !Number.isInteger(q.currentSlide)) updates[`questions/${qId}/currentSlide`] = 0;
     if (q.type === 'hintQuiz') updates[`questions/${qId}/revealedHints`] = 0;
     if (['mysteryBox', 'hintQuiz'].includes(q.type)) updates[`questions/${qId}/revealedWinners`] = 0;
     // 발표모드에서도 이벤트(2배점수/티켓러시/잭팟) 적용 — 대시보드 빠른진행과 동일 경로
@@ -278,36 +281,42 @@ export default function PresentationView({ sessionId, session, currentMode, onli
     }
   }, [currentQIdx, questionList, goToQuestion, nextEvent]);
 
+  const [slideBookmark, setSlideBookmark] = useState(null);
+  const current = session?.questions?.[session?.currentQuestion];
   useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') exitPresent();
-      if (e.key === 'ArrowLeft') goPrev();
-      if (e.key === 'ArrowRight') {
-        // 정답 공개 직후 2.5초는 화살표 전진 차단(결과 볼 틈 확보). 하단 '다음' 버튼은 정상.
-        const cur = session?.questions?.[session?.currentQuestion];
-        if (cur?.revealedAt && Date.now() - cur.revealedAt < 2500) return;
-        goNext();
+    if (current?.type === 'imageSlide') setSlideBookmark({ sessionId, questionId: session.currentQuestion, slide: current.currentSlide || 0 });
+  }, [sessionId, session?.currentQuestion, current?.type, current?.currentSlide]);
+  const returnToSlides = useCallback(() => {
+    if (slideBookmark?.sessionId !== sessionId) return;
+    update(ref(db, `sessions/${sessionId}`), { currentQuestion: slideBookmark.questionId, currentMode: 'poll', timer: null, speedQuiz: null,
+      [`questions/${slideBookmark.questionId}/currentSlide`]: slideBookmark.slide }).catch(() => {});
+  }, [sessionId, slideBookmark]);
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.target?.closest('input,textarea,select,[contenteditable="true"]')) return;
+      if (event.key === 'Escape') { exitPresent(); return; }
+      const question = session?.questions?.[session?.currentQuestion];
+      const slide = Number.isInteger(question?.currentSlide) ? question.currentSlide : 0;
+      const images = question?.slideImages || [];
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (question?.type === 'imageSlide' && slide > 0) update(ref(db, `sessions/${sessionId}/questions/${session.currentQuestion}`), { currentSlide: slide - 1 }).catch(() => {});
+        else goPrev();
       }
-      // 스페이스바: 이미지 슬라이드 다음 장
-      if (e.key === ' ' || e.code === 'Space') {
-        e.preventDefault();
-        const q = session?.questions?.[session?.currentQuestion];
-        if (q?.type === 'imageSlide' && q.slideImages?.length > 1) {
-          const cur = q.currentSlide || 0;
-          if (cur < q.slideImages.length - 1) {
-            update(ref(db, `sessions/${sessionId}/questions/${session.currentQuestion}`), { currentSlide: cur + 1 }).catch(() => {});
-          }
-        }
+      if (event.key === 'ArrowRight' || event.code === 'Space') {
+        event.preventDefault();
+        if (question?.type === 'imageSlide' && slide < images.length - 1) update(ref(db, `sessions/${sessionId}/questions/${session.currentQuestion}`), { currentSlide: slide + 1 }).catch(() => {});
+        else goNext();
       }
+      if (event.key.toLowerCase() === 'f') toggleFullscreen();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-    // session/sessionId는 keydown handler가 ref-style로 최신 값 access (closure 갱신은 keydown listener re-attach 대신 ref에 의존)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exitPresent, goPrev, goNext]);
+  }, [sessionId, session?.questions, session?.currentQuestion, exitPresent, goPrev, goNext, toggleFullscreen]);
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-slate-900 relative">
+    <div className="dark min-h-dvh bg-slate-900 relative">
+      <ParticipationSpotlight sessionId={sessionId} />
       <JoinToast sessionId={sessionId} />
       <ReactionOverlay sessionId={sessionId} />
       <ChatBubbleOverlay sessionId={sessionId} />
@@ -378,6 +387,9 @@ export default function PresentationView({ sessionId, session, currentMode, onli
       {/* 정답형/퀴즈/MH 두구두구 + 정답 공개 — 하단 중앙 */}
       <PresentRevealControls sessionId={sessionId} session={session} onRevealQuiz={revealQuiz} onRevealAnswer={revealAnswer} />
 
+      {current?.type !== 'imageSlide' && slideBookmark?.sessionId === sessionId && <div className="fixed bottom-6 right-6 z-20">
+        <Button variant="secondary" onClick={returnToSlides}><ChevronLeft size={16} />슬라이드로 돌아가기</Button>
+      </div>}
       {/* 이미지 슬라이드 컨트롤 */}
       {(() => {
         const q = session?.questions?.[session?.currentQuestion];
@@ -394,9 +406,9 @@ export default function PresentationView({ sessionId, session, currentMode, onli
               <span className="text-white/60 text-sm font-medium tabular-nums">{cur + 1} / {total}</span>
               <p className="text-white/30 text-[10px] mt-0.5">Space로 이동</p>
             </div>
-            <Button onClick={() => update(ref(db, `sessions/${sessionId}/questions/${session.currentQuestion}`), { currentSlide: Math.min(total - 1, cur + 1) }).catch(() => {})}
-              variant="primary" size="lg" disabled={cur >= total - 1}>
-              다음 <ChevronRight size={20} />
+            <Button onClick={() => cur >= total - 1 ? goNext() : update(ref(db, `sessions/${sessionId}/questions/${session.currentQuestion}`), { currentSlide: cur + 1 }).catch(() => {})}
+              variant="primary" size="lg" disabled={cur >= total - 1 && currentQIdx >= questionList.length - 1}>
+              {cur >= total - 1 ? '다음 활동' : '다음'} <ChevronRight size={20} />
             </Button>
           </div>
         );
@@ -405,7 +417,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
       {/* 다음 퀴즈 이벤트 선택 — 다음 문항이 퀴즈일 때만 노출, '다음' 클릭 시 적용 */}
       {(() => {
         const nextQ = questionList[currentQIdx + 1]?.[1];
-        if (!nextQ || !isQuizQuestion(nextQ)) return null;
+        if (current?.type === 'imageSlide' || !nextQ || !isQuizQuestion(nextQ)) return null;
         return (
           <div className="fixed bottom-[4.75rem] left-4 md:bottom-[5.5rem] md:left-6 z-20 flex items-center gap-1.5">
             <span className="text-[11px] font-semibold text-white/50 mr-0.5">다음 퀴즈 이벤트</span>
@@ -446,7 +458,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
           </span>
         </div>
         {/* 질문 네비게이션 — 동일 h-12 */}
-        {questionList.length > 1 && (
+        {questionList.length > 1 && current?.type !== 'imageSlide' && (
           <div className="flex items-center gap-1 h-12 bg-slate-900/75 dark:bg-slate-800/85 backdrop-blur-sm rounded-xl px-2 shadow-lg ring-1 ring-white/10">
             <button onClick={goPrev} disabled={currentQIdx <= 0}
               className="px-3.5 py-1.5 rounded-lg hover:bg-white/10 disabled:opacity-25 disabled:hover:bg-transparent text-white text-base font-semibold transition-colors active:scale-95">

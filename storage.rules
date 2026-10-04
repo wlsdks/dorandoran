@@ -1,20 +1,22 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /questions/{allPaths=**} {
-      allow read: if true;
-      allow write: if request.resource.size < 10 * 1024 * 1024;
+    function own(uid) { return request.auth != null && request.auth.uid == uid; }
+    function teacher() { return request.auth != null && request.auth.token.approved == true && request.auth.token.role in ['master', 'admin']; }
+    function raster() { return request.resource != null && request.resource.size <= 10 * 1024 * 1024 && request.resource.contentType.matches('image/(jpeg|png|webp|gif)'); }
+    match /questions/{uid}/{file=**} {
+      allow read: if own(uid);
+      allow create, update: if own(uid) && teacher() && raster();
+      allow delete: if own(uid) && teacher();
     }
-    // 라이브 AI 심사 제출물 이미지 — 수업 중 학생 폰에서 업로드
-    match /ai-judge/{allPaths=**} {
-      allow read: if true;
-      allow write: if request.resource.size < 10 * 1024 * 1024;
+    match /ai-judge/{sid}/{qid}/{uid}/{file=**} {
+      allow read, delete: if own(uid);
+      allow create, update: if own(uid) && raster();
     }
-    // 사후 과제 제출물 — 결과물 스크린샷 (학생 업로드)
-    match /assignments/{allPaths=**} {
-      allow read: if true;
-      allow write: if request.resource.size < 15 * 1024 * 1024
-                && request.resource.contentType.matches('image/.*');
+    match /assignments/{aid}/{uid}/{file=**} {
+      allow read, delete: if own(uid);
+      allow create, update: if own(uid) && raster();
     }
+    match /{file=**} { allow read, write: if false; }
   }
 }

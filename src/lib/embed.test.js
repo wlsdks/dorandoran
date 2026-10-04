@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { safeEmbedUrl, embedDisplayUrl, embedRejectMessage, EMBED_REJECT, EMBED_SANDBOX } from './embed';
 
-const SELF = 'https://pick.aslan.it.kr';
+const SELF = 'https://jinan-6c884.web.app';
 const check = (raw) => safeEmbedUrl(raw, { selfOrigin: SELF });
 
 describe('safeEmbedUrl', () => {
@@ -28,7 +28,7 @@ describe('safeEmbedUrl', () => {
   });
 
   it('다른 출처면 호스트가 비슷해도 통과한다', () => {
-    expect(check('https://pick.aslan.it.kr.evil.com').url).toBeTruthy();
+    expect(check('https://jinan-6c884.web.app.evil.com').url).toBeTruthy();
   });
 
   it('빈 값과 형식 오류를 구분해 알린다', () => {

@@ -8,7 +8,7 @@ test('세션 생성 확인 단계 — 기업 행사모드 토글', async ({ page
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${baseURL}/admin`);
-  await page.evaluate((u) => sessionStorage.setItem('pinggo_admin', JSON.stringify(u)), ADMIN);
+  await page.evaluate((u) => sessionStorage.setItem('dorandoran_admin', JSON.stringify(u)), ADMIN);
   await page.goto(`${baseURL}/admin`);
   await waitForSync(page, 2000);
 

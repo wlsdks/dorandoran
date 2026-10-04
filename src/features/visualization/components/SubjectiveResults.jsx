@@ -8,7 +8,7 @@ import { useVotes } from '@/hooks/useVotes';
 import { gradeSubjective, isGradingReady } from '@/features/questions/api/gradeSubjective';
 import Badge from '@/components/ui/Badge';
 import { TYPE_LABELS } from '@/lib/question-types';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Avatar from '@/components/ui/Avatar';
 
 // 하우스 스타일(AnswerRevealCard 준거): 긍정=emerald, 나머지=slate 모노크로매틱. 신호등 색상 미사용.
@@ -101,7 +101,7 @@ export default memo(function SubjectiveResults({ sessionId, questionId, question
   // 가장 오래된 칸부터 순환 교체. 재배치·밀림이 없어 어지럽지 않다. 0.8초에 딱 한 장씩만
   // 흘리고, '한 번도 안 보여준 진짜 신규'만 테두리 glow(indigo)로 표시 → 새 답변이 명확.
   const sortedRef = useRef(sorted);
-  sortedRef.current = sorted;
+  useEffect(() => { sortedRef.current = sorted; }, [sorted]);
   const slotsRef = useRef([]);
   const ptrRef = useRef(0);
   const seenRef = useRef(new Set()); // 한 번이라도 벽에 올린 답변 id(영구) — 재등장·재반짝 방지
@@ -355,7 +355,7 @@ export default memo(function SubjectiveResults({ sessionId, questionId, question
 
         {sorted.length === 0 && (
           <div className="text-center py-20 space-y-3 flex flex-col items-center">
-            <PickMascot size="sm" />
+            <DoranDoranMascot size="sm" />
             <div>
               <p className="text-slate-400 dark:text-slate-500 text-sm">아직 답변이 없습니다</p>
               <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">학생들이 답변하면 여기에 표시됩니다</p>

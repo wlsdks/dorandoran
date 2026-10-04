@@ -1,21 +1,14 @@
-import { ref, onValue } from 'firebase/database';
-import { useState, useEffect, useMemo } from 'react';
-import { db } from '@/lib/firebase';
+import { participantIsOnline } from '@/lib/participants';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { EMPTY_RECORD } from '@/lib/realtime';
+import { useMemo } from 'react';
 
 export function useParticipants(sessionId) {
-  const [participants, setParticipants] = useState({});
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const participantsRef = ref(db, `sessions/${sessionId}/participants`);
-    const unsub = onValue(participantsRef, (snapshot) => {
-      setParticipants(snapshot.val() || {});
-    });
-    return () => unsub();
-  }, [sessionId]);
+  const { value } = useRealtimeValue(sessionId ? `sessions/${sessionId}/participants` : null);
+  const participants = value || EMPTY_RECORD;
 
   const list = useMemo(
-    () => Object.entries(participants).map(([id, data]) => ({ id, ...data })),
+    () => Object.entries(participants).map(([id, data]) => ({ id, ...data, online: participantIsOnline(data) })),
     [participants]
   );
 
@@ -38,23 +31,11 @@ export function useParticipants(sessionId) {
  * @returns {number} 온라인 참여자 수
  */
 export function useParticipantCount(sessionId) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!sessionId) return;
-    let latestSnap = null;
-    let timer = null;
-    const flush = () => {
-      timer = null;
-      const v = latestSnap ? latestSnap.val() || {} : {};
-      let c = 0;
-      for (const k in v) if (v[k]?.online) c++;
-      setCount((prev) => (prev === c ? prev : c));
-    };
-    const unsub = onValue(ref(db, `sessions/${sessionId}/participants`), (snap) => {
-      latestSnap = snap; // 입장마다 발화하지만 머티리얼라이즈는 flush로 지연
-      if (!timer) timer = setTimeout(flush, 300);
-    });
-    return () => { unsub(); if (timer) clearTimeout(timer); };
-  }, [sessionId]);
+  const { value } = useRealtimeValue(sessionId ? `sessions/${sessionId}/participants` : null, { select: countOnline, throttleMs: 300 });
+  const count = value || 0;
   return count;
+}
+
+function countOnline(value) {
+  return Object.values(value || EMPTY_RECORD).filter((person) => participantIsOnline(person)).length;
 }

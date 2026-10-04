@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { motion as motionTokens } from '@/lib/design-tokens';
 import { AlertCircle, UserPlus, ArrowRight } from 'lucide-react';
-import { ref, get, set } from 'firebase/database';
-import { db } from '@/lib/firebase';
-import { hashPassword, generateId } from '@/lib/auth';
+import { registerStaff } from '@/lib/auth-session';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 
 const inputClass = (hasError) =>
   `w-full bg-white dark:bg-slate-700 border rounded-lg px-4 py-3 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-colors duration-150 ${
@@ -20,7 +19,7 @@ const ROLES = [
   { value: 'staff', label: '스태프', desc: '배정된 강의를 보조합니다' },
 ];
 
-export default function RegisterView({ onLogin, onSwitchToLogin }) {
+export default function RegisterView({ onSwitchToLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -42,8 +41,8 @@ export default function RegisterView({ onLogin, onSwitchToLogin }) {
       setError('아이디는 2~20자로 입력해주세요');
       return;
     }
-    if (password.length < 4) {
-      setError('비밀번호는 4자 이상 입력해주세요');
+    if (password.length < 8) {
+      setError('비밀번호는 8자 이상 입력해주세요');
       return;
     }
     if (trimmedName.length > 20) {
@@ -55,48 +54,10 @@ export default function RegisterView({ onLogin, onSwitchToLogin }) {
     setError('');
 
     try {
-      const adminsSnap = await get(ref(db, 'admins'));
-      const admins = adminsSnap.val() || {};
-      const existingAdmins = Object.values(admins);
-
-      const duplicate = existingAdmins.find((a) => a.username === trimmedUsername);
-      if (duplicate) {
-        setError('이미 사용 중인 아이디입니다');
-        setSubmitting(false);
-        return;
-      }
-
-      const isFirstUser = existingAdmins.length === 0;
-      const uid = generateId();
-      const pwHash = await hashPassword(password);
-
-      const role = isFirstUser ? 'master' : selectedRole;
-      const isStaff = role === 'staff';
-
-      const adminData = {
-        username: trimmedUsername,
-        passwordHash: pwHash,
-        displayName: trimmedName,
-        role,
-        approved: isFirstUser || isStaff,
-        createdAt: Date.now(),
-      };
-
-      await set(ref(db, `admins/${uid}`), adminData);
-
-      if (isFirstUser) {
-        sessionStorage.setItem('pinggo_admin',
-          JSON.stringify({ uid, username: trimmedUsername, displayName: trimmedName, role: 'master' }));
-        onLogin();
-      } else if (isStaff) {
-        sessionStorage.setItem('pinggo_admin',
-          JSON.stringify({ uid, username: trimmedUsername, displayName: trimmedName, role: 'staff' }));
-        onLogin();
-      } else {
-        setSuccess(true);
-      }
-    } catch {
-      setError('가입 중 오류가 발생했습니다');
+      await registerStaff({ username: trimmedUsername, password, displayName: trimmedName, role: selectedRole });
+      setSuccess(true);
+    } catch (err) {
+      setError(err.message || '가입 중 오류가 발생했습니다');
       setSubmitting(false);
     }
   }
@@ -106,11 +67,9 @@ export default function RegisterView({ onLogin, onSwitchToLogin }) {
       <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }} className="w-full max-w-sm">
         <Card className="p-8 space-y-5 overflow-visible">
-          <motion.div className="flex justify-center -mt-20 mb-2"
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}>
-            <PickMascot size="lg" />
-          </motion.div>
+          <div className="flex justify-center -mt-20 mb-2">
+            <DoranDoranMascot size="lg" />
+          </div>
           <div className="text-center space-y-3">
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.2 }}
@@ -131,25 +90,20 @@ export default function RegisterView({ onLogin, onSwitchToLogin }) {
   }
 
   return (
-    <motion.form key="register" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+    <motion.form key="register" initial={motionTokens.fadeIn.initial} animate={motionTokens.fadeIn.animate}
+      exit={{ opacity: 0 }} transition={{ duration: motionTokens.duration.normal }}
       onSubmit={handleSubmit} className="w-full max-w-sm">
       <Card className="p-8 space-y-5 overflow-visible">
-        <motion.div className="flex justify-center -mt-20 mb-2"
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}>
-          <PickMascot size="lg" />
-        </motion.div>
+        <div className="flex justify-center -mt-20 mb-2">
+          <DoranDoranMascot size="lg" />
+        </div>
 
-        <motion.div className="text-center space-y-1"
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Pick</h1>
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">관리자 회원가입</p>
-        </motion.div>
+        </div>
 
-        <motion.div className="space-y-3" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}>
+        <div className="space-y-3">
           <input type="text" value={username}
             onChange={(e) => { setUsername(e.target.value); setError(''); }}
             placeholder="아이디" aria-label="아이디"
@@ -196,22 +150,20 @@ export default function RegisterView({ onLogin, onSwitchToLogin }) {
               </motion.p>
             )}
           </AnimatePresence>
-        </motion.div>
+        </div>
 
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5 }}>
+        <div>
           <Button type="submit" variant="primary" size="lg" className="w-full" disabled={submitting}>
             <UserPlus size={18} />{submitting ? '가입 중...' : '회원가입'}
           </Button>
-        </motion.div>
+        </div>
 
-        <motion.div className="text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.6 }}>
+        <div className="text-center">
           <button type="button" onClick={onSwitchToLogin}
             className="text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150">
             이미 계정이 있으신가요? <span className="font-medium text-slate-700 dark:text-slate-200">로그인</span>
           </button>
-        </motion.div>
+        </div>
       </Card>
     </motion.form>
   );

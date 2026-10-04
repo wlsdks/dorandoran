@@ -4,7 +4,7 @@ import { Sparkles, Check, TrendingUp, Zap, Loader2 } from 'lucide-react';
 import { previewSubmission, isGeminiReady } from '@/lib/judging/gemini';
 
 const COOLDOWN_MS = 2 * 60 * 1000; // 2분
-const STORAGE_KEY = 'pick_preview_last_ts';
+const STORAGE_KEY = 'dorandoran_preview_last_ts';
 
 function useCooldown() {
   const [remaining, setRemaining] = useState(0);

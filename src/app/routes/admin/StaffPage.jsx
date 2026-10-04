@@ -31,7 +31,7 @@ export default function StaffPage({ sessionId, session, adminUser, onBack, onLog
   const { questions: classList, markAnswered } = useClassQuestions(sessionId);
   const senderName = adminUser?.staffNickname || adminUser?.displayName || '스태프';
 
-  const courseName = session?.courseName || 'Pick';
+  const courseName = session?.courseName || '도란도란';
   const round = session?.roundNumber ? `${session.roundNumber}차` : '';
 
   // Build unified list for auto-selecting next
@@ -77,7 +77,7 @@ export default function StaffPage({ sessionId, session, adminUser, onBack, onLog
     } catch (err) {
       logger.error('답변 완료 동기화 실패:', err);
     }
-  }, [markAnswered, adminUser?.displayName]);
+  }, [markAnswered, adminUser]);
 
   const handleChatToggle = useCallback(() => {
     setChatOpen((prev) => !prev);

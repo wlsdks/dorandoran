@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
-import { ref, onValue, update } from 'firebase/database';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { useCallback } from 'react';
+import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 
 /**
@@ -17,17 +18,8 @@ import { db } from '@/lib/firebase';
  * @returns {{ remote: object|null, publish: (state: object) => void }}
  */
 export function useGameMirror(sessionId, { role, mode }) {
-  const [remote, setRemote] = useState(null);
-
-  useEffect(() => {
-    if (!sessionId || role !== 'view') return;
-    const unsub = onValue(ref(db, `sessions/${sessionId}/gameState`), (snapshot) => {
-      const value = snapshot.val();
-      // 다른 게임이 쓴 gameState를 이 게임 상태로 오독하지 않도록 mode를 확인한다
-      setRemote(value && value.mode === mode ? value : null);
-    });
-    return () => unsub();
-  }, [sessionId, role, mode]);
+  const { value } = useRealtimeValue(sessionId && role === 'view' ? `sessions/${sessionId}/gameState` : null, { scope: mode });
+  const remote = value?.mode === mode ? value : null;
 
   const publish = useCallback((state) => {
     if (!sessionId || role !== 'control') return;

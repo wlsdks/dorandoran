@@ -2,7 +2,7 @@ import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 
 const INITIAL_SHOW = 20;
 
@@ -50,7 +50,7 @@ export default memo(function ParticipantList({ participants, voteCounts }) {
       )}
       {participants.length === 0 && (
         <div className="flex flex-col items-center text-center py-5 space-y-2">
-          <PickMascot size="xs" mood="waiting" />
+          <DoranDoranMascot size="xs" mood="waiting" />
           <p className="text-slate-400 text-sm font-medium">아직 참여자가 없습니다</p>
           <p className="text-slate-400 text-xs leading-relaxed">아래 QR코드를 공유하여<br />학생을 초대하세요</p>
         </div>

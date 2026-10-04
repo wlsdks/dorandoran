@@ -1,4 +1,4 @@
-# Pick
+# 도란도란 · DoranDoran
 
 > 가볍게 참여를 던지고 바로 반응하는, 실시간 강의 참여 플랫폼
 
@@ -91,12 +91,12 @@
 ## 🛠️ Tech Stack
 
 ```
-Frontend    React 19 + Vite 7
+Frontend    React 19.3 + Vite 8.3
 Styling     Tailwind CSS v4 + Framer Motion
 Icons       lucide-react (이모지 금지)
 Fonts       Pretendard (한국어) + Inter (숫자/영문)
 Backend     Firebase Realtime Database + Auth + Storage + Hosting
-AI          Gemini 2.5 flash-lite (@google/generative-ai)
+AI          Gemini 2.5 flash-lite (@google/genai)
 Drag&Drop   @dnd-kit
 ZIP         JSZip (과제 압축 파일 지원)
 Animation   lottie-react + Framer Motion
@@ -160,8 +160,8 @@ src/
 ### 1) 설치
 
 ```bash
-git clone https://github.com/wlsdks/pick.git
-cd pick
+git clone https://github.com/wlsdks/dorandoran.git
+cd dorandoran
 npm install
 ```
 
@@ -182,7 +182,7 @@ cp .env.example .env
 ```
 
 채워야 할 항목:
-- `VITE_GEMINI_API_KEY` — [Google AI Studio](https://aistudio.google.com/app/apikey)에서 발급
+- `VITE_GEMINI_PROXY_URL` — 같은 출처의 `/api/gemini` 프록시. 실제 키는 Functions Secret Manager에만 설정합니다.
 - `VITE_FIREBASE_*` — 위 2단계에서 복사한 값들
 - `VITE_COURSE_CONTEXT` — (선택) 본인 강의 맥락. 7판사 AI 심사가 이 텍스트를 참고해 강의에 맞는 평가를 합니다. 비워두면 일반화된 기본 prompt 사용. 본인 강의에 더 깊이 맞춰진 prompt가 필요하면 `src/features/assignments/api/prompts.js`를 직접 수정
 
@@ -200,7 +200,9 @@ firebase deploy --only database --project YOUR_PROJECT_ID
 
 ### 6) 본인 도메인으로 갈 때
 
-`index.html`의 `og:image` / `twitter:image` URL이 `https://pick.aslan.it.kr/og-image.jpg`로 박혀 있습니다 (배포자 본인 데모 인스턴스용). fork 후 본인 도메인으로 운영할 거면 이 두 줄을 본인 도메인으로 변경하세요.
+`index.html`의 `og:url`, `og:image`, `twitter:image`는 데모 Firebase Hosting 주소를 사용합니다. 본인 도메인으로 운영하면 해당 URL을 변경하고, 별도 출처에서 Gemini 프록시를 호출할 경우 Functions의 `APP_ALLOWED_ORIGINS` 환경 변수에 허용할 출처를 쉼표로 구분해 설정하세요.
+
+브랜드 표기는 **도란도란 / DoranDoran**, 패키지와 브라우저 저장 키의 네임스페이스는 `dorandoran`입니다. `public/storage-upgrade.js`가 앱 전용 저장 필드를 식별해 이전 참가자 정보·메모·로그인 데이터를 새 키로 옮깁니다. 이미 있는 새 값은 유지하고, 쓰기가 실패하면 원본을 보존합니다.
 
 ### 로컬 개발
 
@@ -263,7 +265,7 @@ sessions/{sessionId}
 assignments/{assignmentId}
 ├── title, description, status, aiJudging
 ├── submissions/{subId}
-│   ├── name, pin (4자리 숫자)
+│   ├── name, pin (기존 레코드), pinCredential (새 제출)
 │   ├── fileContent (HTML/ZIP 추출 텍스트)
 │   ├── prdContent, description
 │   └── submittedAt, updatedAt
@@ -294,12 +296,12 @@ CTA          bg-slate-900  (dark CTA, indigo 아님)
 
 ### Anti-AI Aesthetic (중요)
 
-| ❌ AI 기본값 | ✅ Pick |
+| ❌ AI 기본값 | ✅ DoranDoran |
 |---|---|
 | `bg-indigo-600` CTA | `bg-slate-900` dark CTA |
 | 컬러 원형 아이콘 배경 | bare lucide 아이콘 |
 | 5색 배지/선택지 | slate 모노크로매틱 |
-| Sparkles/Stars 아이콘 | 사자 마스코트 (`PickMascot`) |
+| Sparkles/Stars 아이콘 | 말풍선 친구 마스코트 (`DoranDoranMascot`) |
 
 ---
 
@@ -412,12 +414,11 @@ firebase deploy --only hosting --project jinan-6c884
 
 ---
 
-## ⚠️ 보안 참고
+## 보안과 운영 전환
 
-- **Gemini API 키**: `.env`(`VITE_GEMINI_API_KEY`)로만 주입. UI/localStorage 입력 경로는 제거됨. Vite 특성상 빌드 시 클라이언트 번들에 인라인되므로 **Google AI Studio 콘솔에서 referrer 제한 + rate limit**으로 quota 보호. 상용화 시 Cloud Functions 서버 프록시 권장
-- **PIN 저장**: 과제 제출 PIN은 평문으로 RTDB에 저장. RTDB Rules에서 schema validation·name/pin immutability 적용됨 (`database.rules.json` `assignments/$assignmentId/submissions`). 진정한 read 차단은 Firebase Auth 도입 + owner-scoping 필요
-- **동명이인 보호**: 클라이언트 `isEdit` 플래그 + RTDB Rules에서 name immutability 강제. 신규 제출 시 같은 이름 차단은 클라이언트 사전 검증
-- **Auth 부재**: Firebase Auth 미사용 — 강사 로그인은 클라이언트가 `admins` 노드를 직접 읽어 username/passwordHash 비교. `sessions`/`assignments` root listing은 강사 대시보드에 필요해 read 차단 불가. 진정한 권한 분리는 후속 Auth 도입 phase 필요
+Firebase Authentication과 서버 검증을 사용합니다. 기존 강사 UID·아이디·역할과 기존 운영 레코드는 유지합니다. 학생은 인증 UID로 본인 데이터만 작성하며, 개인 DM·PIN·제출물은 공개 목록에 포함하지 않습니다. 인증·규칙·서버를 함께 반영해야 합니다. 준비 항목과 정확한 배포 범위는 [SECURITY.md](./SECURITY.md)를 확인하세요.
+
+실행 검증: `VITE_GEMINI_API_KEY= npm run check`, `npm run test:integration`. 통합 검증은 운영 데이터를 사용하지 않는 `demo-dorandoran` 에뮬레이터에서 수행합니다.
 
 ---
 
@@ -425,7 +426,7 @@ firebase deploy --only hosting --project jinan-6c884
 
 개인 프로젝트지만 외부 기여 환영합니다.
 
-- **이슈 등록 전**: [기존 이슈](https://github.com/wlsdks/pick/issues) 확인
+- **이슈 등록 전**: [기존 이슈](https://github.com/wlsdks/dorandoran/issues) 확인
 - **버그 신고**: [bug_report 템플릿](./.github/ISSUE_TEMPLATE/bug_report.md) 사용 — 재현 단계 필수
 - **기능 제안**: [feature_request 템플릿](./.github/ISSUE_TEMPLATE/feature_request.md) 사용 — 사용자 시나리오 우선
 - **PR 절차**: [CONTRIBUTING.md](./CONTRIBUTING.md) 참고

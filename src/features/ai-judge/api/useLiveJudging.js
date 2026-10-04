@@ -1,5 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { ref, onValue, set, update, get, remove, serverTimestamp } from 'firebase/database';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { EMPTY_RECORD } from '@/lib/realtime';
+import { getStaffSession } from '@/lib/auth-session';
+import { getParticipantId } from '@/lib/participant';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { ref, set, update, get, remove, serverTimestamp, runTransaction } from 'firebase/database';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { db } from '@/lib/firebase';
 import { storage } from '@/lib/firebase-storage';
@@ -37,14 +41,7 @@ async function deleteStorageImage(url) {
  * 항상 노출되는 라이브 과제. 강사가 "상시 과제 시작/종료"로 토글.
  */
 export function usePersistentAssignment(sessionId) {
-  const [assignmentId, setAssignmentId] = useState(null);
-
-  useEffect(() => {
-    if (!sessionId) { setAssignmentId(null); return; }
-    const r = ref(db, `sessions/${sessionId}/persistentAssignmentId`);
-    const unsub = onValue(r, (snap) => setAssignmentId(snap.val() || null));
-    return () => unsub();
-  }, [sessionId]);
+  const { value: assignmentId } = useRealtimeValue(sessionId ? `sessions/${sessionId}/persistentAssignmentId` : null);
 
   const setAssignment = useCallback(async (qId) => {
     if (!sessionId) return;
@@ -64,46 +61,19 @@ export function usePersistentAssignment(sessionId) {
  * Path: sessions/{sid}/questions/{qid}/submissions
  */
 export function useLiveSubmissions(sessionId, questionId) {
-  const [submissions, setSubmissions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { value, loading, error } = useRealtimeValue(sessionId && questionId ? `sessions/${sessionId}/questions/${questionId}/submissions` : null);
+  const submissions = useMemo(() => Object.entries(value || EMPTY_RECORD).map(([id, submission]) => ({ id, ...submission }))
+    .sort((a, b) => (a.submittedAt || 0) - (b.submittedAt || 0)), [value]);
 
-  useEffect(() => {
-    if (!sessionId || !questionId) {
-      setSubmissions([]);
-      setLoading(false);
-      return;
-    }
-    const subRef = ref(db, `sessions/${sessionId}/questions/${questionId}/submissions`);
-    const unsub = onValue(subRef, (snap) => {
-      const data = snap.val() || {};
-      const list = Object.entries(data)
-        .map(([id, v]) => ({ id, ...v }))
-        .sort((a, b) => (a.submittedAt || 0) - (b.submittedAt || 0));
-      setSubmissions(list);
-      setLoading(false);
-    }, (err) => {
-      logger.error('제출 목록 로드 실패:', err);
-      setLoading(false);
-    });
-    return () => unsub();
-  }, [sessionId, questionId]);
-
-  return { submissions, loading };
+  return { submissions, loading, error };
 }
 
 /**
  * useMySubmission — 현재 학생의 제출물 하나.
  */
 export function useMySubmission(sessionId, questionId, participantId) {
-  const [submission, setSubmission] = useState(null);
-  useEffect(() => {
-    if (!sessionId || !questionId || !participantId) { setSubmission(null); return; }
-    const mRef = ref(db, `sessions/${sessionId}/questions/${questionId}/submissions/${participantId}`);
-    const unsub = onValue(mRef, (snap) => {
-      setSubmission(snap.exists() ? { id: participantId, ...snap.val() } : null);
-    });
-    return () => unsub();
-  }, [sessionId, questionId, participantId]);
+  const { value } = useRealtimeValue(sessionId && questionId && participantId ? `sessions/${sessionId}/questions/${questionId}/submissions/${participantId}` : null);
+  const submission = value ? { id: participantId, ...value } : null;
   return submission;
 }
 
@@ -150,28 +120,19 @@ export function useSubmitLive(sessionId, questionId) {
  * useLiveJudgeResults — 심사 결과 + Top3 구독.
  */
 export function useLiveJudgeResults(sessionId, questionId) {
-  const [results, setResults] = useState({});
-  const [top3, setTop3] = useState(null);
-  const [judgeState, setJudgeState] = useState(null); // { status, progress }
-  const [judgeLog, setJudgeLog] = useState(null); // 라이브 판사 thinking/done 로그
-
-  useEffect(() => {
-    if (!sessionId || !questionId) return;
-    const base = `sessions/${sessionId}/questions/${questionId}`;
-    const unsubResults = onValue(ref(db, `${base}/aiResults`), (snap) => {
-      setResults(snap.val() || {});
-    });
-    const unsubTop3 = onValue(ref(db, `${base}/aiTop3`), (snap) => {
-      setTop3(snap.val() || null);
-    });
-    const unsubState = onValue(ref(db, `${base}/aiJudgeState`), (snap) => {
-      setJudgeState(snap.val() || null);
-    });
-    const unsubLog = onValue(ref(db, `${base}/aiJudgeLog`), (snap) => {
-      setJudgeLog(snap.val() || null);
-    });
-    return () => { unsubResults(); unsubTop3(); unsubState(); unsubLog(); };
-  }, [sessionId, questionId]);
+  const base = sessionId && questionId ? `sessions/${sessionId}/questions/${questionId}` : null;
+  const privileged = Boolean(getStaffSession());
+  const pid = getParticipantId();
+  const { value } = useRealtimeValue(base ? `${base}/aiResults${privileged ? '' : `/${pid}`}` : null);
+  const results = privileged ? value || EMPTY_RECORD : value ? { [pid]: value } : EMPTY_RECORD;
+  const { value: judgeState } = useRealtimeValue(base ? `${base}/aiJudgeState` : null);
+  const revealed = judgeState?.revealedUpTo || 0;
+  const { value: rawTop3 } = useRealtimeValue(privileged && base ? `${base}/aiTop3` : null);
+  const { value: first } = useRealtimeValue(!privileged && base && revealed >= 1 ? `${base}/aiTop3/first` : null);
+  const { value: second } = useRealtimeValue(!privileged && base && revealed >= 2 ? `${base}/aiTop3/second` : null);
+  const { value: third } = useRealtimeValue(!privileged && base && revealed >= 3 ? `${base}/aiTop3/third` : null);
+  const top3 = privileged ? rawTop3 : { first, second, third };
+  const { value: judgeLog } = useRealtimeValue(base ? `${base}/aiJudgeLog` : null);
 
   return { results, top3, judgeState, judgeLog };
 }
@@ -191,6 +152,7 @@ export function useLiveJudging(sessionId, questionId) {
   // aiJudgeState가 'judging'으로 남아 좀비가 되는 것을 방지.
   // 이후 scheduleNext 순환에서 abortRef를 감지해 'aborted'로 최종 기록.
   useEffect(() => {
+    mountedRef.current = true;
     return () => { abortRef.current = true; mountedRef.current = false; };
   }, []);
 
@@ -245,14 +207,14 @@ export function useLiveJudging(sessionId, questionId) {
             const sub = submissions[myIdx];
             running++;
             (async () => {
-              // "현재 심사 중" 표시는 새로 시작한 제출로 갱신 (여러 건 동시 중이어도 최신 하나만 노출)
-              await update(ref(db, `${base}/aiJudgeState`), {
-                status: 'judging',
-                current: completed + 1,
-                total: submissions.length,
-                currentName: sub.name,
-              });
+              const writeJudgeLog = (id, entry) => runTransaction(ref(db, `${base}/aiJudgeLog`), current =>
+                current?.currentSubmissionId === sub.id ? { ...current, judges: { ...(current.judges || {}), [id]: entry } } : undefined, { applyLocally: false });
               try {
+                // 권한/연결 오류도 작업 정리 경로를 거쳐 다음 제출을 진행한다.
+                await update(ref(db, `${base}/aiJudgeState`), {
+                  status: 'judging', current: completed + 1,
+                  total: submissions.length, currentName: sub.name,
+                });
                 // 새 제출자 심사 시작 시 이전 판사 로그 초기화 (전자칠판 표시용)
                 await set(ref(db, `${base}/aiJudgeLog`), {
                   currentSubmissionId: sub.id,
@@ -265,7 +227,7 @@ export function useLiveJudging(sessionId, questionId) {
                   questionTitle,
                   // onJudgeComplete: 판사 완료 시 점수/하이라이트 방송
                   async (judgeId, result) => {
-                    await update(ref(db, `${base}/aiJudgeLog/judges/${judgeId}`), {
+                    await writeJudgeLog(judgeId, {
                       name: result.judgeName,
                       state: result.error ? 'error' : 'done',
                       hint: result.highlight || result.comment?.slice(0, 40) || '평가 완료',
@@ -275,7 +237,7 @@ export function useLiveJudging(sessionId, questionId) {
                   },
                   // onJudgeStart: 판사 thinking 방송
                   async (judge) => {
-                    await update(ref(db, `${base}/aiJudgeLog/judges/${judge.id}`), {
+                    await writeJudgeLog(judge.id, {
                       name: judge.name,
                       state: 'thinking',
                       hint: pickThinking(judge.id),
@@ -292,11 +254,12 @@ export function useLiveJudging(sessionId, questionId) {
               } catch (err) {
                 logger.error(`제출 ${sub.name} 심사 실패:`, err);
                 // 실패한 제출은 allResults에서 제외 — calculateLiveTop3가 totalJudges===0 필터링
+              } finally {
+                completed++;
+                running--;
+                if (mountedRef.current) setProgress({ current: completed, total: submissions.length, currentName: sub.name });
+                scheduleNext();
               }
-              completed++;
-              running--;
-              if (mountedRef.current) setProgress({ current: completed, total: submissions.length, currentName: sub.name });
-              scheduleNext();
             })();
           }
           if (running === 0 && index >= submissions.length) resolveAll();

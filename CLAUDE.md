@@ -1,10 +1,10 @@
-# Pick - Project Guidelines
+# DoranDoran - Project Guidelines
 
-## What is Pick?
-Real-time classroom engagement platform. Instructors create sessions, students join via QR/code and participate in polls, quizzes, word clouds, Q&A. Post-class assignment submission with AI judging (7 Gemini-powered judges). Korean market (한국어 UI).
+## What is DoranDoran?
+Real-time classroom engagement platform. Instructors create sessions, students join via QR/code and participate in polls, quizzes, word clouds, Q&A. Post-class assignment submission with AI judging (7 Gemini-powered judges (server-authenticated proxy)). Korean market (한국어 UI).
 
 ## Tech Stack
-- React 19 + Vite 7 + Tailwind CSS v4 + Firebase Realtime DB + Framer Motion
+- React 19.3 + Vite 8.3 + Tailwind CSS v4 + Firebase Realtime DB + Framer Motion
 - Icons: lucide-react (NO emoji icons)
 - Animations: lottie-react + Framer Motion (sparingly, high-impact only)
   - Lottie JSON: create inline (simple shapes/motions) or fetch from LottieFiles CDN
@@ -161,7 +161,7 @@ Firebase: assignments/{id}/submissions, results, awards
 | `border-l-3` 악센트 바 | `ring-1` or bg change |
 | 5색 배지/선택지 | slate 모노크로매틱 |
 | `bg-indigo-50` tint 배경 | `bg-white` or `bg-slate-50` |
-| Sparkles/Stars 아이콘 | 사자 마스코트 (PickMascot) |
+| Sparkles/Stars 아이콘 | 말풍선 친구 마스코트 (DoranDoranMascot) |
 
 **체크**: 화면당 2-3색 이하 / 장식 색상 0 / 장식 모션 0 / 한국어 라벨 필수
 
@@ -182,3 +182,9 @@ Firebase: assignments/{id}/submissions, results, awards
 - Add features without clear justification (proven effective or genuinely needed)
 - Commit broken builds
 - Use random colors/hex outside design tokens
+
+## 실시간과 보안 변경
+- 구독은 `useRealtimeValue`/`useRealtimeRecord`의 경로 소유권과 cleanup 규칙을 우선 사용한다.
+- 공개 뷰에 원본 투표·제출물·미공개 정답을 복사하지 않는다.
+- 기존 DB 원자료/강사 UID를 삭제·초기화·일괄 변경하지 않는다. 에뮬레이터 검증과 운영 반영을 구분한다.
+- 보안 게이트/배포 범위: `SECURITY.md`.

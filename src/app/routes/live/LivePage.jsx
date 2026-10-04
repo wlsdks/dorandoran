@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react';
+import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
+import { lazy, Suspense, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from '@/features/session/api/useSession';
@@ -16,9 +17,8 @@ import AnswerBubbleOverlay from '@/features/voting/components/AnswerBubbleOverla
 import JoinToast from '@/features/participants/components/JoinToast';
 import TimerCountdown from '@/features/timer/components/TimerCountdown';
 import Badge from '@/components/ui/Badge';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 
-import { useTheme } from '@/hooks/useTheme';
 import ConnectionBanner from '@/components/ui/ConnectionBanner';
 import EventStats from '@/features/participants/components/EventStats';
 import LiveHeader from './LiveHeader';
@@ -80,33 +80,12 @@ export default function LivePage() {
   const isEnded = session?.status === 'ended';
   const hasActiveQuestion = ['poll', 'quiz'].includes(currentMode) && currentQId && question;
 
-  // Force dark mode for presenter/projector view
-  const { theme: savedTheme, setTheme } = useTheme();
-  useEffect(() => {
-    setTheme('dark');
-    return () => {
-      // Restore user's previous theme preference when leaving live page
-      const prev = localStorage.getItem('pinggo_theme_prev');
-      if (prev) {
-        setTheme(prev);
-        localStorage.removeItem('pinggo_theme_prev');
-      }
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Save previous theme on first mount so we can restore it
-  useEffect(() => {
-    if (savedTheme !== 'dark') {
-      localStorage.setItem('pinggo_theme_prev', savedTheme);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // No session ID provided
   if (!sessionId) {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
         <div className="flex flex-col items-center text-center space-y-4">
-          <PickMascot size="lg" mood="thinking" />
+          <DoranDoranMascot size="lg" mood="thinking" />
           <p className="text-slate-500 dark:text-slate-400 text-sm">세션 ID가 없습니다</p>
         </div>
       </div>
@@ -117,7 +96,7 @@ export default function LivePage() {
   if (loading) {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-4">
-        <PickMascot size="md" mood="thinking" />
+        <DoranDoranMascot size="md" mood="thinking" />
         <p className="text-sm text-slate-400">불러오는 중...</p>
       </div>
     );
@@ -133,7 +112,7 @@ export default function LivePage() {
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           className="text-center space-y-5"
         >
-          <PickMascot size="lg" mood="happy" />
+          <DoranDoranMascot size="lg" mood="happy" />
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">수업이 종료되었습니다</h1>
           <p className="text-slate-400 text-sm">참여해 주셔서 감사합니다</p>
         </motion.div>
@@ -142,11 +121,12 @@ export default function LivePage() {
   }
 
   return (
-    <div className="h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col overflow-hidden">
+    <div className="dark h-dvh bg-slate-900 flex flex-col overflow-hidden">
       <LiveHeader courseName={session?.courseName} roundNumber={session?.roundNumber} count={count}
         handCount={handCount} urgentCount={urgentCount}
         sessionId={sessionId} startedAt={session?.startedAt} status={session?.status} />
       <ConnectionBanner />
+      <ParticipationSpotlight sessionId={sessionId} />
       <JoinToast sessionId={sessionId} />
       <ReactionOverlay sessionId={sessionId} />
       <ChatBubbleOverlay sessionId={sessionId} />
@@ -160,12 +140,12 @@ export default function LivePage() {
           넘치면(aiJudge 그리드 등) 상단부터 스크롤되어 상단 잘림도 방지 — 두 요구를 동시 충족.
           폭은 QHD(2560) 프로젝터에서 작게 떠 보이지 않도록 2xl 이상에서 확장. */}
       <div className="flex-1 flex justify-center items-start overflow-y-auto px-8 pt-4 pb-10">
-        <div className="w-full max-w-5xl 2xl:max-w-6xl mx-auto my-auto">
+        <div className={`w-full mx-auto my-auto ${question?.type === 'imageSlide' ? 'max-w-none' : 'max-w-5xl 2xl:max-w-6xl'}`} >
           <AnimatePresence mode="wait">
             {isGameMode ? (
               <motion.div
                 key={`game-${currentMode}`}
-                initial={currentMode === 'leaderboard' ? { opacity: 0, y: -30 } : { opacity: 0, scale: 0.88 }}
+                initial={currentMode === 'leaderboard' ? { opacity: 0, y: -12 } : { opacity: 0, scale: 0.98 }}
                 animate={currentMode === 'leaderboard' ? { opacity: 1, y: 0 } : { opacity: 1, scale: 1 }}
                 exit={currentMode === 'leaderboard' ? { opacity: 0, y: 30 } : { opacity: 0, scale: 1.06 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
@@ -192,7 +172,7 @@ export default function LivePage() {
                   {currentMode === 'combinedRanking' && <CombinedRanking session={session} />}
                   {currentMode === 'focus' && (
                     <div className="flex flex-col items-center justify-center gap-6 text-center">
-                      <PickMascot size="lg" mood="focus" />
+                      <DoranDoranMascot size="lg" mood="focus" />
                       <p className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">집중 모드</p>
                       <p className="text-slate-400 dark:text-white/40 text-lg">학생 화면이 잠겼습니다</p>
                     </div>
@@ -223,7 +203,7 @@ export default function LivePage() {
             ) : (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="flex flex-col items-center text-center space-y-5">
                 <motion.div animate={{ scale: [1, 1.03, 1] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
-                  <PickMascot size="lg" mood="waiting" />
+                  <DoranDoranMascot size="lg" mood="waiting" />
                 </motion.div>
                 <h2 className="text-xl font-semibold text-slate-500 dark:text-slate-300 tracking-tight">
                   다음 질문을 기다리는 중...

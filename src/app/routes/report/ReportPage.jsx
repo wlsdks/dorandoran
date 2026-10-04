@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Hash, Target, Trophy, Flame, Copy, Check, Share2, CheckCircle, XCircle, Minus, Award, CheckCheck, Zap, Crown } from 'lucide-react';
 import { useReportData } from '@/features/report/api/useReportData';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 import LearningReportCard from '@/features/report/components/LearningReportCard';
@@ -86,7 +86,7 @@ export default function ReportPage() {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
         <div className="flex flex-col items-center text-center space-y-4 max-w-sm">
-          <PickMascot size="lg" mood="thinking" />
+          <DoranDoranMascot size="lg" mood="thinking" />
           <div className="space-y-1.5">
             <p className="text-slate-700 dark:text-slate-200 text-base font-semibold">유효하지 않은 리포트 링크입니다</p>
             <p className="text-slate-400 dark:text-slate-500 text-sm leading-relaxed">세션 종료 화면의 "내 학습 리포트" 버튼을 눌러주세요</p>
@@ -102,7 +102,7 @@ export default function ReportPage() {
   if (loading) {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-4">
-        <PickMascot size="md" mood="thinking" />
+        <DoranDoranMascot size="md" mood="thinking" />
         <p className="text-sm text-slate-400">리포트 불러오는 중...</p>
       </div>
     );
@@ -112,7 +112,7 @@ export default function ReportPage() {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
         <div className="text-center space-y-4">
-          <PickMascot size="lg" mood="thinking" />
+          <DoranDoranMascot size="lg" mood="thinking" />
           <p className="text-slate-500 text-base">세션을 찾을 수 없습니다</p>
         </div>
       </div>
@@ -138,8 +138,8 @@ export default function ReportPage() {
       <div className="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
         <div className="max-w-xl mx-auto px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <PickMascot size="xs" />
-            <span className="text-base font-bold text-slate-900 dark:text-slate-100">Pick</span>
+            <DoranDoranMascot size="xs" />
+            <span className="text-base font-bold text-slate-900 dark:text-slate-100">도란도란</span>
           </div>
           <button
             onClick={handleCopy}
@@ -283,7 +283,7 @@ export default function ReportPage() {
 
         {/* Footer */}
         <div className="text-center pt-4 pb-8">
-          <p className="text-xs text-slate-300 dark:text-slate-600">Pick — 실시간 강의 참여 플랫폼</p>
+          <p className="text-xs text-slate-300 dark:text-slate-600">도란도란 — 실시간 강의 참여 플랫폼</p>
         </div>
       </div>
     </div>

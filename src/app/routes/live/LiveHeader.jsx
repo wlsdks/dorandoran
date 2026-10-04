@@ -1,22 +1,22 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Sun, Moon, QrCode, Hand, AlertCircle } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import { Users, Maximize, Minimize, QrCode, Hand, AlertCircle } from 'lucide-react';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Badge from '@/components/ui/Badge';
 import QRCodeComponent from '@/components/ui/QRCode';
 import ElapsedTime from '@/components/ui/ElapsedTime';
-import { useTheme } from '@/hooks/useTheme';
+import { usePresentationScreen } from '@/hooks/usePresentationScreen';
 
 export default memo(function LiveHeader({ courseName, roundNumber, count, handCount = 0, urgentCount = 0, sessionId, startedAt, status }) {
-  const { isDark, setTheme } = useTheme();
+  const { isFullscreen, toggleFullscreen, fullscreenSupported } = usePresentationScreen();
   const [qrOpen, setQrOpen] = useState(false);
   const studentUrl = sessionId ? `${window.location.origin}/?s=${sessionId}` : '';
 
   return (
     <header className="flex items-center justify-between px-3 sm:px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 relative gap-2">
       <div className="flex items-center gap-2 shrink-0">
-        <PickMascot size="xs" />
-        <span className="hidden sm:inline text-slate-900 dark:text-slate-100 font-bold text-lg tracking-tight">Pick</span>
+        <DoranDoranMascot size="xs" />
+        <span className="hidden sm:inline text-slate-900 dark:text-slate-100 font-bold text-lg tracking-tight">도란도란</span>
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 justify-center">
@@ -34,13 +34,10 @@ export default memo(function LiveHeader({ courseName, roundNumber, count, handCo
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        <button
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-          title={isDark ? '라이트 모드' : '다크 모드'}
-        >
-          {isDark ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+        {fullscreenSupported && <button onClick={toggleFullscreen} aria-label={isFullscreen ? '전체화면 해제' : '전체화면 보기'}
+          className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-100 transition-colors">
+          {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+        </button>}
         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         {/* P1-4: 손들기/긴급질문 카운트 — 강사 호명용. 명단은 프라이버시상 미노출 */}
         {handCount > 0 && (

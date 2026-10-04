@@ -1,3 +1,4 @@
+import { auth, ensureAuthentication } from '@/lib/auth-session';
 import { useState, useRef, useEffect, memo } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
@@ -11,7 +12,7 @@ import { logger } from '@/lib/logger';
 
 const MAX_SIZE_MB = 20;
 const MAX_IMAGES = 10;
-const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg';
+const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp,';
 
 function SortableImage({ url, index, onRemove }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: url });
@@ -82,9 +83,11 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
     for (let i = 0; i < valid.length; i++) {
       try {
         const file = valid[i];
-        const blob = file.size < 2 * 1024 * 1024 ? file : await compressImage(file);
+        await ensureAuthentication();
+        if (!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)) throw new Error('지원하지 않는 이미지 형식');
+        const blob = await compressImage(file);
         const ext = (blob.type || '').includes('jpeg') ? 'jpg' : file.name.split('.').pop() || 'jpg';
-        const path = `questions/${Date.now()}_${i}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const path = `questions/${auth.currentUser.uid}/${Date.now()}_${i}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const storageRef = ref(storage, path);
         await uploadBytes(storageRef, blob, { contentType: blob.type || file.type || 'image/jpeg' });
         const url = await getDownloadURL(storageRef);

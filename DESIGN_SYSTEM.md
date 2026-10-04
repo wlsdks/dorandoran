@@ -1,4 +1,4 @@
-# Pick Design System
+# DoranDoran Design System
 
 > 이 문서만으로 동일한 UI/UX를 다른 프로젝트에서도 재현할 수 있어야 함.
 > 모든 값은 `src/lib/design-tokens.js`에 코드로도 정의됨.
@@ -429,10 +429,14 @@ transition={{ delay: index * 0.05 }}
 | 리더보드 | Award | CSV 내보내기 | Download |
 | 테마 | Sun / Moon / Monitor | 트렌드 | TrendingUp / Down |
 
-### 마스코트 (PickMascot)
-- 사자 캐릭터 — 뭉글뭉글한 갈기, 큰 눈, 볼터치
-- 사이즈: xs(36px) / sm(48px) / md(72px) / lg(100px)
-- 대기 화면용 IdleMascot: 눈 깜빡임, 좌우 눈동자, 귀 흔들림
+### 마스코트 (DoranDoranMascot)
+- 말풍선 친구 도란·두런 — 둥근 실루엣, 서로 마주 보는 눈, 두 말풍선의 대화
+- 높이: xs(36px) / sm(48px) / md(80px) / lg(120px), 가로:세로 4:3. 쉬는 시간 등은 숫자 크기도 지원.
+- 도란(인디고 말풍선)과 두런(slate 말풍선)이 서로 이야기를 듣는 모습. 기존 slate + indigo 팔레트만 사용.
+- 표정: happy / waiting / thinking / focus / sad / calm. 정적 SVG로 표현해 타이머와 랜덤 동작을 만들지 않는다.
+- 대기·생각 상태의 큰 캐릭터는 발을 고정한 작은 호흡·눈 깜빡임으로 표현한다. 헤더·목록·집중·휴식 상태는 정적이며, 완료 시에는 300ms 진입 전환만 사용.
+- `prefers-reduced-motion`에서는 반복 움직임과 크기 전환을 끈다. 도란도란의 핵심 원칙인 의미 있는 피드백과 단순한 화면 구성을 유지한다.
+- 앱 아이콘: `public/icon.svg` + 192/512px PNG. 공유 미리보기: `public/og-image.jpg`.
 
 ---
 
@@ -633,7 +637,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 - **실시간 데이터는 애니메이트**: 숫자 변경 시 spring 카운터
 
 ### UX 법칙
-| 법칙 | Pick 적용 |
+| 법칙 | DoranDoran 적용 |
 |------|-------------|
 | Fitts's Law | 투표 버튼은 thumb zone에, 크게(48px+) |
 | Hick's Law | 학생 화면: 질문 + 선택지만. 부가 기능 숨기기 |
@@ -662,13 +666,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
 ## 17. 디자인 철학 & 원칙 (공개 레퍼런스)
 
 > 아래 원칙들은 모두 공개적으로 공유된 디자인 철학입니다.
-> 각 원칙에 Pick 프로젝트 적용 방법을 함께 기록합니다.
+> 각 원칙에 DoranDoran 프로젝트 적용 방법을 함께 기록합니다.
 
 ### Dieter Rams — 10 Principles of Good Design
 > 출처: vitsoe.com/about/good-design (Braun 수석 디자이너, 1970s~)
 > 핵심 철학: "Less, but better" (Weniger, aber besser)
 
-| # | 원칙 | Pick 적용 |
+| # | 원칙 | DoranDoran 적용 |
 |---|------|----------|
 | 1 | **혁신적이다** (Innovative) | 실시간 교육 참여 — 기존 클릭커 대비 시각화+게이미피케이션 |
 | 2 | **유용하다** (Useful) | 모든 기능은 수업 참여율 향상이라는 목적에 복무 |
@@ -684,7 +688,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 ### Jakob Nielsen — 10 Usability Heuristics
 > 출처: nngroup.com/articles/ten-usability-heuristics/ (1994, 무료 공개)
 
-| # | 원칙 | Pick 적용 |
+| # | 원칙 | DoranDoran 적용 |
 |---|------|----------|
 | 1 | **시스템 상태 가시성** | 투표 후 체크 애니메이션, 연결 상태 표시, 타이머 카운트다운 |
 | 2 | **현실 세계와 일치** | 한국어 라벨 필수, 학생에게 익숙한 용어 사용 |
@@ -704,7 +708,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 **추가 적용 원칙:**
 
-| 법칙 | 설명 | Pick 적용 |
+| 법칙 | 설명 | DoranDoran 적용 |
 |------|------|----------|
 | **Doherty Threshold** | 응답 400ms 이내면 사용자가 몰입 상태 유지 | 모든 모션 400ms 이하, 투표 즉각 피드백 |
 | **Goal-Gradient Effect** | 목표에 가까울수록 동기가 증가 | 퀴즈 진행바, 타이머 5초↓ 펄스, 리더보드 순위 변동 |
@@ -719,7 +723,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 ### Edward Tufte — 데이터 시각화 원칙
 > 출처: "The Visual Display of Quantitative Information" (1983)
 
-| 원칙 | 설명 | Pick 적용 |
+| 원칙 | 설명 | DoranDoran 적용 |
 |------|------|----------|
 | **Data-Ink Ratio 최대화** | 잉크의 대부분이 데이터를 표현해야 함 | 바 차트: 그리드 라인 최소, 배경색 없음, 데이터 바만 강조 |
 | **Chartjunk 제거** | 불필요한 장식 요소 제거 | 3D 효과, 그라데이션 배경, 장식 아이콘 없는 차트 |
@@ -729,7 +733,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 ### Toss 디자인 원칙
 > 출처: toss.tech, Simplicity 컨퍼런스 (2021~2024, 공개 발표)
 
-| 원칙 | 설명 | Pick 적용 |
+| 원칙 | 설명 | DoranDoran 적용 |
 |------|------|----------|
 | **1 Thing, 1 Page** | 한 화면에 하나의 목적만 | 학생 화면: 질문+선택지만. 부가 기능 하단바에 숨기기 |
 | **Easy to Answer** | 3초 안에 답할 수 있는 질문 | 투표 선택지 4-6개, 원탭으로 완료 |
@@ -741,7 +745,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 ### Don Norman — 감성 디자인 3단계
 > 출처: "Emotional Design" (2004), "The Design of Everyday Things" (1988)
 
-| 단계 | 설명 | Pick 적용 |
+| 단계 | 설명 | DoranDoran 적용 |
 |------|------|----------|
 | **Visceral (본능)** | 첫인상 — 보자마자 느끼는 감정 | 깔끔한 레이아웃, 마스코트, 부드러운 진입 애니메이션 |
 | **Behavioral (행동)** | 사용 중 — 기능성, 이해도, 물리적 느낌 | press feedback(쫀득한 터치), 즉각 응답, 직관적 플로우 |
@@ -750,7 +754,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 ### Steve Krug — "Don't Make Me Think"
 > 출처: "Don't Make Me Think" (2000, 3rd edition 2014)
 
-| 원칙 | Pick 적용 |
+| 원칙 | DoranDoran 적용 |
 |------|----------|
 | **화면을 보자마자 자명해야 한다** | 학생이 1초 안에 "아, 여기 누르면 되는구나" |
 | **클릭 수가 아니라 클릭당 사고량을 줄여라** | 3클릭이라도 매 클릭이 자명하면 OK |
@@ -760,7 +764,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 ### Gestalt 원칙 (시지각 심리학)
 > 출처: 베르트하이머, 코프카, 쾰러 (1920s, 학술 공개 지식)
 
-| 원칙 | 설명 | Pick 적용 |
+| 원칙 | 설명 | DoranDoran 적용 |
 |------|------|----------|
 | **근접성 (Proximity)** | 가까운 것은 그룹으로 인식 | 그룹 간격 > 그룹 내 간격. 관련 요소는 gap-2, 섹션은 gap-6 |
 | **유사성 (Similarity)** | 비슷한 것은 같은 그룹으로 인식 | 같은 역할 = 같은 스타일. 모든 CTA는 bg-slate-900 |
@@ -768,3 +772,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 | **연속성 (Continuity)** | 시선은 매끄러운 경로를 따름 | 리더보드 순위 — 위에서 아래로 자연스러운 시선 흐름 |
 | **공동 운명 (Common Fate)** | 같이 움직이는 것은 그룹 | 리액션 버블 — 같은 방향으로 떠오르는 같은 유형 |
 | **전경/배경 (Figure/Ground)** | 전경이 배경과 분리되어 인식 | 모달: bg-black/30 backdrop → 콘텐츠가 전경으로 떠오름 |
+
+## 발표·관객 화면
+
+슬라이드 본문은 전체 캔버스에서 비율을 유지한다. 중복 제목/페이지 버튼을 겹쳐 놓지 않는다. 발표자는 ←/→/Space/F와 하단 제어를 사용하며, 참여 활동 후 원래 슬라이드 위치로 돌아간다. 관객에게는 조작 버튼을 제공하지 않는다. 이미지 전환은 준비된 이미지끼리 180ms 교차 전환하고, 현재+인접 이미지 최대 4개만 캐시한다.
+
+참여 칭찬은 실제 3문항 참여를 근거로 최대 1분에 한 번 4초만 표시한다. 학습 능력을 추정한 순위나 내용 위의 큰 폭죽을 추가하지 않는다.

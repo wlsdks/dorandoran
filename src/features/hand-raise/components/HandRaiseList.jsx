@@ -4,7 +4,7 @@ import { db } from '@/lib/firebase';
 import { useHandRaises } from '@/features/hand-raise/api/useHandRaises';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Hand, X, ChevronDown } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import IconButton from '@/components/ui/IconButton';
 import { logger } from '@/lib/logger';
 
@@ -76,7 +76,7 @@ export default function HandRaiseList({ sessionId, embedded = false }) {
       )}
       {count === 0 && (
         <div className="flex items-center gap-2 py-1">
-          <PickMascot size="xs" />
+          <DoranDoranMascot size="xs" />
           <p className="text-slate-400 text-xs">손든 학생이 없습니다</p>
         </div>
       )}

@@ -1,3 +1,4 @@
+import { motion as motionTokens } from '@/lib/design-tokens';
 import { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -87,10 +88,10 @@ export default function Modal({ open, onClose, children, className = '', ariaLab
             aria-label={ariaLabel}
             tabIndex={-1}
             onKeyDown={trapFocus}
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={motionTokens.spring.default}
             /* max-h + 내부 스크롤: 내용이 길어도 팝업이 화면 밖으로 자라지 않는다.
                (강의가 열댓 개면 강의 선택 팝업이 화면을 뚫고 내려가던 문제) */
             className={`bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-lg p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] w-full sm:max-w-md outline-none max-h-[88dvh] overflow-y-auto overscroll-contain ${className}`}

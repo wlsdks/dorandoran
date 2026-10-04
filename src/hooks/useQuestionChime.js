@@ -21,7 +21,7 @@ export function useQuestionChime(currentQuestionId) {
       currentQuestionId &&
       currentQuestionId !== prevRef.current
     ) {
-      const muted = localStorage.getItem('pinggo_sound_muted') === 'true';
+      const muted = localStorage.getItem('dorandoran_sound_muted') === 'true';
       if (!muted) {
         playChime();
       }
