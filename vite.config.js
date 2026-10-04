@@ -12,8 +12,8 @@ const srcDir = fileURLToPath(new URL('./src', import.meta.url))
  * Gemini API 키가 다시 번들로 새는 것을 막는 가드.
  *
  * `VITE_` 접두사가 붙은 값은 Vite가 빌드 타임에 공개 JS로 인라인한다. 2026-07-02에
- * VITE_GEMINI_API_KEY가 정확히 이 경로로 유출됐고, 그래서 키는 Cloudflare Worker
- * 프록시(worker/)로 옮겼다. 누군가 편의상 .env에 키를 되돌려놓으면 조용히 다시
+ * VITE_GEMINI_API_KEY가 정확히 이 경로로 유출됐고, 그래서 키는 서버
+ * 프록시로 옮겼다. 누군가 편의상 .env에 키를 되돌려놓으면 조용히 다시
  * 유출되므로, 그런 빌드는 아예 실패시킨다.
  */
 function forbidGeminiKeyInBundle(mode) {
@@ -26,9 +26,9 @@ function forbidGeminiKeyInBundle(mode) {
         throw new Error(
           '\n\n[보안] VITE_GEMINI_API_KEY가 설정되어 있습니다.\n' +
           'VITE_ 변수는 공개 번들에 평문으로 인라인됩니다 — 키가 그대로 유출됩니다.\n' +
-          'Gemini 키는 Cloudflare Worker 프록시의 시크릿으로만 두세요.\n' +
+          'Gemini 키는 Firebase Functions Secret Manager에만 두세요.\n' +
           '.env에서 VITE_GEMINI_API_KEY를 지우고 VITE_GEMINI_PROXY_URL을 쓰세요.\n' +
-          '자세한 내용: worker/README.md\n'
+          '자세한 내용: SECURITY.md\n'
         )
       }
     },
