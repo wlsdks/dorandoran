@@ -57,7 +57,7 @@ export default memo(function AiJudgeViz({ sessionId, questionId, isAdmin, isPres
       </div>
 
       {/* API 키 입력/심사 시작 패널은 어드민 대시보드에서만. 프레젠터 화면엔 절대 노출 금지 */}
-      {isAdmin && !isPresenter && <AiJudgePanel sessionId={sessionId} questionId={questionId} />}
+      {isAdmin && !isPresenter && <AiJudgePanel key={`${sessionId}:${questionId}`} sessionId={sessionId} questionId={questionId} />}
 
       {submissions.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 p-10 text-center">

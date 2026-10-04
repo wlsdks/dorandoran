@@ -1,51 +1,22 @@
-import { useState, useEffect } from 'react';
-import { ref, onValue } from 'firebase/database';
-import { db } from '@/lib/firebase';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { EMPTY_RECORD } from '@/lib/realtime';
+
 
 /**
  * useAwards — 과제의 시상 결과 구독.
  */
 export function useAwards(assignmentId) {
-  const [awards, setAwards] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { value: awards, loading, error } = useRealtimeValue(assignmentId ? `assignments/${assignmentId}/awards` : null);
 
-  useEffect(() => {
-    if (!assignmentId) { setAwards(null); setLoading(false); return; }
-
-    const awardsRef = ref(db, `assignments/${assignmentId}/awards`);
-    const unsub = onValue(awardsRef, (snap) => {
-      setAwards(snap.exists() ? snap.val() : null);
-      setLoading(false);
-    }, () => {
-      setLoading(false);
-    });
-
-    return () => unsub();
-  }, [assignmentId]);
-
-  return { awards, loading };
+  return { awards, loading, error };
 }
 
 /**
  * useAllResults — 과제의 전체 심사 결과 구독.
  */
 export function useAllResults(assignmentId) {
-  const [results, setResults] = useState({});
-  const [loading, setLoading] = useState(true);
+  const { value, loading, error } = useRealtimeValue(assignmentId ? `assignments/${assignmentId}/results` : null);
+  const results = value || EMPTY_RECORD;
 
-  useEffect(() => {
-    if (!assignmentId) { setResults({}); setLoading(false); return; }
-
-    const resultsRef = ref(db, `assignments/${assignmentId}/results`);
-    const unsub = onValue(resultsRef, (snap) => {
-      setResults(snap.val() || {});
-      setLoading(false);
-    }, () => {
-      setLoading(false);
-    });
-
-    return () => unsub();
-  }, [assignmentId]);
-
-  return { results, loading };
+  return { results, loading, error };
 }

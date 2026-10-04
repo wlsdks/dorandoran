@@ -25,6 +25,19 @@ export default function AchievementToast({ achievements }) {
   const queueRef = useRef([]);
   const timerRef = useRef(null);
 
+  function showNext() {
+    const next = queueRef.current.shift();
+    if (!next) {
+      timerRef.current = null;
+      return;
+    }
+    setVisible(next);
+    timerRef.current = setTimeout(() => {
+      setVisible(null);
+      timerRef.current = setTimeout(showNext, 300);
+    }, DISPLAY_DURATION);
+  }
+
   useEffect(() => {
     const newOnes = achievements.filter((a) => !shownRef.current.has(a.id));
     if (newOnes.length === 0) return;
@@ -39,18 +52,6 @@ export default function AchievementToast({ achievements }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [achievements]);
 
-  function showNext() {
-    const next = queueRef.current.shift();
-    if (!next) {
-      timerRef.current = null;
-      return;
-    }
-    setVisible(next);
-    timerRef.current = setTimeout(() => {
-      setVisible(null);
-      setTimeout(showNext, 300);
-    }, DISPLAY_DURATION);
-  }
 
   useEffect(() => {
     return () => {

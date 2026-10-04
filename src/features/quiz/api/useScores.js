@@ -1,5 +1,7 @@
-import { ref, onValue, set } from 'firebase/database';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { EMPTY_RECORD } from '@/lib/realtime';
+import { ref, set } from 'firebase/database';
+import { useMemo, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { getParticipantId } from '@/lib/participant';
 
@@ -9,31 +11,15 @@ import { getParticipantId } from '@/lib/participant';
  * 300명 동시접속 fan-out 방지 — 전체 leaderboard가 필요한 곳만 useScores 사용.
  */
 export function useMyScore(sessionId) {
-  const [myScore, setMyScore] = useState(null);
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const pid = getParticipantId();
-    if (!pid) return;
-    const myRef = ref(db, `sessions/${sessionId}/scores/${pid}`);
-    const unsub = onValue(myRef, (snap) => setMyScore(snap.val()));
-    return () => unsub();
-  }, [sessionId]);
+  const pid = getParticipantId();
+  const { value: myScore } = useRealtimeValue(sessionId && pid ? `sessions/${sessionId}/scores/${pid}` : null);
 
   return { myScore };
 }
 
 export function useScores(sessionId) {
-  const [scores, setScores] = useState({});
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const scoresRef = ref(db, `sessions/${sessionId}/scores`);
-    const unsub = onValue(scoresRef, (snap) => {
-      setScores(snap.val() || {});
-    });
-    return () => unsub();
-  }, [sessionId]);
+  const { value } = useRealtimeValue(sessionId ? `sessions/${sessionId}/scores` : null);
+  const scores = value || EMPTY_RECORD;
 
   const leaderboard = useMemo(
     () => Object.entries(scores)

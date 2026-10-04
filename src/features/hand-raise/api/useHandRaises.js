@@ -1,6 +1,6 @@
-import { ref, onValue } from 'firebase/database';
-import { useState, useEffect, useMemo } from 'react';
-import { db } from '@/lib/firebase';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { EMPTY_RECORD } from '@/lib/realtime';
+import { useMemo } from 'react';
 import { getParticipantId } from '@/lib/participant';
 
 /**
@@ -9,31 +9,16 @@ import { getParticipantId } from '@/lib/participant';
  * 강사/스태프(전체 목록 필요)는 useHandRaises 사용.
  */
 export function useMyHandRaise(sessionId) {
-  const [raised, setRaised] = useState(false);
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const pid = getParticipantId();
-    if (!pid) return;
-    const myRef = ref(db, `sessions/${sessionId}/handRaises/${pid}`);
-    const unsub = onValue(myRef, (snap) => setRaised(snap.val()?.raised === true));
-    return () => unsub();
-  }, [sessionId]);
+  const pid = getParticipantId();
+  const { value } = useRealtimeValue(sessionId && pid ? `sessions/${sessionId}/handRaises/${pid}` : null);
+  const raised = value?.raised === true;
 
   return { raised };
 }
 
 export function useHandRaises(sessionId) {
-  const [handRaises, setHandRaises] = useState({});
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const handRaisesRef = ref(db, `sessions/${sessionId}/handRaises`);
-    const unsub = onValue(handRaisesRef, (snapshot) => {
-      setHandRaises(snapshot.val() || {});
-    });
-    return () => unsub();
-  }, [sessionId]);
+  const { value } = useRealtimeValue(sessionId ? `sessions/${sessionId}/handRaises` : null);
+  const handRaises = value || EMPTY_RECORD;
 
   const raisedList = useMemo(
     () =>

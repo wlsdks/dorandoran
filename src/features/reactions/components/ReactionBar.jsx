@@ -62,17 +62,8 @@ const ReactionButton = memo(function ReactionButton({ reaction, isFlash, isShaki
     <div className="relative">
       <motion.button
         whileTap={{ scale: 0.9 }}
-        animate={isFlash ? {
-          scale: [1, 1.25, 0.95, 1.05, 1],
-          rotate: [0, -8, 8, -3, 0],
-          y: [0, -6, 0],
-        } : isShaking ? {
-          x: [0, -2, 2, -1, 1, 0],
-          scale: 1, rotate: 0, y: 0,
-        } : { scale: 1, rotate: 0, y: 0 }}
-        transition={isFlash ? {
-          type: 'spring', stiffness: 400, damping: 22,
-        } : { duration: 0.15 }}
+        animate={isShaking ? { x: [0, -2, 2, 0] } : { x: 0 }}
+        transition={isShaking ? { duration: 0.2 } : { type: 'spring', stiffness: 500, damping: 30 }}
         onClick={() => onTap(type)}
         aria-label={label}
         className={`relative flex h-12 w-12 items-center justify-center rounded-xl border transition-colors duration-200 ${
@@ -97,7 +88,7 @@ const BUBBLE_COOLDOWN = 3000;
 export default function ReactionBar({ sessionId, bubbleSessionId }) {
   const { sendReaction } = useReactions(sessionId, { subscribe: false });
   const [flashType, setFlashType] = useState(null);
-  const cooldownRef = useRef(0);
+  const cooldownRef = useRef(-Infinity);
   const flashTimerRef = useRef(null);
   const shakeTimerRef = useRef(null);
 
@@ -105,13 +96,15 @@ export default function ReactionBar({ sessionId, bubbleSessionId }) {
   // Firebase 구독 없이 로컬 애니메이션이라 가볍고 즉각적. 전자칠판 오버레이와 별개.
   const [floaters, setFloaters] = useState([]);
   const floaterIdRef = useRef(0);
+  const floaterTimersRef = useRef(new Set());
   const spawnFloater = useCallback((type) => {
     const reaction = REACTIONS.find((r) => r.type === type);
     if (!reaction) return;
     const id = ++floaterIdRef.current;
     const drift = ((id * 37) % 60) - 30; // 결정적 좌우 분산(연타 시 겹침 방지)
     setFloaters((f) => [...f, { id, Icon: reaction.icon, color: reaction.accentColor, type, drift }]);
-    setTimeout(() => setFloaters((f) => f.filter((x) => x.id !== id)), 1200);
+    const timer = setTimeout(() => { floaterTimersRef.current.delete(timer); setFloaters((f) => f.filter((x) => x.id !== id)); }, 1200);
+    floaterTimersRef.current.add(timer);
   }, []);
 
   // Bubble input state
@@ -124,6 +117,7 @@ export default function ReactionBar({ sessionId, bubbleSessionId }) {
   const bubbleCooldownRef = useRef(null);
 
   useEffect(() => () => {
+    floaterTimersRef.current.forEach(clearTimeout); floaterTimersRef.current.clear();
     if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     if (bubbleCooldownRef.current) clearTimeout(bubbleCooldownRef.current);
     if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
@@ -156,7 +150,7 @@ export default function ReactionBar({ sessionId, bubbleSessionId }) {
     sendReaction(type);
     if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     flashTimerRef.current = setTimeout(() => setFlashType(null), FLASH_MS);
-  }, [sendReaction]);
+  }, [sendReaction, spawnFloater]);
 
   const handleBubbleSend = useCallback(async () => {
     const sid = bubbleSessionId || sessionId;

@@ -1,6 +1,4 @@
-import { ref, onValue } from 'firebase/database';
-import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { getParticipantId } from '@/lib/participant';
 
 /**
@@ -9,19 +7,9 @@ import { getParticipantId } from '@/lib/participant';
  * Only subscribes to this one participant's vote node, not all votes.
  */
 export function useMyVote(sessionId, questionId) {
-  const [myVote, setMyVote] = useState(null);
-
-  useEffect(() => {
-    if (!sessionId || !questionId) return;
-    const pid = getParticipantId();
-    if (!pid) return;
-    const voteRef = ref(db, `sessions/${sessionId}/questions/${questionId}/votes/${pid}`);
-    const unsub = onValue(voteRef, (snapshot) => {
-      const val = snapshot.val();
-      setMyVote(val?.value ?? null);
-    });
-    return () => unsub();
-  }, [sessionId, questionId]);
+  const pid = getParticipantId();
+  const { value } = useRealtimeValue(sessionId && questionId && pid ? `sessions/${sessionId}/questions/${questionId}/votes/${pid}` : null);
+  const myVote = value?.value ?? null;
 
   return { myVote };
 }
@@ -32,18 +20,9 @@ export function useMyVote(sessionId, questionId) {
  * Returns { myVote } — 본인 vote 객체 또는 null.
  */
 export function useMyVoteFull(sessionId, questionId) {
-  const [myVote, setMyVote] = useState(null);
-
-  useEffect(() => {
-    if (!sessionId || !questionId) return;
-    const pid = getParticipantId();
-    if (!pid) return;
-    const voteRef = ref(db, `sessions/${sessionId}/questions/${questionId}/votes/${pid}`);
-    const unsub = onValue(voteRef, (snapshot) => {
-      setMyVote(snapshot.val() ?? null);
-    });
-    return () => unsub();
-  }, [sessionId, questionId]);
+  const pid = getParticipantId();
+  const { value } = useRealtimeValue(sessionId && questionId && pid ? `sessions/${sessionId}/questions/${questionId}/votes/${pid}` : null);
+  const myVote = value;
 
   return { myVote };
 }
