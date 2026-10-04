@@ -207,16 +207,14 @@ export function useLiveJudging(sessionId, questionId) {
             const sub = submissions[myIdx];
             running++;
             (async () => {
-              // "현재 심사 중" 표시는 새로 시작한 제출로 갱신 (여러 건 동시 중이어도 최신 하나만 노출)
-              await update(ref(db, `${base}/aiJudgeState`), {
-                status: 'judging',
-                current: completed + 1,
-                total: submissions.length,
-                currentName: sub.name,
-              });
               const writeJudgeLog = (id, entry) => runTransaction(ref(db, `${base}/aiJudgeLog`), current =>
                 current?.currentSubmissionId === sub.id ? { ...current, judges: { ...(current.judges || {}), [id]: entry } } : undefined, { applyLocally: false });
               try {
+                // 권한/연결 오류도 작업 정리 경로를 거쳐 다음 제출을 진행한다.
+                await update(ref(db, `${base}/aiJudgeState`), {
+                  status: 'judging', current: completed + 1,
+                  total: submissions.length, currentName: sub.name,
+                });
                 // 새 제출자 심사 시작 시 이전 판사 로그 초기화 (전자칠판 표시용)
                 await set(ref(db, `${base}/aiJudgeLog`), {
                   currentSubmissionId: sub.id,
@@ -256,11 +254,12 @@ export function useLiveJudging(sessionId, questionId) {
               } catch (err) {
                 logger.error(`제출 ${sub.name} 심사 실패:`, err);
                 // 실패한 제출은 allResults에서 제외 — calculateLiveTop3가 totalJudges===0 필터링
+              } finally {
+                completed++;
+                running--;
+                if (mountedRef.current) setProgress({ current: completed, total: submissions.length, currentName: sub.name });
+                scheduleNext();
               }
-              completed++;
-              running--;
-              if (mountedRef.current) setProgress({ current: completed, total: submissions.length, currentName: sub.name });
-              scheduleNext();
             })();
           }
           if (running === 0 && index >= submissions.length) resolveAll();
