@@ -1,5 +1,5 @@
 import { memo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
 /**
@@ -17,20 +17,31 @@ export default memo(function CollapsibleSection({
   summary = null,
   defaultOpen = true,
   attention = false,
+  autoOpenKeys = [],
   children,
   className = '',
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [dismissedKeys, setDismissedKeys] = useState([]);
+  const expanded = open || autoOpenKeys.some(key => !dismissedKeys.includes(key));
+
+  function toggle() {
+    if (expanded) {
+      setOpen(false);
+      setDismissedKeys(autoOpenKeys);
+    } else setOpen(true);
+  }
 
   return (
     <div className={`rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden ${className}`}>
       <button
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 dark:active:bg-slate-600 transition-colors duration-150"
+        onClick={toggle}
+        aria-expanded={expanded}
+        aria-label={`${title} ${expanded ? '접기' : '펼치기'}`}
+        className="w-full min-h-11 flex items-center justify-between px-4 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 dark:active:bg-slate-600 transition-colors duration-150"
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 shrink-0">
+          <span className="text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-300 shrink-0">
             {title}
           </span>
           {/* attention(예: 긴급 질문 도착)일 때 펄싱 dot으로 접힌 상태에서도 시선 유도 */}
@@ -46,24 +57,19 @@ export default memo(function CollapsibleSection({
             </span>
           )}
         </div>
-        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+        <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <ChevronDown size={14} className="text-slate-400 shrink-0" />
         </motion.div>
       </button>
 
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="overflow-hidden border-t border-slate-100 dark:border-slate-700"
-          >
-            {children}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* 접혀도 입력 중인 메모와 선택한 탭 상태를 보존한다. 숨긴 도구는 포커스 대상에서 제외. */}
+      <motion.div initial={false}
+        animate={{ height: expanded ? 'auto' : 0, opacity: expanded ? 1 : 0 }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        inert={!expanded} aria-hidden={!expanded}
+        className={`overflow-hidden ${expanded ? 'border-t border-slate-100 dark:border-slate-700' : ''}`}>
+        {children}
+      </motion.div>
     </div>
   );
 });

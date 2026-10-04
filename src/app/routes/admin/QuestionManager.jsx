@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookmarkPlus, PanelLeftClose, Plus, Eye, RotateCcw, Sparkles, Check } from 'lucide-react';
+import { BookmarkPlus, PanelLeftClose, Plus, Eye, RotateCcw, Sparkles, Check, ChevronDown } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Toast from '@/components/ui/Toast';
@@ -23,7 +23,7 @@ function TooltipIconButton({ onClick, label, children, hoverColor = 'hover:text-
   const [show, setShow] = useState(false);
   return (
     <div className="relative" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
-      <button onClick={onClick} className={`p-2 rounded-lg text-slate-400 dark:text-slate-500 ${hoverColor} hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90`} {...props}>
+      <button onClick={onClick} className={`min-h-11 min-w-11 flex items-center justify-center p-2 rounded-lg text-slate-400 dark:text-slate-500 ${hoverColor} hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90`} {...props}>
         {children}
       </button>
       <AnimatePresence>
@@ -127,16 +127,11 @@ export default function QuestionManager({
     <div className="space-y-5">
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">질문 목록</h2>
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{readOnly ? '질문 목록' : '수업 진행'}</h2>
           <div className="flex items-center gap-1">
             {questionList.length > 0 && (
               <TooltipIconButton onClick={() => setPreviewOpen(true)} label="미리보기" aria-label="문항 미리보기">
                 <Eye size={18} />
-              </TooltipIconButton>
-            )}
-            {questionList.length > 0 && !readOnly && (
-              <TooltipIconButton onClick={() => setResetConfirmOpen(true)} label="초기화" aria-label="전체 답변 초기화" hoverColor="hover:text-red-500">
-                <RotateCcw size={18} />
               </TooltipIconButton>
             )}
             {!readOnly && onCollapse && (
@@ -145,28 +140,6 @@ export default function QuestionManager({
               </TooltipIconButton>
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {!readOnly && modeButton}
-          {!readOnly && adminUid && (
-            <Button onClick={() => setLibraryOpen(true)} variant="secondary" size="sm">
-              <BookmarkPlus size={14} /> <span className="hidden sm:inline">보관함</span>
-            </Button>
-          )}
-          {!readOnly && isGeneratorReady() && (
-            <Button onClick={() => setAiGenOpen(true)} variant="secondary" size="sm">
-              <Sparkles size={14} /> <span className="hidden sm:inline">AI 생성</span>
-            </Button>
-          )}
-          {!readOnly && (
-            <Button
-              onClick={() => { if (onAddClick) { onAddClick(); } else { setShowForm(!showForm); } }}
-              variant={showForm && !onAddClick ? 'ghost' : 'primary'}
-              size="sm"
-            >
-              {showForm && !onAddClick ? '취소' : <><Plus size={14} /> 추가</>}
-            </Button>
-          )}
         </div>
       </div>
 
@@ -207,14 +180,27 @@ export default function QuestionManager({
         </button>
       )}
 
-      {modeSlot}
-
       {!readOnly && (
-        <AnimatePresence>
-          {showForm && !onAddClick && (
-            <QuestionForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} error={error} />
-          )}
-        </AnimatePresence>
+        <details className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" open={questionList.length === 0 || showForm || formOpen || undefined}>
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 [&::-webkit-details-marker]:hidden">
+            수업 준비 / 문항 편집
+            <ChevronDown size={16} className="transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="space-y-3 px-4 pb-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400">문항 추가와 가져오기, 수업 도구를 여기서 준비하세요.</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {modeButton}
+              <Button onClick={() => { if (onAddClick) onAddClick(); else setShowForm(!showForm); }} variant="secondary" size="sm" className="min-h-11">
+                {showForm && !onAddClick ? '취소' : <><Plus size={14} /> 문항 추가</>}
+              </Button>
+              {adminUid && <Button onClick={() => setLibraryOpen(true)} variant="secondary" size="sm" className="min-h-11"><BookmarkPlus size={14} /> 보관함</Button>}
+              {isGeneratorReady() && <Button onClick={() => setAiGenOpen(true)} variant="secondary" size="sm" className="min-h-11"><Sparkles size={14} /> AI 생성</Button>}
+              {questionList.length > 0 && <Button onClick={() => setResetConfirmOpen(true)} variant="ghost" size="sm" className="min-h-11 text-slate-500"><RotateCcw size={14} /> 답변 초기화</Button>}
+            </div>
+            {modeSlot}
+            <AnimatePresence>{showForm && !onAddClick && <QuestionForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} error={error} />}</AnimatePresence>
+          </div>
+        </details>
       )}
 
       <QuestionList

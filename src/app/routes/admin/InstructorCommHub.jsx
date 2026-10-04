@@ -30,7 +30,7 @@ function TabButton({ active, onClick, icon: Icon, label, count = 0, urgent = fal
       onClick={onClick}
       role="tab"
       aria-selected={active}
-      className={`relative flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-semibold transition-colors duration-150 ${
+      className={`relative flex-1 min-w-0 min-h-11 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-semibold transition-colors duration-150 ${
         active
           ? 'text-slate-900 dark:text-slate-100'
           : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
@@ -64,12 +64,12 @@ function TabButton({ active, onClick, icon: Icon, label, count = 0, urgent = fal
 }
 
 export default memo(function InstructorCommHub({ sessionId }) {
-  const [activeTab, setActiveTab] = useState('notes');
+  const [selectedTab, setActiveTab] = useState(null);
 
   // 배지 카운트용 훅
-  const { count: handCount } = useHandRaises(sessionId);
-  const { unreadCount: urgentCount } = useUrgentQuestions(sessionId);
-  const { unansweredCount: classCount } = useClassQuestions(sessionId);
+  const { count: handCount, raisedList } = useHandRaises(sessionId);
+  const { unreadCount: urgentCount, questionList: urgentQuestions } = useUrgentQuestions(sessionId);
+  const { unansweredCount: classCount, questions: classQuestions } = useClassQuestions(sessionId);
   const { unreadCount: notesUnread } = useNotesState(sessionId);
 
   // 긴급 질문은 pulsing 빨간 배지로 시선 유도 — 강제 탭 전환은 강사가 현재 작업 중인 탭을 방해할 수 있어 배제
@@ -83,9 +83,16 @@ export default memo(function InstructorCommHub({ sessionId }) {
   if (notesUnread > 0) summaryParts.push(`메모 ${notesUnread}`);
   const summary = summaryParts.length > 0 ? summaryParts.join(' · ') : '새 항목 없음';
   const hasUrgent = urgentCount > 0;
+  const activeTab = selectedTab || (urgentCount > 0 ? 'urgent' : handCount > 0 ? 'hands' : classCount > 0 ? 'class' : 'hands');
+  // 처리/삭제로 수가 줄어드는 일은 다시 펼치지 않는다. 새로운 요청 ID/시각만 펼침을 유발한다.
+  const autoOpenKeys = [
+    ...raisedList.map(item => `${sessionId}:hand:${item.id}:${item.raisedAt || 0}`),
+    ...urgentQuestions.filter(item => !item.read).map(item => `${sessionId}:urgent:${item.id}`),
+    ...classQuestions.filter(item => !item.answered).map(item => `${sessionId}:class:${item.id}`),
+  ];
 
   return (
-    <CollapsibleSection title="소통" summary={summary} attention={hasUrgent} defaultOpen>
+    <CollapsibleSection title="학습자 요청" summary={summary} attention={hasUrgent} defaultOpen={false} autoOpenKeys={autoOpenKeys}>
       {/* Tabs */}
       <div role="tablist" aria-label="강사 소통" className="flex items-stretch border-b border-slate-100 dark:border-slate-700">
         {TABS.map((t) => (

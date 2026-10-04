@@ -16,7 +16,7 @@ function RightPanelAccordion({ title, count, defaultOpen = false, children }) {
     <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 dark:active:bg-slate-600 transition-colors duration-150"
+        className="w-full min-h-11 flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 dark:active:bg-slate-600 transition-colors duration-150"
         aria-expanded={open}
         aria-label={`${title} ${open ? '접기' : '펼치기'}`}
       >
@@ -150,7 +150,12 @@ function ActiveRightSidebar({ session, sessionId, count, participants, onlineLis
       />
 
       {/* QR — 추첨 전용 모드에서는 입장할 학생이 없으므로 숨긴다. 전자칠판 링크는 추첨 화면용으로 남긴다. */}
-      <div className="pt-2">
+      <details className="group rounded-xl border border-slate-200 dark:border-slate-700" open={!drawOnly && count === 0 || undefined}>
+        <summary className="min-h-11 flex items-center justify-between cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300 [&::-webkit-details-marker]:hidden">
+          참여 초대 / 전자칠판
+          <ChevronDown size={14} className="transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="px-4 pb-4">
         {!drawOnly && (
           <>
             <div className="flex justify-center">
@@ -169,7 +174,8 @@ function ActiveRightSidebar({ session, sessionId, count, participants, onlineLis
         {!drawOnly && (
           <p className="text-slate-400 text-xs mt-2 text-center break-all leading-relaxed">{studentUrl}</p>
         )}
-      </div>
+        </div>
+      </details>
     </>
   );
 }
@@ -216,7 +222,7 @@ function ReadOnlyRightSidebar({ session, participants, leaderboard, voteCounts }
           <Leaderboard entries={leaderboard} maxShow={5} title={null} />
         </RightPanelAccordion>
       )}
-      <RightPanelAccordion title="참여자 목록" count={Object.keys(participants).length} defaultOpen>
+      <RightPanelAccordion title="참여자 목록" count={Object.keys(participants).length} defaultOpen={false}>
         <ParticipantList participants={Object.entries(participants).map(([id, data]) => ({ id, ...data }))} voteCounts={voteCounts} />
       </RightPanelAccordion>
     </>

@@ -19,7 +19,7 @@ function TabButton({ active, onClick, icon: Icon, label, count = 0 }) {
       onClick={onClick}
       role="tab"
       aria-selected={active}
-      className={`relative flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-semibold transition-colors duration-150 ${
+      className={`relative flex-1 min-w-0 min-h-11 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-semibold transition-colors duration-150 ${
         active
           ? 'text-slate-900 dark:text-slate-100'
           : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
@@ -77,7 +77,7 @@ export default memo(function InstructorPeopleHub({ onlineList, voteCounts, cours
   const summary = summaryParts.length > 0 ? summaryParts.join(' · ') : emptyLabel;
 
   return (
-    <CollapsibleSection title="인원" summary={summary} defaultOpen>
+    <CollapsibleSection title="인원" summary={summary} defaultOpen={false}>
       {hasStaff && (
         <div role="tablist" aria-label="인원" className="flex items-stretch border-b border-slate-100 dark:border-slate-700">
           <TabButton
