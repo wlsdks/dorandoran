@@ -28,20 +28,15 @@ export function useScores(sessionId) {
     [scores]
   );
 
-  const totalTickets = useMemo(
-    () => leaderboard.reduce((sum, entry) => sum + (entry.tickets || 0), 0),
-    [leaderboard]
-  );
-
   const resetScores = useCallback(async () => {
     if (!sessionId) return;
     // Reset all scores to 0 but keep nicknames
     const resetData = {};
     Object.entries(scores).forEach(([id, data]) => {
-      resetData[id] = { nickname: data.nickname, total: 0, tickets: 0 };
+      resetData[id] = { ...data, nickname: data.nickname, total: 0 };
     });
     await set(ref(db, `sessions/${sessionId}/scores`), resetData);
   }, [sessionId, scores]);
 
-  return { scores, leaderboard, totalTickets, resetScores };
+  return { scores, leaderboard, resetScores };
 }

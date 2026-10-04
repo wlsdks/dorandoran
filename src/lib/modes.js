@@ -1,5 +1,5 @@
 import {
-  Ticket, Grid3x3, Trophy, Coffee, MessageSquare, Award, Eye, UserCircle,
+  Gift, Grid3x3, Trophy, Coffee, MessageSquare, Award, Eye, UserCircle,
   Activity, BarChart3, Timer, Medal, UserPlus, HelpCircle,
 } from 'lucide-react';
 
@@ -13,7 +13,7 @@ import {
  * requiresLeaderboard: 점수가 하나도 없으면 의미가 없어 메뉴에서 감추는 모드.
  */
 export const SPECIAL_MODES = [
-  { mode: 'lottery', label: '추첨', icon: Ticket, group: '게임' },
+  { mode: 'lottery', label: '추첨', icon: Gift, group: '게임' },
   { mode: 'scratchCard', label: '즉석복권', shortLabel: '복권', icon: Grid3x3, group: '게임' },
   { mode: 'randomPicker', label: '발표자 뽑기', shortLabel: '발표자', icon: UserCircle, group: '게임' },
 

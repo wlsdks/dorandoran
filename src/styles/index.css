@@ -102,3 +102,81 @@ input, textarea, select {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 수업 화면: 조작 영역은 흐름에, 전자칠판 내용은 화면 크기에 맞춘다. */
+.presentation-button { display:inline-flex;align-items:center;justify-content:center;gap:.5rem;height:48px;min-width:48px;padding:0 1rem;border-radius:12px;background:#1e293b;color:#f8fafc;border:1px solid #475569;font-weight:600;white-space:nowrap; }
+.presentation-button:hover { background:#334155; }
+.presentation-button:focus-visible { outline:3px solid #a5b4fc;outline-offset:3px; }
+.presentation-footer { position:absolute;left:0;right:0;bottom:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:1rem 1.5rem max(1rem,env(safe-area-inset-bottom));background:#0f172a;border-top:1px solid #334155; }
+.presentation-canvas { padding-top:6rem;padding-bottom:7rem; }
+.presentation-footer button { min-height:48px; }
+.classroom-question-title { font-size:var(--stage-title);line-height:1.17;max-width:36ch;margin-inline:auto;text-wrap:balance; }
+.classroom-option-label { font-size:var(--stage-label);line-height:1.25;overflow-wrap:anywhere; }
+.classroom-option-count { font-size:var(--stage-count); }
+@media (max-width:1100px) {
+ .presentation-footer { justify-content:center;padding:.75rem;gap:.75rem; }
+ .presentation-canvas { padding-bottom:11rem; }
+ .presentation-footer > :first-child { display:none; }
+}
+@media (max-width:640px) {
+ .presentation-canvas { padding-top:5rem;padding-bottom:14rem; }
+ .presentation-footer { font-size:.875rem; }
+ .presentation-footer button { padding-inline:.75rem;font-size:.875rem; }
+}
+.viewport-overlay { top:var(--app-visible-top,0px);height:var(--app-visible-height,100dvh);bottom:auto; }
+.viewport-overlay > [role='dialog'] { max-height:calc(var(--app-visible-height,100dvh) - 2rem); }
+@media (max-width:639px) {
+ .mobile-conversation { top:calc(var(--app-visible-top,0px) + 1rem);bottom:auto;height:calc(var(--app-visible-height,100dvh) - 1rem);max-height:calc(var(--app-visible-height,100dvh) - 1rem); }
+ .mobile-conversation input,.mobile-conversation textarea { font-size:16px;min-width:0; }
+ html[data-keyboard-open='true'] .mobile-learning-tools { display:none; }
+}
+.participation-qr > div { display:block;width:min(100%,calc(46dvh + 24px),444px); }
+.participation-qr svg { width:100%;height:auto; }
+.presentation-button:disabled { opacity:.4;cursor:not-allowed; }
+@media (max-height:850px) and (min-width:768px) {
+ .classroom-result-grid { gap:12px; }
+ .classroom-result-grid > div { padding:12px; }
+}
+/* 큰 글자와 안정된 프레임을 함께 유지한다. 표시 자료를 화면 끝까지 늘리지 않는다. */
+.classroom-stage { --stage-title:clamp(2rem,3vw,3.5rem);--stage-label:clamp(1.5rem,2.1vw,2.5rem);--stage-count:clamp(1.75rem,2.4vw,3rem); }
+.classroom-results { width:min(80vw,1200px,100%);margin-inline:auto; }
+@media (max-height:850px) and (min-width:768px) {
+ .classroom-stage { --stage-title:clamp(2rem,3vw,3rem);--stage-label:clamp(1.5rem,2.1vw,2rem);--stage-count:clamp(1.75rem,2.4vw,2.25rem); }
+}
+@media (max-width:640px) { .classroom-results { width:100%; } }
+.paper-surface { width:min(84vw,1280px);margin-inline:auto;padding:clamp(24px,3vw,44px)!important;background:#dde3ed;border-radius:20px;color:#17203c;box-shadow:0 20px 60px rgb(2 6 23 / .16); }
+.paper-surface .classroom-question-title { color:#17203c;font-size:clamp(28px,2.8vw,44px);font-weight:700;letter-spacing:-.035em; }
+.paper-surface .classroom-results { width:100%; }
+.paper-surface .classroom-result-grid { gap:24px; }
+.paper-surface .classroom-option-card { border:0;border-radius:12px;background:transparent!important;color:#1e293b;padding:16px 8px; }
+.paper-surface .classroom-option-card[data-correct='true'] { background:#e8eaff!important;box-shadow:inset 3px 0 0 #6366f1;padding-inline:20px; }
+.paper-surface .classroom-option-label { color:#24304a;font-size:clamp(22px,2.1vw,32px);font-weight:600; }
+.paper-surface .classroom-option-statistics { color:#24304a; }
+.paper-surface .classroom-option-statistics p { color:#66728c; }
+.paper-surface .classroom-option-card > div:last-child { height:10px;background:#e4e8f2; }
+.paper-surface .wordcloud-token { color:#4338ca; }
+.paper-surface .text-slate-200,.paper-surface .text-slate-300 { color:#526079; }
+.poll-columns { width:100%; }
+.poll-columns-plot { display:grid;gap:clamp(20px,3vw,56px);align-items:end;padding:0 clamp(0px,2vw,24px); }
+.poll-column { min-width:0; }
+.poll-column-bar-area { height:clamp(200px,31dvh,340px);display:flex;flex-direction:column;justify-content:flex-end;position:relative;border-bottom:1px solid #d9dfec; }
+.poll-column-value { display:flex;align-items:baseline;justify-content:center;gap:10px;font-size:clamp(28px,3vw,44px);font-weight:650;letter-spacing:-.035em;color:#334155;margin-bottom:12px;z-index:1; }
+.poll-column-value > span:last-child { font-size:clamp(14px,1.4vw,20px);font-weight:500;letter-spacing:0;color:#64748b; }
+.poll-column-bar { height:calc(100% - 64px);width:100%;transform-origin:bottom;border-radius:14px 14px 2px 2px; }
+.poll-column-label { min-height:3.3em;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;text-align:center;padding-top:16px;font-size:clamp(22px,2.1vw,32px);font-weight:600;line-height:1.25;color:#334155;overflow-wrap:anywhere; }
+.poll-correct-chip { display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:7px;background:#4338ca;color:white;font-size:16px;line-height:1; }
+.poll-waiting-note { text-align:center;font-size:clamp(16px,1.6vw,22px);color:#64748b;margin-top:12px; }
+@media(max-width:640px) { .paper-surface { width:100%;padding:20px!important;border-radius:16px; }.poll-columns-plot { gap:16px;padding:0; }.poll-column-bar-area { height:200px; } }
+@media(max-height:850px) and (min-width:768px) { .paper-surface { padding:24px!important; }.poll-column-bar-area { height:clamp(180px,28dvh,250px); } }
+.poll-column-value { position:absolute;left:0;right:0;margin-bottom:0; }
+.poll-column-bar { position:absolute;bottom:0;left:0;right:0; }
+.paper-surface .classroom-results-footer { color:#66728c; }
+.poll-columns { position:relative; }
+.poll-waiting-note { position:absolute;left:0;right:0;top:28%;display:flex;align-items:center;justify-content:center;gap:12px;margin:0; }
+.poll-waiting-note p { text-align:left;font-weight:600;line-height:1.45; }
+.poll-waiting-note span { display:block;font-size:.8em;font-weight:400; }
+
+/* 밝은 면의 휘도와 주변 대비를 함께 낮춘 전자칠판 톤. */
+.classroom-stage { background:#253249; }
+.poll-columns[data-empty='true'] .poll-column-bar-area { height:clamp(130px,19dvh,200px); }
+.paper-surface .poll-waiting-note { color:#526079; }

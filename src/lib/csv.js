@@ -160,11 +160,11 @@ export function exportQuestionSummary(session, participants, filename) {
 /**
  * Exports per-participant response CSV.
  *
- * Columns: 닉네임, [Q1 title], [Q2 title], ..., 총점, 티켓
+ * Columns: 닉네임, [Q1 title], [Q2 title], ..., 총점
  *
  * @param {object} session
  * @param {object} participants - { pid: { nickname, ... } }
- * @param {object} scores - { pid: { total, tickets, nickname } }
+ * @param {object} scores - { pid: { total, nickname } }
  * @param {string} filename
  */
 export function exportParticipantResponses(session, participants, scores, filename) {
@@ -179,7 +179,7 @@ export function exportParticipantResponses(session, participants, scores, filena
     header.push(`Q${i + 1}. ${q.data.title || ''}`);
   });
   if (hasScores) {
-    header.push('총점', '티켓');
+    header.push('총점');
   }
 
   const rows = [header];
@@ -214,7 +214,7 @@ export function exportParticipantResponses(session, participants, scores, filena
 
     if (hasScores) {
       const s = scores[pid];
-      row.push(s?.total ?? 0, s?.tickets ?? 0);
+      row.push(s?.total ?? 0);
     }
 
     rows.push(row);

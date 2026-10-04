@@ -7,20 +7,25 @@
  */
 
 let audioCtx = null;
-let resumePromise = null;
 
-async function getAudioContext() {
-  // 실시간 데이터 도착은 사용자 조작이 아니다. 관객의 첫 조작까지 음성을 준비하지 않는다.
+function contextAfterInteraction() {
   if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return null;
-  if (!audioCtx || audioCtx.state === 'closed') {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === 'suspended') {
-    if (!resumePromise) resumePromise = audioCtx.resume().catch(() => {}).finally(() => { resumePromise = null; });
-    await resumePromise;
-  }
-  // 재생이 허용되기 전에 oscillator를 쌓으면 다음 조작 때 과거 알림이 한꺼번에 재생된다.
-  return audioCtx.state === 'running' ? audioCtx : null;
+  if (!audioCtx || audioCtx.state === 'closed') audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+export function unlockNotificationAudio() {
+  if (localStorage.getItem('dorandoran_sound_muted') === 'true') return;
+  try {
+    const ctx = contextAfterInteraction();
+    if (ctx?.state === 'suspended') ctx.resume().catch(() => {});
+  } catch { /* 오디오는 수업 참여의 필수 조건이 아니다. */ }
+}
+
+function getAudioContext() {
+  // 데이터 도착 때 재개를 기다리면 과거 알림이 다음 조작에 한꺼번에 들릴 수 있다.
+  const ctx = contextAfterInteraction();
+  return ctx?.state === 'running' ? ctx : null;
 }
 
 /**
@@ -134,3 +139,5 @@ export async function playIncorrect() {
   } catch { /* */ }
 }
 
+
+export { getAudioContext as prepareNotificationAudio };

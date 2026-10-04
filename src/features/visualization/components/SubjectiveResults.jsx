@@ -1,11 +1,12 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useMemo, useEffect, useRef, memo } from 'react';
-import { ref, onValue, set, update, increment, runTransaction, serverTimestamp } from 'firebase/database';
+import { ref, onValue, set, update,   serverTimestamp } from 'firebase/database';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2, Users, X, Star } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { useVotes } from '@/hooks/useVotes';
-import { gradeSubjective, isGradingReady } from '@/features/questions/api/gradeSubjective';
+import { gradeSubjective } from '@/features/questions/api/gradeSubjective';
 import Badge from '@/components/ui/Badge';
 import { TYPE_LABELS } from '@/lib/question-types';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
@@ -48,7 +49,7 @@ function DetailModal({ item, grade, onClose, isAdmin, isSpotlit, onSpotlight }) 
             {grade.feedback && <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{grade.feedback}</p>}
           </div>
         )}
-        {/* 우수 답변 스포트라이트 — 전자칠판에 크게 + 최초 1회 티켓 +3 */}
+        {/* 우수 답변 스포트라이트 — 전자칠판에 크게 + 선택한 답변 강조 */}
         {isAdmin && (
           <button
             onClick={() => onSpotlight(item)}
@@ -59,7 +60,7 @@ function DetailModal({ item, grade, onClose, isAdmin, isSpotlit, onSpotlight }) 
             }`}
           >
             <Star size={15} fill={isSpotlit ? 'none' : 'currentColor'} />
-            {isSpotlit ? '스포트라이트 내리기' : '전자칠판에 스포트라이트 (+티켓 3장)'}
+            {isSpotlit ? '스포트라이트 내리기' : '전자칠판에 강조하기'}
           </button>
         )}
       </motion.div>
@@ -71,6 +72,7 @@ function DetailModal({ item, grade, onClose, isAdmin, isSpotlit, onSpotlight }) 
 const wallLimitFor = (vh) => (vh >= 1040 ? 18 : vh >= 920 ? 15 : 12);
 
 export default memo(function SubjectiveResults({ sessionId, questionId, question, isAdmin }) {
+  const { available, reason } = useAIAvailability();
   const { voteList } = useVotes(sessionId, questionId);
   const [selected, setSelected] = useState(null);
   // 더보기 확장을 question.wallExpanded로 동기화 — 발표모드에서 누르면 전자칠판도 함께 확장/접힘
@@ -167,25 +169,13 @@ export default memo(function SubjectiveResults({ sessionId, questionId, question
       await update(qRef, { spotlight: null }).catch(() => {});
     } else {
       await update(qRef, { spotlight: { voteId: vote.id, pid: vote.id, nickname: vote.nickname || '익명', value: vote.value, at: Date.now() } }).catch(() => {});
-      // 보상 선점을 트랜잭션으로 — 두 강사 화면이 동시에 같은 답변을 픽해도 +3은 1회만
-      try {
-        const claim = await runTransaction(
-          ref(db, `sessions/${sessionId}/questions/${questionId}/spotlightAwarded/${vote.id}`),
-          (cur) => (cur ? undefined : true)
-        );
-        if (claim.committed) {
-          // total: increment(0) — 스코어 노드가 없던 학생도 rules validate(nickname+total 필수) 통과
-          await update(ref(db, `sessions/${sessionId}/scores/${vote.id}`), {
-            tickets: increment(3), total: increment(0), nickname: vote.nickname || '익명',
-          });
-        }
-      } catch { /* 선점 실패(이미 지급) — 무시 */ }
+
     }
     setSelected(null);
   };
 
   const gradedCount = Object.keys(grades).length;
-  const canGrade = isAdmin && isGradingReady() && modelAnswer && sorted.length > 0 && !loading;
+  const canGrade = isAdmin && available && modelAnswer && sorted.length > 0 && !loading;
 
   async function handleGrade() {
     if (!canGrade) return;
@@ -224,7 +214,7 @@ export default memo(function SubjectiveResults({ sessionId, questionId, question
               {gradedCount > 0 && <span>· {gradedCount}명 채점됨</span>}
             </div>
           </div>
-          {isAdmin && isGradingReady() && (
+          {isAdmin && (
             <button
               onClick={handleGrade}
               disabled={!canGrade}
@@ -240,6 +230,7 @@ export default memo(function SubjectiveResults({ sessionId, questionId, question
           )}
         </div>
 
+        {isAdmin && !available && <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">{reason}</p>}
         {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
 
         <div className="relative">
@@ -257,7 +248,6 @@ export default memo(function SubjectiveResults({ sessionId, questionId, question
               >
                 <div className="flex items-center gap-2 mb-3">
                   <span className="flex items-center gap-1.5 text-amber-500 text-sm font-bold"><Star size={16} fill="currentColor" />우수 답변</span>
-                  <span className="text-xs font-semibold text-slate-400">티켓 +3</span>
                   {isAdmin && (
                     <button onClick={() => toggleSpotlight({ id: spotlight.voteId, nickname: spotlight.nickname, value: spotlight.value })}
                       className="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" aria-label="스포트라이트 내리기">

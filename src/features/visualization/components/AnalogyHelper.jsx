@@ -1,19 +1,20 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lightbulb, Loader2, AlertCircle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
-import { generateAnalogies, isAnalogyReady } from '@/features/questions/api/generateAnalogies';
+import { generateAnalogies } from '@/features/questions/api/generateAnalogies';
 
 export default function AnalogyHelper({ questionTitle, options, correctAnswer }) {
+  const { available, reason } = useAIAvailability();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState({ 0: true, 1: false, 2: false });
 
-  if (!isAnalogyReady()) return null;
   if (!questionTitle) return null;
 
   async function handleGenerate() {
-    if (loading) return;
+    if (!available || loading) return;
     setLoading(true);
     setError('');
     try {
@@ -40,13 +41,13 @@ export default function AnalogyHelper({ questionTitle, options, correctAnswer })
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">AI 설명 비유</p>
-            <p className="text-[11px] text-slate-400">어려운 개념을 설명할 때 참고할 비유·예시</p>
+            <p className="text-[11px] text-slate-400">{available ? '어려운 개념을 설명할 때 참고할 비유·예시' : reason}</p>
           </div>
           <button
             onClick={handleGenerate}
-            disabled={loading}
+            disabled={loading || !available}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
-              loading
+              loading || !available
                 ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
                 : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200'
             }`}

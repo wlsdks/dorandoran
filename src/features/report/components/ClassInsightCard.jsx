@@ -1,7 +1,8 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2, AlertCircle, TrendingUp, Target, Info, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
-import { generateClassInsight, isInsightReady } from '@/features/report/api/generateClassInsight';
+import { generateClassInsight } from '@/features/report/api/generateClassInsight';
 
 // 심각도별 — 배경 통일(slate), 강조는 텍스트 색상으로 (§1)
 const SEVERITY_STYLES = {
@@ -11,17 +12,17 @@ const SEVERITY_STYLES = {
 };
 
 export default function ClassInsightCard({ session, participantCount, insights, topStudent, avgCorrectRate, activityRate }) {
+  const { available, reason } = useAIAvailability();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [findingsOpen, setFindingsOpen] = useState(false);
   const [patternOpen, setPatternOpen] = useState(false);
 
-  if (!isInsightReady()) return null;
   if (!insights || insights.length < 2 || participantCount < 3) return null;
 
   async function handleGenerate() {
-    if (loading) return;
+    if (!available || loading) return;
     setLoading(true);
     setError('');
     try {
@@ -44,13 +45,13 @@ export default function ClassInsightCard({ session, participantCount, insights, 
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[14px] font-bold text-slate-900 dark:text-slate-100">AI 수업 인사이트</p>
-          <p className="text-[12px] text-slate-400">오늘 데이터로 다음 수업 개선점 추천</p>
+          <p className="text-[12px] text-slate-400">{available ? '오늘 데이터로 다음 수업 개선점 추천' : reason}</p>
         </div>
         <button
           onClick={handleGenerate}
-          disabled={loading}
+          disabled={loading || !available}
           className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all ${
-            loading
+            loading || !available
               ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
               : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200'
           }`}

@@ -52,8 +52,6 @@ export function buildQuestionData(type, fields = {}) {
   }
   if (type === 'quiz') {
     data.points = points || QUIZ_DEFAULTS.points;
-    data.participationTickets = QUIZ_DEFAULTS.participationTickets;
-    data.correctBonusTickets = QUIZ_DEFAULTS.correctBonusTickets;
     data.speedWindowMs = QUIZ_DEFAULTS.speedWindowMs;
     data.maxSpeedBonus = QUIZ_DEFAULTS.maxSpeedBonus;
     if (event) data.event = event;
@@ -75,8 +73,7 @@ export function buildQuestionData(type, fields = {}) {
  * (base 필드 type/title/order/votes 등은 제외 — 답변·메타 보존)
  */
 export const QUESTION_TYPE_FIELDS = [
-  'options', 'correctAnswer', 'points', 'participationTickets', 'correctBonusTickets',
-  'speedWindowMs', 'maxSpeedBonus', 'event', 'betting', 'hints', 'revealedHints',
+  'speedWindowMs', 'maxSpeedBonus', 'event', 'betting', 'options', 'correctAnswer', 'points', 'hints', 'revealedHints',
   'mysteryItems', 'answerReasons', 'acceptableAnswers', 'winners', 'slideImages',
   'imageUrl', 'hideTitle', 'modelAnswer', 'embedUrl',
 ];

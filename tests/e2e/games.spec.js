@@ -51,7 +51,6 @@ async function seedScores(sid, count = 6) {
     updates[`p${i}`] = {
       nickname: names[i],
       total: (count - i) * 100,
-      tickets: (count - i) * 2,
       streak: Math.max(0, count - i - 1),
     };
   }

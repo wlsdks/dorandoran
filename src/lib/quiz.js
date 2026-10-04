@@ -4,8 +4,6 @@ export const QUIZ_DEFAULTS = {
   points: 100,
   maxSpeedBonus: 50,
   speedWindowMs: 30000,
-  participationTickets: 1,
-  correctBonusTickets: 2,
 };
 
 export const QUIZ_EVENT_PRESETS = [
@@ -15,19 +13,7 @@ export const QUIZ_EVENT_PRESETS = [
     description: '다음 퀴즈의 정답 점수가 2배로 적용됩니다.',
     pointMultiplier: 2,
   },
-  {
-    id: 'ticket-rush',
-    label: '티켓 러시',
-    description: '다음 퀴즈의 정답자에게 추가 티켓 2장을 지급합니다.',
-    correctBonusTickets: 2,
-  },
-  {
-    id: 'jackpot',
-    label: '잭팟 라운드',
-    description: '다음 퀴즈에 2배 점수와 추가 티켓 2장을 함께 적용합니다.',
-    pointMultiplier: 2,
-    correctBonusTickets: 2,
-  },
+
 ];
 
 const QUIZ_EVENT_MAP = Object.fromEntries(
@@ -79,10 +65,7 @@ export function normalizeQuizEvent(event) {
   if (typeof event === 'string') return getQuizEventPreset(event);
 
   const preset = event.id ? getQuizEventPreset(event.id) : null;
-  return {
-    ...(preset || {}),
-    ...event,
-  };
+  return preset ? { ...preset, pointMultiplier: Number(event.pointMultiplier) > 1 ? Number(event.pointMultiplier) : preset.pointMultiplier } : null;
 }
 
 export function getQuizEventBadges(event) {
@@ -95,13 +78,6 @@ export function getQuizEventBadges(event) {
     badges.push(`${normalized.pointMultiplier}배 점수`);
   }
 
-  if ((normalized.correctBonusTickets || 0) > 0) {
-    badges.push(`정답 +${normalized.correctBonusTickets} 티켓`);
-  }
-
-  if ((normalized.participationBonusTickets || 0) > 0) {
-    badges.push(`참여 +${normalized.participationBonusTickets} 티켓`);
-  }
 
   return badges;
 }
@@ -119,10 +95,6 @@ export const BET_OPTIONS = [
 export function getQuizReward(question, vote) {
   const isCorrect = typeof question?.correctAnswer === 'string' && question.correctAnswer.length > 0 && vote?.value === question.correctAnswer;
   const event = normalizeQuizEvent(question?.event);
-  const participationTickets = (question?.participationTickets ?? QUIZ_DEFAULTS.participationTickets)
-    + (event?.participationBonusTickets || 0);
-  const correctBonusTickets = (question?.correctBonusTickets ?? QUIZ_DEFAULTS.correctBonusTickets)
-    + (event?.correctBonusTickets || 0);
 
   // Betting multiplier (1x/2x/3x) — only active when question has betting enabled
   const betEnabled = question?.betting === true;
@@ -134,7 +106,6 @@ export function getQuizReward(question, vote) {
     return {
       isCorrect: false,
       points: betEnabled ? -betOption.penalty : 0,
-      tickets: vote ? participationTickets : 0,
       bet: betMultiplier,
     };
   }
@@ -153,7 +124,6 @@ export function getQuizReward(question, vote) {
   return {
     isCorrect: true,
     points: Math.round(totalPoints * pointMultiplier * betMultiplier),
-    tickets: participationTickets + correctBonusTickets,
     bet: betMultiplier,
   };
 }

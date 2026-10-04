@@ -28,5 +28,5 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:integration

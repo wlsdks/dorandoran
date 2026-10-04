@@ -6,8 +6,8 @@ import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname, getLastSeen, saveLastSeen } from '@/lib/participant';
 import { useMyHandRaise } from '@/features/hand-raise/api/useHandRaises';
 import { useStudentDM } from '@/features/dm/api/useStudentDM';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Hand, MessageCircle, MessageSquare, HelpCircle, Headset, Send } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Hand, MessageCircle, MessageSquare, HelpCircle, Headset, Send, MoreHorizontal, Smile, X, ChevronDown } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import ReactionBar from '@/features/reactions/components/ReactionBar';
@@ -26,6 +26,8 @@ const BTN_DEFAULT = `${BTN_BASE} bg-slate-50 text-slate-600 hover:bg-slate-100 a
 const BTN_ACTIVE = `${BTN_BASE} bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900`;
 
 export default memo(function StudentBottomBar({ sessionId }) {
+  const [showMore, setShowMore] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
   const [showQuestionInput, setShowQuestionInput] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showQA, setShowQA] = useState(false);
@@ -169,106 +171,51 @@ export default memo(function StudentBottomBar({ sessionId }) {
         onOpenDM={() => { setStaffReplied(null); setShowDMChat(true); }}
       />
 
-      <motion.div
-        initial={{ y: 80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.1 }}
-        role="toolbar"
-        aria-label="참여 도구"
-        className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200/70 dark:border-slate-700/50 z-30 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
-      >
-        <div className="max-w-[620px] mx-auto px-5 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
-          <div className="mb-2">
-            <ReactionBar sessionId={sessionId} bubbleSessionId={sessionId} />
+      <Modal open={showMore} onClose={() => setShowMore(false)} ariaLabel="참여 도구 더보기">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">참여 도구</h2>
+            <button type="button" onClick={() => setShowMore(false)} aria-label="더보기 닫기" className="h-12 w-12 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"><X size={20} /></button>
           </div>
-          <div>
-            <div className="grid grid-cols-5 gap-2">
+          <button type="button" onClick={() => { setShowMore(false); setShowChat(true); setHasUnread(false); }} className="w-full min-h-16 flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-left">
+            <MessageSquare size={24} className="shrink-0 text-slate-600 dark:text-slate-300" />
+            <span className="flex-1"><span className="block font-semibold text-slate-900 dark:text-slate-100">채팅 {hasUnread && <span className="text-indigo-500 text-sm">새 메시지</span>}</span><span className="block text-sm text-slate-500 dark:text-slate-300">강사와 학습자 모두에게 보내요</span></span>
+          </button>
+          <button type="button" onClick={() => { setShowMore(false); setShowDMChat(true); setDmLastSeen(totalDMMessages); saveLastSeen(sessionId, 'dm', totalDMMessages); }} className="w-full min-h-16 flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-left">
+            <Headset size={24} className="shrink-0 text-slate-600 dark:text-slate-300" />
+            <span className="flex-1"><span className="block font-semibold text-slate-900 dark:text-slate-100">1:1 도움 {dmUnread > 0 && <span className="text-indigo-500 text-sm">새 답변</span>}</span><span className="block text-sm text-slate-500 dark:text-slate-300">스태프에게 개인적으로 도움을 받아요</span></span>
+          </button>
+          <button type="button" onClick={() => { setShowMore(false); setShowQuestionInput(true); }} className="w-full min-h-16 flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-left">
+            <MessageCircle size={24} className="shrink-0 text-slate-600 dark:text-slate-300" />
+            <span className="flex-1"><span className="block font-semibold text-slate-900 dark:text-slate-100">긴급 질문</span><span className="block text-sm text-slate-500 dark:text-slate-300">수업 중 바로 확인이 필요할 때 보내요</span></span>
+          </button>
+          <button type="button" onClick={() => setShowReactions(value => !value)} aria-expanded={showReactions} aria-controls="student-reaction-tools" className="w-full min-h-14 flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-left font-semibold text-slate-900 dark:text-slate-100">
+            <Smile size={24} className="shrink-0 text-slate-600 dark:text-slate-300" /><span className="flex-1">반응 보내기</span><ChevronDown size={18} className={showReactions ? 'rotate-180' : ''} />
+          </button>
+          {showReactions && <div id="student-reaction-tools" className="pt-1 [&>div>div:last-child]:flex-wrap"><ReactionBar sessionId={sessionId} bubbleSessionId={sessionId} /></div>}
+        </div>
+      </Modal>
 
-              {/* 손들기 — raised state has pulsing ring + waving icon */}
-              <motion.button
-                whileTap={{ scale: 0.93 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                onClick={toggleHand}
-                aria-pressed={isRaised}
-                aria-label={isRaised ? '손 내리기' : '손들기'}
-                className={isRaised ? BTN_ACTIVE : BTN_DEFAULT}
-              >
-                {/* 든 상태 표시는 BTN_ACTIVE 색으로 충분 — 무한 pulse ring은 산만해 제거,
-                    손 흔들기 모션은 드는 순간 1회만 */}
-                <motion.div
-                  animate={isRaised
-                    ? { rotate: [0, -18, 14, -10, 8, 0], y: [0, -2, 0] }
-                    : { rotate: 0, y: 0 }}
-                  transition={isRaised
-                    ? { duration: 0.7, ease: 'easeInOut' }
-                    : { type: 'spring', stiffness: 300, damping: 25 }}
-                >
-                  <Hand size={22} />
-                </motion.div>
-                <span className="text-xs max-[380px]:hidden">{isRaised ? '내리기' : '손들기'}</span>
-              </motion.button>
-
-              {/* 긴급 질문 */}
-              <motion.button
-                whileTap={{ scale: 0.93 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                onClick={() => setShowQuestionInput(true)}
-                aria-label="강사에게 긴급 질문 보내기"
-                className={BTN_DEFAULT}
-              >
-                <MessageCircle size={22} />
-                <span className="text-xs max-[380px]:hidden">긴급질문</span>
-              </motion.button>
-
-              {/* 수업 질문 */}
-              <motion.button
-                whileTap={{ scale: 0.93 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                onClick={() => { setShowQA(true); setHasNewQuestion(false); }}
-                aria-label="수업 질문"
-                className={BTN_DEFAULT}
-              >
-                <HelpCircle size={22} />
-                <span className="text-xs max-[380px]:hidden">질문</span>
-                {hasNewQuestion && <span className={`${UNREAD_DOT} bg-red-500`} />}
-              </motion.button>
-
-              {/* 채팅 */}
-              <motion.button
-                whileTap={{ scale: 0.93 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                onClick={() => { setShowChat(true); setHasUnread(false); }}
-                aria-label="채팅 열기"
-                className={BTN_DEFAULT}
-              >
-                <MessageSquare size={22} />
-                <span className="text-xs max-[380px]:hidden">채팅</span>
-                {hasUnread && <span className={`${UNREAD_DOT} bg-red-500`} />}
-              </motion.button>
-
-              {/* 도움 요청 */}
-              <motion.button
-                whileTap={{ scale: 0.93 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                onClick={() => {
-                  setShowDMChat(true);
-                  setDmLastSeen(totalDMMessages);
-                  saveLastSeen(sessionId, 'dm', totalDMMessages);
-                }}
-                aria-label="도움 요청"
-                className={`${BTN_DEFAULT} ${allActiveDMs.length > 0 && dmUnread === 0 ? 'text-emerald-600 dark:text-emerald-400' : ''}`}
-              >
-                <Headset size={22} />
-                <span className="text-xs max-[380px]:hidden">도움</span>
-                {dmUnread > 0 && (
-                  <span className={`${UNREAD_DOT} bg-red-500`} />
-                )}
-                {allActiveDMs.length > 0 && dmUnread === 0 && (
-                  <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
-                )}
-              </motion.button>
-
-            </div>
+      <motion.div
+        initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        role="toolbar" aria-label="참여 도구"
+        className="mobile-learning-tools fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200/70 dark:border-slate-700/50 z-30 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
+      >
+        <div className="max-w-[620px] mx-auto px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+          <div className="grid grid-cols-3 gap-2">
+            <motion.button whileTap={{ scale: 0.96 }} onClick={toggleHand} aria-pressed={isRaised} aria-label={isRaised ? '손 내리기' : '손들기'} className={isRaised ? BTN_ACTIVE : BTN_DEFAULT}>
+              <motion.div animate={isRaised ? { rotate: [0, -18, 14, -10, 8, 0] } : { rotate: 0 }} transition={{ duration: 0.7, ease: 'easeInOut' }}><Hand size={22} /></motion.div>
+              <span className="text-sm">{isRaised ? '손 내리기' : '손들기'}</span>
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.96 }} onClick={() => { setShowQA(true); setHasNewQuestion(false); }} aria-label="수업 질문" className={BTN_DEFAULT}>
+              <HelpCircle size={22} /><span className="text-sm">질문</span>
+              {hasNewQuestion && <span className={`${UNREAD_DOT} bg-red-500`} />}
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.96 }} onClick={() => setShowMore(true)} aria-label="참여 도구 더보기" aria-haspopup="dialog" className={BTN_DEFAULT}>
+              <MoreHorizontal size={22} /><span className="text-sm">더보기</span>
+              {(hasUnread || dmUnread > 0) && <span className={`${UNREAD_DOT} bg-red-500`} />}
+            </motion.button>
           </div>
         </div>
       </motion.div>

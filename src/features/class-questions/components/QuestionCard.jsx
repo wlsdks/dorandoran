@@ -1,10 +1,14 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThumbsUp, MessageSquare, Send, ChevronDown, ChevronUp, Check, EyeOff, Eye, ShieldAlert, Sparkles } from 'lucide-react';
 import { timeAgo } from '@/lib/utils';
 import AnswerItem from './AnswerItem';
 
-export default function QuestionCard({ question: q, index, pid, nickname, role, isAdmin, onUpvote, onPostAnswer, onAnswerUpvote, onToggleHidden }) {
+export default function QuestionCard({ question: originalQuestion, index, pid, nickname, role, isAdmin, onUpvote, onPostAnswer, onAnswerUpvote, onToggleHidden }) {
+  const { available } = useAIAvailability();
+  const readonly = role === 'viewer';
+  const q = !available && !isAdmin ? { ...originalQuestion, answerList: (originalQuestion.answerList || []).filter(answer => answer.role !== 'ai'), answeredByRole: originalQuestion.answeredByRole === 'ai' ? null : originalQuestion.answeredByRole, aiAllowed: false } : originalQuestion;
   const [expanded, setExpanded] = useState(false);
   const [answerText, setAnswerText] = useState('');
   const [posting, setPosting] = useState(false);
@@ -32,7 +36,7 @@ export default function QuestionCard({ question: q, index, pid, nickname, role, 
   }
 
   async function handlePostAnswer() {
-    if (!answerText.trim() || posting) return;
+    if (readonly || !answerText.trim() || posting) return;
     setPosting(true);
     const success = await onPostAnswer(q.id, answerText.trim(), nickname, pid, role);
     if (success) setAnswerText('');
@@ -107,7 +111,7 @@ export default function QuestionCard({ question: q, index, pid, nickname, role, 
         {/* Actions row */}
         <div className="flex items-center gap-4 pt-0.5">
           <button
-            onClick={() => onUpvote(q.id, pid)}
+            disabled={readonly} onClick={() => onUpvote(q.id, pid)}
             className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-150 ${
               hasUpvoted
                 ? 'text-slate-900 dark:text-slate-100'
@@ -145,12 +149,12 @@ export default function QuestionCard({ question: q, index, pid, nickname, role, 
               )}
               {q.answerList.length > 0 ? (
                 q.answerList.map((a) => (
-                  <AnswerItem key={a.id} answer={a} questionId={q.id} pid={pid} onUpvote={onAnswerUpvote} />
+                  <AnswerItem key={a.id} answer={a} questionId={q.id} pid={pid} onUpvote={readonly ? undefined : onAnswerUpvote} />
                 ))
               ) : (
                 <p className="text-xs text-slate-400 text-center py-2">아직 답변이 없습니다</p>
               )}
-              <div className="flex gap-2 pt-1">
+              {!readonly && <div className="flex gap-2 pt-1">
                 <input
                   type="text"
                   value={answerText}
@@ -168,7 +172,7 @@ export default function QuestionCard({ question: q, index, pid, nickname, role, 
                 >
                   <Send size={14} />
                 </button>
-              </div>
+              </div>}
             </div>
           </motion.div>
         )}

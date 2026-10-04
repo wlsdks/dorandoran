@@ -1,18 +1,20 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2, BookOpen, Target, RefreshCw, AlertCircle } from 'lucide-react';
-import { generateLearningReport, isReportReady } from '@/features/report/api/generateLearningReport';
+import { generateLearningReport } from '@/features/report/api/generateLearningReport';
 
 export default function LearningReportCard({ stats }) {
+  const { studentFeaturesAvailable } = useAIAvailability();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
-  if (!isReportReady()) return null;
+  if (!studentFeaturesAvailable) return null;
   if (!stats || (stats.answeredCount || 0) < 2) return null;
 
   async function handleGenerate() {
-    if (loading) return;
+    if (!studentFeaturesAvailable || loading) return;
     setLoading(true);
     setError('');
     try {

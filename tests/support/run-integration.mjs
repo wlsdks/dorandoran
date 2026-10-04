@@ -23,4 +23,5 @@ try {
   await run('node', ['tests/support/presentation-qa.cjs']);
   await run('node', ['tests/support/student-qa.cjs']);
   await run('node', ['tests/support/audio-qa.cjs']);
+  await run('node', ['tests/support/classroom-ui-qa.cjs']);
 } finally { for (const child of children) if (child.exitCode === null) child.kill('SIGTERM'); }

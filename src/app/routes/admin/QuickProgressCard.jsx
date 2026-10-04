@@ -64,16 +64,16 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry || speedQuizActive}
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
-        {nextEvent && <PartyPopper size={16} className="sm:w-3.5 sm:h-3.5" />}
-        첫 질문 시작
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
+        {nextEvent && <PartyPopper size={20} />}
+        첫 활동 시작
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -82,55 +82,55 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={() => onReveal?.(currentEntry[0])} variant="primary" size="md"
         disabled={speedQuizActive}
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Check size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Check size={20} />
         정답 공개
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled={speedQuizActive}
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
   } else if (quizRevealed) {
     /* Quiz revealed — show leaderboard or next */
     primaryBtn = (
-      <Button onClick={onShowLeaderboard} variant="primary" size="md"
+      <Button onClick={onShowLeaderboard} variant="secondary" size="md"
         disabled={speedQuizActive}
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Trophy size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Trophy size={20} />
         리더보드
       </Button>
     );
     secondaryBtn = (
-      <Button onClick={handleActivateNext} variant="secondary" size="md"
+      <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry || speedQuizActive}
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
-        다음 질문
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
+        다음 활동
       </Button>
     );
   } else if (mhUnrevealed) {
     /* Mystery Box / Hint Quiz — waiting for reveal */
     primaryBtn = (
       <Button onClick={() => onRevealAnswer?.(currentEntry[0])} variant="primary" size="md"
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Eye size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Eye size={20} />
         정답 공개
       </Button>
     );
     secondaryBtn = canRevealHint ? (
       <Button onClick={() => onRevealHint?.(currentEntry[0])} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <ChevronRight size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <ChevronRight size={20} />
         힌트 공개 ({currentQ.revealedHints || 0}/{(currentQ.hints || []).length})
       </Button>
     ) : (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -139,15 +139,15 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry}
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
-        다음 질문
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
+        다음 활동
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -155,15 +155,15 @@ export default memo(function QuickProgressCard({
     /* 정답형 질문 (choice, ox, fillinblank, ranking) — reveal */
     primaryBtn = (
       <Button onClick={() => onRevealAnswer?.(currentEntry[0])} variant="primary" size="md"
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Eye size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Eye size={20} />
         정답 공개
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -172,15 +172,15 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry}
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
-        다음 질문
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
+        다음 활동
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -189,16 +189,16 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry || speedQuizActive}
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
-        다음 질문
-        {nextEvent && <PartyPopper size={16} className="sm:w-3.5 sm:h-3.5" />}
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
+        다음 활동
+        {nextEvent && <PartyPopper size={20} />}
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled={speedQuizActive}
-        className="min-h-[52px] sm:min-h-0 sm:py-1.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -207,10 +207,10 @@ export default memo(function QuickProgressCard({
   return (
     <div className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 space-y-4">
       <div className="space-y-1.5">
-        <p className="text-slate-400 dark:text-slate-500 text-sm font-semibold tracking-tight">빠른 진행</p>
+        <p className="text-slate-400 dark:text-slate-500 text-sm font-semibold tracking-tight">지금 수업</p>
         <p className="text-slate-900 dark:text-slate-100 text-base font-semibold">
           {currentEntry
-            ? `${activeIndex + 1}/${questionList.length}번째 질문 진행 중`
+            ? `${activeIndex + 1}/${questionList.length}번째 활동 진행 중`
             : `질문 ${questionList.length}개 준비됨`}
         </p>
         <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed line-clamp-2">
@@ -236,16 +236,60 @@ export default memo(function QuickProgressCard({
         )}
       </div>
 
+      {/* 이미지 슬라이드 이동 — 발표모드에 안 들어가도 대시보드에서 넘길 수 있게 */}
+      {currentQ?.type === 'imageSlide' && (currentQ.slideImages?.length || 0) > 0 && (() => {
+        const cur = currentQ.currentSlide || 0;
+        const total = currentQ.slideImages.length;
+        return (
+          <div className="flex items-center gap-2">
+            <Button onClick={() => onSlide?.(currentEntry[0], cur - 1)} variant="secondary" size="sm"
+              disabled={cur <= 0 || speedQuizActive} className="flex-1 h-12">
+              <ChevronLeft size={14} /> 이전
+            </Button>
+            <span className="text-xs font-medium tabular-nums text-slate-500 dark:text-slate-400 shrink-0 px-1">
+              {cur + 1} / {total}
+            </span>
+            <Button onClick={() => cur >= total - 1 ? handleActivateNext() : onSlide?.(currentEntry[0], cur + 1)} variant="primary" size="sm"
+              disabled={speedQuizActive || (cur >= total - 1 && !nextEntry)} className="flex-1 h-12">
+              {cur >= total - 1 ? '다음 활동' : '다음 슬라이드'} <ChevronRight size={14} />
+            </Button>
+          </div>
+        );
+      })()}
+
+      {/* Context-aware CTA buttons — taller touch targets on mobile */}
+      <div className={`grid ${currentQ?.type === 'imageSlide' ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+        {currentQ?.type === 'imageSlide' ? null : quizRevealed ? secondaryBtn : primaryBtn}
+        {quizRevealed ? primaryBtn : secondaryBtn}
+      </div>
+
+      {activeIndex > 0 && (
+        <Button onClick={() => onActivate(questionList[activeIndex - 1][0])} variant="secondary" size="sm"
+          disabled={speedQuizActive} className="h-12 w-full">
+          <ChevronLeft size={20} /> 이전 활동
+        </Button>
+      )}
+
+      {nextEntry && currentEntry && !quizUnrevealed && !quizRevealed && (
+        <p className="text-slate-400 text-xs">
+          다음 예정: <span className="text-slate-600 dark:text-slate-300">{nextEntry[1].title}</span>
+        </p>
+      )}
+
       {/* Event toggle — shown when next question is quiz */}
       {nextEntry && isQuizQuestion(nextEntry[1]) && (
-        <div className="flex flex-wrap gap-1.5">
+        <details className="rounded-lg bg-slate-50 dark:bg-slate-700/30">
+          <summary className="min-h-11 cursor-pointer px-3 py-3 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            다음 퀴즈 이벤트 {nextEvent ? `· ${nextEvent.label}` : '(선택)'}
+          </summary>
+          <div className="flex flex-wrap gap-1.5 px-3 pb-3">
           {QUIZ_EVENT_PRESETS.map((preset) => {
             const isSelected = nextEvent?.id === preset.id;
             return (
               <button
                 key={preset.id}
                 onClick={() => setNextEvent(isSelected ? null : preset)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors duration-150 active:scale-[0.96] ${
+                className={`min-h-11 px-2.5 py-2 rounded-md text-xs font-medium transition-colors duration-150 active:scale-[0.96] ${
                   isSelected
                     ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
                     : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
@@ -255,12 +299,15 @@ export default memo(function QuickProgressCard({
               </button>
             );
           })}
-        </div>
+          </div>
+        </details>
       )}
 
       {/* Speed Quiz toggle */}
       {speedQuizCount >= 2 && (
-        <div>
+        <details open={speedQuizActive || undefined} className="rounded-lg bg-slate-50 dark:bg-slate-700/30">
+          <summary className="min-h-11 cursor-pointer px-3 py-3 text-xs font-semibold text-slate-600 dark:text-slate-300">스피드 퀴즈 {speedQuizActive ? '진행 중' : '(선택)'}</summary>
+          <div className="px-3 pb-3">
           {speedQuizActive ? (
             <button
               onClick={onEndSpeedQuiz}
@@ -284,40 +331,8 @@ export default memo(function QuickProgressCard({
               <span className="text-xs text-slate-400 dark:text-slate-500">{speedQuizCount}문제 · 10초씩</span>
             </button>
           )}
-        </div>
-      )}
-
-      {/* 이미지 슬라이드 이동 — 발표모드에 안 들어가도 대시보드에서 넘길 수 있게 */}
-      {currentQ?.type === 'imageSlide' && (currentQ.slideImages?.length || 0) > 0 && (() => {
-        const cur = currentQ.currentSlide || 0;
-        const total = currentQ.slideImages.length;
-        return (
-          <div className="flex items-center gap-2">
-            <Button onClick={() => onSlide?.(currentEntry[0], cur - 1)} variant="secondary" size="sm"
-              disabled={cur <= 0} className="flex-1">
-              <ChevronLeft size={14} /> 이전
-            </Button>
-            <span className="text-xs font-medium tabular-nums text-slate-500 dark:text-slate-400 shrink-0 px-1">
-              {cur + 1} / {total}
-            </span>
-            <Button onClick={() => onSlide?.(currentEntry[0], cur + 1)} variant="secondary" size="sm"
-              disabled={cur >= total - 1} className="flex-1">
-              다음 <ChevronRight size={14} />
-            </Button>
           </div>
-        );
-      })()}
-
-      {/* Context-aware CTA buttons — taller touch targets on mobile */}
-      <div className="grid grid-cols-2 gap-2">
-        {primaryBtn}
-        {secondaryBtn}
-      </div>
-
-      {nextEntry && currentEntry && !quizUnrevealed && !quizRevealed && (
-        <p className="text-slate-400 text-xs">
-          다음 예정: <span className="text-slate-600 dark:text-slate-300">{nextEntry[1].title}</span>
-        </p>
+        </details>
       )}
 
       {/* Keyboard shortcut hints — hidden on mobile (no keyboard) */}

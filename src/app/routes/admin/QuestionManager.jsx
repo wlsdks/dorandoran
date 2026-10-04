@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookmarkPlus, PanelLeftClose, Plus, Eye, RotateCcw, Sparkles, Check } from 'lucide-react';
+import { BookmarkPlus, PanelLeftClose, Plus, Eye, RotateCcw, Sparkles, Check, ChevronDown } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Toast from '@/components/ui/Toast';
@@ -17,13 +17,13 @@ import QuickProgressCard from './QuickProgressCard';
 import ImportFromLibraryModal from './ImportFromLibraryModal';
 import QuestionPreview from './QuestionPreview';
 import AIQuestionGenerator from '@/features/questions/components/AIQuestionGenerator';
-import { isGeneratorReady } from '@/features/questions/api/generateQuestions';
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 
 function TooltipIconButton({ onClick, label, children, hoverColor = 'hover:text-slate-600 dark:hover:text-slate-300', ...props }) {
   const [show, setShow] = useState(false);
   return (
     <div className="relative" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
-      <button onClick={onClick} className={`p-2 rounded-lg text-slate-400 dark:text-slate-500 ${hoverColor} hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90`} {...props}>
+      <button onClick={onClick} className={`min-h-11 min-w-11 flex items-center justify-center p-2 rounded-lg text-slate-400 dark:text-slate-500 ${hoverColor} hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90`} {...props}>
         {children}
       </button>
       <AnimatePresence>
@@ -64,6 +64,7 @@ export default function QuestionManager({
   modeButton = null,
   mobileStickyProgress = false,
 }) {
+  const { available, reason } = useAIAvailability();
   const [showForm, setShowForm] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -127,16 +128,11 @@ export default function QuestionManager({
     <div className="space-y-5">
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">질문 목록</h2>
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{readOnly ? '질문 목록' : '수업 진행'}</h2>
           <div className="flex items-center gap-1">
             {questionList.length > 0 && (
               <TooltipIconButton onClick={() => setPreviewOpen(true)} label="미리보기" aria-label="문항 미리보기">
                 <Eye size={18} />
-              </TooltipIconButton>
-            )}
-            {questionList.length > 0 && !readOnly && (
-              <TooltipIconButton onClick={() => setResetConfirmOpen(true)} label="초기화" aria-label="전체 답변 초기화" hoverColor="hover:text-red-500">
-                <RotateCcw size={18} />
               </TooltipIconButton>
             )}
             {!readOnly && onCollapse && (
@@ -145,28 +141,6 @@ export default function QuestionManager({
               </TooltipIconButton>
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {!readOnly && modeButton}
-          {!readOnly && adminUid && (
-            <Button onClick={() => setLibraryOpen(true)} variant="secondary" size="sm">
-              <BookmarkPlus size={14} /> <span className="hidden sm:inline">보관함</span>
-            </Button>
-          )}
-          {!readOnly && isGeneratorReady() && (
-            <Button onClick={() => setAiGenOpen(true)} variant="secondary" size="sm">
-              <Sparkles size={14} /> <span className="hidden sm:inline">AI 생성</span>
-            </Button>
-          )}
-          {!readOnly && (
-            <Button
-              onClick={() => { if (onAddClick) { onAddClick(); } else { setShowForm(!showForm); } }}
-              variant={showForm && !onAddClick ? 'ghost' : 'primary'}
-              size="sm"
-            >
-              {showForm && !onAddClick ? '취소' : <><Plus size={14} /> 추가</>}
-            </Button>
-          )}
         </div>
       </div>
 
@@ -207,14 +181,34 @@ export default function QuestionManager({
         </button>
       )}
 
-      {modeSlot}
-
       {!readOnly && (
-        <AnimatePresence>
-          {showForm && !onAddClick && (
-            <QuestionForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} error={error} />
-          )}
-        </AnimatePresence>
+        <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3" aria-label="수업 준비">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">수업 준비</h3>
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={() => { if (onAddClick) onAddClick(); else setShowForm(!showForm); }} variant="secondary" size="sm" className="h-12">
+              <Plus size={20} /> {showForm && !onAddClick ? '취소' : '문항 추가'}
+            </Button>
+            <Button onClick={() => setLibraryOpen(true)} disabled={!adminUid} variant="secondary" size="sm" className="h-12">
+              <BookmarkPlus size={20} /> 가져오기
+            </Button>
+          </div>
+          <details className="group border-t border-slate-100 dark:border-slate-700">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 [&::-webkit-details-marker]:hidden">
+              수업 도구
+              <ChevronDown size={16} className="transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="space-y-3 pb-1">
+              <div className="flex items-center gap-2 flex-wrap [&>button]:min-h-11 [&>div>button]:min-h-11">
+                {modeButton}
+                <Button onClick={() => setAiGenOpen(true)} disabled={!available} title={!available ? reason : undefined} variant="secondary" size="sm" className="min-h-11" aria-describedby={!available ? 'question-ai-unavailable' : undefined}><Sparkles size={18} /> AI 생성</Button>
+                {questionList.length > 0 && <Button onClick={() => setResetConfirmOpen(true)} variant="secondary" size="sm" className="min-h-11"><RotateCcw size={18} /> 답변 초기화</Button>}
+              </div>
+              {!available && <p id="question-ai-unavailable" className="text-xs text-slate-500 dark:text-slate-400">{reason}</p>}
+              {modeSlot}
+            </div>
+          </details>
+          <AnimatePresence>{showForm && !onAddClick && <QuestionForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} error={error} />}</AnimatePresence>
+        </section>
       )}
 
       <QuestionList

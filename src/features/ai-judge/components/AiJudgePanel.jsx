@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Play, AlertCircle, Sparkles, Users, RotateCcw, Square, Trophy, Medal, Award } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import { isGeminiReady } from '@/lib/judging/gemini';
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useLiveSubmissions, useLiveJudging, useLiveJudgeResults } from '../api/useLiveJudging';
 
 const DONE_RANK_META = [
@@ -17,6 +17,7 @@ const DONE_RANK_META = [
  * 제출 수 표시 + API 키 세팅 + "심사 시작" 버튼 + 진행률.
  */
 export default memo(function AiJudgePanel({ sessionId, questionId }) {
+  const { available, reason } = useAIAvailability();
   const { submissions } = useLiveSubmissions(sessionId, questionId);
   const { startJudging, isJudging, progress, abort, reset } = useLiveJudging(sessionId, questionId);
   const { judgeState, top3 } = useLiveJudgeResults(sessionId, questionId);
@@ -26,14 +27,15 @@ export default memo(function AiJudgePanel({ sessionId, questionId }) {
   const isDone = judgeState?.status === 'done' && top3;
   const hasError = judgeState?.status === 'error';
 
-  if (!isGeminiReady()) {
+  if (!available && !isJudging && !isDone) {
     return (
       <div className="rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-2">
         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
           <AlertCircle size={14} className="text-amber-500" />
-          AI 심사 사용 불가
+          AI 심사
         </p>
-        <p className="text-xs text-slate-400">Gemini 프록시가 설정되지 않았습니다. 운영자에게 환경 변수(VITE_GEMINI_PROXY_URL) 설정을 요청해주세요.</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{reason}</p>
+        <Button disabled variant="primary" size="md" className="w-full"><Play size={15} /> {count}건 심사 시작</Button>
       </div>
     );
   }
@@ -110,7 +112,7 @@ export default memo(function AiJudgePanel({ sessionId, questionId }) {
             );
           })}
         </div>
-        <Button onClick={reset} variant="ghost" size="sm">
+        <Button onClick={reset} disabled={!available} variant="ghost" size="sm">
           <RotateCcw size={13} /> 다시 심사
         </Button>
       </div>
@@ -134,10 +136,10 @@ export default memo(function AiJudgePanel({ sessionId, questionId }) {
       )}
 
       <Button
-        onClick={startJudging}
+        onClick={() => { if (available) startJudging(); }}
         variant="primary"
         size="md"
-        disabled={count === 0}
+        disabled={!available || count === 0}
         className="w-full"
       >
         <Play size={15} /> {count === 0 ? '제출을 기다리는 중' : `${count}건 심사 시작`}

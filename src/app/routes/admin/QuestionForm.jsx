@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle } from 'lucide-react';
@@ -22,6 +23,7 @@ import {
 const INPUT = 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150';
 
 export default function QuestionForm({ onSubmit, onCancel, error, initialData }) {
+  const { available, reason } = useAIAvailability();
   const isEdit = !!initialData;
   const [type, setType] = useState(initialData?.type || 'choice');
   const [title, setTitle] = useState(initialData?.title || '');
@@ -122,13 +124,13 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
             const Icon = t.icon;
             const selected = type === t.value;
             return (
-              <motion.button key={t.value}
+              <motion.button key={t.value} disabled={t.value === 'aiJudge' && !available} title={t.value === 'aiJudge' && !available ? reason : undefined}
                 whileTap={{ scale: 0.93 }}
                 onClick={() => {
                   setType(t.value); setLocalError(null);
                   if (t.value === 'ranking' && options.length < 3) setOptions(['', '', '']);
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-colors duration-150 ${
+                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150 ${
                   selected ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm'
                     : 'text-slate-400 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-300'}`}>
                 <Icon size={20} strokeWidth={selected ? 2 : 1.6} />

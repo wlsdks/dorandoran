@@ -1,9 +1,9 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, ThumbsUp, Check, HelpCircle, MessageSquare, ChevronDown, ChevronUp, ShieldAlert, Sparkles } from 'lucide-react';
 import { useClassQuestions } from '@/features/class-questions/api/useClassQuestions';
-import { isAiAnswerReady } from '@/features/class-questions/api/aiAnswer';
 import { getParticipantId, getNickname, getLastSeen, saveLastSeen } from '@/lib/participant';
 import { timeAgo } from '@/lib/utils';
 
@@ -182,6 +182,7 @@ const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, on
 });
 
 export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuestion }) {
+  const { studentFeaturesAvailable } = useAIAvailability();
   const { questions, postQuestion, toggleUpvote, postAnswer, canPost, canAnswer, loading } =
     useClassQuestions(sessionId);
   const [inputText, setInputText] = useState('');
@@ -225,7 +226,7 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
     if (!text || !canPost || posting) return;
     setPosting(true);
     setPostError('');
-    const ok = await postQuestion(text, nickname, participantId, { aiAllowed });
+    const ok = await postQuestion(text, nickname, participantId, { aiAllowed: studentFeaturesAvailable && aiAllowed });
     if (ok) setInputText('');
     else setPostError('질문 등록에 실패했습니다. 잠시 후 다시 시도해주세요.');
     setPosting(false);
@@ -253,7 +254,7 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="fixed inset-x-0 bottom-0 top-[10vh] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[420px] sm:h-[600px] bg-slate-50 dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden sm:border sm:border-slate-200 sm:dark:border-slate-700"
+            className="mobile-conversation fixed inset-x-0 bottom-0 top-[10vh] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[420px] sm:h-[600px] bg-slate-50 dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden sm:border sm:border-slate-200 sm:dark:border-slate-700"
           >
             {/* Drag handle (mobile only) */}
             <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
@@ -272,7 +273,7 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150"
+                className="w-12 h-12 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150"
                 aria-label="수업 질문 닫기"
               >
                 <X size={18} />
@@ -339,7 +340,7 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
             </div>
 
             {/* AI toggle */}
-            {isAiAnswerReady() && (
+            {studentFeaturesAvailable && (
               <div className="px-4 pt-2 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 shrink-0">
                 <button
                   type="button"
@@ -386,12 +387,12 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
                 placeholder="질문을 입력하세요"
                 aria-label="수업 질문 입력"
                 maxLength={MAX_LENGTH}
-                className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150"
+                className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150"
               />
               <button
                 onClick={handlePost}
                 disabled={!inputText.trim() || !canPost || posting}
-                className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0"
+                className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0"
                 aria-label="질문 보내기"
               >
                 <Send size={16} />

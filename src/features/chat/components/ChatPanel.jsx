@@ -120,8 +120,8 @@ export default memo(function ChatPanel({ sessionId, senderName, senderType, open
           <div ref={messagesEndRef} />
         </div>
         <div className="flex items-center gap-2 px-4 py-3 border-t border-slate-100 dark:border-slate-700 shrink-0">
-          <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing && !e.shiftKey) { e.preventDefault(); handleSend(); } }} placeholder={channel === 'staff' ? '운영 메시지를 입력하세요' : '메시지를 입력하세요'} aria-label="채팅 메시지" maxLength={MAX_LENGTH} className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150" />
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => { hapticTap(); handleSend(); }} disabled={!inputText.trim() || !canSend || sending} className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0" aria-label="메시지 보내기">
+          <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing && !e.shiftKey) { e.preventDefault(); handleSend(); } }} placeholder={channel === 'staff' ? '운영 메시지를 입력하세요' : '메시지를 입력하세요'} aria-label="채팅 메시지" maxLength={MAX_LENGTH} className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150" />
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => { hapticTap(); handleSend(); }} disabled={!inputText.trim() || !canSend || sending} className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0" aria-label="메시지 보내기">
             <Send size={16} />
           </motion.button>
         </div>
@@ -134,7 +134,7 @@ export default memo(function ChatPanel({ sessionId, senderName, senderType, open
       {open && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" onClick={onClose} />
-          <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="fixed inset-x-0 bottom-0 top-[max(10vh,env(safe-area-inset-top))] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[420px] sm:h-[600px] bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden">
+          <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="mobile-conversation fixed inset-x-0 bottom-0 top-[max(10vh,env(safe-area-inset-top))] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[420px] sm:h-[600px] bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden">
             {/* Drag handle (mobile only) */}
             <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
               <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-600" />
@@ -145,7 +145,7 @@ export default memo(function ChatPanel({ sessionId, senderName, senderType, open
                 <MessageCircle size={18} className="text-slate-400" />
                 <span className="font-bold text-slate-900 dark:text-slate-100">채팅</span>
               </div>
-              <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150" aria-label="채팅 닫기">
+              <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150" aria-label="채팅 닫기">
                 <X size={18} />
               </button>
             </div>
@@ -177,8 +177,8 @@ export default memo(function ChatPanel({ sessionId, senderName, senderType, open
 
             {/* Input */}
             <div className="flex items-center gap-2 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:py-3 border-t border-slate-100 dark:border-slate-700 shrink-0">
-              <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing && !e.shiftKey) { e.preventDefault(); handleSend(); } }} placeholder={channel === 'staff' ? '운영 메시지를 입력하세요' : '메시지를 입력하세요'} aria-label="채팅 메시지" maxLength={MAX_LENGTH} className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150" />
-              <motion.button whileTap={{ scale: 0.9 }} onClick={() => { hapticTap(); handleSend(); }} disabled={!inputText.trim() || !canSend || sending} className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0" aria-label="메시지 보내기">
+              <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing && !e.shiftKey) { e.preventDefault(); handleSend(); } }} placeholder={channel === 'staff' ? '운영 메시지를 입력하세요' : '메시지를 입력하세요'} aria-label="채팅 메시지" maxLength={MAX_LENGTH} className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150" />
+              <motion.button whileTap={{ scale: 0.9 }} onClick={() => { hapticTap(); handleSend(); }} disabled={!inputText.trim() || !canSend || sending} className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0" aria-label="메시지 보내기">
                 <Send size={16} />
               </motion.button>
             </div>

@@ -307,14 +307,11 @@ export function useQuestionActions(sessionId, questions, currentQuestion, scores
               const existingScore = (scores || {})[participantId] || {};
               const nextStreak = reward.isCorrect ? (existingScore.streak || 0) + 1 : 0;
               const nickname = (participants || {})[participantId]?.nickname || vote.nickname || existingScore.nickname || `참여자 ${participantId.slice(0, 4)}`;
-              // total/tickets는 원자 increment — 절대값 set은 동시 진행 중인 다른 지급
-              // (예: 스포트라이트 티켓 +3)을 stale 스냅샷으로 덮어 유실시킬 수 있음.
+              // (예: 다른 점수 변경)을 stale 스냅샷으로 덮어 유실시킬 수 있음.
               // (베팅 패널티로 이론상 0 미만 가능하나 표시 계층에서 무해 — 기본 이벤트는 항상 ≥0)
               scoreUpdates[`scores/${participantId}/total`] = increment(reward.points);
-              scoreUpdates[`scores/${participantId}/tickets`] = increment(reward.tickets);
               scoreUpdates[`scores/${participantId}/nickname`] = nickname;
               scoreUpdates[`scores/${participantId}/lastPoints`] = reward.points;
-              scoreUpdates[`scores/${participantId}/lastTickets`] = reward.tickets;
               scoreUpdates[`scores/${participantId}/streak`] = nextStreak;
               scoreUpdates[`scores/${participantId}/bestStreak`] = Math.max(existingScore.bestStreak || 0, nextStreak);
               scoreUpdates[`scores/${participantId}/lastQuestionId`] = qId;

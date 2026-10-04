@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { motion } from 'framer-motion';
 import Badge from '@/components/ui/Badge';
 import { TYPE_LABELS } from '@/lib/question-types';
@@ -10,6 +11,7 @@ import { TYPE_LABELS } from '@/lib/question-types';
  *   questionProgress – { current, total } | null
  */
 export default function QuestionCard({ question, questionId, questionProgress }) {
+  const { available } = useAIAvailability();
   return (
     <motion.div
       key={`header-${questionId}`}
@@ -49,7 +51,7 @@ export default function QuestionCard({ question, questionId, questionProgress })
           {question.type === 'quiz' && question.betting && (
             <Badge variant="neutral">베팅</Badge>
           )}
-          <Badge variant="primary">{TYPE_LABELS[question.type] || question.type}</Badge>
+          <Badge variant="primary">{question.type === 'aiJudge' && !available ? '과제' : TYPE_LABELS[question.type] || question.type}</Badge>
         </div>
       </div>
       <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight">
@@ -62,7 +64,7 @@ export default function QuestionCard({ question, questionId, questionProgress })
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           loading="eager"
-          className="mt-4 w-full max-h-52 object-cover rounded-lg"
+          className="mt-4 w-full max-h-52 object-contain rounded-lg"
         />
       )}
     </motion.div>

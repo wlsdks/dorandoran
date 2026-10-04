@@ -1,7 +1,8 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
-import { isQuizQuestion, QUIZ_EVENT_PRESETS, normalizeQuizEvent } from '@/lib/quiz';
+import { isQuizQuestion, normalizeQuizEvent } from '@/lib/quiz';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, QrCode, X, Copy, Check, Hand, MessageSquare, ChevronDown, ChevronLeft, ChevronRight, Eye, Trophy, Maximize, Minimize } from 'lucide-react';
 import { ref, update } from 'firebase/database';
@@ -15,7 +16,6 @@ import HandRaiseList from '@/features/hand-raise/components/HandRaiseList';
 import UrgentQuestionList from '@/features/questions/components/UrgentQuestionList';
 import ReactionOverlay from '@/features/reactions/components/ReactionOverlay';
 import ChatBubbleOverlay from '@/features/reactions/components/ChatBubbleOverlay';
-import AnswerBubbleOverlay from '@/features/voting/components/AnswerBubbleOverlay';
 import { useGameResultPublisher } from '@/features/games/api/useGameResult';
 import Leaderboard from '@/features/quiz/components/Leaderboard';
 import PersistentAssignmentBar from '@/features/ai-judge/components/PersistentAssignmentBar';
@@ -153,7 +153,7 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
   if (question.revealedAt && !canRevealWinner) return null;
   if (question.revealedAt && canRevealWinner) {
     return (
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button onClick={async () => {
           await update(ref(db, `sessions/${sessionId}`), {
             [`questions/${currentQId}/revealedWinners`]: revealedWinners + 1,
@@ -194,7 +194,7 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
     <>
       <DrumrollOverlay active={drumroll} onComplete={() => { setDrumroll(false); handleRevealAnswer(); }} />
 
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
+      <div className="flex items-center justify-center gap-2 flex-wrap">
         {canRevealHint && (
           <Button onClick={handleRevealHint} variant="secondary" size="lg">
             <ChevronRight size={20} />
@@ -202,8 +202,8 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
           </Button>
         )}
         <Button onClick={async () => {
-          await update(ref(db, `sessions/${sessionId}`), { drumroll: true });
           setDrumroll(true);
+          try { await update(ref(db, `sessions/${sessionId}`), { drumroll: true }); } catch { setDrumroll(false); }
         }} variant="ghost" size="lg">
           두구두구
         </Button>
@@ -220,6 +220,7 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
 
 export default function PresentationView({ sessionId, session, currentMode, onlineList, leaderboard, drawParticipants, studentUrl, count, onExit, scores, participants }) {
 
+  const { available: aiAvailable } = useAIAvailability();
   // 발표 모드에 있는 동안만 전체화면 + 화면 꺼짐 방지
   const { isFullscreen, toggleFullscreen, fullscreenSupported, exitFullscreen } = usePresentationScreen();
   const exitPresent = useCallback(() => { exitFullscreen(); onExit(); }, [exitFullscreen, onExit]);
@@ -250,25 +251,20 @@ export default function PresentationView({ sessionId, session, currentMode, onli
       [`questions/${qId}/activatedAt`]: Date.now(),
       [`questions/${qId}/revealedAt`]: null,
       speedQuiz: null,
+      drumroll: null,
       timer: null, // 이전 질문 타이머 잔존 → 다음 질문 학생 잠금 전파 방지
     };
     if (q.type === 'imageSlide' && !Number.isInteger(q.currentSlide)) updates[`questions/${qId}/currentSlide`] = 0;
     if (q.type === 'hintQuiz') updates[`questions/${qId}/revealedHints`] = 0;
     if (['mysteryBox', 'hintQuiz'].includes(q.type)) updates[`questions/${qId}/revealedWinners`] = 0;
-    // 발표모드에서도 이벤트(2배점수/티켓러시/잭팟) 적용 — 대시보드 빠른진행과 동일 경로
+    // 발표모드에서도 점수 이벤트 적용 — 대시보드 빠른진행과 동일 경로
     updates[`questions/${qId}/event`] = nextEvent && isQuizQuestion(q) ? normalizeQuizEvent(nextEvent) : null;
     updates.pendingEvent = null; // 예고 소진
     await update(ref(db, `sessions/${sessionId}`), updates);
     trimEphemeralFeeds(sessionId); // 리액션·한마디 최근 50 유지(비동기, 실패 무해)
   }, [sessionId, session?.questions]);
 
-  // 다음 퀴즈에 걸 이벤트 (발표모드용 — 기존엔 대시보드 빠른진행에서만 가능)
   const [nextEvent, setNextEvent] = useState(null);
-  // 세션 pendingEvent 동기 — 학생 대기화면 "다음 퀴즈 예고" 배너와 연동(대시보드 경로와 파리티)
-  const armNextEvent = useCallback((preset) => {
-    setNextEvent(preset);
-    update(ref(db, `sessions/${sessionId}`), { pendingEvent: preset || null }).catch(() => {});
-  }, [sessionId]);
 
   const goPrev = useCallback(() => {
     if (currentQIdx > 0) goToQuestion(questionList[currentQIdx - 1][0]);
@@ -293,7 +289,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
   }, [sessionId, slideBookmark]);
   useEffect(() => {
     const handler = (event) => {
-      if (event.target?.closest('input,textarea,select,[contenteditable="true"]')) return;
+      if (event.defaultPrevented || event.target?.closest('input,textarea,select,[contenteditable="true"],[role="dialog"]')) return;
       if (event.key === 'Escape') { exitPresent(); return; }
       const question = session?.questions?.[session?.currentQuestion];
       const slide = Number.isInteger(question?.currentSlide) ? question.currentSlide : 0;
@@ -315,15 +311,12 @@ export default function PresentationView({ sessionId, session, currentMode, onli
   }, [sessionId, session?.questions, session?.currentQuestion, exitPresent, goPrev, goNext, toggleFullscreen]);
 
   return (
-    <div className="dark min-h-dvh bg-slate-900 relative">
+    <div className="dark classroom-stage presenter-stage h-dvh bg-slate-900 relative overflow-hidden">
       <ParticipationSpotlight sessionId={sessionId} />
       <JoinToast sessionId={sessionId} />
       <ReactionOverlay sessionId={sessionId} />
       <ChatBubbleOverlay sessionId={sessionId} />
-      <AnswerBubbleOverlay
-        sessionId={sessionId}
-        questionId={session?.currentQuestion}
-      />
+
 
       <SideNoticesPanel sessionId={sessionId} />
 
@@ -337,9 +330,9 @@ export default function PresentationView({ sessionId, session, currentMode, onli
             onClick={toggleFullscreen}
             aria-label={isFullscreen ? '전체화면 해제' : '전체화면'}
             title={isFullscreen ? '전체화면 해제' : '전체화면'}
-            className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 text-white ring-1 ring-white/10 hover:ring-white/30 backdrop-blur-sm shadow-lg transition-all active:scale-95"
+            className="presentation-button"
           >
-            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}<span className="hidden lg:inline">{isFullscreen ? '전체화면 해제' : '전체화면'}</span>
           </button>
         )}
         <ExitHint onExit={exitPresent} />
@@ -347,7 +340,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
 
       {/* 상시 과제 바 — 발표 모드에서도 강사가 제출 상태/심사 상태 확인 가능.
           단, 상시 과제 자체가 현재 활성 질문일 때는 메인 뷰에 이미 노출되므로 중복 방지 (학생 VoteModeContent와 동일 규칙). */}
-      {session?.persistentAssignmentId && session?.currentQuestion !== session?.persistentAssignmentId && (
+      {aiAvailable && session?.persistentAssignmentId && session?.currentQuestion !== session?.persistentAssignmentId && (
         <div className="fixed top-3 left-1/2 -translate-x-1/2 z-20 w-[min(42rem,calc(100vw-6rem))] pointer-events-auto">
           <PersistentAssignmentBar
             sessionId={sessionId}
@@ -366,7 +359,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
       )}
 
       {/* Main content — responsive padding */}
-      <div className="flex items-center justify-center min-h-dvh p-4 sm:p-8 lg:p-12 text-lg">
+      <div className="presentation-canvas flex items-center justify-center h-full px-4 sm:px-8 text-lg overflow-y-auto">
         <MainContent
           currentMode={currentMode}
           sessionId={sessionId}
@@ -382,96 +375,29 @@ export default function PresentationView({ sessionId, session, currentMode, onli
         />
       </div>
 
-      <PresentQROverlay sessionId={sessionId} studentUrl={studentUrl} count={count} />
-
-      {/* 정답형/퀴즈/MH 두구두구 + 정답 공개 — 하단 중앙 */}
-      <PresentRevealControls sessionId={sessionId} session={session} onRevealQuiz={revealQuiz} onRevealAnswer={revealAnswer} />
-
-      {current?.type !== 'imageSlide' && slideBookmark?.sessionId === sessionId && <div className="fixed bottom-6 right-6 z-20">
-        <Button variant="secondary" onClick={returnToSlides}><ChevronLeft size={16} />슬라이드로 돌아가기</Button>
-      </div>}
-      {/* 이미지 슬라이드 컨트롤 */}
-      {(() => {
-        const q = session?.questions?.[session?.currentQuestion];
-        if (q?.type !== 'imageSlide' || !q.slideImages?.length) return null;
-        const cur = q.currentSlide || 0;
-        const total = q.slideImages.length;
-        return (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
-            <Button onClick={() => update(ref(db, `sessions/${sessionId}/questions/${session.currentQuestion}`), { currentSlide: Math.max(0, cur - 1) }).catch(() => {})}
-              variant="secondary" size="lg" disabled={cur <= 0}>
-              <ChevronLeft size={20} /> 이전
-            </Button>
-            <div className="text-center">
-              <span className="text-white/60 text-sm font-medium tabular-nums">{cur + 1} / {total}</span>
-              <p className="text-white/30 text-[10px] mt-0.5">Space로 이동</p>
-            </div>
-            <Button onClick={() => cur >= total - 1 ? goNext() : update(ref(db, `sessions/${sessionId}/questions/${session.currentQuestion}`), { currentSlide: cur + 1 }).catch(() => {})}
-              variant="primary" size="lg" disabled={cur >= total - 1 && currentQIdx >= questionList.length - 1}>
-              {cur >= total - 1 ? '다음 활동' : '다음'} <ChevronRight size={20} />
-            </Button>
-          </div>
-        );
-      })()}
-
-      {/* 다음 퀴즈 이벤트 선택 — 다음 문항이 퀴즈일 때만 노출, '다음' 클릭 시 적용 */}
-      {(() => {
-        const nextQ = questionList[currentQIdx + 1]?.[1];
-        if (current?.type === 'imageSlide' || !nextQ || !isQuizQuestion(nextQ)) return null;
-        return (
-          <div className="fixed bottom-[4.75rem] left-4 md:bottom-[5.5rem] md:left-6 z-20 flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-white/50 mr-0.5">다음 퀴즈 이벤트</span>
-            {QUIZ_EVENT_PRESETS.map((preset) => {
-              const on = nextEvent?.id === preset.id;
-              return (
-                <button
-                  key={preset.id}
-                  onClick={() => armNextEvent(on ? null : preset)}
-                  title={preset.description}
-                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-sm transition-all active:scale-95 ${
-                    on ? 'bg-amber-400 text-slate-900 shadow-lg'
-                       : 'bg-slate-900/70 text-white/80 ring-1 ring-white/15 hover:bg-slate-900 hover:text-white'
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              );
-            })}
-          </div>
-        );
-      })()}
-
-      {/* Bottom bar — live attendee count + navigation (통일된 pill, 정렬 일관) */}
-      <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-20 flex items-center gap-2.5">
-        {/* 실시간 접속 인원 — LIVE 뱃지로 "지금 접속 중"임을 명확히. h-12로 네비 pill과 높이 일치 */}
-        <div className="flex items-center gap-2.5 h-12 bg-slate-900/75 dark:bg-slate-800/85 backdrop-blur-sm rounded-xl px-4 shadow-lg ring-1 ring-white/10">
-          <span className="flex items-center gap-1.5">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-60 animate-ping" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
-            </span>
-            <span className="text-white text-sm font-bold tracking-wide">LIVE</span>
-          </span>
-          <span className="h-4 w-px bg-white/20" />
-          <span className="flex items-center gap-1.5 text-white text-base font-semibold tabular-nums">
-            <Users size={18} />{count}명
-          </span>
+      <footer className="presentation-footer" aria-label="발표 진행 도구">
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="inline-flex items-center gap-2 text-slate-200 text-sm"><span className="w-2 h-2 bg-emerald-400 rounded-full" /><Users size={18} />{count}명</span>
+          <span className="text-slate-400 text-sm tabular-nums">{Math.max(currentQIdx + 1, 0)} / {questionList.length} 문항</span>
         </div>
-        {/* 질문 네비게이션 — 동일 h-12 */}
-        {questionList.length > 1 && current?.type !== 'imageSlide' && (
-          <div className="flex items-center gap-1 h-12 bg-slate-900/75 dark:bg-slate-800/85 backdrop-blur-sm rounded-xl px-2 shadow-lg ring-1 ring-white/10">
-            <button onClick={goPrev} disabled={currentQIdx <= 0}
-              className="px-3.5 py-1.5 rounded-lg hover:bg-white/10 disabled:opacity-25 disabled:hover:bg-transparent text-white text-base font-semibold transition-colors active:scale-95">
-              ← 이전
-            </button>
-            <span className="text-sm text-white/60 tabular-nums font-semibold px-2 min-w-[3rem] text-center">{Math.max(currentQIdx + 1, 0)}/{questionList.length}</span>
-            <button onClick={goNext} disabled={currentQIdx >= questionList.length - 1}
-              className="px-3.5 py-1.5 rounded-lg hover:bg-white/10 disabled:opacity-25 disabled:hover:bg-transparent text-white text-base font-semibold transition-colors active:scale-95">
-              다음 →
-            </button>
-          </div>
-        )}
-      </div>
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          {current?.type === 'imageSlide' ? <>
+            <Button variant="secondary" size="lg" disabled={(current.currentSlide || 0) <= 0} onClick={() => update(ref(db, `sessions/${sessionId}/questions/${session.currentQuestion}`), { currentSlide: Math.max(0, (current.currentSlide || 0) - 1) }).catch(() => {})}><ChevronLeft size={20} />이전</Button>
+            <span className="px-2 text-slate-200 font-semibold tabular-nums">{(current.currentSlide || 0) + 1} / {current.slideImages?.length || 1}</span>
+            <Button variant="primary" size="lg" disabled={(current.currentSlide || 0) >= (current.slideImages?.length || 1) - 1 && currentQIdx >= questionList.length - 1}
+              onClick={() => (current.currentSlide || 0) >= current.slideImages.length - 1 ? goNext() : update(ref(db, `sessions/${sessionId}/questions/${session.currentQuestion}`), { currentSlide: (current.currentSlide || 0) + 1 }).catch(() => {})}>
+              {(current.currentSlide || 0) >= (current.slideImages?.length || 1) - 1 ? '다음 활동' : '다음'}<ChevronRight size={20} /></Button>
+          </> : <>
+            <Button variant="secondary" size="lg" onClick={goPrev} disabled={currentQIdx <= 0}><ChevronLeft size={18} />이전</Button>
+            <PresentRevealControls key={session?.currentQuestion} sessionId={sessionId} session={session} onRevealQuiz={revealQuiz} onRevealAnswer={revealAnswer} />
+            <Button variant="secondary" size="lg" onClick={goNext} disabled={currentQIdx >= questionList.length - 1}>다음 활동<ChevronRight size={18} /></Button>
+          </>}
+        </div>
+        <div className="flex items-center justify-end gap-2 flex-wrap">
+          {current?.type !== 'imageSlide' && slideBookmark?.sessionId === sessionId && <Button variant="secondary" size="lg" onClick={returnToSlides}><ChevronLeft size={18} />슬라이드로 돌아가기</Button>}
+          <PresentQROverlay sessionId={sessionId} studentUrl={studentUrl} count={count} />
+        </div>
+      </footer>
 
       {/* 좌측 상단 — 모드 전환 (알림 토글 옆) */}
       <PresentModeMenu sessionId={sessionId} currentMode={currentMode} currentQuestion={session?.currentQuestion} hasLeaderboard={leaderboard.length > 0} />

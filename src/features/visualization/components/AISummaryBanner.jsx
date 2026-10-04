@@ -1,12 +1,14 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, RefreshCw, Loader2 } from 'lucide-react';
 import { useVotes } from '@/hooks/useVotes';
-import { summarizeResponses, isSummaryReady } from '@/features/questions/api/summarizeResponses';
+import { summarizeResponses } from '@/features/questions/api/summarizeResponses';
 
 const MIN_RESPONSES = 5;
 
 export default function AISummaryBanner({ sessionId, questionId, questionTitle, questionType }) {
+  const { available, reason } = useAIAvailability();
   const { voteList } = useVotes(sessionId, questionId);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -19,7 +21,7 @@ export default function AISummaryBanner({ sessionId, questionId, questionTitle, 
   );
 
   const responseCount = responses.length;
-  const canSummarize = isSummaryReady() && responseCount >= MIN_RESPONSES && !loading;
+  const canSummarize = available && responseCount >= MIN_RESPONSES && !loading;
   const isStale = result && responseCount > resultForCount + 3; // 응답이 3개 이상 더 쌓이면 stale
 
   async function handleSummarize() {
@@ -41,7 +43,6 @@ export default function AISummaryBanner({ sessionId, questionId, questionTitle, 
     }
   }
 
-  if (!isSummaryReady()) return null;
 
   return (
     <div className="w-full max-w-xl mx-auto mb-4">
@@ -53,7 +54,7 @@ export default function AISummaryBanner({ sessionId, questionId, questionTitle, 
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">AI 응답 요약</p>
             <p className="text-[11px] text-slate-400">
-              {responseCount < MIN_RESPONSES
+              {!available ? reason : responseCount < MIN_RESPONSES
                 ? `응답 ${MIN_RESPONSES}개부터 사용 가능 (현재 ${responseCount}개)`
                 : result ? `${resultForCount}개 응답 분석됨${isStale ? ' · 새 응답이 있어요' : ''}`
                 : `${responseCount}개 응답 분석 가능`}

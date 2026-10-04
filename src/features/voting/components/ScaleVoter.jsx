@@ -148,9 +148,9 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
 
       {/* Slider */}
       <div className="px-1">
-        <div className="relative" ref={trackRef}>
+        <div className="relative h-12 flex items-center" ref={trackRef}>
           {/* Track background */}
-          <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
             <motion.div
               className={`h-full rounded-full ${getScaleColor(value)}`}
               initial={{ width: '50%' }}
@@ -169,7 +169,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
             onChange={(e) => setValue(Number(e.target.value))}
             disabled={disabled}
             aria-label="의견 강도 선택"
-            className="absolute inset-0 w-full h-3 opacity-0 cursor-pointer touch-none"
+            className="absolute inset-0 w-full h-12 opacity-0 cursor-pointer touch-none"
             style={{ WebkitAppearance: 'none', margin: 0 }}
           />
 
@@ -192,7 +192,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
               key={l.value}
               type="button"
               onClick={() => setValue(l.value)}
-              className={`text-xs font-medium transition-colors duration-150 ${
+              className={`min-h-12 min-w-12 px-1 text-sm font-medium transition-colors duration-150 ${
                 value === l.value ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-400'
               }`}
             >
@@ -209,7 +209,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
             key={v}
             type="button"
             onClick={() => setValue(v)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.96] ${
+            className={`flex-1 min-h-12 py-2 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.96] ${
               value === v
                 ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                 : 'bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600'

@@ -63,7 +63,7 @@ export default memo(function ActivePollView({
   const votingLocked = timerExpired || !!question?.revealedAt;
 
   return (
-    <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center px-4 sm:px-5 pb-[calc(10rem+env(safe-area-inset-bottom))] sm:pb-40 pt-20">
+    <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center px-4 sm:px-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-28 pt-[calc(5rem+env(safe-area-inset-top))]">
       <StudentHeader sessionId={sessionId} />
 
       <div className="w-full max-w-xl space-y-5 my-auto">

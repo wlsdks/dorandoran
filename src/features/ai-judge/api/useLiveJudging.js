@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { EMPTY_RECORD } from '@/lib/realtime';
 import { getStaffSession } from '@/lib/auth-session';
@@ -142,6 +143,7 @@ export function useLiveJudgeResults(sessionId, questionId) {
  * 세션 질문의 모든 제출을 순차 심사 → results + top3 저장.
  */
 export function useLiveJudging(sessionId, questionId) {
+  const { available } = useAIAvailability();
   const [isJudging, setIsJudging] = useState(false);
   const [progress, setProgress] = useState(null); // { current, total, currentName }
   const abortRef = useRef(false);
@@ -157,7 +159,7 @@ export function useLiveJudging(sessionId, questionId) {
   }, []);
 
   const startJudging = useCallback(async () => {
-    if (!sessionId || !questionId || judgingRef.current) return;
+    if (!available || !sessionId || !questionId || judgingRef.current) return false;
     judgingRef.current = true;
     abortRef.current = false;
     setIsJudging(true);
@@ -289,7 +291,7 @@ export function useLiveJudging(sessionId, questionId) {
       judgingRef.current = false;
       if (mountedRef.current) { setIsJudging(false); setProgress(null); }
     }
-  }, [sessionId, questionId]);
+  }, [sessionId, questionId, available]);
 
   const abort = useCallback(() => {
     abortRef.current = true;

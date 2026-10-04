@@ -1,3 +1,4 @@
+import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { motion } from 'framer-motion';
 import { Send, Search, Scale, CheckCircle2, Trophy } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
@@ -22,6 +23,7 @@ export default function SubmissionLanding({
   onLookup,
   onAwardsView,
 }) {
+  const { available } = useAIAvailability();
   return (
     <>
       {/* Open: 제출 or 조회 */}
@@ -36,7 +38,7 @@ export default function SubmissionLanding({
                   <p className="text-[15px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                     {assignment.description}
                   </p>
-                  {assignment.hasJudging !== false && (
+                  {available && assignment.hasJudging !== false && (
                     <p className="text-xs text-slate-400 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center gap-1.5">
                       <Scale size={11} />
                       제출 후 AI 심사위원 7명이 평가합니다
@@ -44,7 +46,7 @@ export default function SubmissionLanding({
                   )}
                 </div>
               )}
-              {!assignment.description && assignment.hasJudging !== false && (
+              {!assignment.description && available && assignment.hasJudging !== false && (
                 <p className="text-xs text-slate-400 mt-4 flex items-center gap-1.5">
                   <Scale size={11} />
                   제출 후 AI 심사위원 7명이 평가합니다

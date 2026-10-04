@@ -50,7 +50,7 @@ export function VoteModeContent({
   if (currentMode === 'combinedRanking') {
     // 학생 단말은 votes가 본인 것만이라 전체 순위 계산 불가 → 본인 결과만 보여주고 전자칠판 안내.
     return (
-      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 px-4 pt-20 pb-[calc(10rem+env(safe-area-inset-bottom))]">
+      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 px-4 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(6rem+env(safe-area-inset-bottom))]">
         <StudentHeader sessionId={sessionId} />
         <StudentResultCard session={session} />
         <StudentBottomBar sessionId={sessionId} />
@@ -87,7 +87,7 @@ export function VoteModeContent({
   }
   if (currentMode === 'qaBoard') {
     return (
-      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 px-4 pb-[calc(10rem+env(safe-area-inset-bottom))] pt-20">
+      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]">
         <StudentHeader sessionId={sessionId} />
         <Suspense fallback={<SuspenseFallback />}>
           <LazyClassQABoard sessionId={sessionId} showInput />
@@ -98,7 +98,7 @@ export function VoteModeContent({
   }
   if (currentMode === 'qaRanking') {
     return (
-      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 px-4 pt-20 pb-[calc(10rem+env(safe-area-inset-bottom))]">
+      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 px-4 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(6rem+env(safe-area-inset-bottom))]">
         <StudentHeader sessionId={sessionId} />
         <Suspense fallback={<SuspenseFallback />}>
           <LazyQARanking sessionId={sessionId} />

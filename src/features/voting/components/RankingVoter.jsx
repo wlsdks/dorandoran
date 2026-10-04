@@ -7,7 +7,7 @@ import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import { useMyVote } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import VoteErrorToast from './VoteErrorToast';
@@ -30,38 +30,20 @@ function shuffleWithSeed(items, seed) {
   return arr.map((a) => a.i);
 }
 
-function SortableRankItem({ id, label, position }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : undefined,
-  };
-
+function SortableRankItem({ id, label, position, total, disabled, onMove }) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border bg-white dark:bg-slate-800 touch-none transition-colors duration-150 ${
-        isDragging
-          ? 'shadow-lg border-slate-300 scale-[1.02] cursor-grabbing'
-          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 cursor-grab active:scale-[0.98]'
-      }`}
-    >
-      <motion.span
-        key={position}
-        initial={{ scale: 1.2 }}
-        animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0 tabular-nums"
-      >
-        {position}
-      </motion.span>
-      <span className="flex-1 text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug select-none">{label}</span>
-      <GripVertical size={16} className="text-slate-300 dark:text-slate-600 shrink-0" />
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 10 : undefined }}
+      className={`rounded-xl border bg-white dark:bg-slate-800 px-3 py-2 ${isDragging ? 'shadow-lg border-slate-300' : 'border-slate-200 dark:border-slate-700'}`}>
+      <div className="flex items-center gap-2">
+        <span className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-500 dark:text-slate-300 shrink-0 tabular-nums">{position}</span>
+        <span className="flex-1 min-w-0 break-words text-base font-medium text-slate-800 dark:text-slate-200 leading-snug">{label}</span>
+        <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} disabled={disabled} aria-label={`${label} 순서 끌어서 변경`} className="w-12 h-12 shrink-0 flex items-center justify-center rounded-lg text-slate-400 touch-none cursor-grab disabled:opacity-40"><GripVertical size={20} /></button>
+      </div>
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={() => onMove(position - 1, -1)} disabled={disabled || position === 1} aria-label={`${label} 위로 이동`} className="min-h-12 px-3 flex items-center justify-center gap-1 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30"><ArrowUp size={16} />위로</button>
+        <button type="button" onClick={() => onMove(position - 1, 1)} disabled={disabled || position === total} aria-label={`${label} 아래로 이동`} className="min-h-12 px-3 flex items-center justify-center gap-1 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30"><ArrowDown size={16} />아래로</button>
+      </div>
     </div>
   );
 }
@@ -151,7 +133,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-4"
     >
       <p className="text-xs text-slate-400 text-center">
-        드래그하여 올바른 순서로 배열하세요
+        손잡이를 끌거나 위·아래 버튼으로 순서를 바꾸세요
       </p>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -163,6 +145,9 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
                 id={`rank-${idx}`}
                 label={options[idx]}
                 position={pos + 1}
+                total={order.length}
+                disabled={disabled || submitting}
+                onMove={(index, direction) => setOrder(previous => arrayMove(previous, index, index + direction))}
               />
             ))}
           </div>

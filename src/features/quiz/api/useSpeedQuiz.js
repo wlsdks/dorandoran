@@ -148,12 +148,9 @@ export function useSpeedQuiz(sessionId, session, { scores, participants, startTi
           const comboMultiplier = getComboMultiplier(nextStreak);
           const boostedPoints = Math.round(reward.points * comboMultiplier);
 
-          // total/tickets는 원자 increment — 동시 지급(스포트라이트 등) 유실 방지
           updates[`scores/${participantId}/total`] = increment(boostedPoints);
-          updates[`scores/${participantId}/tickets`] = increment(reward.tickets);
           updates[`scores/${participantId}/nickname`] = nickname;
           updates[`scores/${participantId}/lastPoints`] = boostedPoints;
-          updates[`scores/${participantId}/lastTickets`] = reward.tickets;
           updates[`scores/${participantId}/streak`] = nextStreak;
           updates[`scores/${participantId}/bestStreak`] = Math.max(existingScore.bestStreak || 0, nextStreak);
           updates[`scores/${participantId}/lastQuestionId`] = currentQId;

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useMemo, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Ticket, Trophy, Monitor } from 'lucide-react';
+import { Gift, Trophy, Monitor } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { buildScratchBoard, ROW_LINES, CELL_COUNT } from '@/lib/scratch';
 import { useDrawDisplay, drawPrimary, drawSecondary } from '@/lib/draw-display';
@@ -124,7 +124,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
   if (!isView && participants.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 text-center">
-        <Ticket size={presenter ? 48 : 36} className="text-slate-300 dark:text-slate-600" />
+        <Gift size={presenter ? 48 : 36} className="text-slate-300 dark:text-slate-600" />
         <p className={`text-slate-400 ${presenter ? 'text-2xl' : 'text-base'}`}>추첨할 명단이 없습니다</p>
       </div>
     );
@@ -237,7 +237,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
         </p>
       ) : (
         <Button onClick={dealBoard} variant="primary" size={presenter ? 'lg' : 'md'} disabled={active !== null}>
-          <Ticket size={presenter ? 22 : 18} />
+          <Gift size={presenter ? 22 : 18} />
           {cells ? '새 복권 긁기' : '복권 시작하기'}
         </Button>
       )}

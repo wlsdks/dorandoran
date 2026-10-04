@@ -1,169 +1,65 @@
 import { memo, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Drum } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
+import DoranDoranMascot from './DoranDoranMascot';
+import { prepareNotificationAudio } from '@/lib/chime';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
-/**
- * DrumrollOverlay — 두구두구 긴장감 연출.
- * 화면 전체를 덮으며 흔들림 + 펄스 + 드럼 사운드.
- * duration(ms) 후 자동으로 onComplete 호출.
- */
+/** 짧은 한 번의 가속→정지→공개. 오디오는 실시간 이벤트가 아닌 사용자 허용을 따른다. */
 export default memo(function DrumrollOverlay({ active, onComplete, duration = 2500 }) {
-  const [phase, setPhase] = useState(0); // 0=시작, 1=가속, 2=절정
-  const audioRef = useRef(null);
-  const timerRef = useRef(null);
-  // onComplete를 ref로 — 부모(PresentationView)가 inline 콜백을 매 렌더 새로 넘겨도
-  // effect가 재구독돼 AudioContext churn·완료타이머 리셋되던 것 방지(deps에서 제외).
+  const [phase, setPhase] = useState(0);
+  const [muted, setMuted] = useState(() => localStorage.getItem('dorandoran_sound_muted') === 'true');
+  const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const onCompleteRef = useRef(onComplete);
   useEffect(() => { onCompleteRef.current = onComplete; });
-
-  // 드럼 사운드 생성 (Web Audio API)
   useEffect(() => {
-    if (!active) {
-      setPhase(0);
-      return;
-    }
-
-    let ctx;
-    try {
-      ctx = new (window.AudioContext || window.webkitAudioContext)();
-      audioRef.current = ctx;
-    } catch {
-      // Audio not supported
-    }
-
-    // 페이즈 전환
-    const t1 = setTimeout(() => setPhase(1), duration * 0.3);
-    const t2 = setTimeout(() => setPhase(2), duration * 0.7);
-    timerRef.current = setTimeout(() => {
-      onCompleteRef.current?.();
-    }, duration);
-
-    // 드럼 비트 생성
-    let cancelled = false;        // cleanup 시 비트 루프 확실히 중단 (stale `active` 대신)
-    const beatTimers = [];        // 재귀 setTimeout ID 추적 → cleanup에서 모두 정리
-    if (ctx) {
-      let beatInterval = 300;
-      let beatCount = 0;
-      const maxBeats = Math.floor(duration / 100);
-
-      function playBeat() {
-        if (cancelled || beatCount >= maxBeats) return;
-        try {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.frequency.value = 80 + Math.random() * 40;
-          osc.type = 'triangle';
-          gain.gain.setValueAtTime(0.3, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-          osc.start(ctx.currentTime);
-          osc.stop(ctx.currentTime + 0.1);
-
-          // 갈수록 빨라짐
-          beatCount++;
-          const progress = beatCount / maxBeats;
-          beatInterval = Math.max(60, 300 - progress * 250);
-          beatTimers.push(setTimeout(playBeat, beatInterval));
-        } catch { /* ignore */ }
-      }
-      beatTimers.push(setTimeout(playBeat, 200));
-    }
-
-    return () => {
-      cancelled = true;
-      beatTimers.forEach(clearTimeout);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (audioRef.current) {
-        try { audioRef.current.close(); } catch { /* ignore */ }
-      }
-    };
+    if (!active) { setPhase(0); return; }
+    setMuted(localStorage.getItem('dorandoran_sound_muted') === 'true');
+    const timers = [setTimeout(() => setPhase(1), duration * 0.3), setTimeout(() => setPhase(2), duration * 0.67),
+      setTimeout(() => setPhase(3), duration * 0.9), setTimeout(() => onCompleteRef.current?.(), duration)];
+    return () => timers.forEach(clearTimeout);
   }, [active, duration]);
-
-  return (
-    <AnimatePresence>
-      {active && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-        >
-          {/* 배경 펄스 링 */}
-          <motion.div
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.3, 0, 0.3],
-            }}
-            transition={{ duration: 0.8, repeat: Infinity, ease: 'easeOut' }}
-            className="absolute w-64 h-64 rounded-full border-4 border-white/20"
-          />
-          <motion.div
-            animate={{
-              scale: [1, 2, 1],
-              opacity: [0.2, 0, 0.2],
-            }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeOut', delay: 0.3 }}
-            className="absolute w-64 h-64 rounded-full border-4 border-white/10"
-          />
-
-          {/* 메인 텍스트 */}
-          <motion.div
-            animate={
-              phase === 2
-                ? { scale: [1, 1.15, 0.95, 1.1, 1], rotate: [0, -2, 2, -1, 0] }
-                : phase === 1
-                  ? { scale: [1, 1.08, 1], rotate: [0, -1, 1, 0] }
-                  : { scale: [1, 1.03, 1] }
-            }
-            transition={{
-              duration: phase === 2 ? 0.3 : phase === 1 ? 0.5 : 0.8,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-            className="text-center"
-          >
-            <motion.p
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: phase === 2 ? 0.2 : 0.6, repeat: Infinity }}
-              className="text-3xl sm:text-5xl md:text-7xl font-black text-white tracking-tight"
-            >
-              {phase === 2 ? '두구두구!!' : phase === 1 ? '두구두구' : '두구...'}
-            </motion.p>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              className="text-lg text-white/50 mt-4 font-medium"
-            >
-              정답 공개 준비 중...
-            </motion.p>
-          </motion.div>
-
-          {/* 양쪽 드럼 — Peak-End Rule 절정 모먼트 */}
-          <motion.div
-            animate={phase >= 1
-              ? { x: [-8, 8, -8], rotate: [-10, 10, -10] }
-              : { x: [-4, 4, -4] }}
-            transition={{ duration: phase === 2 ? 0.15 : 0.3, repeat: Infinity }}
-            className="absolute left-8 md:left-16 top-1/2 -translate-y-1/2 text-amber-500"
-            aria-hidden="true"
-          >
-            <Drum size={64} strokeWidth={1.75} className="md:w-20 md:h-20" />
-          </motion.div>
-          <motion.div
-            animate={phase >= 1
-              ? { x: [8, -8, 8], rotate: [10, -10, 10] }
-              : { x: [4, -4, 4] }}
-            transition={{ duration: phase === 2 ? 0.15 : 0.3, repeat: Infinity }}
-            className="absolute right-8 md:right-16 top-1/2 -translate-y-1/2 text-amber-500"
-            aria-hidden="true"
-          >
-            <Drum size={64} strokeWidth={1.75} className="md:w-20 md:h-20" />
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+  useEffect(() => {
+    if (!active || muted || localStorage.getItem('dorandoran_sound_muted') === 'true') return;
+    let cancelled = false;
+    const sources = [], nodes = [];
+    Promise.resolve().then(() => prepareNotificationAudio()).then(ctx => {
+      if (!ctx || cancelled) return;
+      const start = ctx.currentTime + 0.025;
+      const total = duration / 1000;
+      const noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.15), ctx.sampleRate);
+      const data = noise.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      for (let time = 0.06; time < total * 0.88; time += Math.max(0.065, 0.22 - time / total * 0.17)) {
+        const beat = start + time;
+        const source = ctx.createBufferSource(), filter = ctx.createBiquadFilter(), gain = ctx.createGain();
+        source.buffer = noise; filter.type = 'highpass'; filter.frequency.value = 1000;
+        gain.gain.setValueAtTime(0.045 + time / total * 0.035, beat); gain.gain.exponentialRampToValueAtTime(0.001, beat + 0.085);
+        source.connect(filter); filter.connect(gain); gain.connect(ctx.destination); source.start(beat); source.stop(beat + 0.11);
+        sources.push(source); nodes.push(source, filter, gain);
+      }
+      const kick = ctx.createOscillator(), gain = ctx.createGain();
+      kick.frequency.setValueAtTime(130, start + total * 0.86); kick.frequency.exponentialRampToValueAtTime(50, start + total * 0.86 + 0.14);
+      gain.gain.setValueAtTime(0.12, start + total * 0.86); gain.gain.exponentialRampToValueAtTime(0.001, start + total * 0.86 + 0.18);
+      kick.connect(gain); gain.connect(ctx.destination); kick.start(start + total * 0.86); kick.stop(start + total * 0.86 + 0.2);
+      sources.push(kick); nodes.push(kick, gain);
+    }).catch(() => {});
+    return () => { cancelled = true; sources.forEach(source => { try { source.stop(); } catch { /* 이미 끝난 비트 */ } }); nodes.forEach(node => node.disconnect()); };
+  }, [active, duration, muted]);
+  const toggleSound = () => setMuted(value => { localStorage.setItem('dorandoran_sound_muted', String(!value)); return !value; });
+  if (typeof document === 'undefined') return null;
+  return createPortal(<AnimatePresence>{active && <motion.div role="status" aria-live="polite"
+    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
+    className="fixed inset-0 z-[80] bg-slate-950/95 flex items-center justify-center p-6">
+    <div className="text-center w-full max-w-3xl">
+      <p className="text-indigo-200 text-lg sm:text-2xl font-semibold mb-6">잠시 후, 정답을 공개합니다</p>
+      <motion.div animate={reduced ? {} : { scale: phase === 3 ? 1 : [1, 1.025, 1] }} transition={{ duration: phase > 1 ? 0.25 : 0.5 }} className="flex justify-center mb-6">
+        <DoranDoranMascot size={180} mood={phase === 3 ? 'happy' : 'thinking'} animated={false} />
+      </motion.div>
+      <p className="text-[clamp(2.5rem,6vw,6rem)] font-extrabold tracking-tight text-slate-50 leading-tight">{phase === 3 ? '정답은…' : '두구두구'}</p>
+      <div className="mt-8 h-2 max-w-md mx-auto bg-slate-700 rounded-full overflow-hidden"><motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: duration / 1000, ease: 'linear' }} className="h-full w-full origin-left bg-indigo-300" /></div>
+    </div>
+    <button className="absolute top-6 right-6 h-12 px-4 inline-flex items-center gap-2 rounded-xl bg-slate-800 text-slate-100" onClick={toggleSound} aria-label={muted ? '효과음 켜기' : '효과음 끄기'}>{muted ? <VolumeX size={20} /> : <Volume2 size={20} />}<span>{muted ? '소리 끔' : '소리 켬'}</span></button>
+  </motion.div>}</AnimatePresence>, document.body);
 });
