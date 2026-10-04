@@ -128,6 +128,7 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
         </summary>
         <div className="grid grid-cols-2 gap-1 pt-1">
           {[
+            ...(isQuiz && q.revealedAt && !q.awardedAt ? [{ label: '점수 반영 다시 시도', icon: RotateCcw, action: () => onReveal?.(qId) }] : []),
             ...(onEdit && !isModeCard ? [{ label: '질문 수정', icon: Pencil, action: () => onEdit(qId) }] : []),
             { label: '질문 복제', icon: Copy, action: () => onDuplicate(qId) },
             ...(onSaveToLibrary && !isModeCard ? [{ label: '보관함에 저장', icon: BookmarkPlus, action: () => onSaveToLibrary(qId) }] : []),

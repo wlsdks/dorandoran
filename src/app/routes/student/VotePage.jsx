@@ -123,6 +123,7 @@ export default memo(function VotePage({ sessionId }) {
             speedQuizIndex={speedQuizIndex}
             speedQuizTotal={speedQuizTotal}
             myStreak={myStreak}
+            myScore={myScore}
             SuspenseFallback={SuspenseFallback}
             WaitingPage={WaitingPage}
             ActivePollView={ActivePollView}

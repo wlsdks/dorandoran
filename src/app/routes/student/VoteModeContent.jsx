@@ -24,7 +24,7 @@ export function VoteModeContent({
   sessionId, session, status, currentMode, currentQId,
   questionProgress, timerRunning, endTime, duration,
   timerExpired, onTimerExpire,
-  isSpeedQuiz, speedQuizIndex, speedQuizTotal, myStreak,
+  isSpeedQuiz, speedQuizIndex, speedQuizTotal, myStreak, myScore,
 }) {
   if (status === 'ended') {
     return (
@@ -159,6 +159,7 @@ export function VoteModeContent({
       speedQuizIndex={speedQuizIndex}
       speedQuizTotal={speedQuizTotal}
       myStreak={myStreak}
+      myScore={myScore}
       persistentAssignmentId={showPersistent ? persistentAssignmentId : null}
       persistentAssignmentTitle={persistentQ?.title}
     />

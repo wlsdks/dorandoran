@@ -242,7 +242,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 revealed={answerRevealed}
               />
               {answerRevealed && (
-                <CorrectAnswerRanking
+                <CorrectAnswerRanking presenter={isPresenter}
                   sessionId={sessionId}
                   questionId={currentQId}
                   correctAnswer={question.correctAnswer}
@@ -259,7 +259,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 revealed={answerRevealed}
               />
               {answerRevealed && (
-                <CorrectAnswerRanking
+                <CorrectAnswerRanking presenter={isPresenter}
                   sessionId={sessionId}
                   questionId={currentQId}
                   correctAnswer={question.correctAnswer}

@@ -1,6 +1,6 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
-import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
 import { isQuizQuestion, normalizeQuizEvent } from '@/lib/quiz';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -134,8 +134,17 @@ export { MainContent };
 
 export function PresentRevealControls({ sessionId, session, onRevealQuiz, onRevealAnswer }) {
   const [drumroll, setDrumroll] = useState(false);
+  const [pendingReveal, setPendingReveal] = useState(null);
+  const [revealError, setRevealError] = useState(null);
+  const revealLock = useRef(null);
   const currentQId = session?.currentQuestion;
   const question = currentQId ? session?.questions?.[currentQId] : null;
+  const revealScope = `${sessionId}:${currentQId}`;
+  const isApplying = pendingReveal === revealScope;
+  useEffect(() => {
+    revealLock.current = null;
+    return () => { revealLock.current = null; };
+  }, [revealScope]);
   if (!question) return null;
 
   // 퀴즈도 발표 모드에서 두구두구/정답 공개 가능. 단, 퀴즈는 점수 반영(revealQuiz)이 필요해
@@ -150,6 +159,11 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
   const revealedWinners = question.revealedWinners || 0;
   const canRevealWinner = question.revealedAt && isMH && presetWinners.length > 0 && revealedWinners < presetWinners.length;
 
+  if (isQuiz && question.revealedAt && !question.awardedAt) return <div className="flex items-center justify-center gap-3 flex-wrap">
+    <p role="status" className="text-base text-slate-600 dark:text-slate-300">{isApplying ? '점수를 반영하고 있어요' : '점수 반영이 아직 완료되지 않았어요'}</p>
+    <Button onClick={handleRevealAnswer} disabled={isApplying} variant="secondary" aria-label="퀴즈 점수 반영 다시 시도">{isApplying ? '반영 중...' : '점수 반영 다시 시도'}</Button>
+    {revealError?.scope === revealScope && <p role="alert" className="text-sm text-red-600 dark:text-red-300">{revealError.message}</p>}
+  </div>;
   if (question.revealedAt && !canRevealWinner) return null;
   if (question.revealedAt && canRevealWinner) {
     return (
@@ -179,15 +193,23 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
   }
 
   async function handleRevealAnswer() {
-    // 퀴즈는 useQuestionActions.revealQuiz가 점수 반영 + revealedAt까지 일괄 처리.
-    // 그 외(choice/ox/fillinblank/ranking/mysteryBox/hintQuiz)는 revealAnswer가 revealedAt만 찍음.
-    if (isQuiz) {
-      await onRevealQuiz?.(currentQId);
-    } else {
-      await onRevealAnswer?.(currentQId);
+    if (revealLock.current) return;
+    const token = { scope: revealScope };
+    revealLock.current = token;
+    setPendingReveal(revealScope);
+    setRevealError(null);
+    try {
+      const saved = isQuiz ? await onRevealQuiz?.(currentQId) : await onRevealAnswer?.(currentQId);
+      if (saved === false && revealLock.current === token) setRevealError({ scope: revealScope, message: '반영하지 못했어요. 다시 시도해주세요.' });
+    } catch {
+      if (revealLock.current === token) setRevealError({ scope: revealScope, message: '반영하지 못했어요. 다시 시도해주세요.' });
+    } finally {
+      if (revealLock.current === token) await update(ref(db, `sessions/${sessionId}`), { drumroll: null }).catch(() => {});
+      if (revealLock.current === token) {
+        revealLock.current = null;
+        setPendingReveal(null);
+      }
     }
-    // drumroll 잔여 상태 정리 (두구두구 경유든 직접 클릭이든 항상 false로)
-    await update(ref(db, `sessions/${sessionId}`), { drumroll: null });
   }
 
   return (
@@ -207,10 +229,11 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
         }} variant="ghost" size="lg">
           두구두구
         </Button>
-        <Button onClick={handleRevealAnswer} variant="primary" size="lg">
+        <Button onClick={handleRevealAnswer} disabled={isApplying} variant="primary" size="lg">
           <Eye size={20} />
           정답 공개
         </Button>
+        {revealError?.scope === revealScope && <p role="alert" className="text-sm text-red-600 dark:text-red-300">{revealError.message}</p>}
       </div>
     </>
   );

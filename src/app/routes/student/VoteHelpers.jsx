@@ -114,14 +114,24 @@ export function QuizResultFromVote({
   question,
   currentVote,
   streak = 0,
-  isSpeedQuiz = false
+  isSpeedQuiz = false,
+  score, questionId
 }) {
   if (!currentVote) return null;
   const reward = getQuizReward(question, currentVote);
   // 스피드 퀴즈는 서버가 콤보 배수(3연속 1.2x, 5연속 1.5x)를 적용해 적립하므로,
   // 표시 점수도 동일 배수를 반영해야 '+점수'가 실제 가산점과 일치(정합성).
-  const points = isSpeedQuiz && reward.isCorrect ? Math.round(reward.points * getComboMultiplier(streak)) : reward.points;
-  return <QuizResult isCorrect={reward.isCorrect} points={points} correctAnswer={question.correctAnswer} event={question.event || null} bet={reward.bet || 1} streak={reward.isCorrect ? streak : 0} />;
+  const receipt = score?.quizAwards?.[questionId];
+  const matchingReceipt = receipt?.round === question.revealedAt && Number.isFinite(receipt?.points);
+  const matchingLegacy = Boolean(question.awardedAt && score?.lastQuestionId === questionId && Number.isFinite(score?.lastPoints));
+  const scoreApplied = matchingReceipt || matchingLegacy;
+  const expected = isSpeedQuiz && reward.isCorrect ? Math.round(reward.points * getComboMultiplier(streak)) : reward.points;
+  const points = matchingReceipt ? receipt.points : matchingLegacy ? score.lastPoints : 0;
+  return <>
+    <QuizResult isCorrect={reward.isCorrect} points={points} correctAnswer={question.correctAnswer} event={question.event || null} bet={reward.bet || 1} streak={scoreApplied && reward.isCorrect ? streak : 0} />
+    {!scoreApplied && <p role="status" className="text-center text-sm text-slate-500 dark:text-slate-300">점수 반영을 확인하고 있어요{expected ? ` · 예상 ${expected}점` : ''}</p>}
+  </>;
+
 }
 
 /** Timer expired banner — 상단 인라인 배너, voter 위에 띄우지 않음 */

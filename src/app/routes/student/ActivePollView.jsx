@@ -53,6 +53,7 @@ export default memo(function ActivePollView({
   speedQuizIndex,
   speedQuizTotal,
   myStreak,
+  myScore,
   // Persistent (상시) 과제
   persistentAssignmentId,
   persistentAssignmentTitle,
@@ -155,7 +156,7 @@ export default memo(function ActivePollView({
                   question={question}
                   disabled={votingLocked}
                   renderResult={(currentVote) => (
-                    <QuizResultFromVote question={question} currentVote={currentVote} streak={myStreak} isSpeedQuiz={isSpeedQuiz} />
+                    <QuizResultFromVote question={question} currentVote={currentVote} streak={myStreak} isSpeedQuiz={isSpeedQuiz} score={myScore} questionId={questionId} />
                   )}
                 />
               )}
