@@ -235,7 +235,7 @@ export function exportParticipantResponses(session, participants, scores, filena
  * @returns {string}
  */
 export function getFilenamePrefix(session) {
-  const course = (session?.courseName || 'Pick').replace(/[/\\?%*:|"<>]/g, '_');
+  const course = (session?.courseName || '도란도란').replace(/[/\\?%*:|"<>]/g, '_');
   const round = session?.roundNumber ? `_${session.roundNumber}차` : '';
   return `${course}${round}`;
 }

@@ -1,6 +1,6 @@
-const PARTICIPANT_ID_KEY = 'pinggo_participant_id';
-const NICKNAME_KEY = 'pinggo_nickname';
-const JOINED_SESSIONS_KEY = 'pinggo_joined_sessions';
+const PARTICIPANT_ID_KEY = 'dorandoran_participant_id';
+const NICKNAME_KEY = 'dorandoran_nickname';
+const JOINED_SESSIONS_KEY = 'dorandoran_joined_sessions';
 
 function readJoinedSessions() {
   try {
@@ -127,7 +127,7 @@ export function clearSessionJoined(sessionId) {
  */
 export function getLastSeen(sessionId, channel) {
   try {
-    const v = localStorage.getItem(`pick_${channel}_seen_${sessionId}`);
+    const v = localStorage.getItem(`dorandoran_${channel}_seen_${sessionId}`);
     return v !== null ? parseInt(v, 10) : -1;
   } catch {
     return -1;
@@ -142,6 +142,6 @@ export function getLastSeen(sessionId, channel) {
  */
 export function saveLastSeen(sessionId, channel, count) {
   try {
-    localStorage.setItem(`pick_${channel}_seen_${sessionId}`, String(count));
+    localStorage.setItem(`dorandoran_${channel}_seen_${sessionId}`, String(count));
   } catch { /* silent */ }
 }

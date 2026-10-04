@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Send, Search, Scale, CheckCircle2, Trophy } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Button from '@/components/ui/Button';
 
 /** Landing view for SubmissionPage — shown when view === 'landing'. */
@@ -30,7 +30,7 @@ export default function SubmissionLanding({
           <div className="w-full space-y-6">
             {/* 마스코트 + 과제 안내 */}
             <div className="flex flex-col items-center">
-              <PickMascot size="lg" mood="happy" />
+              <DoranDoranMascot size="lg" mood="happy" />
               {assignment.description && (
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 mt-5 w-full">
                   <p className="text-[15px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
@@ -129,7 +129,7 @@ export default function SubmissionLanding({
       {isJudging && (
         <div className="flex flex-col items-center justify-center" style={{ minHeight: 'calc(100dvh - 160px)' }}>
           <motion.div animate={{ scale: [1, 1.03, 1] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}>
-            <PickMascot size="lg" mood="happy" />
+            <DoranDoranMascot size="lg" mood="happy" />
           </motion.div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-6">심사가 진행 중입니다</h2>
           <p className="text-sm text-slate-400 mt-2 text-center leading-relaxed">
@@ -141,7 +141,7 @@ export default function SubmissionLanding({
       {/* Closed: 마감 */}
       {isClosed && (
         <div className="flex flex-col items-center justify-center" style={{ minHeight: 'calc(100dvh - 160px)' }}>
-          <PickMascot size="lg" mood="waiting" />
+          <DoranDoranMascot size="lg" mood="waiting" />
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-6">과제가 마감되었습니다</h2>
           <p className="text-sm text-slate-400 mt-2 text-center leading-relaxed">
             심사 결과가 나오면<br />이 페이지에서 확인할 수 있어요

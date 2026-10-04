@@ -3,7 +3,7 @@ import { Search, X, Check, MessageSquare, Trash2 } from 'lucide-react';
 import { useQuestionLibrary } from '@/features/questions/api/useQuestionLibrary';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { QUESTION_TYPES } from '@/lib/question-types';
 
 function PickableCard({ question, selected, onToggle, onDelete }) {
@@ -160,7 +160,7 @@ export default function ImportFromLibraryModal({ open, onClose, adminUid, onImpo
             <div className="text-center py-8 text-slate-400 text-sm">불러오는 중...</div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center text-center py-8 space-y-2">
-              <PickMascot size="sm" mood="waiting" />
+              <DoranDoranMascot size="sm" mood="waiting" />
               <p className="text-slate-400 text-sm">
                 {questions.length === 0 ? '저장된 질문이 없습니다' : '일치하는 질문이 없습니다'}
               </p>

@@ -7,7 +7,7 @@ import { chromium } from '@playwright/test';
 
 const DB = 'https://jinan-6c884-default-rtdb.asia-southeast1.firebasedatabase.app';
 const BASE = 'http://localhost:5173';
-const OUT = '/private/tmp/claude-501/-Users-stark-dev-campfire/b4d22bcb-b832-4cf8-baba-92aa2d9269c8/scratchpad/walk';
+const OUT = '/tmp/dorandoran-walk';
 const ADMIN = { uid: 'e2e_admin_master', username: 'test_master', displayName: '테스트 강사', role: 'master' };
 
 const get = (p) => fetch(`${DB}/${p}.json`).then((r) => r.json());
@@ -45,7 +45,7 @@ try {
 
   // ── 1. 강사 계정으로 대시보드 진입
   await admin.goto(`${BASE}/admin`);
-  await admin.evaluate((u) => sessionStorage.setItem('pinggo_admin', JSON.stringify(u)), ADMIN);
+  await admin.evaluate((u) => sessionStorage.setItem('dorandoran_admin', JSON.stringify(u)), ADMIN);
   await admin.goto(`${BASE}/admin`);
   await admin.waitForTimeout(2500);
   await say(admin, '① 강사 계정으로 대시보드 진입', 2000);

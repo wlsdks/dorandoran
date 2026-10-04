@@ -14,7 +14,7 @@ import { useQuestionActions } from '@/hooks/useQuestionActions';
 
 function getAdminUser() {
   try {
-    const raw = sessionStorage.getItem('pinggo_admin');
+    const raw = sessionStorage.getItem('dorandoran_admin');
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed && parsed.uid && parsed.username) return parsed;
@@ -122,7 +122,7 @@ export function useAdminSession() {
   const handleLogin = useCallback(() => { setAdminUser(getAdminUser()); }, []);
   const handleSelectSession = useCallback((id, isReadOnly) => { setSessionId(id); setReadOnly(isReadOnly); setUrlParams({ s: id }); }, []);
   const handleBack = useCallback(() => { setSessionId(''); setReadOnly(false); setPresentMode(false); setUrlParams({}); }, []);
-  const handleLogout = useCallback(() => { sessionStorage.removeItem('pinggo_admin'); setAdminUser(null); setSessionId(''); setUrlParams({}); }, []);
+  const handleLogout = useCallback(() => { sessionStorage.removeItem('dorandoran_admin'); setAdminUser(null); setSessionId(''); setUrlParams({}); }, []);
 
   // UI toggles
   const handleChatToggle = useCallback(() => {

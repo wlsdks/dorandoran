@@ -126,7 +126,7 @@ export default memo(function AdminSessionHeader({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-900 dark:text-slate-100 truncate">
-              {session?.courseName || 'Pick'}
+              {session?.courseName || '도란도란'}
             </span>
             {session?.roundNumber && (
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400 shrink-0">{session.roundNumber}차</span>

@@ -2,7 +2,7 @@ import { onDisconnect, onValue, ref, set, update, serverTimestamp } from 'fireba
 import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import JoinPage from '@/app/routes/student/JoinPage';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { SuspenseFallback } from '@/components/ui/Skeleton';
@@ -26,7 +26,7 @@ function NotFoundPage() {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         className="text-center space-y-5 max-w-xs"
       >
-        <PickMascot size="lg" mood="thinking" className="mx-auto" />
+        <DoranDoranMascot size="lg" mood="thinking" className="mx-auto" />
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">페이지를 찾을 수 없습니다</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
@@ -56,8 +56,8 @@ function StudentRouter() {
   // Listen for nickname change requests from StudentHeader
   useEffect(() => {
     const handler = () => setJoined(false);
-    window.addEventListener('pick:change-nickname', handler);
-    return () => window.removeEventListener('pick:change-nickname', handler);
+    window.addEventListener('dorandoran:change-nickname', handler);
+    return () => window.removeEventListener('dorandoran:change-nickname', handler);
   }, []);
 
   useEffect(() => {
@@ -101,48 +101,30 @@ function StudentRouter() {
     return (
       <div className="relative min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
           className="text-center space-y-5 max-w-xs"
         >
-          <motion.div
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.1 }}
-            className="flex justify-center"
-          >
-            <PickMascot size="lg" mood="waiting" />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-            className="space-y-2"
-          >
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Pick</h1>
+          <div className="flex justify-center">
+            <DoranDoranMascot size="lg" mood="waiting" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
               강사가 공유한 링크 또는 QR코드를<br />통해 접속해주세요
             </p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.45 }}
-            className="flex items-center justify-center gap-2"
-          >
+          </div>
+          <div className="flex items-center justify-center gap-2">
             <span className="text-xs text-slate-400 dark:text-slate-500">실시간 강의 참여 플랫폼</span>
-          </motion.div>
-          <motion.a
-            href="/admin"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors underline underline-offset-2"
-          >
-            강사이신가요? 로그인
-          </motion.a>
+          </div>
         </motion.div>
+        <a
+          href="/admin"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors underline underline-offset-2"
+        >
+          강사이신가요? 로그인
+        </a>
       </div>
     );
   }

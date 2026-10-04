@@ -1,4 +1,4 @@
-// Pick Design Tokens
+// DoranDoran Design Tokens
 // Single source of truth for all design values.
 // Usage: import { colors, spacing, motion } from '@/lib/design-tokens'
 

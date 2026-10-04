@@ -1,4 +1,4 @@
--- Pick DDL (PostgreSQL)
+-- DoranDoran DDL (PostgreSQL)
 -- Firebase Realtime DB -> RDB 전환 시 사용
 -- 2026-03-21 기준 전체 스키마
 

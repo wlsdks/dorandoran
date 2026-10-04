@@ -1,28 +1,18 @@
 import { motion } from 'framer-motion';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { motion as motionTokens } from '@/lib/design-tokens';
 
-const RATIO = 461 / 512;
-const H = 96;
-
-/** 수업 종료 축하 마스코트 — Pick 픽셀 사자. 통통 등장 + 부드러운 바브. */
+/** 함께 수업을 마친 도란·두런의 인사. */
 export default function CelebrationMascot() {
-  const w = Math.round(H * RATIO);
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   return (
-    <motion.img
-      src="/mascot.png?v=pixel"
-      alt=""
-      aria-hidden="true"
-      width={w}
-      height={H}
-      draggable={false}
-      style={{ display: 'block', width: w, height: H, objectFit: 'contain', userSelect: 'none' }}
-      initial={{ opacity: 0, scale: 0.5, rotate: -8 }}
-      animate={{ opacity: 1, scale: 1, rotate: 0, y: [0, -6, 0] }}
-      transition={{
-        opacity: { duration: 0.3 },
-        scale: { type: 'spring', stiffness: 400, damping: 22, delay: 0.1 },
-        rotate: { type: 'spring', stiffness: 300, damping: 25, delay: 0.1 },
-        y: { duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 },
-      }}
-    />
+    <motion.div
+      initial={reducedMotion ? false : { opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: reducedMotion ? 0 : motionTokens.duration.enter, ease: motionTokens.ease.out }}
+    >
+      <DoranDoranMascot size={96} mood="happy" />
+    </motion.div>
   );
 }

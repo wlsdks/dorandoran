@@ -46,7 +46,7 @@ async function setup() {
   });
 
   await set(ref(db, `sessions/${SESSION_ID}/questions/lt_q2`), {
-    title: 'Pick 서비스 만족도는?',
+    title: 'DoranDoran 서비스 만족도는?',
     type: 'choice',
     options: ['매우 만족', '만족', '보통', '불만족'],
   });

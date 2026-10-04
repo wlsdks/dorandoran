@@ -49,9 +49,9 @@ test.describe('Q&A 보드', () => {
   test('학생 화면에서 Q&A 보드 + 질문 입력', async ({ page }) => {
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 

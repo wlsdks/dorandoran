@@ -6,7 +6,7 @@ import { JUDGES, getAwardById } from '@/lib/judging/judges';
 import JudgeResultCard from './JudgeResultCard';
 import SubmissionContentPreview from './SubmissionContentPreview';
 import Avatar from '@/components/ui/Avatar';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Tooltip from '@/components/ui/Tooltip';
 
 /** Sort submissions by avgScore descending. */
@@ -218,7 +218,7 @@ export default function SubmissionsView({ assignmentId, submissions, results, aw
 
       {sorted.length === 0 ? (
         <div className="flex flex-col items-center py-16">
-          <PickMascot size="lg" mood="waiting" className="mx-auto" />
+          <DoranDoranMascot size="lg" mood="waiting" className="mx-auto" />
           <p className="text-base font-semibold text-slate-900 dark:text-slate-100 mt-6">
             아직 제출된 과제가 없습니다
           </p>

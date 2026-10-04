@@ -25,7 +25,7 @@ const USER_COUNT = 300;
 const SID_ARG = (process.argv.find((a) => a.startsWith('sid=')) || '').slice(4);
 const SESSION_ID = SID_ARG || ('scn_real_' + Math.random().toString(36).slice(2, 7));
 const KEEP = process.argv.includes('--keep');
-const BASE = 'https://pick.aslan.it.kr';
+const BASE = 'https://jinan-6c884.web.app';
 
 const JOIN_WINDOW_MS = 25000;
 const Q_WINDOW_MS = 28000;

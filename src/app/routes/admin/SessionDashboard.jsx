@@ -5,7 +5,7 @@ import CreateSessionModal from './CreateSessionModal';
 import DeleteSessionModal from './DeleteSessionModal';
 import AdminApproval from './AdminApproval';
 import { SuspenseFallback } from '@/components/ui/Skeleton';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Toast from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import ClassesTab from './ClassesTab';
@@ -126,9 +126,9 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
       {/* Header */}
       <div className="bg-white dark:bg-slate-800 px-6 max-sm:px-5 py-5 max-sm:py-4 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <PickMascot size="sm" />
+          <DoranDoranMascot size="sm" />
           <div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">Pick</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</h1>
             <p className="text-slate-400 text-xs">{TABS.find((t) => t.key === activeTab)?.label}</p>
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
           {activeTab === 'history' && (
             <motion.div key="history" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-16 gap-3"><PickMascot size="sm" mood="thinking" /><p className="text-sm text-slate-400">불러오는 중...</p></div>
+                <div className="flex flex-col items-center justify-center py-16 gap-3"><DoranDoranMascot size="sm" mood="thinking" /><p className="text-sm text-slate-400">불러오는 중...</p></div>
               ) : (
                 <Suspense fallback={<SuspenseFallback fullPage={false} />}>
                   <StatsView sessions={sessions} />

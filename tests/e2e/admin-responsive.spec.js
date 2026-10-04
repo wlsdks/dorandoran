@@ -14,7 +14,7 @@ const ADMIN = { uid: 'e2e_admin_master', username: 'test_master', displayName: '
 
 async function setAdminAuth(page, baseURL) {
   await page.goto(`${baseURL}/admin`);
-  await page.evaluate((u) => sessionStorage.setItem('pinggo_admin', JSON.stringify(u)), ADMIN);
+  await page.evaluate((u) => sessionStorage.setItem('dorandoran_admin', JSON.stringify(u)), ADMIN);
 }
 
 async function shoot(page, label) {

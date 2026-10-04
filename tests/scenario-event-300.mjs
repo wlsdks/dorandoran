@@ -29,7 +29,7 @@ const KEEP = process.argv.includes('--keep');
 const WATCH = process.argv.includes('--watch'); // 관전 페이싱(문항 사이 여유)
 const CHURN_COUNT = 30; // 연결 끊김/재접속 테스트 대상 수
 const Q_COUNT = 10;
-const BASE = 'https://pick.aslan.it.kr';
+const BASE = 'https://jinan-6c884.web.app';
 
 const ANSWERS = [
   '실습이 정말 유익했어요', '협업하는 부분이 인상 깊었습니다', '발표 자료가 깔끔했어요',

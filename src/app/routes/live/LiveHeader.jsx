@@ -1,7 +1,7 @@
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Sun, Moon, QrCode, Hand, AlertCircle } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Badge from '@/components/ui/Badge';
 import QRCodeComponent from '@/components/ui/QRCode';
 import ElapsedTime from '@/components/ui/ElapsedTime';
@@ -15,8 +15,8 @@ export default memo(function LiveHeader({ courseName, roundNumber, count, handCo
   return (
     <header className="flex items-center justify-between px-3 sm:px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 relative gap-2">
       <div className="flex items-center gap-2 shrink-0">
-        <PickMascot size="xs" />
-        <span className="hidden sm:inline text-slate-900 dark:text-slate-100 font-bold text-lg tracking-tight">Pick</span>
+        <DoranDoranMascot size="xs" />
+        <span className="hidden sm:inline text-slate-900 dark:text-slate-100 font-bold text-lg tracking-tight">도란도란</span>
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 justify-center">

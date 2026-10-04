@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STORAGE_KEY = 'pinggo_theme';
+const STORAGE_KEY = 'dorandoran_theme';
 
 /**
  * Theme hook — manages light/dark/system preference.

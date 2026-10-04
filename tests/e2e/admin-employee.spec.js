@@ -16,7 +16,7 @@ test('강사 참여자 목록 — 닉네임 아래 사번 표시', async ({ page
   });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${baseURL}/admin`);
-  await page.evaluate((u) => sessionStorage.setItem('pinggo_admin', JSON.stringify(u)), ADMIN);
+  await page.evaluate((u) => sessionStorage.setItem('dorandoran_admin', JSON.stringify(u)), ADMIN);
   await page.goto(`${baseURL}/admin?s=${sid}`);
   await page.getByText('불러오는 중').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
   await waitForSync(page, 2500);

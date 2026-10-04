@@ -12,7 +12,7 @@ import MySubmissionView from './MySubmissionView';
 import LookupForm from './LookupForm';
 import SubmissionLanding from './SubmissionLanding';
 import SubmissionAwardsView from './SubmissionAwardsView';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 
 // ─── Main ──────────────────────────────────────────
 export default function SubmissionPage({ assignmentId }) {
@@ -67,7 +67,7 @@ export default function SubmissionPage({ assignmentId }) {
   if (!assignment) {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-6">
-        <PickMascot size="lg" mood="waiting" />
+        <DoranDoranMascot size="lg" mood="waiting" />
         <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-6">과제를 찾을 수 없습니다</h2>
         <p className="text-slate-400 text-sm mt-2">링크가 올바른지 확인해주세요</p>
       </div>

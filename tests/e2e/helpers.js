@@ -101,8 +101,8 @@ export async function setupStudentPage(browser, baseURL, sessionId, nickname, op
   // Pre-set localStorage before navigating
   await page.goto(`${baseURL}/?s=${sessionId}`);
   await page.evaluate(({ pid, nick }) => {
-    localStorage.setItem('pinggo_participant_id', pid);
-    localStorage.setItem('pinggo_nickname', nick);
+    localStorage.setItem('dorandoran_participant_id', pid);
+    localStorage.setItem('dorandoran_nickname', nick);
   }, { pid: participantId, nick: nickname });
 
   // Reload to pick up localStorage
@@ -126,7 +126,7 @@ export async function setupAdminPage(browser, baseURL, role = 'admin', opts = {}
 
   await page.goto(`${baseURL}/admin`);
   await page.evaluate((user) => {
-    sessionStorage.setItem('pinggo_admin', JSON.stringify(user));
+    sessionStorage.setItem('dorandoran_admin', JSON.stringify(user));
   }, adminUser);
 
   await page.reload();

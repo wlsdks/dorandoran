@@ -1,6 +1,6 @@
-# Contributing to Pick
+# Contributing to DoranDoran
 
-Pick에 관심 가져주셔서 감사합니다. 이 가이드는 Pick에 코드/문서/아이디어를 기여하는 방법을 정리합니다.
+DoranDoran에 관심 가져주셔서 감사합니다. 이 가이드는 DoranDoran에 코드/문서/아이디어를 기여하는 방법을 정리합니다.
 
 ## 시작하기
 
@@ -8,7 +8,7 @@ Pick에 관심 가져주셔서 감사합니다. 이 가이드는 Pick에 코드/
 
 ## 이슈 등록 전 체크
 
-- 비슷한 이슈가 이미 등록되어 있는지 [Issues](https://github.com/wlsdks/pick/issues)에서 검색
+- 비슷한 이슈가 이미 등록되어 있는지 저장소의 Issues 탭에서 검색
 - 버그면 **재현 가능한 최소 단계**를 적어주세요 (브라우저, OS, 단계, 기대 vs 실제)
 - 기능 제안은 **사용자 시나리오** 우선 — 어떤 강사/학생이, 어떤 상황에서, 무엇을 못 해서 답답한지
 
@@ -22,7 +22,7 @@ Pick에 관심 가져주셔서 감사합니다. 이 가이드는 Pick에 코드/
 
 ## 코드 스타일
 
-[CLAUDE.md](./CLAUDE.md)의 "Pick - Project Guidelines" 섹션을 따릅니다 — Bulletproof React 구조, 단방향 import, JSX(no TS), 한국어 UI, lucide 아이콘만, 컴포넌트 200줄 가이드라인.
+[CLAUDE.md](./CLAUDE.md)의 "DoranDoran - Project Guidelines" 섹션을 따릅니다 — Bulletproof React 구조, 단방향 import, JSX(no TS), 한국어 UI, lucide 아이콘만, 컴포넌트 200줄 가이드라인.
 
 [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)의 디자인 토큰을 사용해주세요. 임의 hex/색상은 PR에서 지적됩니다.
 
@@ -38,7 +38,7 @@ Pick에 관심 가져주셔서 감사합니다. 이 가이드는 Pick에 코드/
 ## 기대하지 않는 영역 (현재 단계)
 
 - **대규모 아키텍처 변경** — 메인테이너와 사전 합의 필요
-- **상업적 요구사항** — Pick은 학습/강의 도구이지 SaaS가 아님
+- **상업적 요구사항** — DoranDoran은 학습/강의 도구이지 SaaS가 아님
 - **새 의존성 추가** — 기존 stack(React 19/Vite/Tailwind/Firebase/Framer Motion)으로 안 되는지 먼저
 
 ## Code of Conduct

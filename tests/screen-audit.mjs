@@ -6,7 +6,7 @@ import { chromium } from '@playwright/test';
 
 const DB = 'https://jinan-6c884-default-rtdb.asia-southeast1.firebasedatabase.app';
 const BASE = 'http://localhost:5173';
-const OUT = '/private/tmp/claude-501/-Users-stark-dev-campfire/b4d22bcb-b832-4cf8-baba-92aa2d9269c8/scratchpad/audit';
+const OUT = '/tmp/dorandoran-audit';
 const ADMIN = { uid: 'e2e_admin_master', username: 'test_master', displayName: '테스트 강사', role: 'master' };
 
 const put = (p, d) => fetch(`${DB}/${p}.json`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
@@ -43,7 +43,7 @@ async function shot(page, name, viewport) {
 
 async function openAdmin(page, sid) {
   await page.goto(`${BASE}/admin`);
-  await page.evaluate((u) => sessionStorage.setItem('pinggo_admin', JSON.stringify(u)), ADMIN);
+  await page.evaluate((u) => sessionStorage.setItem('dorandoran_admin', JSON.stringify(u)), ADMIN);
   await page.goto(`${BASE}/admin?s=${sid}`);
   await page.waitForTimeout(3000);
 }
@@ -133,7 +133,7 @@ try {
   await put(`sessions/${sid2}/participants`, { stu_1: { nickname: '학생A', online: true } });
   const stu = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   await stu.goto(`${BASE}/?s=${sid2}`);
-  await stu.evaluate(() => { localStorage.setItem('pinggo_participant_id', 'stu_1'); localStorage.setItem('pinggo_nickname', '학생A'); });
+  await stu.evaluate(() => { localStorage.setItem('dorandoran_participant_id', 'stu_1'); localStorage.setItem('dorandoran_nickname', '학생A'); });
   await stu.reload();
   await stu.waitForTimeout(3000);
   await shot(stu, '16-student-scratch-waiting', '390x844');

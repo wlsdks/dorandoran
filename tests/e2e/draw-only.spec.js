@@ -7,7 +7,7 @@ const ADMIN = { uid: 'e2e_admin_master', username: 'test_master', displayName: '
 async function openAdmin(page, baseURL, sessionId) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${baseURL}/admin`);
-  await page.evaluate((u) => sessionStorage.setItem('pinggo_admin', JSON.stringify(u)), ADMIN);
+  await page.evaluate((u) => sessionStorage.setItem('dorandoran_admin', JSON.stringify(u)), ADMIN);
   await page.goto(sessionId ? `${baseURL}/admin?s=${sessionId}` : `${baseURL}/admin`);
   await page.getByText('불러오는 중').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
   await waitForSync(page, 2500);

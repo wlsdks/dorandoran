@@ -1,7 +1,7 @@
 import { useVotes } from '@/hooks/useVotes';
 import { useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 // Monochromatic slate palette — Tailwind classes for dark mode support
 const WORD_CLASSES = [
   'text-slate-900 dark:text-slate-100',
@@ -58,7 +58,7 @@ export default memo(function WordCloud({ sessionId, questionId }) {
         </AnimatePresence>
         {words.length === 0 && (
           <div className="text-center space-y-2 flex flex-col items-center">
-            <PickMascot size="sm" />
+            <DoranDoranMascot size="sm" />
             <p className="text-slate-400 dark:text-slate-500 text-base">아직 입력이 없습니다</p>
           </div>
         )}

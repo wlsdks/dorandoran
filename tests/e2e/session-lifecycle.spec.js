@@ -27,9 +27,9 @@ test.describe('세션 라이프사이클', () => {
     // Join as student
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 
@@ -53,9 +53,9 @@ test.describe('세션 라이프사이클', () => {
 
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 
@@ -74,9 +74,9 @@ test.describe('세션 라이프사이클', () => {
 
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 
@@ -94,7 +94,7 @@ test.describe('세션 라이프사이클', () => {
         await oBtn.click();
         await waitForSync(page, 3000);
 
-        const pid = await page.evaluate(() => localStorage.getItem('pinggo_participant_id'));
+        const pid = await page.evaluate(() => localStorage.getItem('dorandoran_participant_id'));
         const vote = await firebaseGet(`sessions/${sessionId}/questions/q2/votes/${pid}`);
         expect(vote).toBeTruthy();
       }
@@ -107,9 +107,9 @@ test.describe('세션 라이프사이클', () => {
 
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 
@@ -141,9 +141,9 @@ test.describe('세션 라이프사이클', () => {
 
     await page.goto(`/?s=${sessionId}`);
     await page.evaluate(() => {
-      localStorage.removeItem('pinggo_joined_sessions');
-      localStorage.removeItem('pinggo_participant_id');
-      localStorage.removeItem('pinggo_nickname');
+      localStorage.removeItem('dorandoran_joined_sessions');
+      localStorage.removeItem('dorandoran_participant_id');
+      localStorage.removeItem('dorandoran_nickname');
     });
     await page.reload();
 
@@ -167,7 +167,7 @@ test.describe('세션 라이프사이클', () => {
         }
         await waitForSync(page, 3000);
 
-        const pid = await page.evaluate(() => localStorage.getItem('pinggo_participant_id'));
+        const pid = await page.evaluate(() => localStorage.getItem('dorandoran_participant_id'));
         const vote = await firebaseGet(`sessions/${sessionId}/questions/q4/votes/${pid}`);
         expect(vote).toBeTruthy();
       }

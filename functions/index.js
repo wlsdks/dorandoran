@@ -1,7 +1,7 @@
 /**
  * Gemini API 프록시 — Firebase Cloud Function.
  *
- * 존재 이유: Pick은 백엔드 없는 SPA다. 브라우저에서 Gemini를 직접 부르면 `VITE_` 환경변수가
+ * 존재 이유: DoranDoran은 백엔드 없는 SPA다. 브라우저에서 Gemini를 직접 부르면 `VITE_` 환경변수가
  * 빌드 번들(dist/assets/*.js)에 평문으로 인라인되어 API 키가 그대로 유출된다.
  * (2026-07-02에 실제로 이 경로로 유출됐다.) 키는 Secret Manager에만 두고, 클라이언트는
  * 키 없이 이 함수를 경유한다.
@@ -34,11 +34,11 @@ const ALLOWED_TASKS = new Set(['generateContent']);
 
 /** 브라우저에서 이 함수를 부를 수 있는 출처. 같은 출처 요청은 Origin이 없거나 아래와 일치한다. */
 const ALLOWED_ORIGINS = new Set([
-  'https://pick.aslan.it.kr',
   'https://jinan-6c884.web.app',
   'https://jinan-6c884.firebaseapp.com',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
+  ...(process.env.APP_ALLOWED_ORIGINS || '').split(',').map((origin) => origin.trim()).filter(Boolean),
 ]);
 
 /** 라이브 심사는 이미지 inlineData를 실어 보낸다 — 넉넉하되 무제한은 아니게. */

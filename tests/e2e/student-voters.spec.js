@@ -53,9 +53,9 @@ test('학생 모바일 — 전 voter 유형 전수 캡처', async ({ page, baseU
   // 입장 마킹
   await page.goto(`${baseURL}/?s=${sid}`);
   await page.evaluate(({ sid, pid }) => {
-    localStorage.setItem('pinggo_participant_id', pid);
-    localStorage.setItem('pinggo_nickname', '김참가');
-    localStorage.setItem('pinggo_joined_sessions', JSON.stringify({ [sid]: { participantId: pid, nickname: '김참가' } }));
+    localStorage.setItem('dorandoran_participant_id', pid);
+    localStorage.setItem('dorandoran_nickname', '김참가');
+    localStorage.setItem('dorandoran_joined_sessions', JSON.stringify({ [sid]: { participantId: pid, nickname: '김참가' } }));
   }, { sid, pid: PID });
 
   const order = ['c_choice','c_ox','c_quiz','c_wordcloud','c_subjective','c_scale','c_debate','c_ranking','c_fill','c_check','c_mystery','c_hint'];

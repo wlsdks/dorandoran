@@ -46,6 +46,14 @@ export default defineConfig([
     },
   },
   {
+    // Firebase Functions run as CommonJS on Node.js.
+    files: ['functions/**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: globals.node,
+    },
+  },
+  {
     // Node.js 환경 — config / 시드 스크립트 / e2e 테스트
     files: ['vite.config.js', 'scripts/**/*.{js,mjs}', 'tests/**/*.{js,mjs}', 'playwright.config.js'],
     languageOptions: {

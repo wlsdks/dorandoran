@@ -1,4 +1,4 @@
-# Pick PRD (Product Requirements Document)
+# DoranDoran PRD (Product Requirements Document)
 
 > 실시간 강의 참여 플랫폼. 강사와 학생의 상호작용이 핵심.
 > 이 문서는 매 개선 사이클마다 업데이트됨. (2026-03-21 기준 최신 업데이트)
@@ -216,7 +216,7 @@
 | 채팅 스마트 스크롤 | 양쪽 | 완료 | 하단 100px 내→자동 스크롤, 위 스크롤 시 유지 |
 | 복사 세션코드 | 학생 | 완료 | 대기 화면 세션코드 터치→클립보드 복사+체크 피드백 |
 | 대기 팁 아이콘 | 학생 | 완료 | 순환 팁에 contextual 아이콘 (Zap/Hand/MessageSquare 등) |
-| 사자 마스코트 | 전체 | 완료 | PickMascot — 뭉글뭉글 갈기, 눈 깜빡임. xs/sm/md/lg 사이즈 |
+| 말풍선 친구 마스코트 | 전체 | 완료 | DoranDoranMascot — 두 말풍선 친구, 상태별 표정, 움직임 줄이기 지원. xs/sm/md/lg 사이즈 |
 | 강의명 대기 표시 | 학생 | 완료 | 대기 화면에 현재 강의명 표시 (맞는 수업인지 확인) |
 | 자신감 측정기 | 학생 | 완료 | 퀴즈 답변 후 확신 없음/보통/확신 3단계. Firebase에 confidence 저장 |
 | 스태프 전용 페이지 | 스태프 | 완료 | 모바일 최적화 4탭(질문/손들기/채팅/참여자). 긴급+수업 질문 통합 |
@@ -479,7 +479,7 @@ src/
   components/ui/             — 공유 UI 프리미티브 (16개)
     Avatar, Badge, Button, Card, ConnectionBanner, ConnectionDot,
     EmptyState, ErrorBoundary, IconButton, InstallPrompt, Modal,
-    PickMascot, QRCode, QuizEventBanner, Skeleton, Toast
+    DoranDoranMascot, QRCode, QuizEventBanner, Skeleton, Toast
 
   features/                  — 비즈니스 기능 (12개 도메인)
     chat/                    — ChatPanel, useChat

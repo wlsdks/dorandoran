@@ -48,11 +48,11 @@ export function VotePageSkeleton() {
 
 /** Lightweight Suspense fallback — centered mascot for lazy-loaded routes/sections. */
 export function SuspenseFallback({ fullPage = true }) {
-  // 가벼운 로딩 폴백 — PickMascot 컴포넌트 대신 이미지 태그로 픽셀 마스코트만 표시(경량).
+  // 로딩 중에는 정적 SVG를 직접 표시해 애니메이션 모듈을 불러오지 않는다.
   return (
     <div className={`${fullPage ? 'min-h-dvh' : 'min-h-[200px]'} bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-3`}>
-      <img src="/mascot.png?v=pixel" alt="" aria-hidden="true" width={43} height={48}
-        className="animate-pulse" style={{ objectFit: 'contain' }} />
+      <img src="/characters/dorandoran-waiting.svg" alt="" aria-hidden="true" width={64} height={48}
+        style={{ objectFit: 'contain' }} />
       <span className="text-sm text-slate-400">불러오는 중...</span>
     </div>
   );

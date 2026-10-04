@@ -36,7 +36,7 @@ test.describe('학생 DM — 본인 스레드 스코프', () => {
     // 입장 완료 상태로 마킹 (StudentBottomBar/토스트 마운트되도록) 후 재로드.
     // 포맷: { [sessionId]: { participantId } } — hasJoinedSession이 participantId 일치를 확인.
     await page.evaluate(({ sid, pid }) => {
-      localStorage.setItem('pinggo_joined_sessions', JSON.stringify({ [sid]: { participantId: pid, nickname: '나학생' } }));
+      localStorage.setItem('dorandoran_joined_sessions', JSON.stringify({ [sid]: { participantId: pid, nickname: '나학생' } }));
     }, { sid: sessionId, pid });
     await page.reload();
     await waitForSync(page, 3000);

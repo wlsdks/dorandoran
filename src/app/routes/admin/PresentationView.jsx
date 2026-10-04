@@ -6,7 +6,7 @@ import { Users, QrCode, X, Copy, Check, Hand, MessageSquare, ChevronDown, Chevro
 import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import Button from '@/components/ui/Button';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import QRCode from '@/components/ui/QRCode';
 import VizRenderer from '@/features/visualization/components/VizRenderer';
 import JoinToast from '@/features/participants/components/JoinToast';
@@ -90,7 +90,7 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
     if (currentMode === 'combinedRanking') return <CombinedRanking session={session} />;
     if (currentMode === 'focus') return (
       <div className="flex flex-col items-center justify-center gap-4 md:gap-6 text-center">
-        <PickMascot size="lg" mood="focus" />
+        <DoranDoranMascot size="lg" mood="focus" />
         <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">집중 모드</p>
         <p className="text-slate-400 dark:text-white/40 text-sm md:text-lg">학생 화면이 잠겼습니다</p>
       </div>

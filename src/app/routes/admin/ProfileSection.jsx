@@ -25,9 +25,9 @@ export default function ProfileSection({ adminUser }) {
     setSaving(true); setError('');
     try {
       await update(ref(db, `admins/${adminUser.uid}`), { displayName: trimmed });
-      const stored = JSON.parse(sessionStorage.getItem('pinggo_admin') || '{}');
+      const stored = JSON.parse(sessionStorage.getItem('dorandoran_admin') || '{}');
       stored.displayName = trimmed;
-      sessionStorage.setItem('pinggo_admin', JSON.stringify(stored));
+      sessionStorage.setItem('dorandoran_admin', JSON.stringify(stored));
       setSaved(true); setEditing(false);
       setTimeout(() => setSaved(false), 2000);
     } catch { setError('저장에 실패했습니다'); }

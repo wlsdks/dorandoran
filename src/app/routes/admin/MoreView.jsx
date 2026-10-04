@@ -162,7 +162,7 @@ function AppInfo() {
           </div>
         </div>
         <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
-          <p className="text-xs text-slate-400 dark:text-slate-500 text-center">Pick &mdash; 실시간 강의 참여 플랫폼</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 text-center">도란도란 &mdash; 실시간 강의 참여 플랫폼</p>
         </div>
       </div>
     </motion.div>

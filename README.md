@@ -1,4 +1,4 @@
-# Pick
+# 도란도란 · DoranDoran
 
 > 가볍게 참여를 던지고 바로 반응하는, 실시간 강의 참여 플랫폼
 
@@ -160,8 +160,8 @@ src/
 ### 1) 설치
 
 ```bash
-git clone https://github.com/wlsdks/pick.git
-cd pick
+git clone YOUR_REPOSITORY_URL dorandoran
+cd dorandoran
 npm install
 ```
 
@@ -200,7 +200,9 @@ firebase deploy --only database --project YOUR_PROJECT_ID
 
 ### 6) 본인 도메인으로 갈 때
 
-`index.html`의 `og:image` / `twitter:image` URL이 `https://pick.aslan.it.kr/og-image.jpg`로 박혀 있습니다 (배포자 본인 데모 인스턴스용). fork 후 본인 도메인으로 운영할 거면 이 두 줄을 본인 도메인으로 변경하세요.
+`index.html`의 `og:url`, `og:image`, `twitter:image`는 데모 Firebase Hosting 주소를 사용합니다. 본인 도메인으로 운영하면 해당 URL을 변경하고, 별도 출처에서 Gemini 프록시를 호출할 경우 Functions의 `APP_ALLOWED_ORIGINS` 환경 변수에 허용할 출처를 쉼표로 구분해 설정하세요.
+
+브랜드 표기는 **도란도란 / DoranDoran**, 패키지와 브라우저 저장 키의 네임스페이스는 `dorandoran`입니다. `public/storage-upgrade.js`가 앱 전용 저장 필드를 식별해 이전 참가자 정보·메모·로그인 데이터를 새 키로 옮깁니다. 이미 있는 새 값은 유지하고, 쓰기가 실패하면 원본을 보존합니다.
 
 ### 로컬 개발
 
@@ -294,12 +296,12 @@ CTA          bg-slate-900  (dark CTA, indigo 아님)
 
 ### Anti-AI Aesthetic (중요)
 
-| ❌ AI 기본값 | ✅ Pick |
+| ❌ AI 기본값 | ✅ DoranDoran |
 |---|---|
 | `bg-indigo-600` CTA | `bg-slate-900` dark CTA |
 | 컬러 원형 아이콘 배경 | bare lucide 아이콘 |
 | 5색 배지/선택지 | slate 모노크로매틱 |
-| Sparkles/Stars 아이콘 | 사자 마스코트 (`PickMascot`) |
+| Sparkles/Stars 아이콘 | 말풍선 친구 마스코트 (`DoranDoranMascot`) |
 
 ---
 
@@ -425,7 +427,7 @@ firebase deploy --only hosting --project jinan-6c884
 
 개인 프로젝트지만 외부 기여 환영합니다.
 
-- **이슈 등록 전**: [기존 이슈](https://github.com/wlsdks/pick/issues) 확인
+- **이슈 등록 전**: 저장소의 기존 이슈 확인
 - **버그 신고**: [bug_report 템플릿](./.github/ISSUE_TEMPLATE/bug_report.md) 사용 — 재현 단계 필수
 - **기능 제안**: [feature_request 템플릿](./.github/ISSUE_TEMPLATE/feature_request.md) 사용 — 사용자 시나리오 우선
 - **PR 절차**: [CONTRIBUTING.md](./CONTRIBUTING.md) 참고

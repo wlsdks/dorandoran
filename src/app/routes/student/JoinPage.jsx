@@ -4,7 +4,7 @@ import { db } from '@/lib/firebase';
 import { getParticipantId, getNickname, setNickname as saveNickname, getSessionNickname, getSessionEmployeeId } from '@/lib/participant';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, ArrowRight } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 
@@ -128,7 +128,7 @@ export default function JoinPage({ sessionId, onJoin }) {
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           className="text-center space-y-4 max-w-sm"
         >
-          <div className="flex justify-center"><PickMascot size="md" mood="sad" /></div>
+          <div className="flex justify-center"><DoranDoranMascot size="md" mood="sad" /></div>
           <div className="space-y-1.5">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">세션을 찾을 수 없어요</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -150,7 +150,7 @@ export default function JoinPage({ sessionId, onJoin }) {
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           className="text-center space-y-4 max-w-sm"
         >
-          <div className="flex justify-center"><PickMascot size="md" mood="waiting" /></div>
+          <div className="flex justify-center"><DoranDoranMascot size="md" mood="waiting" /></div>
           <div className="space-y-1.5">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">추첨 전용 세션이에요</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -186,10 +186,10 @@ export default function JoinPage({ sessionId, onJoin }) {
               }}
               className="flex justify-center mb-1"
             >
-              <PickMascot size="md" />
+              <DoranDoranMascot size="md" />
             </motion.div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Pick</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</h1>
               <p className={`text-sm mt-1.5 ${courseName ? 'text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
                 {courseName || '닉네임을 정하고 참여하세요'}
               </p>
@@ -208,7 +208,7 @@ export default function JoinPage({ sessionId, onJoin }) {
             className="overflow-hidden"
           >
             <div className="flex items-center gap-2">
-              <span className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">Pick</span>
+              <span className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</span>
               {courseName && (
                 <span className="text-sm text-slate-400 dark:text-slate-500 truncate">{courseName}</span>
               )}

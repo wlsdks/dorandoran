@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { useAssignmentList } from '@/features/assignments/api/useAssignments';
 import Button from '@/components/ui/Button';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import EmptyState from '@/components/ui/EmptyState';
 import AssignmentDetail from '@/features/assignments/components/AssignmentDetail';
 import AssignmentCard from './AssignmentCard';
@@ -55,7 +55,7 @@ export default function AssignmentsTab({ sessions }) {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <PickMascot size="sm" mood="thinking" />
+            <DoranDoranMascot size="sm" mood="thinking" />
             <p className="text-sm text-slate-400">불러오는 중...</p>
           </div>
         ) : assignments.length === 0 ? (

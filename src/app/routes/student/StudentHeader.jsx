@@ -2,7 +2,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, animate } from '
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Trophy, Ticket, Volume2, VolumeOff, Sun, Moon, Users } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Avatar from '@/components/ui/Avatar';
 import ConnectionBanner from '@/components/ui/ConnectionBanner';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
@@ -65,12 +65,12 @@ export default function StudentHeader({ sessionId }) {
 
   // Sound mute toggle
   const [muted, setMuted] = useState(
-    () => localStorage.getItem('pinggo_sound_muted') === 'true'
+    () => localStorage.getItem('dorandoran_sound_muted') === 'true'
   );
   const toggleMute = useCallback(() => {
     setMuted((prev) => {
       const next = !prev;
-      localStorage.setItem('pinggo_sound_muted', String(next));
+      localStorage.setItem('dorandoran_sound_muted', String(next));
       return next;
     });
   }, []);
@@ -89,7 +89,7 @@ export default function StudentHeader({ sessionId }) {
 
   const handleChangeNickname = useCallback(() => {
     clearSessionJoined(sessionId);
-    window.dispatchEvent(new CustomEvent('pick:change-nickname'));
+    window.dispatchEvent(new CustomEvent('dorandoran:change-nickname'));
   }, [sessionId]);
 
   return (
@@ -98,14 +98,14 @@ export default function StudentHeader({ sessionId }) {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        aria-label="Pick 학생 헤더"
+        aria-label="도란도란 학생 헤더"
         className="fixed top-0 left-0 right-0 z-20 bg-white dark:bg-slate-800 border-b border-slate-200/70 dark:border-slate-700/50"
       >
         {/* 393px 폰에서 점수·티켓 칩 등장 시 줄바꿈 방지 — 간격 축소 + nowrap */}
         <div className="flex items-center justify-between px-4 py-4 max-w-[620px] mx-auto">
           <div className="flex items-center gap-2 shrink-0">
             <div className="relative">
-              <PickMascot size="xs" />
+              <DoranDoranMascot size="xs" />
               {/* 연결 상태 dot — emerald 연결 / amber 끊김 (debounced).
                   CLAUDE.md 페르소나 "Wi-Fi 불안정 시 연결 상태 표시 중요" 충족. */}
               <span
@@ -116,7 +116,7 @@ export default function StudentHeader({ sessionId }) {
                 title={connected ? '실시간 연결됨' : '재연결 중...'}
               />
             </div>
-            <span className="font-bold text-lg text-slate-900 dark:text-slate-100 tracking-tight">Pick</span>
+            <span className="font-bold text-lg text-slate-900 dark:text-slate-100 tracking-tight">도란도란</span>
             {liveCount > 0 && (
               <motion.span
                 initial={{ opacity: 0, scale: 0.9 }}

@@ -1,6 +1,6 @@
-# Pick - Project Guidelines
+# DoranDoran - Project Guidelines
 
-## What is Pick?
+## What is DoranDoran?
 Real-time classroom engagement platform. Instructors create sessions, students join via QR/code and participate in polls, quizzes, word clouds, Q&A. Post-class assignment submission with AI judging (7 Gemini-powered judges). Korean market (한국어 UI).
 
 ## Tech Stack
@@ -161,7 +161,7 @@ Firebase: assignments/{id}/submissions, results, awards
 | `border-l-3` 악센트 바 | `ring-1` or bg change |
 | 5색 배지/선택지 | slate 모노크로매틱 |
 | `bg-indigo-50` tint 배경 | `bg-white` or `bg-slate-50` |
-| Sparkles/Stars 아이콘 | 사자 마스코트 (PickMascot) |
+| Sparkles/Stars 아이콘 | 말풍선 친구 마스코트 (DoranDoranMascot) |
 
 **체크**: 화면당 2-3색 이하 / 장식 색상 0 / 장식 모션 0 / 한국어 라벨 필수
 

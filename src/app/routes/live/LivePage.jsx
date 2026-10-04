@@ -16,7 +16,7 @@ import AnswerBubbleOverlay from '@/features/voting/components/AnswerBubbleOverla
 import JoinToast from '@/features/participants/components/JoinToast';
 import TimerCountdown from '@/features/timer/components/TimerCountdown';
 import Badge from '@/components/ui/Badge';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 
 import { useTheme } from '@/hooks/useTheme';
 import ConnectionBanner from '@/components/ui/ConnectionBanner';
@@ -86,10 +86,10 @@ export default function LivePage() {
     setTheme('dark');
     return () => {
       // Restore user's previous theme preference when leaving live page
-      const prev = localStorage.getItem('pinggo_theme_prev');
+      const prev = localStorage.getItem('dorandoran_theme_prev');
       if (prev) {
         setTheme(prev);
-        localStorage.removeItem('pinggo_theme_prev');
+        localStorage.removeItem('dorandoran_theme_prev');
       }
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -97,7 +97,7 @@ export default function LivePage() {
   // Save previous theme on first mount so we can restore it
   useEffect(() => {
     if (savedTheme !== 'dark') {
-      localStorage.setItem('pinggo_theme_prev', savedTheme);
+      localStorage.setItem('dorandoran_theme_prev', savedTheme);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -106,7 +106,7 @@ export default function LivePage() {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
         <div className="flex flex-col items-center text-center space-y-4">
-          <PickMascot size="lg" mood="thinking" />
+          <DoranDoranMascot size="lg" mood="thinking" />
           <p className="text-slate-500 dark:text-slate-400 text-sm">세션 ID가 없습니다</p>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function LivePage() {
   if (loading) {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-4">
-        <PickMascot size="md" mood="thinking" />
+        <DoranDoranMascot size="md" mood="thinking" />
         <p className="text-sm text-slate-400">불러오는 중...</p>
       </div>
     );
@@ -133,7 +133,7 @@ export default function LivePage() {
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           className="text-center space-y-5"
         >
-          <PickMascot size="lg" mood="happy" />
+          <DoranDoranMascot size="lg" mood="happy" />
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">수업이 종료되었습니다</h1>
           <p className="text-slate-400 text-sm">참여해 주셔서 감사합니다</p>
         </motion.div>
@@ -192,7 +192,7 @@ export default function LivePage() {
                   {currentMode === 'combinedRanking' && <CombinedRanking session={session} />}
                   {currentMode === 'focus' && (
                     <div className="flex flex-col items-center justify-center gap-6 text-center">
-                      <PickMascot size="lg" mood="focus" />
+                      <DoranDoranMascot size="lg" mood="focus" />
                       <p className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">집중 모드</p>
                       <p className="text-slate-400 dark:text-white/40 text-lg">학생 화면이 잠겼습니다</p>
                     </div>
@@ -223,7 +223,7 @@ export default function LivePage() {
             ) : (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="flex flex-col items-center text-center space-y-5">
                 <motion.div animate={{ scale: [1, 1.03, 1] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
-                  <PickMascot size="lg" mood="waiting" />
+                  <DoranDoranMascot size="lg" mood="waiting" />
                 </motion.div>
                 <h2 className="text-xl font-semibold text-slate-500 dark:text-slate-300 tracking-tight">
                   다음 질문을 기다리는 중...

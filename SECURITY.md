@@ -2,7 +2,7 @@
 
 ## 지원되는 버전
 
-Pick은 현재 단일 active 브랜치(`main`)만 운영합니다. 보안 패치는 최신 release에만 적용됩니다.
+DoranDoran은 현재 단일 active 브랜치(`main`)만 운영합니다. 보안 패치는 최신 release에만 적용됩니다.
 
 ## 보안 취약점 신고
 

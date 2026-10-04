@@ -1,5 +1,5 @@
 /**
- * Pick — 200명 동시접속 부하 테스트
+ * DoranDoran — 200명 동시접속 부하 테스트
  *
  * 테스트 시나리오:
  * 1. 200명 학생이 세션에 순차 입장 (5명씩 배치)
@@ -318,7 +318,7 @@ function p95(arr) {
 
 // --- Main ---
 async function main() {
-  log(`🚀 Pick 부하 테스트 시작 — ${USER_COUNT}명 동시접속\n`);
+  log(`🚀 DoranDoran 부하 테스트 시작 — ${USER_COUNT}명 동시접속\n`);
 
   try {
     await createConnections();

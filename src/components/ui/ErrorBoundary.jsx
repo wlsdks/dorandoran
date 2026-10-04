@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 
 /**
  * React Error Boundary — catches render errors and shows a recovery UI.
@@ -80,7 +80,7 @@ function ErrorFallback({ fullPage, errorMessage, scope, onRetry, onReload }) {
       >
         {/* Mascot */}
         <div className="flex justify-center mb-4">
-          <PickMascot size="md" mood="thinking" />
+          <DoranDoranMascot size="md" mood="thinking" />
         </div>
 
         {/* Message */}

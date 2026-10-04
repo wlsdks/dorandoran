@@ -10,7 +10,7 @@ import CelebrationMascot from './CelebrationMascot';
 
 const ACHIEVEMENT_ICONS = { Sparkle, Flame, CheckCheck, Zap, Crown };
 
-/** Pick a fun title based on student performance. */
+/** Choose a fun title based on student performance. */
 function getTitle({ answeredCount, correctRate, rank, totalParticipants, bestStreak, totalScore, achievementCount }) {
   if (answeredCount === 0) return '참여해주셔서 감사합니다';
   if (rank === 1 && totalParticipants > 2) return '오늘의 1등!';

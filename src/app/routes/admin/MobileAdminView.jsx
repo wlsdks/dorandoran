@@ -32,7 +32,7 @@ const MODE_MAP = {
 
 /* ─── Header ─── */
 function MobileHeader({ session, count, onBack, effectiveReadOnly, isSetting, onStartSession, activeTab, onBackToTab, onOpenSettings, isSpecialMode, currentMode, onOpenModes }) {
-  const courseName = session?.courseName || 'Pick';
+  const courseName = session?.courseName || '도란도란';
   const round = session?.roundNumber ? `${session.roundNumber}차` : '';
   const isActive = session?.status === 'active' || session?.status === 'reviewing';
   const modeInfo = MODE_MAP[currentMode];

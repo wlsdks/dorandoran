@@ -1,5 +1,5 @@
 {
-  "name": "campfire-functions",
+  "name": "dorandoran-functions",
   "description": "Gemini API 프록시 — API 키를 서버에만 보관한다",
   "main": "index.js",
   "engines": {

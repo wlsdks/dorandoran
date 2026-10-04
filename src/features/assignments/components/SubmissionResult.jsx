@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Clock } from 'lucide-react';
 import { JUDGES, AWARDS, getAwardById } from '@/lib/judging/judges';
 import JudgeResultCard from './JudgeResultCard';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 
 /**
  * SubmissionResult — 학생이 본인 심사 결과를 확인하는 화면.
@@ -16,7 +16,7 @@ export default function SubmissionResult({ submission, results, awards, passThre
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         className="flex flex-col items-center justify-center py-16 space-y-4"
       >
-        <PickMascot size="md" mood="waiting" />
+        <DoranDoranMascot size="md" mood="waiting" />
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
             <Clock size={16} className="text-slate-400" />

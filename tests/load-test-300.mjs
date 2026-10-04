@@ -1,5 +1,5 @@
 /**
- * Pick — 300명 동시접속 전체 기능 부하 테스트
+ * DoranDoran — 300명 동시접속 전체 기능 부하 테스트
  *
  * 시나리오:
  * 1. 모든 질문 유형 포함 세션 자동 생성
@@ -497,7 +497,7 @@ function printReport() {
 
 // --- Main ---
 async function main() {
-  log(`🚀 Pick 300명 부하 테스트 시작\n`);
+  log(`🚀 DoranDoran 300명 부하 테스트 시작\n`);
 
   try {
     await createConnections();

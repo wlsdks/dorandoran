@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
-import PickMascot from './PickMascot';
+import DoranDoranMascot from './DoranDoranMascot';
 
 /**
  * Friendly empty-state component for admin screens.
- * Shows the Pick mascot, a title, description, and optional action steps.
+ * Shows the DoranDoran mascot, a title, description, and optional action steps.
  *
  * @param {string} title — main message
  * @param {string} description — sub-description
@@ -29,7 +29,7 @@ export default function EmptyState({
       transition={{ type: 'spring', stiffness: 200, damping: 20 }}
       className={`flex flex-col items-center text-center ${className}`}
     >
-      <PickMascot size={mascotSize} mood={mood} />
+      <DoranDoranMascot size={mascotSize} mood={mood} />
 
       <div className="mt-6 space-y-2">
         <p className="text-slate-800 dark:text-slate-200 text-xl font-bold tracking-tight">{title}</p>

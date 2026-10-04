@@ -9,8 +9,8 @@ import { StickyNote, Plus, Check, X } from 'lucide-react';
  * 읽은 메모는 자동으로 아래로 이동 + 흐리게.
  */
 
-const NOTES_CHANGED_EVENT = 'pick-notes-changed';
-function getNotesKey(sessionId) { return `pick_notes_${sessionId}`; }
+const NOTES_CHANGED_EVENT = 'dorandoran-notes-changed';
+function getNotesKey(sessionId) { return `dorandoran_notes_${sessionId}`; }
 
 function loadNotes(sessionId) {
   try {

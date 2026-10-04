@@ -2,7 +2,7 @@ import { useState, memo, useMemo } from 'react';
 import { useVotes } from '@/hooks/useVotes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Users } from 'lucide-react';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Avatar from '@/components/ui/Avatar';
 
 function formatTime(timestamp) {
@@ -95,7 +95,7 @@ export default memo(function QACards({ sessionId, questionId, title }) {
 
         {sorted.length === 0 && (
           <div className="text-center py-20 space-y-3 flex flex-col items-center">
-            <PickMascot size="sm" />
+            <DoranDoranMascot size="sm" />
             <div>
               <p className="text-slate-400 dark:text-slate-500 text-sm">아직 응답이 없습니다</p>
               <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">학생들이 답변하면 여기에 표시됩니다</p>

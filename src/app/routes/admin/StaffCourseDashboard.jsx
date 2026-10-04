@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, BookOpen, ChevronRight, Users, ArrowLeft, ArrowRight } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { useCourses } from '@/features/course/api/useCourses';
-import PickMascot from '@/components/ui/PickMascot';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import EmptyState from '@/components/ui/EmptyState';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
@@ -22,7 +22,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
   // Nickname modal state
   const [pendingSession, setPendingSession] = useState(null);
   const [staffNickname, setStaffNickname] = useState(() => {
-    try { return sessionStorage.getItem('pinggo_staff_nickname') || ''; } catch { return ''; }
+    try { return sessionStorage.getItem('dorandoran_staff_nickname') || ''; } catch { return ''; }
   });
 
   function handleSessionClick(session) {
@@ -33,10 +33,10 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
   function handleNicknameConfirm() {
     const name = staffNickname.trim();
     if (!name || !pendingSession) return;
-    try { sessionStorage.setItem('pinggo_staff_nickname', name); } catch { /* silent */ }
+    try { sessionStorage.setItem('dorandoran_staff_nickname', name); } catch { /* silent */ }
     // Store nickname on adminUser so StaffPage can use it
     const updated = { ...adminUser, staffNickname: name };
-    try { sessionStorage.setItem('pinggo_admin', JSON.stringify(updated)); } catch { /* silent */ }
+    try { sessionStorage.setItem('dorandoran_admin', JSON.stringify(updated)); } catch { /* silent */ }
     setPendingSession(null);
     onSelectSession(pendingSession.id, pendingSession.status === 'reviewing');
   }
@@ -87,7 +87,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
   if (loading) {
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-4">
-        <PickMascot size="md" mood="thinking" />
+        <DoranDoranMascot size="md" mood="thinking" />
         <p className="text-sm text-slate-400">불러오는 중...</p>
       </div>
     );
@@ -106,11 +106,11 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
               <ArrowLeft size={20} />
             </button>
           ) : (
-            <PickMascot size="sm" />
+            <DoranDoranMascot size="sm" />
           )}
           <div>
             <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-              {selectedCourse ? selectedCourse.name : 'Pick'}
+              {selectedCourse ? selectedCourse.name : '도란도란'}
             </h1>
             <p className="text-slate-400 text-xs">
               {selectedCourse ? `${selectedCourse.ownerName || '강사'} · 세션 선택` : '배정된 강의'}
@@ -187,7 +187,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
             >
               {sessionsLoading ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-3">
-                  <PickMascot size="sm" mood="thinking" />
+                  <DoranDoranMascot size="sm" mood="thinking" />
                   <p className="text-sm text-slate-400">불러오는 중...</p>
                 </div>
               ) : courseSessions.length === 0 ? (
