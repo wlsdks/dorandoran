@@ -4,13 +4,8 @@ import { Users, UserCog } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import ParticipantList from '@/features/participants/components/ParticipantList';
 import { useStaffAssignment } from '@/features/course/api/useStaffAssignment';
-import CollapsibleSection from './CollapsibleSection';
 
-/**
- * 인원 허브 — 참여자(학생) + 스태프를 한 카드 안 탭으로 통합.
- * 기존: [스태프] 아코디언 카드 + [참여자 목록] 아코디언 카드 2장 → 세로로 지저분
- * 개선: 카드 1장, 상단 탭([참여자 | 스태프]), 카드 전체는 CollapsibleSection으로 접기/펼치기
- */
+// 참여자와 스태프를 탭으로 전환하고 목록의 펼침 상태는 유지한다.
 
 function TabButton({ active, onClick, icon: Icon, label, count = 0 }) {
   return (
@@ -69,15 +64,9 @@ export default memo(function InstructorPeopleHub({ onlineList, voteCounts, cours
   // courseId 없으면 스태프 탭 숨김 (단일 탭이면 탭 UI 없이 바로 참여자 목록)
   const hasStaff = !!courseId;
 
-  const summaryParts = [];
-  if (participantCount > 0) summaryParts.push(`${peopleLabel} ${participantCount}`);
-  if (hasStaff && staffCount > 0) summaryParts.push(`스태프 ${staffCount}`);
-  // 추첨 전용 세션에는 접속이라는 개념이 없다 — 라벨에 맞춰 빈 상태 문구도 바꾼다
-  const emptyLabel = peopleLabel === '참여자' ? '아직 접속 전' : '명단 없음';
-  const summary = summaryParts.length > 0 ? summaryParts.join(' · ') : emptyLabel;
 
   return (
-    <CollapsibleSection title="인원" summary={summary} defaultOpen={false}>
+    <section className="space-y-3" aria-label="인원">
       {hasStaff && (
         <div role="tablist" aria-label="인원" className="flex items-stretch border-b border-slate-100 dark:border-slate-700">
           <TabButton
@@ -99,13 +88,13 @@ export default memo(function InstructorPeopleHub({ onlineList, voteCounts, cours
 
       {/* Body — 탭 있으면 hidden 토글로 상태 보존 (InstructorCommHub와 동일 패턴).
           참여자 탭의 ParticipantList 내부 expanded("더보기") 상태가 탭 전환 시 사라지지 않도록. */}
-      <div className="p-3.5">
+      <div>
         {hasStaff ? (
           <>
-            <div className={activeTab === 'participants' ? '' : 'hidden'}>
+            <div hidden={activeTab !== 'participants'} inert={activeTab !== 'participants'} role="tabpanel" aria-label={peopleLabel}>
               <ParticipantList participants={onlineList || []} voteCounts={voteCounts} />
             </div>
-            <div className={activeTab === 'staff' ? '' : 'hidden'}>
+            <div hidden={activeTab !== 'staff'} inert={activeTab !== 'staff'} role="tabpanel" aria-label="스태프">
               <StaffPanel staffList={staffList} />
             </div>
           </>
@@ -113,6 +102,6 @@ export default memo(function InstructorPeopleHub({ onlineList, voteCounts, cours
           <ParticipantList participants={onlineList || []} voteCounts={voteCounts} />
         )}
       </div>
-    </CollapsibleSection>
+    </section>
   );
 });

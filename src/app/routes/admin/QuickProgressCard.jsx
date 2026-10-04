@@ -64,16 +64,16 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry || speedQuizActive}
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
-        {nextEvent && <PartyPopper size={16} className="sm:w-3.5 sm:h-3.5" />}
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
+        {nextEvent && <PartyPopper size={20} />}
         첫 활동 시작
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -82,15 +82,15 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={() => onReveal?.(currentEntry[0])} variant="primary" size="md"
         disabled={speedQuizActive}
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Check size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Check size={20} />
         정답 공개
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled={speedQuizActive}
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -99,16 +99,16 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={onShowLeaderboard} variant="secondary" size="md"
         disabled={speedQuizActive}
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Trophy size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Trophy size={20} />
         리더보드
       </Button>
     );
     secondaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry || speedQuizActive}
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
         다음 활동
       </Button>
     );
@@ -116,21 +116,21 @@ export default memo(function QuickProgressCard({
     /* Mystery Box / Hint Quiz — waiting for reveal */
     primaryBtn = (
       <Button onClick={() => onRevealAnswer?.(currentEntry[0])} variant="primary" size="md"
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Eye size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Eye size={20} />
         정답 공개
       </Button>
     );
     secondaryBtn = canRevealHint ? (
       <Button onClick={() => onRevealHint?.(currentEntry[0])} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <ChevronRight size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <ChevronRight size={20} />
         힌트 공개 ({currentQ.revealedHints || 0}/{(currentQ.hints || []).length})
       </Button>
     ) : (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -139,15 +139,15 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry}
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
         다음 활동
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -155,15 +155,15 @@ export default memo(function QuickProgressCard({
     /* 정답형 질문 (choice, ox, fillinblank, ranking) — reveal */
     primaryBtn = (
       <Button onClick={() => onRevealAnswer?.(currentEntry[0])} variant="primary" size="md"
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Eye size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Eye size={20} />
         정답 공개
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -172,15 +172,15 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry}
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
         다음 활동
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -189,16 +189,16 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry || speedQuizActive}
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Play size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Play size={20} />
         다음 활동
-        {nextEvent && <PartyPopper size={16} className="sm:w-3.5 sm:h-3.5" />}
+        {nextEvent && <PartyPopper size={20} />}
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled={speedQuizActive}
-        className="min-h-[52px] sm:min-h-11 sm:py-2.5 sm:text-sm sm:gap-1.5">
-        <Square size={16} className="sm:w-3.5 sm:h-3.5" />
+        className="h-12 py-2.5 text-sm gap-1.5">
+        <Square size={20} />
         대기 화면
       </Button>
     );
@@ -243,14 +243,14 @@ export default memo(function QuickProgressCard({
         return (
           <div className="flex items-center gap-2">
             <Button onClick={() => onSlide?.(currentEntry[0], cur - 1)} variant="secondary" size="sm"
-              disabled={cur <= 0 || speedQuizActive} className="flex-1 min-h-11">
+              disabled={cur <= 0 || speedQuizActive} className="flex-1 h-12">
               <ChevronLeft size={14} /> 이전
             </Button>
             <span className="text-xs font-medium tabular-nums text-slate-500 dark:text-slate-400 shrink-0 px-1">
               {cur + 1} / {total}
             </span>
             <Button onClick={() => cur >= total - 1 ? handleActivateNext() : onSlide?.(currentEntry[0], cur + 1)} variant="primary" size="sm"
-              disabled={speedQuizActive || (cur >= total - 1 && !nextEntry)} className="flex-1 min-h-11">
+              disabled={speedQuizActive || (cur >= total - 1 && !nextEntry)} className="flex-1 h-12">
               {cur >= total - 1 ? '다음 활동' : '다음 슬라이드'} <ChevronRight size={14} />
             </Button>
           </div>
@@ -264,9 +264,9 @@ export default memo(function QuickProgressCard({
       </div>
 
       {activeIndex > 0 && (
-        <Button onClick={() => onActivate(questionList[activeIndex - 1][0])} variant="ghost" size="sm"
-          disabled={speedQuizActive} className="min-h-11 w-full">
-          <ChevronLeft size={16} /> 이전 활동
+        <Button onClick={() => onActivate(questionList[activeIndex - 1][0])} variant="secondary" size="sm"
+          disabled={speedQuizActive} className="h-12 w-full">
+          <ChevronLeft size={20} /> 이전 활동
         </Button>
       )}
 

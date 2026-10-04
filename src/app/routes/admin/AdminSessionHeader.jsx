@@ -45,7 +45,7 @@ function ElapsedTime({ startedAt, createdAt, status }) {
 
 function ReviewingCountdown({ reviewingUntil }) {
   // day 단위 표시 — mount 시 한 번 + reviewingUntil 변경 시만 재계산. 수시간 이내 변동은 무시 가능
-   
+
   const remaining = useMemo(() => Math.max(0, reviewingUntil - Date.now()), [reviewingUntil]);
   const days = Math.ceil(remaining / (24 * 60 * 60 * 1000));
   if (days <= 0) return null;
@@ -65,7 +65,6 @@ export default memo(function AdminSessionHeader({
   isSetting,
   questionProgress,
   count,
-  totalTickets,
   chatOpen,
   hasUnreadChat,
   onChatToggle,
@@ -110,18 +109,18 @@ export default memo(function AdminSessionHeader({
         {isTablet && onLeftDrawer && (
           <button
             onClick={onLeftDrawer}
-            className="p-2.5 -ml-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90"
+            className="h-12 w-12 flex items-center justify-center -ml-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90"
             aria-label="질문 목록 열기"
           >
-            <List size={22} />
+            <List size={20} />
           </button>
         )}
         <button
           onClick={onBack}
-          className={`p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90 ${isTablet ? '' : '-ml-2'}`}
+          className={`h-12 w-12 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90 ${isTablet ? '' : '-ml-2'}`}
           aria-label="클래스 목록으로"
         >
-          <ArrowLeft size={isTablet ? 20 : 22} />
+          <ArrowLeft size={20} />
         </button>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -185,7 +184,7 @@ export default memo(function AdminSessionHeader({
         {/* Theme toggle */}
         <button
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className="relative flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
+          className="relative h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
           aria-label={isDark ? '라이트 모드' : '다크 모드'}
         >
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
@@ -196,7 +195,7 @@ export default memo(function AdminSessionHeader({
         {courseId && !effectiveReadOnly && (
           <button
             onClick={() => setStaffModalOpen(true)}
-            className="relative flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
+            className="relative h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
             aria-label="스태프 관리"
           >
             <UserCog size={20} />
@@ -208,7 +207,7 @@ export default memo(function AdminSessionHeader({
         {!effectiveReadOnly && (
           <button
             onClick={onChatToggle}
-            className="relative flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
+            className="relative h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
             aria-label={chatOpen ? '채팅 닫기' : '채팅 열기'}
             aria-pressed={chatOpen}
           >
@@ -224,7 +223,7 @@ export default memo(function AdminSessionHeader({
           <div className="relative" ref={timerRef}>
             <button
               onClick={() => setTimerOpen(!timerOpen)}
-              className={`flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg transition-colors duration-150 active:scale-[0.96] ${
+              className={`h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg transition-colors duration-150 active:scale-[0.96] ${
                 timerRunning ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700'
               }`}
               aria-label={timerRunning ? '타이머 진행 중 - 설정 열기' : '타이머 설정'}
@@ -259,45 +258,44 @@ export default memo(function AdminSessionHeader({
         {isTablet && onRightDrawer ? (
           <button
             onClick={onRightDrawer}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
+            className="h-12 min-w-12 flex items-center justify-center gap-1.5 px-2.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
             aria-label="참여자 패널 열기"
           >
-            <Users size={18} />
+            <Users size={20} />
             <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 tabular-nums">{count}</span>
           </button>
         ) : (
-          <Badge variant="neutral" className="py-2 px-3.5 text-sm tabular-nums">
-            <Users size={16} className="mr-1.5" />
+          <Badge variant="neutral" className="h-12 px-3.5 text-sm tabular-nums">
+            <Users size={20} className="mr-1.5" />
             <motion.span key={count} initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="inline-block">{count}</motion.span>명
           </Badge>
         )}
-        {!isTablet && totalTickets > 0 && <Badge variant="neutral" className="py-2 px-3.5 text-sm tabular-nums">{totalTickets}장 티켓</Badge>}
         {!effectiveReadOnly && isSetting && (
-          <Button onClick={onStartSession} variant="primary" size="sm">
-            <Play size={isTablet ? 16 : 18} />
+          <Button onClick={onStartSession} variant="primary" size="sm" className="h-12">
+            <Play size={20} />
             {isTablet ? '시작' : '시작하기'}
           </Button>
         )}
         {!effectiveReadOnly && !isSetting && (
           <>
-            <Button onClick={onPresentMode} variant="primary" size="sm">
-              <Monitor size={isTablet ? 16 : 18} />
+            <Button onClick={onPresentMode} variant="primary" size="sm" className="h-12">
+              <Monitor size={20} />
               {isTablet ? '발표' : '발표 모드'}
             </Button>
-            <Button onClick={() => setConfirmEnd('end')} variant="secondary" size="sm">
-              <Square size={isTablet ? 16 : 18} />
+            <Button onClick={() => setConfirmEnd('end')} variant="secondary" size="sm" className="h-12">
+              <Square size={20} />
               종료
             </Button>
           </>
         )}
         {isReviewing && (
           <>
-            <Button onClick={onPresentMode} variant="primary" size="sm">
-              <Monitor size={isTablet ? 16 : 18} />
+            <Button onClick={onPresentMode} variant="primary" size="sm" className="h-12">
+              <Monitor size={20} />
               {isTablet ? '결과' : '결과 보기'}
             </Button>
-            <Button onClick={() => setConfirmEnd('fullEnd')} variant="secondary" size="sm">
-              <XCircle size={isTablet ? 16 : 18} />
+            <Button onClick={() => setConfirmEnd('fullEnd')} variant="secondary" size="sm" className="h-12">
+              <XCircle size={20} />
               {isTablet ? '종료' : '완전 종료'}
             </Button>
           </>

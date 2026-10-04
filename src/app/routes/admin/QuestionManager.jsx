@@ -182,27 +182,33 @@ export default function QuestionManager({
       )}
 
       {!readOnly && (
-        <details className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" open={questionList.length === 0 || showForm || formOpen || undefined}>
-          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 [&::-webkit-details-marker]:hidden">
-            수업 준비 / 문항 편집
-            <ChevronDown size={16} className="transition-transform group-open:rotate-180" />
-          </summary>
-          <div className="space-y-3 px-4 pb-4">
-            <p className="text-xs text-slate-500 dark:text-slate-400">문항 추가와 가져오기, 수업 도구를 여기서 준비하세요.</p>
-            <div className="flex items-center gap-2 flex-wrap">
-              {modeButton}
-              <Button onClick={() => { if (onAddClick) onAddClick(); else setShowForm(!showForm); }} variant="secondary" size="sm" className="min-h-11">
-                {showForm && !onAddClick ? '취소' : <><Plus size={14} /> 문항 추가</>}
-              </Button>
-              {adminUid && <Button onClick={() => setLibraryOpen(true)} variant="secondary" size="sm" className="min-h-11"><BookmarkPlus size={14} /> 보관함</Button>}
-              <Button onClick={() => setAiGenOpen(true)} disabled={!available} title={!available ? reason : undefined} variant="secondary" size="sm" className="min-h-11"><Sparkles size={14} /> AI 생성</Button>
-              {questionList.length > 0 && <Button onClick={() => setResetConfirmOpen(true)} variant="ghost" size="sm" className="min-h-11 text-slate-500"><RotateCcw size={14} /> 답변 초기화</Button>}
-            </div>
-            {!available && <p className="text-xs text-slate-500 dark:text-slate-400">{reason}</p>}
-            {modeSlot}
-            <AnimatePresence>{showForm && !onAddClick && <QuestionForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} error={error} />}</AnimatePresence>
+        <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3" aria-label="수업 준비">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">수업 준비</h3>
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={() => { if (onAddClick) onAddClick(); else setShowForm(!showForm); }} variant="secondary" size="sm" className="h-12">
+              <Plus size={20} /> {showForm && !onAddClick ? '취소' : '문항 추가'}
+            </Button>
+            <Button onClick={() => setLibraryOpen(true)} disabled={!adminUid} variant="secondary" size="sm" className="h-12">
+              <BookmarkPlus size={20} /> 가져오기
+            </Button>
           </div>
-        </details>
+          <details className="group border-t border-slate-100 dark:border-slate-700">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 [&::-webkit-details-marker]:hidden">
+              수업 도구
+              <ChevronDown size={16} className="transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="space-y-3 pb-1">
+              <div className="flex items-center gap-2 flex-wrap [&>button]:min-h-11 [&>div>button]:min-h-11">
+                {modeButton}
+                <Button onClick={() => setAiGenOpen(true)} disabled={!available} title={!available ? reason : undefined} variant="secondary" size="sm" className="min-h-11" aria-describedby={!available ? 'question-ai-unavailable' : undefined}><Sparkles size={18} /> AI 생성</Button>
+                {questionList.length > 0 && <Button onClick={() => setResetConfirmOpen(true)} variant="secondary" size="sm" className="min-h-11"><RotateCcw size={18} /> 답변 초기화</Button>}
+              </div>
+              {!available && <p id="question-ai-unavailable" className="text-xs text-slate-500 dark:text-slate-400">{reason}</p>}
+              {modeSlot}
+            </div>
+          </details>
+          <AnimatePresence>{showForm && !onAddClick && <QuestionForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} error={error} />}</AnimatePresence>
+        </section>
       )}
 
       <QuestionList
