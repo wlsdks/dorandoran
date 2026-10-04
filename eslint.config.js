@@ -1,6 +1,5 @@
 import js from '@eslint/js'
 import globals from 'globals'
-import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
@@ -9,9 +8,6 @@ export default defineConfig([
   globalIgnores(['dist']),
   {
     files: ['**/*.{js,jsx}'],
-    plugins: {
-      react,
-    },
     extends: [
       js.configs.recommended,
       reactHooks.configs.flat.recommended,
@@ -32,8 +28,7 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-      'react/jsx-uses-vars': 'error',
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
       // React 19 strict rule이 Firebase onValue subscription, useMediaQuery SSR sync,
       // mount trigger(`setMounted(true)` after `useEffect(() => {}, [])`)같은
       // 정당한 패턴까지 false positive로 잡아 노이즈 큼. 진짜 anti-pattern(예: props sync)은
@@ -44,6 +39,10 @@ export default defineConfig([
       // 진짜 stale closure 위험은 case-by-case 코드 리뷰로 잡음.
       'react-hooks/purity': 'off',
     },
+  },
+  {
+    files: ['tests/**/*.jsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
   {
     // Firebase Functions run as CommonJS on Node.js.

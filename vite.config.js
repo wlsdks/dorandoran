@@ -1,3 +1,4 @@
+import { realtimeDiagnostics } from './tests/support/realtime-diagnostics.mjs'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -37,6 +38,7 @@ function forbidGeminiKeyInBundle(mode) {
 export default defineConfig(({ mode }) => ({
   plugins: [
     forbidGeminiKeyInBundle(mode),
+    ...(mode === 'qa' ? [realtimeDiagnostics()] : []),
     react(),
     tailwindcss(),
     // Brotli pre-compression — ~15-25% smaller than gzip
@@ -53,13 +55,11 @@ export default defineConfig(({ mode }) => ({
     // 프로덕션에서는 Hosting rewrite가 /api/gemini → geminiProxy로 보낸다.
     // 로컬에서는 Functions 에뮬레이터로 직접 넘긴다:
     //   firebase emulators:start --only functions
-    proxy: {
-      '/api/gemini': {
-        target: 'http://127.0.0.1:5001',
-        changeOrigin: false,
-        rewrite: (p) => p.replace(/^\/api\/gemini/, '/jinan-6c884/asia-northeast3/geminiProxy'),
+    proxy: Object.fromEntries([['staff', 'staffApi'], ['assignments', 'assignmentApi'], ['classroom', 'classroomApi'], ['gemini', 'geminiProxy']].map(([prefix, handler]) => [
+      `/api/${prefix}`, { target: 'http://127.0.0.1:5001', changeOrigin: false,
+        rewrite: path => path.replace(new RegExp(`^/api/${prefix}`), `/${loadEnv(mode, process.cwd(), 'VITE_').VITE_FIREBASE_PROJECT_ID}/asia-northeast3/${handler}`),
       },
-    },
+    ])),
   },
   // 순수 로직 단위 테스트 (vitest) — node 환경, 빠름. 리팩터 안전망.
   test: {
@@ -67,14 +67,15 @@ export default defineConfig(({ mode }) => ({
     include: ['src/**/*.test.{js,jsx}'],
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-firebase': ['firebase/app', 'firebase/database'],
-          'vendor-motion': ['framer-motion'],
-          'vendor-ui': ['lucide-react', 'qrcode.react'],
-          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler)\//.test(id)) return 'vendor-react';
+          if (id.includes('@firebase') || id.includes('/firebase/')) return 'vendor-firebase';
+          if (id.includes('framer-motion') || id.includes('motion-dom') || id.includes('motion-utils')) return 'vendor-motion';
+          if (id.includes('lucide-react') || id.includes('qrcode.react')) return 'vendor-ui';
+          if (id.includes('@dnd-kit')) return 'vendor-dnd';
         },
       },
     },
