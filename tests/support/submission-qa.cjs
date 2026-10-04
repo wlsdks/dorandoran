@@ -68,6 +68,7 @@ async function lookup(lookupName, lookupPin) {
     await page.locator('input[type="file"][accept="image/*"]').setInputFiles({ name: 'too-large.png', mimeType: 'image/png',
       buffer: Buffer.concat([readFileSync(icon), Buffer.alloc(10 * 1024 * 1024)]) });
     await expect(page.getByText(/10MB 초과/)).toBeVisible();
+    await page.waitForTimeout(650);
     await page.screenshot({ path: join(shots, 'oversized-rejected.png') });
     await page.reload();
     await page.getByRole('button', { name: '과제 제출하기', exact: true }).click();
@@ -82,6 +83,7 @@ async function lookup(lookupName, lookupPin) {
     await page.getByRole('button', { name: '제출하기', exact: true }).click();
     await expect(page.getByRole('heading', { name: '제출 완료!', exact: true })).toBeVisible();
     expect(await page.locator('body').innerText()).not.toMatch(/AI 예심|심사 결과|심사위원/);
+    await page.waitForTimeout(650);
     await page.screenshot({ path: join(shots, 'submitted.png') });
     const entries = Object.entries((await fixture.child('submissions').get()).val() || {});
     expect(entries).toHaveLength(1);
@@ -116,6 +118,7 @@ async function lookup(lookupName, lookupPin) {
     page = await newPage();
     await lookup(legacy.name, legacy.pin);
     expect((await fixture.child('submissions/legacy').get()).val()).toEqual(legacy);
+    await page.waitForTimeout(650);
     await page.screenshot({ path: join(shots, 'legacy-lookup.png') });
     expect(errors).toEqual([]); expect(modelRequests).toEqual([]);
     console.log(JSON.stringify({ result: 'PASS', ownedPngSubmit: true, oversizedRejected: true, freshEightPinLookupEdit: true,

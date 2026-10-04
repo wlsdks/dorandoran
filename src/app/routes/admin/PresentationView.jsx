@@ -83,7 +83,7 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
     if (currentMode === 'joinShow') return <JoinShow sessionId={sessionId} />;
     if (currentMode === 'awards') return <AwardsCeremony sessionId={sessionId} assignmentId={session?.activeAssignmentId} />;
     if (currentMode === 'randomPicker') return (
-      <RandomPicker participants={onlineList} onResult={(w) => onGameResult?.(w, 'randomPicker')} sessionId={sessionId} role="control" />
+      <RandomPicker presenter={presentMode} participants={onlineList} onResult={(w) => onGameResult?.(w, 'randomPicker')} sessionId={sessionId} role="control" />
     );
     if (currentMode === 'comprehension') return <ComprehensionPresenter sessionId={sessionId} presenter={presentMode} />;
     if (currentMode === 'quickSurvey') return <SurveyPresenter sessionId={sessionId} presenter={presentMode} />;
@@ -269,6 +269,10 @@ export default function PresentationView({ sessionId, session, currentMode, onli
     const q = session?.questions?.[qId];
     if (!q) return;
     const mode = isQuizQuestion(q) ? 'quiz' : 'poll';
+    if (isQuizQuestion(q) && (q.revealedAt || q.awardedAt)) {
+      await update(ref(db, `sessions/${sessionId}`), { currentQuestion: qId, currentMode: mode, speedQuiz: null, drumroll: null, timer: null });
+      return;
+    }
     const updates = {
       currentQuestion: qId, currentMode: mode,
       [`questions/${qId}/activatedAt`]: Date.now(),

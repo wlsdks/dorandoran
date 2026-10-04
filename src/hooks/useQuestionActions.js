@@ -108,7 +108,12 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
         currentMode: getQuestionMode(question),
       };
 
-      // 모든 질문 유형: 활성화 시 revealedAt 초기화
+      // 이미 공개한 퀴즈로 돌아가는 것은 결과 복습이다. 새 점수 round는 명시적 초기화 후에만 연다.
+      if (isQuizQuestion(question) && (question.revealedAt || question.awardedAt)) {
+        await update(ref(db, `sessions/${sessionId}`), { ...updates, timer: null });
+        return;
+      }
+      // 새 활동의 공개 상태를 준비한다.
       updates[`questions/${qId}/activatedAt`] = getNow();
       updates[`questions/${qId}/revealedAt`] = null;
       // 이전 질문의 타이머 잔존 시 다음 질문까지 "시간 종료" 잠금이 전파되던 버그 — 전환 시 정리

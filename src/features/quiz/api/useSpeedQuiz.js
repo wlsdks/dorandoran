@@ -204,47 +204,42 @@ export function useSpeedQuiz(sessionId, session, { startTimer, stopTimer }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, stopTimer, getQuizQuestions, activateQuizQuestion]);
 
-  // Watch the timer and auto-fire when it expires during speed quiz
+  // Timer는 session metadata에 포함되지 않는다. timer leaf snapshot마다 실제 마감 시각을
+  // 예약하고, 타이머 링이 만료 직후 endTime을 지워도 마지막 마감으로 공개를 완료한다.
   useEffect(() => {
     if (!active || phase !== 'question') return;
-
-    const timerRef = ref(db, `sessions/${sessionId}/timer`);
-    const unsub = onValue(timerRef, (snap) => {
-      const data = snap.val();
-      if (!data?.endTime || !data?.running) return;
-
-      const remaining = data.endTime - getServerNow();
-      if (remaining <= 0) {
-        // Timer expired, trigger reveal+advance
-        revealAndAdvance();
+    const questionId = session?.currentQuestion;
+    let subscribed = true;
+    let deadline = null;
+    let timeout = null;
+    const fire = () => {
+      if (!subscribed || !activeRef.current || sessionRef.current?.currentQuestion !== questionId) return;
+      revealAndAdvance();
+    };
+    const unsubscribe = onValue(ref(db, `sessions/${sessionId}/timer`), snapshot => {
+      if (!subscribed) return;
+      if (timeout) clearTimeout(timeout);
+      timeout = null;
+      const data = snapshot.val();
+      if (!data?.running || !Number.isFinite(data.endTime)) {
+        // 수동으로 일찍 멈춘 경우는 취소. 자연 만료로 ring이 정리한 경우는 공개한다.
+        if (Number.isFinite(deadline) && deadline <= getServerNow()) fire();
+        deadline = null;
+        return;
       }
-    });
-    return () => unsub();
-  }, [active, phase, sessionId, revealAndAdvance]);
-
-  // Also set a local setTimeout as backup for auto-advance
-  useEffect(() => {
-    if (!active || phase !== 'question') return;
-
-    const timer = sessionRef.current?.timer || {};
-    if (!timer || !timer.endTime) return;
-
-    // 서버 시간 기준 remaining — 강사 기기 시계와 endTime 기준(서버)이 어긋나도 정확.
-    const remaining = Math.max(0, timer.endTime - getServerNow()) + 500; // +500ms buffer
-    const id = setTimeout(() => {
-      if (phase === 'question') {
-        revealAndAdvance();
-      }
-    }, remaining);
-
-    return () => clearTimeout(id);
-  }, [active, phase, revealAndAdvance]);
+      deadline = data.endTime;
+      const remaining = deadline - getServerNow();
+      if (remaining <= 0) fire();
+      else timeout = setTimeout(fire, remaining);
+    }, () => { if (timeout) clearTimeout(timeout); });
+    return () => { subscribed = false; if (timeout) clearTimeout(timeout); unsubscribe(); };
+  }, [active, phase, sessionId, session?.currentQuestion, revealAndAdvance]);
 
   // Start speed quiz mode
   const startSpeedQuiz = useCallback(async () => {
     runEpochRef.current += 1;
     activeRef.current = true;
-    const quizQs = getQuizQuestions();
+    const quizQs = getQuizQuestions().filter(([, question]) => !question.revealedAt && !question.awardedAt);
     if (quizQs.length === 0) { activeRef.current = false; return; }
 
     try {
@@ -284,7 +279,7 @@ export function useSpeedQuiz(sessionId, session, { startTimer, stopTimer }) {
 
   const quizQuestions = useMemo(() => Object.entries(session?.questions || {}).filter(([, question]) => isQuizQuestion(question))
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0)), [session?.questions]);
-  const quizCount = quizQuestions.length;
+  const quizCount = active ? quizQuestions.length : quizQuestions.filter(([, question]) => !question.revealedAt && !question.awardedAt).length;
   const currentQuizIndex = quizQuestions.findIndex(([id]) => id === session?.currentQuestion) + 1;
 
   return {
