@@ -2,7 +2,9 @@ import { ref, set, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { createPortal } from 'react-dom';
+import Button from '@/components/ui/Button';
 import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates, useSortable, arrayMove } from '@dnd-kit/sortable';
@@ -40,15 +42,16 @@ function SortableRankItem({ id, label, position, total, disabled, onMove }) {
         <span className="flex-1 min-w-0 break-words text-base font-medium text-slate-800 dark:text-slate-200 leading-snug">{label}</span>
         <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} disabled={disabled} aria-label={`${label} 순서 끌어서 변경`} className="w-12 h-12 shrink-0 flex items-center justify-center rounded-lg text-slate-400 touch-none cursor-grab disabled:opacity-40"><GripVertical size={20} /></button>
       </div>
-      <div className="flex justify-end gap-2">
-        <button type="button" onClick={() => onMove(position - 1, -1)} disabled={disabled || position === 1} aria-label={`${label} 위로 이동`} className="min-h-12 px-3 flex items-center justify-center gap-1 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30"><ArrowUp size={16} />위로</button>
-        <button type="button" onClick={() => onMove(position - 1, 1)} disabled={disabled || position === total} aria-label={`${label} 아래로 이동`} className="min-h-12 px-3 flex items-center justify-center gap-1 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30"><ArrowDown size={16} />아래로</button>
+      <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-700 mt-1">
+        <button type="button" onClick={() => onMove(position - 1, -1)} disabled={disabled || position === 1} aria-label={`${label} 위로 이동`} className="min-h-12 px-3 flex items-center justify-center gap-1 rounded-lg text-sm font-medium border border-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowUp size={20} />위로</button>
+        <button type="button" onClick={() => onMove(position - 1, 1)} disabled={disabled || position === total} aria-label={`${label} 아래로 이동`} className="min-h-12 px-3 flex items-center justify-center gap-1 rounded-lg text-sm font-medium border border-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowDown size={20} />아래로</button>
       </div>
     </div>
   );
 }
 
 export default memo(function RankingVoter({ sessionId, questionId, options = [], disabled = false }) {
+  const reducedMotion = useReducedMotion();
   const pid = getParticipantId();
 
   // Shuffle items deterministically per student
@@ -127,13 +130,13 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
       {error && <VoteErrorToast message={error} />}
     </AnimatePresence>
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-4"
     >
-      <p className="text-xs text-slate-400 text-center">
-        손잡이를 끌거나 위·아래 버튼으로 순서를 바꾸세요
+      <p className="text-sm text-slate-500 dark:text-slate-300 text-center leading-relaxed [word-break:keep-all]">
+        1번부터 차례대로 맞춰주세요. 손잡이를 끌거나 위·아래 버튼으로 순서를 바꿀 수 있어요.
       </p>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -154,14 +157,15 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
         </SortableContext>
       </DndContext>
 
-      <motion.button
-        whileTap={{ scale: 0.97 }}
-        onClick={handleSubmit}
-        disabled={disabled || submitting}
-        className="w-full py-3 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 text-white dark:text-slate-900 font-medium text-base transition-colors duration-150 disabled:opacity-50 active:scale-[0.97]"
-      >
-        {submitting ? '제출 중...' : '이 순서로 제출'}
-      </motion.button>
+      {createPortal(
+        <div className="mobile-learning-tools fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 px-4 py-3 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700">
+          <div className="max-w-xl mx-auto">
+            <Button type="button" onClick={handleSubmit} disabled={disabled || submitting} className="w-full min-h-12" aria-label="현재 순서로 순위 제출">
+              {submitting ? '제출 중...' : '이 순서로 제출'}
+            </Button>
+          </div>
+        </div>, document.body
+      )}
     </motion.div>
     </div>
   );

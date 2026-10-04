@@ -18,9 +18,9 @@ const AnswerItem = memo(function AnswerItem({ a, participantId }) {
     <div className="flex gap-2">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">{a.nickname}</span>
+          <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">{a.nickname}</span>
           {roleLabel && (
-            <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+            <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-semibold ${
               isAi
                 ? 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                 : 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
@@ -28,16 +28,19 @@ const AnswerItem = memo(function AnswerItem({ a, participantId }) {
               {isAi && <Sparkles size={8} className="text-indigo-500" />}{roleLabel}
             </span>
           )}
-          {isOwn && <span className="text-[9px] text-slate-400">나</span>}
-          <span className="text-[9px] text-slate-400">{timeAgo(a.timestamp)}</span>
+          {isOwn && <span className="text-xs text-slate-400">나</span>}
+          <span className="text-xs text-slate-400">{timeAgo(a.timestamp)}</span>
         </div>
-        <p className="text-[13px] text-slate-700 dark:text-slate-200 mt-0.5 leading-relaxed">{a.text}</p>
+        <p className="text-base text-slate-700 dark:text-slate-200 mt-0.5 leading-relaxed">{a.text}</p>
       </div>
     </div>
   );
 });
 
-const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, onUpvote, onPostAnswer, canAnswer, index = 0 }) {
+const QuestionCard = memo(function QuestionCard({ q: originalQuestion, participantId, nickname, onUpvote, onPostAnswer, canAnswer, index = 0 }) {
+  const { available } = useAIAvailability();
+  const visibleAnswers = available ? (originalQuestion.answerList || []) : (originalQuestion.answerList || []).filter(answer => answer.role !== 'ai');
+  const q = available ? originalQuestion : { ...originalQuestion, answerList: visibleAnswers, answerCount: visibleAnswers.length, aiAllowed: false, answeredByRole: originalQuestion.answeredByRole === 'ai' ? null : originalQuestion.answeredByRole };
   const [expanded, setExpanded] = useState(false);
   const [answerText, setAnswerText] = useState('');
   const [posting, setPosting] = useState(false);
@@ -50,7 +53,7 @@ const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, on
         className="rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700 p-4">
         <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
           <ShieldAlert size={14} />
-          <p className="text-[13px]">정책상 가려진 질문입니다</p>
+          <p className="text-base">정책상 가려진 질문입니다</p>
         </div>
       </motion.div>
     );
@@ -77,7 +80,7 @@ const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, on
       }`}
     >
       <div className={`p-4 bg-white dark:bg-slate-800 ${isMine && !q.answered ? 'ring-1 ring-slate-300 dark:ring-slate-600' : ''}`}>
-        <p className="text-[15px] text-slate-800 dark:text-slate-200 leading-relaxed">
+        <p className="text-base text-slate-800 dark:text-slate-200 leading-relaxed">
           {q.text}
         </p>
         <div className="flex items-center justify-between mt-3">
@@ -88,7 +91,7 @@ const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, on
             {isMine && (
               <span className="text-[10px] font-semibold text-white dark:text-slate-900 bg-slate-900 dark:bg-slate-100 px-1.5 py-0.5 rounded-md">나</span>
             )}
-            <span className="text-[10px] text-slate-300 dark:text-slate-600">{timeAgo(q.timestamp)}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{timeAgo(q.timestamp)}</span>
             {q.answeredByRole && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                 <Check size={10} className="text-emerald-500" />
@@ -113,13 +116,13 @@ const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, on
               onClick={() => onUpvote(q.id)}
               aria-label={hasUpvoted ? '추천 취소' : '추천'}
               aria-pressed={!!hasUpvoted}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 ${
+              className={`min-h-11 min-w-11 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 ${
                 hasUpvoted
                   ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
                   : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
             >
-              <ThumbsUp size={12} />
+              <ThumbsUp size={18} />
               {q.upvoteCount || 0}
             </motion.button>
           </div>
@@ -128,11 +131,11 @@ const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, on
         {/* Answer toggle */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 mt-2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
+          className="min-h-11 flex items-center gap-2 mt-2 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
         >
-          <MessageSquare size={12} />
+          <MessageSquare size={18} />
           <span>{q.answerCount > 0 ? `답변 ${q.answerCount}개` : '답변하기'}</span>
-          {expanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+          {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </button>
       </div>
 
@@ -152,7 +155,7 @@ const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, on
                   <AnswerItem key={a.id} a={a} participantId={participantId} />
                 ))
               ) : (
-                <p className="text-[11px] text-slate-400 text-center py-1">아직 답변이 없습니다</p>
+                <p className="text-sm text-slate-400 text-center py-1">아직 답변이 없습니다</p>
               )}
               <div className="flex gap-2 pt-1">
                 <input
@@ -162,12 +165,12 @@ const QuestionCard = memo(function QuestionCard({ q, participantId, nickname, on
                   onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handlePostAnswer()}
                   placeholder="답변 작성..."
                   maxLength={500}
-                  className="flex-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  className="min-w-0 min-h-11 flex-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
                 <button
                   onClick={handlePostAnswer}
                   disabled={!answerText.trim() || posting || !canAnswer}
-                  className="px-3 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg text-sm font-medium disabled:opacity-40 transition-colors duration-150"
+                  className="min-h-11 min-w-11 px-3 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg text-sm font-medium disabled:opacity-40 transition-colors duration-150"
                   aria-label="답변 보내기"
                 >
                   <Send size={14} />
@@ -288,7 +291,7 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
                   { key: 'mine', label: `내 질문${questions.filter((q) => q.participantId === participantId).length > 0 ? ` (${questions.filter((q) => q.participantId === participantId).length})` : ''}` },
                 ].map((t) => (
                   <button key={t.key} onClick={() => setTab(t.key)}
-                    className={`flex-1 py-2.5 text-xs font-medium rounded-lg transition-colors duration-150 ${
+                    className={`min-h-11 flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ${
                       tab === t.key ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                     }`}>{t.label}</button>
                 ))}

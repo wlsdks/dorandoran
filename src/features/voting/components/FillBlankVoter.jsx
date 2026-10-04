@@ -17,7 +17,7 @@ import { Users } from 'lucide-react';
 function SentencePreview({ title, answer }) {
   const parts = (title || '').split('___');
   return (
-    <p className="text-sm text-slate-600 leading-relaxed">
+    <p className="text-base text-slate-700 dark:text-slate-200 [word-break:keep-all] [overflow-wrap:anywhere] leading-relaxed">
       {parts.map((part, i) => (
         <span key={i}>
           {part}
@@ -25,9 +25,9 @@ function SentencePreview({ title, answer }) {
             <span className={`inline-block mx-0.5 px-2 py-0.5 rounded-md text-sm font-semibold border-b-2 ${
               answer?.trim()
                 ? 'bg-slate-100 text-slate-900 border-slate-400 dark:bg-slate-700 dark:text-slate-100 dark:border-slate-500'
-                : 'bg-slate-50 text-slate-300 border-dashed border-slate-300 dark:bg-slate-700 dark:text-slate-500 dark:border-slate-500'
+                : 'bg-slate-100 text-slate-600 border-dashed border-slate-400 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-400'
             }`}>
-              {answer?.trim() || '???'}
+              {answer?.trim() || '빈칸'}
             </span>
           )}
         </span>

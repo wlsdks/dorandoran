@@ -1,6 +1,6 @@
 import { motion as motionTokens } from '@/lib/design-tokens';
 import { forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 const variants = {
   primary: 'bg-slate-900 hover:bg-slate-800 text-white focus-visible:ring-slate-400 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900',
@@ -10,21 +10,22 @@ const variants = {
 };
 
 const sizes = {
-  sm: 'py-1.5 px-3 text-sm gap-1.5',
-  md: 'py-2.5 px-5 text-base gap-2',
-  lg: 'py-3 px-6 text-lg gap-2.5',
+  sm: 'min-h-11 min-w-11 py-2 px-3 text-sm gap-1.5',
+  md: 'min-h-12 min-w-12 py-2.5 px-5 text-base gap-2',
+  lg: 'min-h-12 min-w-12 py-3 px-6 text-lg gap-2.5',
 };
 
 const Button = forwardRef(function Button(
   { variant = 'primary', size = 'md', children, className = '', disabled, ...props },
   ref
 ) {
+  const reducedMotion = useReducedMotion();
   return (
     <motion.button
       ref={ref}
-      whileTap={{ scale: disabled ? 1 : 0.965 }}
-      transition={motionTokens.spring.stiff}
-      className={`inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${variants[variant]} ${sizes[size]} ${disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} ${className}`}
+      whileTap={{ scale: disabled || reducedMotion ? 1 : 0.965 }}
+      transition={reducedMotion ? { duration: 0 } : motionTokens.spring.stiff}
+      className={`inline-flex items-center justify-center [&>svg]:size-5 [&>svg]:shrink-0 font-medium rounded-lg transition-colors duration-150 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${variants[variant]} ${sizes[size]} ${disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} ${className}`}
       disabled={disabled}
       {...props}
     >

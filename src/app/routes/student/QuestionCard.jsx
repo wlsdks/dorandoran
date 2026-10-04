@@ -1,5 +1,5 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import Badge from '@/components/ui/Badge';
 import { TYPE_LABELS } from '@/lib/question-types';
 
@@ -11,11 +11,12 @@ import { TYPE_LABELS } from '@/lib/question-types';
  *   questionProgress – { current, total } | null
  */
 export default function QuestionCard({ question, questionId, questionProgress }) {
+  const reducedMotion = useReducedMotion();
   const { available } = useAIAvailability();
   return (
     <motion.div
       key={`header-${questionId}`}
-      initial={{ opacity: 0, y: 12 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       className="bg-white dark:bg-slate-800 rounded-2xl shadow-md ring-1 ring-slate-200/70 dark:ring-slate-700 p-6"
@@ -54,7 +55,7 @@ export default function QuestionCard({ question, questionId, questionProgress })
           <Badge variant="primary">{question.type === 'aiJudge' && !available ? '과제' : TYPE_LABELS[question.type] || question.type}</Badge>
         </div>
       </div>
-      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight">
+      <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] text-xl font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight">
         {question.title}
       </h2>
       {question.imageUrl && (

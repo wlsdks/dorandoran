@@ -66,23 +66,29 @@ export function VoteModeContent({
   }
   if (currentMode === 'comprehension') {
     return (
-      <Suspense fallback={<SuspenseFallback />}>
-        <LazyComprehensionCheck sessionId={sessionId} />
-      </Suspense>
+      <div className="student-mode-page min-h-dvh bg-slate-50 dark:bg-slate-900 pt-[calc(5.5rem+env(safe-area-inset-top))] pb-[calc(7rem+env(safe-area-inset-bottom))] px-4">
+        <StudentHeader sessionId={sessionId} />
+        <Suspense fallback={<SuspenseFallback />}><LazyComprehensionCheck sessionId={sessionId} embedded /></Suspense>
+        <StudentBottomBar sessionId={sessionId} />
+      </div>
     );
   }
   if (currentMode === 'quickSurvey') {
     return (
-      <Suspense fallback={<SuspenseFallback />}>
-        <LazyQuickSurvey sessionId={sessionId} />
-      </Suspense>
+      <div className="student-mode-page min-h-dvh bg-slate-50 dark:bg-slate-900 pt-[calc(5.5rem+env(safe-area-inset-top))] pb-[calc(7rem+env(safe-area-inset-bottom))] px-4">
+        <StudentHeader sessionId={sessionId} />
+        <Suspense fallback={<SuspenseFallback />}><LazyQuickSurvey sessionId={sessionId} embedded /></Suspense>
+        <StudentBottomBar sessionId={sessionId} />
+      </div>
     );
   }
   if (currentMode === 'discussion') {
     return (
-      <Suspense fallback={<SuspenseFallback />}>
-        <LazyGroupDiscussion sessionId={sessionId} />
-      </Suspense>
+      <div className="student-mode-page min-h-dvh bg-slate-50 dark:bg-slate-900 pt-[calc(5.5rem+env(safe-area-inset-top))] pb-[calc(7rem+env(safe-area-inset-bottom))] px-4">
+        <StudentHeader sessionId={sessionId} />
+        <Suspense fallback={<SuspenseFallback />}><LazyGroupDiscussion sessionId={sessionId} embedded /></Suspense>
+        <StudentBottomBar sessionId={sessionId} />
+      </div>
     );
   }
   if (currentMode === 'qaBoard') {
