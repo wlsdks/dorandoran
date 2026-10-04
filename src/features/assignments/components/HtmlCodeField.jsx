@@ -23,12 +23,12 @@ export default function HtmlCodeField({
         <span className="text-red-500 ml-1 font-normal">필수</span>
         <Tooltip
           multiline
-          label={`HTML 코드 확인하는 법\n\n1) 만든 결과물(웹페이지)에서 마우스 우클릭 → "페이지 소스 보기"\n2) 전체 선택(Ctrl/Cmd + A) → 복사 → 아래 칸에 붙여넣기\n\n또는 .html 파일이 있다면 "HTML 파일 선택" 버튼으로 첨부할 수 있어요.\n\nAI 심사위원이 코드를 보고 평가합니다.`}
+          label={`HTML 코드 확인하는 법\n\n1) 만든 결과물(웹페이지)에서 마우스 우클릭 → "페이지 소스 보기"\n2) 전체 선택(Ctrl/Cmd + A) → 복사 → 아래 칸에 붙여넣기\n\n또는 .html 파일이 있다면 "HTML 파일 선택" 버튼으로 첨부할 수 있어요.\n\n첨부한 코드는 제출 자료로 함께 보관됩니다.`}
         >
           <button
             type="button"
             aria-label="HTML 코드 확인 방법 안내"
-            className="inline-flex items-center justify-center w-4 h-4 rounded-full text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            className="inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-full text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
           >
             <Info size={13} />
           </button>
@@ -38,7 +38,7 @@ export default function HtmlCodeField({
         <button
           type="button"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); fileInputRef.current?.click(); }}
-          className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[36px] text-[12px] font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
+          className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[48px] text-[12px] font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
         >
           <Upload size={13} /> HTML 파일 선택
         </button>

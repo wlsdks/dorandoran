@@ -4,6 +4,23 @@ const { httpError, verifiedUser, createRateLimit } = require('./access');
 function createAssignmentService({ auth, db }) {
   const rateLimit = createRateLimit(10);
   const credentialAttempts = createRateLimit(5, 5 * 60_000);
+  const localDemo = process.env.FUNCTIONS_EMULATOR === 'true' && (process.env.GCLOUD_PROJECT || '').startsWith('demo-')
+    && process.env.FIREBASE_AUTH_EMULATOR_HOST === '127.0.0.1:9099' && process.env.FIREBASE_DATABASE_EMULATOR_HOST === '127.0.0.1:9000';
+  function validScreenshot(value) {
+    const item = typeof value === 'string' ? { url: value } : value;
+    if (!item || typeof item !== 'object' || Array.isArray(item) || typeof item.url !== 'string' || item.url.length > 2000) return false;
+    if (item.name != null && (typeof item.name !== 'string' || item.name.length > 255)) return false;
+    if (item.path != null && (typeof item.path !== 'string' || item.path.length > 2048)) return false;
+    if (item.size != null && (!Number.isFinite(item.size) || item.size < 0 || item.size > 10 * 1024 * 1024)) return false;
+    try {
+      const url = new URL(item.url);
+      if (url.username || url.password) return false;
+      if (url.protocol === 'https:') return true;
+      return localDemo && url.origin === 'http://127.0.0.1:9199'
+        && url.pathname.startsWith('/v0/b/demo-dorandoran.appspot.com/o/');
+    } catch { return false; }
+  }
+
   return async (req) => {
     const user = await verifiedUser(req, auth);
     if (!rateLimit(user.uid)) throw httpError(429, '잠시 후 다시 시도해주세요.');
@@ -54,7 +71,7 @@ function createAssignmentService({ auth, db }) {
     if (!existing && pin && pin.length < 8) throw httpError(400, '비밀번호는 8자 이상 입력해주세요.');
     if ((body.prdContent != null && (typeof body.prdContent !== 'string' || body.prdContent.length > 10000))
       || (body.code != null && (typeof body.code !== 'string' || body.code.length > 100000))
-      || (body.screenshots != null && (!Array.isArray(body.screenshots) || body.screenshots.length > 10 || body.screenshots.some((url) => typeof url !== 'string' || url.length > 2000 || !/^https:\/\//.test(url))))) {
+      || (body.screenshots != null && (!Array.isArray(body.screenshots) || body.screenshots.length > 10 || body.screenshots.some((value) => !validScreenshot(value))))) {
       throw httpError(400, '제출 내용의 크기와 이미지 주소를 확인해주세요.');
     }
     let id = existingId;

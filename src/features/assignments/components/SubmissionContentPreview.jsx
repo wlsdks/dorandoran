@@ -1,3 +1,4 @@
+import { submissionImages } from '@/lib/submission-images';
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, FileCode2, FileText, X, Code as CodeIcon, Maximize2, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -19,7 +20,7 @@ export default memo(function SubmissionContentPreview({ submission }) {
 
   if (!submission) return null;
 
-  const screenshots = Array.isArray(submission.screenshots) ? submission.screenshots.filter(s => s?.url) : [];
+  const screenshots = submissionImages(submission.screenshots);
   const hasAny = submission.imageUrl || submission.code || submission.projectUrl
     || submission.fileName || submission.description || submission.prdContent
     || submission.prdFileName || submission.title

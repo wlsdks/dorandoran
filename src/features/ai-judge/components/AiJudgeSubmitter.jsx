@@ -275,18 +275,19 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
             </details>
           )}
           <div className="flex items-center gap-2 pt-2">
-            <Button onClick={() => setEditing(true)} variant="secondary" size="md" className="flex-1 min-h-[44px]">
+            <Button onClick={() => setEditing(true)} disabled={submissionLocked || disabled} variant="secondary" size="md" className="flex-1 min-h-[44px]">
               <Edit3 size={15} /> 수정
             </Button>
             <button
               onClick={() => setWithdrawConfirmOpen(true)}
               aria-label="제출 취소"
+              disabled={submissionLocked || disabled}
               className="inline-flex items-center gap-1 px-3 py-2 min-h-[44px] text-sm text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
             >
               <Trash2 size={14} /> 취소
             </button>
           </div>
-          <p className="text-xs text-slate-400 text-center pt-1">심사 시작 전까지 수정 가능</p>
+          <p className="text-xs text-slate-400 text-center pt-1">{submissionLocked ? available ? '심사가 시작되어 수정할 수 없어요.' : isDone ? '제출이 마감됐어요.' : '제출 내용을 확인하고 있어요.' : available ? '심사 시작 전까지 수정 가능' : '마감 전까지 제출 내용을 수정할 수 있어요.'}</p>
         </div>
       </motion.div>
 
@@ -355,7 +356,7 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
 
       {submitTab === 'image' ? (
         <div>
-          <ImageUpload value={imageUrl} onChange={setImageUrl} folder="ai-judge" uploadLabel="이미지 첨부" />
+          <ImageUpload value={imageUrl} onChange={setImageUrl} folder={`ai-judge/${sessionId}/${questionId}`} uploadLabel="이미지 첨부" />
           {!hasContent && (
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">스크린샷이나 사진을 첨부하거나, HTML 코드 탭에서 자료를 넣어주세요.</p>
           )}

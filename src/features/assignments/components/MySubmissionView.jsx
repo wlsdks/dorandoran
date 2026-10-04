@@ -1,3 +1,4 @@
+import { submissionImages } from '@/lib/submission-images';
 import { useState } from 'react';
 import { Link, ExternalLink, FileCode2, FileText, Pencil, Trash2, Image as ImageIcon, Code as CodeIcon } from 'lucide-react';
 import { withdrawSubmission } from '@/features/assignments/api/useSubmissions';
@@ -57,7 +58,7 @@ export default function MySubmissionView({ submission, assignmentId, onBack, onE
               <ImageIcon size={12} /> 결과물 스크린샷 ({submission.screenshots.length}장)
             </p>
             <div className="grid grid-cols-3 gap-1.5">
-              {submission.screenshots.map((s, i) => (
+              {submissionImages(submission.screenshots).map((s, i) => (
                 <a
                   key={s.url}
                   href={s.url}
