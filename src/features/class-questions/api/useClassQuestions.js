@@ -1,275 +1,57 @@
-import { ref, onValue, push, update, remove, serverTimestamp, increment, query, limitToLast } from 'firebase/database';
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
+import { ref, update, remove } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { logger } from '@/lib/logger';
-import { generateStaffAnswer, isAiAnswerReady } from './aiAnswer';
+import { authenticatedRequest } from '@/lib/auth-session';
+import { EMPTY_RECORD } from '@/lib/realtime';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { useCooldown } from '@/hooks/useCooldown';
 
-const COOLDOWN_MS = 3000;
-
-/**
- * Real-time class questions hook.
- * Students post named questions; anyone can upvote; instructor marks answered.
- * @param {string} sessionId
- * @returns {{ questions: Array, postQuestion: Function, toggleUpvote: Function, markAnswered: Function, dismissQuestion: Function, loading: boolean, canPost: boolean }}
- */
 export function useClassQuestions(sessionId) {
-  const [raw, setRaw] = useState({});
-  const rawRef = useRef({}); // raw의 최신값 — 토글 콜백이 raw 의존(매 스냅샷 새 identity)하지 않도록
-  const [loading, setLoading] = useState(true);
-  const [canPost, setCanPost] = useState(true);
-  const [canAnswer, setCanAnswer] = useState(true);
-  const cooldownRef = useRef(null);
-  const answerCooldownRef = useRef(null);
-
-  useEffect(() => {
-    if (!sessionId) return;
-    // limitToLast로 누적 질문 무한 다운로드 방지 — 최근 100개만 구독
-    const qRef = query(ref(db, `sessions/${sessionId}/classQuestions`), limitToLast(100));
-    const unsub = onValue(qRef, (snap) => {
-      const val = snap.val() || {};
-      rawRef.current = val; // 콜백이 매 스냅샷마다 새 identity 되지 않도록 ref로도 보관
-      setRaw(val);
-      setLoading(false);
-    });
-    return () => {
-      unsub();
-      if (cooldownRef.current) clearTimeout(cooldownRef.current);
-      if (answerCooldownRef.current) clearTimeout(answerCooldownRef.current);
-    };
+  const { value, loading, error } = useRealtimeValue(sessionId ? `sessions/${sessionId}/classQuestions` : null, { limit: 100, throttleMs: 50 });
+  const raw = value || EMPTY_RECORD;
+  const post = useCooldown(`${sessionId}:question`, 3000);
+  const answer = useCooldown(`${sessionId}:answer`, 3000);
+  const { begin: beginPost, finish: finishPost, fail: failPost } = post;
+  const { begin: beginAnswer, finish: finishAnswer, fail: failAnswer } = answer;
+  const questions = useMemo(() => Object.entries(raw).map(([id, data]) => ({ id, ...data,
+    upvoteCount: Object.keys(data.upvotes || EMPTY_RECORD).length,
+    answerList: Object.entries(data.answers || EMPTY_RECORD).map(([id, value]) => ({ id, ...value, upvoteCount: Object.keys(value.upvotes || EMPTY_RECORD).length }))
+      .sort((a, b) => b.upvoteCount - a.upvoteCount || (a.timestamp || 0) - (b.timestamp || 0)),
+    answerCount: Object.keys(data.answers || EMPTY_RECORD).length,
+  })).sort((a, b) => Number(Boolean(a.answered)) - Number(Boolean(b.answered)) || b.upvoteCount - a.upvoteCount || (b.timestamp || 0) - (a.timestamp || 0)), [raw]);
+  const postQuestion = useCallback(async (text) => {
+    if (!sessionId || !text?.trim()) return false;
+    const ticket = beginPost(); if (ticket === null) return false;
+    try { await authenticatedRequest('/api/classroom/question', { sessionId, text: text.trim() }); return finishPost(ticket); }
+    catch { failPost(ticket); return false; }
+  }, [sessionId, beginPost, finishPost, failPost]);
+  const postAnswer = useCallback(async (questionId, text) => {
+    if (!sessionId || !questionId || !text?.trim()) return false;
+    const ticket = beginAnswer(); if (ticket === null) return false;
+    try { await authenticatedRequest('/api/classroom/answer', { sessionId, questionId, text: text.trim() }); return finishAnswer(ticket); }
+    catch { failAnswer(ticket); return false; }
+  }, [sessionId, beginAnswer, finishAnswer, failAnswer]);
+  const toggleUpvote = useCallback(async (questionId, participantId) => {
+    if (!sessionId || !questionId || !participantId) return;
+    const path = `sessions/${sessionId}/classQuestions/${questionId}/upvotes/${participantId}`;
+    if (raw[questionId]?.upvotes?.[participantId]) await remove(ref(db, path));
+    else await update(ref(db, `sessions/${sessionId}/classQuestions/${questionId}/upvotes`), { [participantId]: true });
+  }, [sessionId, raw]);
+  const toggleAnswerUpvote = useCallback(async (questionId, answerId, participantId) => {
+    if (!sessionId || !questionId || !answerId || !participantId) return;
+    const path = `sessions/${sessionId}/classQuestions/${questionId}/answers/${answerId}/upvotes/${participantId}`;
+    if (raw[questionId]?.answers?.[answerId]?.upvotes?.[participantId]) await remove(ref(db, path));
+    else await update(ref(db, `sessions/${sessionId}/classQuestions/${questionId}/answers/${answerId}/upvotes`), { [participantId]: true });
+  }, [sessionId, raw]);
+  const markAnswered = useCallback(async (id, answeredBy, answeredByRole) => {
+    if (!sessionId || !id) return;
+    await update(ref(db, `sessions/${sessionId}/classQuestions/${id}`), { answered: true,
+      ...(answeredBy ? { answeredBy } : {}), ...(answeredByRole ? { answeredByRole } : {}) });
   }, [sessionId]);
-
-  // Sorted: unanswered first (by upvote count desc), then answered
-  const questions = useMemo(
-    () =>
-      Object.entries(raw)
-        .map(([id, data]) => ({
-          id,
-          ...data,
-          upvoteCount: data.upvotes ? Object.keys(data.upvotes).length : 0,
-          answerList: data.answers
-            ? Object.entries(data.answers)
-                .map(([aId, a]) => ({ id: aId, ...a, upvoteCount: a.upvotes ? Object.keys(a.upvotes).length : 0 }))
-                .sort((a, b) => b.upvoteCount - a.upvoteCount || (a.timestamp || 0) - (b.timestamp || 0))
-            : [],
-          answerCount: data.answers ? Object.keys(data.answers).length : 0,
-        }))
-        .sort((a, b) => {
-          if (a.answered !== b.answered) return a.answered ? 1 : -1;
-          return b.upvoteCount - a.upvoteCount || (b.timestamp || 0) - (a.timestamp || 0);
-        }),
-    [raw]
-  );
-
-  const unansweredCount = useMemo(
-    () => questions.filter((q) => !q.answered).length,
-    [questions]
-  );
-
-  const postQuestion = useCallback(
-    async (text, nickname, participantId, options = {}) => {
-      const { aiAllowed = false, sessionContext = '' } = options;
-      const trimmed = text?.trim();
-      if (!sessionId || !trimmed || !canPost) return false;
-      try {
-        const newRef = await push(ref(db, `sessions/${sessionId}/classQuestions`), {
-          text: trimmed,
-          nickname: nickname || '익명',
-          participantId: participantId || '',
-          timestamp: serverTimestamp(),
-          answered: false,
-          aiAllowed: !!aiAllowed,
-        });
-        const qId = newRef.key;
-        // Q&A 참여 통계 업데이트
-        if (participantId) {
-          update(ref(db, `sessions/${sessionId}/qaStats/${participantId}`), {
-            nickname: nickname || '익명',
-            questions: increment(1),
-          }).catch(() => {});
-        }
-        // AI 답변 요청 시 비동기 처리
-        if (aiAllowed && isAiAnswerReady()) {
-          (async () => {
-            try {
-              const r = await generateStaffAnswer({ question: trimmed, sessionContext });
-              if (r?.canAnswer && r.answer?.trim()) {
-                const answerData = {
-                  text: r.answer.trim(),
-                  nickname: 'AI 조교',
-                  participantId: 'ai-bot',
-                  timestamp: serverTimestamp(),
-                  role: 'ai',
-                };
-                await push(ref(db, `sessions/${sessionId}/classQuestions/${qId}/answers`), answerData);
-                await update(ref(db, `sessions/${sessionId}/classQuestions/${qId}`), {
-                  answered: true,
-                  answeredBy: 'AI 조교',
-                  answeredByRole: 'ai',
-                });
-              } else {
-                // AI가 답변 불가 → 마커 남김 (UI에서 "AI는 답변 생략" 같이 표시 가능)
-                await update(ref(db, `sessions/${sessionId}/classQuestions/${qId}`), {
-                  aiSkipped: true,
-                });
-              }
-            } catch (err) {
-              logger.error('AI answer failed:', err);
-              update(ref(db, `sessions/${sessionId}/classQuestions/${qId}`), { aiSkipped: true }).catch(() => {});
-            }
-          })();
-        }
-        setCanPost(false);
-        cooldownRef.current = setTimeout(() => setCanPost(true), COOLDOWN_MS);
-        return true;
-      } catch (err) {
-        logger.error('Post class question failed:', err);
-        return false;
-      }
-    },
-    [sessionId, canPost],
-  );
-
-  const toggleUpvote = useCallback(
-    async (questionId, participantId) => {
-      if (!sessionId || !questionId || !participantId) return;
-      const upRef = ref(
-        db,
-        `sessions/${sessionId}/classQuestions/${questionId}/upvotes/${participantId}`,
-      );
-      const current = rawRef.current[questionId]?.upvotes?.[participantId];
-      try {
-        if (current) {
-          await remove(upRef);
-        } else {
-          await update(
-            ref(db, `sessions/${sessionId}/classQuestions/${questionId}/upvotes`),
-            { [participantId]: true },
-          );
-        }
-      } catch (err) {
-        logger.error('Toggle upvote failed:', err);
-      }
-    },
-    [sessionId],
-  );
-
-  const markAnswered = useCallback(
-    async (questionId, answeredBy, answeredByRole) => {
-      if (!sessionId || !questionId) return;
-      try {
-        const data = { answered: true };
-        if (answeredBy) data.answeredBy = answeredBy;
-        if (answeredByRole) data.answeredByRole = answeredByRole;
-        await update(ref(db, `sessions/${sessionId}/classQuestions/${questionId}`), data);
-      } catch (err) {
-        logger.error('Mark answered failed:', err);
-      }
-    },
-    [sessionId],
-  );
-
-  const dismissQuestion = useCallback(
-    async (questionId) => {
-      if (!sessionId || !questionId) return;
-      try {
-        await remove(ref(db, `sessions/${sessionId}/classQuestions/${questionId}`));
-      } catch (err) {
-        logger.error('Dismiss class question failed:', err);
-      }
-    },
-    [sessionId],
-  );
-
-  const toggleHidden = useCallback(
-    async (questionId) => {
-      if (!sessionId || !questionId) return;
-      try {
-        const current = rawRef.current[questionId]?.hidden || false;
-        await update(ref(db, `sessions/${sessionId}/classQuestions/${questionId}`), {
-          hidden: !current,
-        });
-      } catch (err) {
-        logger.error('Toggle hidden failed:', err);
-      }
-    },
-    [sessionId],
-  );
-
-  const postAnswer = useCallback(
-    async (questionId, text, nickname, participantId, role) => {
-      const trimmed = text?.trim();
-      if (!sessionId || !questionId || !trimmed || !canAnswer) return false;
-      try {
-        const answerData = {
-          text: trimmed,
-          nickname: nickname || '익명',
-          participantId: participantId || '',
-          timestamp: serverTimestamp(),
-        };
-        if (role === 'admin' || role === 'staff') answerData.role = role;
-        await push(ref(db, `sessions/${sessionId}/classQuestions/${questionId}/answers`), answerData);
-        // Q&A 참여 통계 업데이트
-        if (participantId) {
-          update(ref(db, `sessions/${sessionId}/qaStats/${participantId}`), {
-            nickname: nickname || '익명',
-            answers: increment(1),
-          }).catch(() => {});
-        }
-        // 강사/스태프 답변만 answered 마킹 (학생 답변은 마킹하지 않음)
-        if (role === 'admin' || role === 'staff') {
-          await update(ref(db, `sessions/${sessionId}/classQuestions/${questionId}`), {
-            answered: true,
-            answeredBy: nickname || '익명',
-            answeredByRole: role,
-          });
-        }
-        setCanAnswer(false);
-        answerCooldownRef.current = setTimeout(() => setCanAnswer(true), COOLDOWN_MS);
-        return true;
-      } catch (err) {
-        logger.error('Post answer failed:', err);
-        return false;
-      }
-    },
-    [sessionId, canAnswer],
-  );
-
-  const toggleAnswerUpvote = useCallback(
-    async (questionId, answerId, participantId) => {
-      if (!sessionId || !questionId || !answerId || !participantId) return;
-      const upRef = ref(
-        db,
-        `sessions/${sessionId}/classQuestions/${questionId}/answers/${answerId}/upvotes/${participantId}`,
-      );
-      const current = rawRef.current[questionId]?.answers?.[answerId]?.upvotes?.[participantId];
-      try {
-        if (current) {
-          await remove(upRef);
-        } else {
-          await update(
-            ref(db, `sessions/${sessionId}/classQuestions/${questionId}/answers/${answerId}/upvotes`),
-            { [participantId]: true },
-          );
-        }
-      } catch (err) {
-        logger.error('Toggle answer upvote failed:', err);
-      }
-    },
-    [sessionId],
-  );
-
-  return {
-    questions,
-    unansweredCount,
-    postQuestion,
-    toggleUpvote,
-    markAnswered,
-    dismissQuestion,
-    toggleHidden,
-    postAnswer,
-    toggleAnswerUpvote,
-    loading,
-    canPost,
-    canAnswer,
-  };
+  const dismissQuestion = useCallback(async (id) => { if (sessionId && id) await remove(ref(db, `sessions/${sessionId}/classQuestions/${id}`)); }, [sessionId]);
+  const toggleHidden = useCallback(async (id) => {
+    if (sessionId && id) await update(ref(db, `sessions/${sessionId}/classQuestions/${id}`), { hidden: !raw[id]?.hidden });
+  }, [sessionId, raw]);
+  return { questions, unansweredCount: questions.filter((question) => !question.answered).length, postQuestion, postAnswer,
+    toggleUpvote, toggleAnswerUpvote, markAnswered, dismissQuestion, toggleHidden, loading, error, canPost: post.canSend, canAnswer: answer.canSend };
 }

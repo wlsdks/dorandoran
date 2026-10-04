@@ -154,7 +154,7 @@ export default function SubmissionsView({ assignmentId, submissions, results, aw
 
   function handleOpen(e) {
     e?.stopPropagation();
-    window.open(submitUrl, '_blank');
+    window.open(submitUrl, '_blank', 'noopener,noreferrer');
   }
 
   const awardMap = useMemo(() => {

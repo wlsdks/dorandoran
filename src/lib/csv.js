@@ -1,3 +1,4 @@
+import { csvCell } from './csv-cell';
 /**
  * CSV export utilities for session data.
  *
@@ -11,14 +12,7 @@
  * @param {*} value
  * @returns {string}
  */
-function escapeCSV(value) {
-  if (value == null) return '';
-  const str = String(value);
-  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-    return '"' + str.replace(/"/g, '""') + '"';
-  }
-  return str;
-}
+const escapeCSV = csvCell;
 
 /**
  * Converts a 2D array to a CSV string with BOM for Excel compatibility.

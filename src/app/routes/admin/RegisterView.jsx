@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { motion as motionTokens } from '@/lib/design-tokens';
 import { AlertCircle, UserPlus, ArrowRight } from 'lucide-react';
-import { ref, get, set } from 'firebase/database';
-import { db } from '@/lib/firebase';
-import { hashPassword, generateId } from '@/lib/auth';
+import { registerStaff } from '@/lib/auth-session';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
@@ -21,7 +19,7 @@ const ROLES = [
   { value: 'staff', label: '스태프', desc: '배정된 강의를 보조합니다' },
 ];
 
-export default function RegisterView({ onLogin, onSwitchToLogin }) {
+export default function RegisterView({ onSwitchToLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -43,8 +41,8 @@ export default function RegisterView({ onLogin, onSwitchToLogin }) {
       setError('아이디는 2~20자로 입력해주세요');
       return;
     }
-    if (password.length < 4) {
-      setError('비밀번호는 4자 이상 입력해주세요');
+    if (password.length < 8) {
+      setError('비밀번호는 8자 이상 입력해주세요');
       return;
     }
     if (trimmedName.length > 20) {
@@ -56,48 +54,10 @@ export default function RegisterView({ onLogin, onSwitchToLogin }) {
     setError('');
 
     try {
-      const adminsSnap = await get(ref(db, 'admins'));
-      const admins = adminsSnap.val() || {};
-      const existingAdmins = Object.values(admins);
-
-      const duplicate = existingAdmins.find((a) => a.username === trimmedUsername);
-      if (duplicate) {
-        setError('이미 사용 중인 아이디입니다');
-        setSubmitting(false);
-        return;
-      }
-
-      const isFirstUser = existingAdmins.length === 0;
-      const uid = generateId();
-      const pwHash = await hashPassword(password);
-
-      const role = isFirstUser ? 'master' : selectedRole;
-      const isStaff = role === 'staff';
-
-      const adminData = {
-        username: trimmedUsername,
-        passwordHash: pwHash,
-        displayName: trimmedName,
-        role,
-        approved: isFirstUser || isStaff,
-        createdAt: Date.now(),
-      };
-
-      await set(ref(db, `admins/${uid}`), adminData);
-
-      if (isFirstUser) {
-        sessionStorage.setItem('dorandoran_admin',
-          JSON.stringify({ uid, username: trimmedUsername, displayName: trimmedName, role: 'master' }));
-        onLogin();
-      } else if (isStaff) {
-        sessionStorage.setItem('dorandoran_admin',
-          JSON.stringify({ uid, username: trimmedUsername, displayName: trimmedName, role: 'staff' }));
-        onLogin();
-      } else {
-        setSuccess(true);
-      }
-    } catch {
-      setError('가입 중 오류가 발생했습니다');
+      await registerStaff({ username: trimmedUsername, password, displayName: trimmedName, role: selectedRole });
+      setSuccess(true);
+    } catch (err) {
+      setError(err.message || '가입 중 오류가 발생했습니다');
       setSubmitting(false);
     }
   }

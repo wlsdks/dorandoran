@@ -54,3 +54,12 @@ docs/superpowers/
 # Playwright test artifacts
 playwright-report/
 test-results/
+
+# Local emulator credentials and private function configuration
+functions/.env.*
+functions/.secret.*
+firebase-debug.log
+database-debug.log
+ui-debug.log
+
+!functions/.env.example

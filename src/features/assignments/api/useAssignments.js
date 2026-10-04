@@ -1,7 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ref, onValue, push, set, update, remove, serverTimestamp } from 'firebase/database';
+import { useResourceList } from '@/hooks/useResourceList';
+import { useRealtimeRecord } from '@/hooks/useRealtimeRecord';
+import { auth } from '@/lib/auth-session';
+import { useCallback } from 'react';
+import { ref, push, set, update, remove, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
-import { logger } from '@/lib/logger';
+
+const ASSIGNMENT_FIELDS = ['title', 'description', 'courseName', 'roundNumber', 'hasJudging', 'passThreshold', 'status', 'createdAt', 'closedAt', 'judgedAt'];
 
 export const ASSIGNMENT_STATUS = {
   open: '제출 중',
@@ -15,53 +19,17 @@ export const ASSIGNMENT_STATUS = {
  * courseName이 없으면 전체 목록, 있으면 해당 코스만 필터.
  */
 export function useAssignmentList(courseName) {
-  const [assignments, setAssignments] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const assignmentsRef = ref(db, 'assignments');
-    const unsub = onValue(assignmentsRef, (snap) => {
-      const data = snap.val() || {};
-      const list = Object.entries(data)
-        .filter(([, v]) => !courseName || v.courseName === courseName)
-        .map(([id, v]) => ({ id, ...v }))
-        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      setAssignments(list);
-      setLoading(false);
-    }, (err) => {
-      logger.error('과제 목록 로드 실패:', err);
-      setLoading(false);
-    });
-
-    return () => unsub();
-  }, [courseName]);
-
-  return { assignments, loading };
+  const { items: assignments, loading, error } = useResourceList('assignments', { courseName });
+  return { assignments, loading, error };
 }
 
 /**
  * useAssignment — 단일 과제 구독.
  */
 export function useAssignment(assignmentId) {
-  const [assignment, setAssignment] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!assignmentId) { setAssignment(null); setLoading(false); return; }
-
-    const assignmentRef = ref(db, `assignments/${assignmentId}`);
-    const unsub = onValue(assignmentRef, (snap) => {
-      setAssignment(snap.exists() ? { id: assignmentId, ...snap.val() } : null);
-      setLoading(false);
-    }, (err) => {
-      logger.error('과제 로드 실패:', err);
-      setLoading(false);
-    });
-
-    return () => unsub();
-  }, [assignmentId]);
-
-  return { assignment, loading };
+  const { value, loading, error } = useRealtimeRecord(assignmentId ? `assignments/${assignmentId}` : null, ASSIGNMENT_FIELDS);
+  const assignment = value?.title ? { id: assignmentId, ...value } : null;
+  return { assignment, loading, error };
 }
 
 /**
@@ -73,6 +41,7 @@ export function useAssignmentActions() {
     const newRef = push(assignmentsRef);
     await set(newRef, {
       title,
+      ownerId: auth.currentUser.uid,
       description: description || '',
       courseName,
       roundNumber: roundNumber || null,

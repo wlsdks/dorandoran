@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ref, get, set, remove } from 'firebase/database';
+import { useResourceList } from '@/hooks/useResourceList';
+import { useCallback } from 'react';
+import { ref, get, set, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { uuid } from '@/lib/utils';
 
@@ -17,53 +18,8 @@ function generateCourseId() {
  * @param {string} role - 'master' | 'admin' | 'staff'
  * @returns {{ courses, loading, createCourse, deleteCourse, refresh }}
  */
-export function useCourses(adminUid, role) {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchCourses = useCallback(async () => {
-    if (!adminUid) return;
-    setLoading(true);
-    try {
-      if (role === 'staff') {
-        // Staff: read reverse index then batch-fetch courses
-        const indexSnap = await get(ref(db, `staffCourses/${adminUid}`));
-        const indexVal = indexSnap.val();
-        if (!indexVal) {
-          setCourses([]);
-          setLoading(false);
-          return;
-        }
-        const courseIds = Object.keys(indexVal);
-        const results = await Promise.all(
-          courseIds.map(async (id) => {
-            const snap = await get(ref(db, `courses/${id}`));
-            const val = snap.val();
-            return val ? { id, ...val } : null;
-          })
-        );
-        setCourses(results.filter(Boolean));
-      } else {
-        // Master / admin: fetch all courses, filter client-side
-        const snap = await get(ref(db, 'courses'));
-        const val = snap.val() || {};
-        const list = Object.entries(val).map(([id, data]) => ({ id, ...data }));
-        if (role === 'admin') {
-          setCourses(list.filter((c) => c.ownerId === adminUid));
-        } else {
-          setCourses(list); // master sees all
-        }
-      }
-    } catch {
-      setCourses([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [adminUid, role]);
-
-  useEffect(() => {
-    fetchCourses();
-  }, [fetchCourses]);
+export function useCourses(adminUid, _role) {
+  const { items: courses, loading, refresh: fetchCourses, error } = useResourceList('courses');
 
   const createCourse = useCallback(async (name, ownerName) => {
     const id = generateCourseId();
@@ -78,18 +34,12 @@ export function useCourses(adminUid, role) {
   }, [adminUid, fetchCourses]);
 
   const deleteCourse = useCallback(async (courseId) => {
-    await remove(ref(db, `courses/${courseId}`));
-    // Clean up staffCourses reverse index entries
     const staffSnap = await get(ref(db, `courses/${courseId}/staff`));
-    if (staffSnap.val()) {
-      await Promise.all(
-        Object.keys(staffSnap.val()).map((uid) =>
-          remove(ref(db, `staffCourses/${uid}/${courseId}`))
-        )
-      );
-    }
+    const updates = { [`courses/${courseId}`]: null };
+    for (const uid of Object.keys(staffSnap.val() || {})) updates[`staffCourses/${uid}/${courseId}`] = null;
+    await update(ref(db), updates);
     await fetchCourses();
   }, [fetchCourses]);
 
-  return { courses, loading, createCourse, deleteCourse, refresh: fetchCourses };
+  return { courses, loading, error, createCourse, deleteCourse, refresh: fetchCourses };
 }

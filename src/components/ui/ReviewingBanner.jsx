@@ -1,5 +1,6 @@
+import { getParticipantId } from '@/lib/participant';
 import { useState, useEffect, useRef } from 'react';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, query, orderByChild, equalTo } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, CheckCircle } from 'lucide-react';
@@ -14,7 +15,7 @@ export default function ReviewingBanner({ sessionId }) {
 
   useEffect(() => {
     if (!sessionId) return;
-    const urgentRef = ref(db, `sessions/${sessionId}/urgentQuestions`);
+    const urgentRef = query(ref(db, `sessions/${sessionId}/urgentQuestions`), orderByChild('participantId'), equalTo(getParticipantId()));
     const unsub = onValue(urgentRef, (snap) => {
       const data = snap.val() || {};
       const anyReviewing = Object.values(data).some(q => q.reviewing === true);

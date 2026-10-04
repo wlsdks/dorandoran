@@ -1,4 +1,4 @@
-const PARTICIPANT_ID_KEY = 'dorandoran_participant_id';
+import { auth } from './auth-session';
 const NICKNAME_KEY = 'dorandoran_nickname';
 const JOINED_SESSIONS_KEY = 'dorandoran_joined_sessions';
 
@@ -19,23 +19,7 @@ function writeJoinedSessions(nextSessions) {
  * @returns {string} UUID stored in localStorage
  */
 export function getParticipantId() {
-  let id;
-  try { id = localStorage.getItem(PARTICIPANT_ID_KEY); } catch { /* private browsing */ }
-  if (!id) {
-    // Inline UUID v4 with fallback for older browsers (Safari <15.3)
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-      id = crypto.randomUUID();
-    } else {
-      const bytes = new Uint8Array(16);
-      crypto.getRandomValues(bytes);
-      bytes[6] = (bytes[6] & 0x0f) | 0x40;
-      bytes[8] = (bytes[8] & 0x3f) | 0x80;
-      const h = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
-      id = `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
-    }
-    try { localStorage.setItem(PARTICIPANT_ID_KEY, id); } catch { /* quota/private */ }
-  }
-  return id;
+  return auth.currentUser?.uid || '';
 }
 
 /**

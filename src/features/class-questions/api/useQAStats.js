@@ -1,24 +1,14 @@
-import { ref, onValue } from 'firebase/database';
-import { useState, useEffect, useMemo } from 'react';
-import { db } from '@/lib/firebase';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import { EMPTY_RECORD } from '@/lib/realtime';
+import { useMemo } from 'react';
 
 /**
  * Real-time Q&A participation stats.
  * Reads sessions/{sessionId}/qaStats and returns sorted rankings.
  */
 export function useQAStats(sessionId) {
-  const [raw, setRaw] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const statsRef = ref(db, `sessions/${sessionId}/qaStats`);
-    const unsub = onValue(statsRef, (snap) => {
-      setRaw(snap.val() || {});
-      setLoading(false);
-    });
-    return () => unsub();
-  }, [sessionId]);
+  const { value, loading, error } = useRealtimeValue(sessionId ? `sessions/${sessionId}/qaStats` : null);
+  const raw = value || EMPTY_RECORD;
 
   const stats = useMemo(() => {
     return Object.entries(raw).map(([pid, data]) => ({
@@ -51,5 +41,5 @@ export function useQAStats(sessionId) {
   const totalQuestions = useMemo(() => stats.reduce((sum, s) => sum + s.questions, 0), [stats]);
   const totalAnswers = useMemo(() => stats.reduce((sum, s) => sum + s.answers, 0), [stats]);
 
-  return { stats, totalRanking, questionRanking, answerRanking, totalQuestions, totalAnswers, loading };
+  return { error, stats, totalRanking, questionRanking, answerRanking, totalQuestions, totalAnswers, loading };
 }

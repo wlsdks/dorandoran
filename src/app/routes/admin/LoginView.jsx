@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { motion as motionTokens } from '@/lib/design-tokens';
 import { AlertCircle, LogIn } from 'lucide-react';
-import { ref, get } from 'firebase/database';
-import { db } from '@/lib/firebase';
-import { hashPassword } from '@/lib/auth';
+import { loginStaff } from '@/lib/auth-session';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
@@ -33,40 +31,10 @@ export default function LoginView({ onLogin, onSwitchToRegister }) {
     setError('');
 
     try {
-      const adminsSnap = await get(ref(db, 'admins'));
-      const admins = adminsSnap.val() || {};
-
-      const pwHash = await hashPassword(password);
-      const entry = Object.entries(admins).find(
-        ([, admin]) => admin.username === username.trim() && admin.passwordHash === pwHash
-      );
-
-      if (!entry) {
-        setError('아이디 또는 비밀번호가 틀렸습니다');
-        setSubmitting(false);
-        return;
-      }
-
-      const [uid, admin] = entry;
-
-      if (!admin.approved) {
-        setError('관리자 승인 대기 중입니다');
-        setSubmitting(false);
-        return;
-      }
-
-      sessionStorage.setItem(
-        'dorandoran_admin',
-        JSON.stringify({
-          uid,
-          username: admin.username,
-          displayName: admin.displayName || admin.username,
-          role: admin.role,
-        })
-      );
+      await loginStaff(username.trim(), password);
       onLogin();
-    } catch {
-      setError('로그인 중 오류가 발생했습니다');
+    } catch (err) {
+      setError(err.message || '로그인 중 오류가 발생했습니다');
       setSubmitting(false);
     }
   }
@@ -129,44 +97,9 @@ export default function LoginView({ onLogin, onSwitchToRegister }) {
           </button>
         </div>
 
-        <div>
-          <div className="border-t border-slate-100 dark:border-slate-700 pt-4 space-y-2">
-            <button type="button"
-              onClick={async () => {
-                setSubmitting(true);
-                setError('');
-                try {
-                  sessionStorage.setItem('dorandoran_admin',
-                    JSON.stringify({ uid: 'demo', username: 'demo', displayName: '데모 사용자', role: 'admin' }));
-                  onLogin();
-                } catch {
-                  setError('데모 로그인에 실패했습니다');
-                  setSubmitting(false);
-                }
-              }}
-              className="w-full py-2.5 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
-              disabled={submitting}>
-              강사 데모로 둘러보기
-            </button>
-            <button type="button"
-              onClick={async () => {
-                setSubmitting(true);
-                setError('');
-                try {
-                  sessionStorage.setItem('dorandoran_admin',
-                    JSON.stringify({ uid: 'staff_demo', username: 'staff_demo', displayName: '데모 스태프', role: 'staff' }));
-                  onLogin();
-                } catch {
-                  setError('데모 로그인에 실패했습니다');
-                  setSubmitting(false);
-                }
-              }}
-              className="w-full py-2.5 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
-              disabled={submitting}>
-              스태프 데모로 둘러보기
-            </button>
-          </div>
-        </div>
+        <p className="border-t border-slate-100 dark:border-slate-700 pt-4 text-center text-xs text-slate-400 dark:text-slate-500">
+          계정은 관리자 승인 후 이용할 수 있어요
+        </p>
       </Card>
     </motion.form>
   );

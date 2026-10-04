@@ -77,7 +77,7 @@ export default function StaffPage({ sessionId, session, adminUser, onBack, onLog
     } catch (err) {
       logger.error('답변 완료 동기화 실패:', err);
     }
-  }, [markAnswered, adminUser?.displayName]);
+  }, [markAnswered, adminUser]);
 
   const handleChatToggle = useCallback(() => {
     setChatOpen((prev) => !prev);

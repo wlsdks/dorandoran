@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ref, update } from 'firebase/database';
-import { db } from '@/lib/firebase';
+import { authenticatedRequest, restoreStaffProfile, auth } from '@/lib/auth-session';
 import Button from '@/components/ui/Button';
 import { User, Check, AlertCircle } from 'lucide-react';
 
@@ -24,7 +23,8 @@ export default function ProfileSection({ adminUser }) {
     if (adminUser?.uid === 'demo') { setError('데모 계정은 수정할 수 없습니다'); return; }
     setSaving(true); setError('');
     try {
-      await update(ref(db, `admins/${adminUser.uid}`), { displayName: trimmed });
+      await authenticatedRequest('/api/staff/profile-update', { displayName: trimmed });
+      await restoreStaffProfile(auth.currentUser);
       const stored = JSON.parse(sessionStorage.getItem('dorandoran_admin') || '{}');
       stored.displayName = trimmed;
       sessionStorage.setItem('dorandoran_admin', JSON.stringify(stored));

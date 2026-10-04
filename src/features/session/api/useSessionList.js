@@ -1,5 +1,6 @@
+import { useResourceList } from '@/hooks/useResourceList';
 import { ref, get, remove, set, serverTimestamp } from 'firebase/database';
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { generateSessionId, generateQuestionId } from '@/lib/utils';
 import { logger } from '@/lib/logger';
@@ -12,94 +13,19 @@ import { logger } from '@/lib/logger';
  * @param {string} [role] - 'master' | 'admin' | 'staff'
  * @returns {{ sessions: Array, loading: boolean, refresh: Function }}
  */
-export function useSessionList(adminUid, role) {
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  async function fetchSessions() {
-    setLoading(true);
-    try {
-      const snap = await get(ref(db, 'sessions'));
-      const data = snap.val();
-      if (!data) {
-        setSessions([]);
-        setLoading(false);
-        return;
-      }
-
-      const list = Object.entries(data).map(([id, session]) => {
-        const participants = session.participants || {};
-        const questions = session.questions || {};
-        const totalCount = Object.keys(participants).length;
-        const onlineCount = Object.values(participants).filter(p => p.online).length;
-        const questionCount = Object.keys(questions).length;
-
-        // Calculate activity rate: participants who voted at least once (based on total, not online)
-        let activeCount = 0;
-        const participantIds = new Set(Object.keys(participants));
-        const allQuestions = Object.values(questions);
-        const voterIds = new Set();
-        allQuestions.forEach((q) => {
-          if (q.votes) {
-            Object.keys(q.votes).forEach((pid) => {
-              if (participantIds.has(pid)) voterIds.add(pid);
-            });
-          }
-        });
-        activeCount = voterIds.size;
-        const activityRate = totalCount > 0
-          ? Math.round((activeCount / totalCount) * 100)
-          : 0;
-
-        return {
-          id,
-          status: session.status || 'active',
-          createdAt: session.createdAt || 0,
-          participantCount: onlineCount,
-          totalParticipants: totalCount,
-          questionCount,
-          activityRate,
-          activeCount,
-          courseName: session.courseName || null,
-          roundNumber: session.roundNumber || null,
-          courseTemplateId: session.courseTemplateId || null,
-          creatorId: session.creatorId || null,
-          courseId: session.courseId || null,
-        };
-      });
-
-      // Filter by ownership
-      let filtered = list;
-      if (role === 'admin' && adminUid) {
-        filtered = list.filter((s) => s.creatorId === adminUid);
-      }
-
-      filtered.sort((a, b) => b.createdAt - a.createdAt);
-      setSessions(filtered);
-    } catch (err) {
-      logger.error('Failed to fetch sessions:', err);
-      setSessions([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchSessions();
-    // mount 시 1회만 — fetchSessions는 hook 내 stable 함수
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+export function useSessionList(adminUid, _role) {
+  const { items: sessions, loading, refresh: fetchSessions, error } = useResourceList('sessions');
 
   const deleteSession = useCallback(async (sessionId) => {
     try {
       await remove(ref(db, `sessions/${sessionId}`));
-      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      fetchSessions();
       return true;
     } catch (err) {
       logger.error('Failed to delete session:', err);
       return false;
     }
-  }, []);
+  }, [fetchSessions]);
 
   /**
    * Duplicates a session: copies all questions (stripped of votes/runtime data),
@@ -157,29 +83,14 @@ export function useSessionList(adminUid, role) {
 
       await set(ref(db, `sessions/${newId}`), sessionData);
 
-      // Optimistic update: add to local sessions list
-      setSessions((prev) => [{
-        id: newId,
-        status: 'setting',
-        createdAt: Date.now(),
-        participantCount: 0,
-        totalParticipants: 0,
-        questionCount: sourceQuestions ? Object.keys(sourceQuestions).length : 0,
-        activityRate: 0,
-        activeCount: 0,
-        courseName: source.courseName || null,
-        roundNumber: nextRound,
-        courseTemplateId: null,
-      }, ...prev]);
+      fetchSessions();
 
       return newId;
     } catch (err) {
       logger.error('Failed to duplicate session:', err);
       return null;
     }
-    // adminUid는 hook param이라 컴포넌트 lifecycle 동안 stable
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessions]);
+  }, [sessions, adminUid, fetchSessions]);
 
-  return { sessions, loading, refresh: fetchSessions, deleteSession, duplicateSession };
+  return { sessions, loading, error, refresh: fetchSessions, deleteSession, duplicateSession };
 }

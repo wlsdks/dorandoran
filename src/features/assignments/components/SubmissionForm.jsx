@@ -1,3 +1,4 @@
+import { auth, ensureAuthentication } from '@/lib/auth-session';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { logger } from '@/lib/logger';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -80,7 +81,7 @@ export default function SubmissionForm({ onSubmit, existingSubmission, assignmen
       toUpload.map(async (file, i) => {
         const placeholder = placeholders[i];
         try {
-          if (!file.type.startsWith('image/')) {
+          if (!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)) {
             throw new Error('이미지 파일만 업로드 가능');
           }
           if (file.size > MAX_IMAGE_SIZE) {
@@ -93,7 +94,8 @@ export default function SubmissionForm({ onSubmit, existingSubmission, assignmen
           const ext = (dotIdx > 0 ? file.name.slice(dotIdx + 1) : 'png').toLowerCase();
           const stem = dotIdx > 0 ? file.name.slice(0, dotIdx) : file.name;
           const safeStem = (stem.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50)) || 'img';
-          const path = `assignments/${assignmentId}/screenshots/${placeholder.tempId}_${safeStem}.${ext}`;
+          await ensureAuthentication();
+          const path = `assignments/${assignmentId}/${auth.currentUser.uid}/screenshots/${placeholder.tempId}_${safeStem}.${ext}`;
           const ref = sRef(storage, path);
           await uploadBytes(ref, file, { contentType: file.type });
           const url = await getDownloadURL(ref);
@@ -150,8 +152,8 @@ export default function SubmissionForm({ onSubmit, existingSubmission, assignmen
   const anyUploading = screenshots.some((s) => s.uploading);
   const hasPrd = prdContent.trim().length >= 50;
   const hasCode = code.trim().length > 0;
-  const pinMatch = isEditMode || (pin.length === 4 && pin === pinConfirm);
-  const canSubmit = name.trim() && (isEditMode || pin.length === 4) && pinMatch
+  const pinMatch = isEditMode || (pin.length === 8 && pin === pinConfirm);
+  const canSubmit = name.trim() && (isEditMode || pin.length === 8) && pinMatch
     && hasPrd && hasCode && !anyUploading && !submitting;
 
   async function handleSubmit(e) {
@@ -237,8 +239,8 @@ export default function SubmissionForm({ onSubmit, existingSubmission, assignmen
       {!canSubmit && !submitting && (name.trim() || prdContent.trim() || code.trim()) && (
         <div className="text-xs text-slate-400 px-1 space-y-0.5">
           {!name.trim() && <p>· 이름을 입력해주세요</p>}
-          {!isEditMode && pin.length !== 4 && <p>· 조회용 비밀번호 4자리를 입력해주세요</p>}
-          {!isEditMode && pin.length === 4 && pin !== pinConfirm && <p>· 조회용 비밀번호 확인이 일치하지 않습니다</p>}
+          {!isEditMode && pin.length !== 8 && <p>· 조회용 비밀번호 8자리를 입력해주세요</p>}
+          {!isEditMode && pin.length === 8 && pin !== pinConfirm && <p>· 조회용 비밀번호 확인이 일치하지 않습니다</p>}
           {!hasPrd && <p>· PRD를 작성해주세요 (50자 이상)</p>}
           {!hasCode && <p>· 결과물 HTML 코드를 입력하거나 파일을 첨부해주세요</p>}
           {anyUploading && <p>· 이미지 업로드가 끝날 때까지 기다려주세요</p>}

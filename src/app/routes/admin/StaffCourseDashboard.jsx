@@ -1,8 +1,7 @@
+import { authenticatedRequest } from '@/lib/auth-session';
 import { useState, useEffect } from 'react';
-import { ref, get } from 'firebase/database';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, BookOpen, ChevronRight, Users, ArrowLeft, ArrowRight } from 'lucide-react';
-import { db } from '@/lib/firebase';
 import { useCourses } from '@/features/course/api/useCourses';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import EmptyState from '@/components/ui/EmptyState';
@@ -45,8 +44,8 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
   useEffect(() => {
     if (!selectedCourse) { setCourseSessions([]); return; }
     setSessionsLoading(true);
-    get(ref(db, 'sessions')).then((snap) => {
-      const data = snap.val() || {};
+    authenticatedRequest('/api/staff/resources', { resource: 'sessions' }).then(({ items }) => {
+      const data = Object.fromEntries(items.map(item => [item.id, item]));
       const list = Object.entries(data)
         .filter(([, s]) =>
           s.courseId === selectedCourse.id &&
@@ -72,8 +71,8 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
   const [activeCountMap, setActiveCountMap] = useState({});
   useEffect(() => {
     if (courses.length === 0) return;
-    get(ref(db, 'sessions')).then((snap) => {
-      const data = snap.val() || {};
+    authenticatedRequest('/api/staff/resources', { resource: 'sessions' }).then(({ items }) => {
+      const data = Object.fromEntries(items.map(item => [item.id, item]));
       const counts = {};
       Object.values(data).forEach((s) => {
         if (s.courseId && (s.status === 'active' || s.status === 'reviewing')) {

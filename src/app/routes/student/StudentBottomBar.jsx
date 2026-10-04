@@ -111,7 +111,7 @@ export default memo(function StudentBottomBar({ sessionId }) {
     if (!questionText.trim()) return;
     setSubmitError(null);
     try {
-      await push(ref(db, `sessions/${sessionId}/urgentQuestions`), { text: questionText.trim(), nickname: isAnonymous ? null : nickname, anonymous: isAnonymous, timestamp: serverTimestamp(), read: false });
+      await push(ref(db, `sessions/${sessionId}/urgentQuestions`), { participantId: getParticipantId(), text: questionText.trim(), nickname: isAnonymous ? null : nickname, anonymous: isAnonymous, timestamp: serverTimestamp(), read: false });
       setQuestionText('');
       setShowQuestionInput(false);
       setSubmitted(true);

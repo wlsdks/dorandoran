@@ -17,6 +17,21 @@
  */
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
+const { initializeApp, getApps } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
+const { getDatabase } = require('firebase-admin/database');
+const { createStaffService } = require('./staff-service');
+const { createAssignmentService } = require('./assignment-service');
+const { createClassroomService } = require('./classroom-service');
+const { createHttpApi } = require('./http-api');
+const { verifiedUser, verifiedStaff, createRateLimit } = require('./access');
+
+const adminApp = getApps()[0] || initializeApp(process.env.APP_DATABASE_URL ? { databaseURL: process.env.APP_DATABASE_URL } : undefined);
+const adminAuth = getAuth(adminApp);
+const adminDb = getDatabase(adminApp);
+exports.staffApi = onRequest({ region: 'asia-northeast3', cors: false, maxInstances: 4 }, createHttpApi(createStaffService({ auth: adminAuth, db: adminDb })));
+exports.assignmentApi = onRequest({ region: 'asia-northeast3', cors: false, maxInstances: 4 }, createHttpApi(createAssignmentService({ auth: adminAuth, db: adminDb })));
+exports.classroomApi = onRequest({ region: 'asia-northeast3', cors: false, maxInstances: 4 }, createHttpApi(createClassroomService({ auth: adminAuth, db: adminDb })));
 
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 
@@ -61,22 +76,8 @@ const WINDOW_MS = 60_000;
  * 30회였을 때는 5번째 제출물부터 자기 요청을 스스로 막았다. 개별 스로틀이 아니라 폭주 상한이다.
  */
 const MAX_PER_WINDOW = 300;
-const hits = new Map();
-
-function rateLimited(ip) {
-  const now = Date.now();
-  const rec = hits.get(ip);
-  if (!rec || now - rec.start >= WINDOW_MS) {
-    hits.set(ip, { start: now, count: 1 });
-    // 창이 지난 항목 정리 — 메모리 누수 방지.
-    if (hits.size > 5000) {
-      for (const [k, v] of hits) if (now - v.start >= WINDOW_MS) hits.delete(k);
-    }
-    return false;
-  }
-  rec.count += 1;
-  return rec.count > MAX_PER_WINDOW;
-}
+const allowRequest = createRateLimit(MAX_PER_WINDOW, WINDOW_MS);
+const rateLimited = ip => !allowRequest(ip);
 
 function deny(res, status, message) {
   res.status(status).json({ error: { message } });
@@ -106,7 +107,7 @@ exports.geminiProxy = onRequest(
 
     if (req.method === 'OPTIONS') {
       res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-      res.set('Access-Control-Allow-Headers', 'content-type, x-goog-api-key, x-goog-api-client');
+      res.set('Access-Control-Allow-Headers', 'content-type, authorization, x-goog-api-key, x-goog-api-client');
       res.set('Access-Control-Max-Age', '86400');
       return res.status(204).send('');
     }
@@ -114,6 +115,10 @@ exports.geminiProxy = onRequest(
     if (req.method !== 'POST') {
       return deny(res, 405, 'POST만 허용됩니다.');
     }
+
+    // Origin은 인증이 아니다. 서버가 검증한 Firebase 사용자와 승인된 강사만 호출할 수 있다.
+    try { await verifiedUser(req, adminAuth); await verifiedStaff(req, adminAuth, adminDb); }
+    catch (err) { return deny(res, err.status || 403, '승인된 강사 로그인이 필요합니다.'); }
 
     // Hosting rewrite는 원본 경로(/api/gemini/v1beta/...)를 그대로 전달한다.
     const path = (req.path || '').replace(/^\/api\/gemini/, '');
@@ -152,12 +157,14 @@ exports.geminiProxy = onRequest(
           'x-goog-api-key': GEMINI_API_KEY.value(),
         },
         body,
+        signal: AbortSignal.timeout(30_000),
       });
     } catch (err) {
       console.error('업스트림 호출 실패', err);
       return deny(res, 502, 'Gemini 호출에 실패했습니다.');
     }
 
+    if (!upstream.ok) return deny(res, upstream.status, 'AI 요청 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
     const text = await upstream.text();
     res.status(upstream.status);
     res.set('Content-Type', upstream.headers.get('Content-Type') || 'application/json');

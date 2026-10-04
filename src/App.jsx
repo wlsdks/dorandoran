@@ -1,4 +1,7 @@
-import { onDisconnect, onValue, ref, set, update, serverTimestamp } from 'firebase/database';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { motion as motionTokens } from '@/lib/design-tokens';
+import AuthenticationBoundary from '@/components/ui/AuthenticationBoundary';
+import { onDisconnect, onValue, ref, remove, set } from 'firebase/database';
 import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
@@ -7,7 +10,7 @@ import JoinPage from '@/app/routes/student/JoinPage';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { SuspenseFallback } from '@/components/ui/Skeleton';
 import { db } from '@/lib/firebase';
-import { getNickname, getParticipantId, hasJoinedSession, markSessionJoined, getSessionNickname, getSessionEmployeeId } from '@/lib/participant';
+import { getParticipantId, hasJoinedSession, markSessionJoined } from '@/lib/participant';
 import { logger } from '@/lib/logger';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -63,37 +66,28 @@ function StudentRouter() {
   useEffect(() => {
     if (!joined || !sessionId) return;
 
-    const nickname = (getSessionNickname(sessionId) || getNickname()).trim();
-    if (!nickname) return;
-    const employeeId = getSessionEmployeeId(sessionId).trim();
 
     const participantId = getParticipantId();
-    const participantRef = ref(db, `sessions/${sessionId}/participants/${participantId}`);
-    const onlineRef = ref(db, `sessions/${sessionId}/participants/${participantId}/online`);
-
-    // 최초 1회만 참여자 메타 기록 — joinedAt은 여기서만 찍고 재접속마다 갱신하지 않음.
-    // (JoinPage가 아닌 App.jsx 한 곳에서 presence를 일원화 — 중복 write 제거)
-    set(participantRef, {
-      nickname,
-      joinedAt: serverTimestamp(),
-      online: true,
-      ...(employeeId ? { employeeId } : {}), // 사번(선택) — 입력했을 때만 기록
-    }).catch((err) => logger.warn('[presence] init failed', err));
-
-    // 재접속(.info/connected) 시: online만 갱신(이미 true면 무변경 → 리스너 미발화) + onDisconnect 재무장.
-    // 전체 노드 set/joinedAt 재기록을 하지 않아, 교실 Wi-Fi 블립에 300명이 동시에 full-node write를
-    // 쏟아내 강사·전자칠판이 프리징되던 fan-out 폭주를 방지한다. joinedAt churn(리포트 참여시간 왜곡)도 제거.
-    const connRef = ref(db, '.info/connected');
-    const unsub = onValue(connRef, (snap) => {
-      if (snap.val() !== true) return;
-      update(participantRef, { online: true }).catch((err) => logger.warn('[presence] reconnect failed', err));
-      onDisconnect(onlineRef).set(false).catch((err) => logger.warn('[presence] onDisconnect failed', err));
+    const connectionRef = ref(db, `sessions/${sessionId}/participants/${participantId}/connections/${crypto.randomUUID()}`);
+    let active = true;
+    const disconnect = onDisconnect(connectionRef);
+    const unsub = onValue(ref(db, '.info/connected'), async (snapshot) => {
+      if (!snapshot.val() || !active) return;
+      try {
+        // 서버가 끊김 처리를 접수한 뒤 연결을 표시한다. 늦게 완료된 등록도 해제한다.
+        await disconnect.remove();
+        if (!active) { await disconnect.cancel(); return; }
+        await refConnection();
+      } catch (error) { logger.warn('접속 상태 갱신 실패', error?.code); }
     });
-
-    // cleanup: 리스너 해제 + 이전 세션의 onDisconnect 무장 해제(세션 전환 시 잔존 방지)
+    async function refConnection() {
+      if (active) await set(connectionRef, true);
+      if (!active) await remove(connectionRef).catch(() => {});
+    }
     return () => {
-      unsub();
-      onDisconnect(onlineRef).cancel().catch(() => { /* 이미 해제됨 무시 */ });
+      active = false; unsub();
+      disconnect.cancel().catch(() => {});
+      remove(connectionRef).catch(() => {});
     };
   }, [joined, sessionId]);
 
@@ -103,7 +97,7 @@ function StudentRouter() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: motionTokens.duration.normal }}
           className="text-center space-y-5 max-w-xs"
         >
           <div className="flex justify-center">
@@ -167,10 +161,12 @@ function StudentRouter() {
 function App() {
   // Apply theme at app root so it's always active (not just on MoreView mount)
   useTheme();
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
 
   return (
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
     <BrowserRouter>
+      <AuthenticationBoundary>
       <Routes>
         <Route path="/" element={
           <ErrorBoundary scope="student">
@@ -207,6 +203,7 @@ function App() {
         } />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </AuthenticationBoundary>
     </BrowserRouter>
     </MotionConfig>
   );
