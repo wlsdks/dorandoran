@@ -136,13 +136,13 @@ export default memo(function ScaleChart({ sessionId, questionId, minLabel = '낮
           className="space-y-2"
         >
           <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">응답 분포</p>
-          <div className="flex items-end gap-1.5 h-24">
+          <div className="scale-histogram flex items-end gap-1.5 h-24">
             {buckets.map((count, i) => {
               const heightPct = maxBucket > 0 ? (count / maxBucket) * 100 : 0;
               return (
                 <motion.div
                   key={i}
-                  className="flex-1 flex flex-col items-center gap-1"
+                  className="flex-1 h-full flex flex-col items-center justify-end gap-1"
                 >
                   {count > 0 && (
                     <motion.span
@@ -156,7 +156,7 @@ export default memo(function ScaleChart({ sessionId, questionId, minLabel = '낮
                   )}
                   <motion.div
                     initial={{ height: 0 }}
-                    animate={{ height: `${Math.max(heightPct, count > 0 ? 8 : 2)}%` }}
+                    animate={{ height: `${Math.max(heightPct * 0.75, count > 0 ? 8 : 2)}%` }}
                     transition={{ type: 'spring', stiffness: 200, damping: 20, delay: i * 0.05 }}
                     className={`w-full rounded-t-md ${count > 0 ? getBarColor(i) : 'bg-slate-100 dark:bg-slate-800'}`}
                     style={{ minHeight: count > 0 ? '4px' : '2px' }}

@@ -295,8 +295,8 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
                 {drawPrimary(rolling, displayMode)}
               </motion.p>
             ) : (
-              <p className="text-lg text-slate-400">
-                {isView ? '강사 화면에서 뽑으면 여기에 나옵니다' : '버튼을 눌러 발표자를 뽑으세요'}
+              <p className={isView ? "text-2xl text-slate-300" : "text-lg text-slate-400"}>
+                {isView ? '곧 함께 발표자를 확인해요' : '버튼을 눌러 발표자를 뽑으세요'}
               </p>
             )}
           </AnimatePresence>
@@ -322,7 +322,7 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
       {isView ? (
         <p className="inline-flex items-center gap-1.5 text-slate-400 text-sm">
           <Monitor size={14} />
-          강사 화면을 그대로 보여주는 중입니다
+          결과가 실시간으로 함께 표시됩니다
         </p>
       ) : (
       <div className="flex gap-3">

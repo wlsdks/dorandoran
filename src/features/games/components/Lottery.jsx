@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Minus, Plus, RotateCcw, Sparkles, Trophy, Monitor } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { useDrawDisplay, drawPrimary, drawSecondary } from '@/lib/draw-display';
 import { useGameMirror } from '../api/useGameMirror';
 import DrawDisplayToggle from './DrawDisplayToggle';
@@ -446,9 +447,10 @@ export default function Lottery({
         }} exit={{
           opacity: 0
         }} className="text-center space-y-3">
-              <Gift size={presenter ? 56 : 32} className="text-slate-400 mx-auto" />
+              {isView ? <DoranDoranMascot size={160} mood="waiting" /> : <Gift size={presenter ? 56 : 32} className="text-slate-400 mx-auto" />}
+              {isView && <h2 className="text-3xl font-semibold text-slate-100">추첨을 준비하고 있어요</h2>}
               <p className={`text-slate-400 ${presenter ? 'text-2xl' : 'text-base'}`}>
-                {isView ? '강사 화면에서 추첨을 시작하면 여기에 나옵니다' : '추첨 버튼을 눌러주세요'}
+                {isView ? '곧 함께 당첨자를 확인해요' : '추첨 버튼을 눌러주세요'}
               </p>
             </motion.div>}
 
@@ -503,7 +505,7 @@ export default function Lottery({
 
       {isView ? <p className="inline-flex items-center gap-1.5 text-slate-400 text-sm">
           <Monitor size={14} />
-          강사 화면을 그대로 보여주는 중입니다
+          결과가 실시간으로 함께 표시됩니다
         </p> : <div className="flex gap-3">
         {viewPhase === 'revealed' && <Button onClick={reset} variant="secondary" size={presenter ? 'lg' : 'md'}>
             <RotateCcw size={presenter ? 20 : 16} />

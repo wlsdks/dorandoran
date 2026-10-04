@@ -16,7 +16,7 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
   const currentPage = Math.min(Math.max(Number.isInteger(page) ? page : 0, 0), pages - 1);
   const shown = paged ? options.slice(currentPage * pageSize, currentPage * pageSize + pageSize) : options;
   const twoColumns = presenter && shown.length > 2 && longest <= 24;
-  if (presenter && options.length >= 2 && options.length <= 4 && options.every(option => String(option).length <= 16)) {
+  if (presenter && options.length >= 2 && options.length <= 4 && options.every(option => String(option).length <= 12)) {
     return <PollColumns options={options} counts={counts} total={totalVotes} revealed={revealed} correctValue={correctValue} />;
   }
   return <div className={presenter ? 'classroom-results classroom-bar-chart' : 'w-full max-w-xl mx-auto px-4'}>

@@ -1,4 +1,8 @@
 import { useState, useMemo } from 'react';
+import { ref, update } from 'firebase/database';
+import { db } from '@/lib/firebase';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Trophy } from 'lucide-react';
 import { useAwards } from '@/features/assignments/api/useAwards';
@@ -14,10 +18,12 @@ const CEREMONY_ORDER = ['planning', 'creative', 'design', 'practical', 'outstand
  * AwardsCeremony — 프레젠터/전자칠판용 시상식 연출 화면.
  * 강사가 "다음 발표" 버튼으로 순서대로 공개.
  */
-export default function AwardsCeremony({ assignmentId, readOnly = false }) {
+export default function AwardsCeremony({ assignmentId, sessionId, readOnly = false }) {
   const { assignment } = useAssignment(assignmentId);
   const { awards, loading } = useAwards(assignmentId);
-  const [revealIndex, setRevealIndex] = useState(-1); // -1 = not started
+  const [localIndex, setLocalIndex] = useState(-1);
+  const [error, setError] = useState('');
+  const { value: sharedState } = useRealtimeValue(sessionId ? `sessions/${sessionId}/gameState` : null, { scope: assignmentId });
 
   // Build ordered award list from available awards
   const orderedAwards = useMemo(() => {
@@ -27,19 +33,27 @@ export default function AwardsCeremony({ assignmentId, readOnly = false }) {
       .map(id => ({ id, ...awards[id] }));
   }, [awards]);
 
+  const sharedIndex = sharedState?.mode === 'awards' && sharedState.assignmentId === assignmentId ? sharedState.revealIndex : -1;
+  const candidateIndex = sessionId ? sharedIndex : localIndex;
+  const revealIndex = Number.isInteger(candidateIndex) ? Math.min(Math.max(candidateIndex, -1), orderedAwards.length - 1) : -1;
   const isStarted = revealIndex >= 0;
   const isComplete = revealIndex >= orderedAwards.length - 1;
   const currentAward = isStarted ? orderedAwards[revealIndex] : null;
 
-  function handleNext() {
-    if (revealIndex < orderedAwards.length - 1) {
-      setRevealIndex(prev => prev + 1);
-    }
+  async function setCeremonyIndex(index) {
+    if (readOnly) return;
+    setError('');
+    if (!sessionId) { setLocalIndex(index); return; }
+    try {
+      await update(ref(db, `sessions/${sessionId}`), { gameState: { mode: 'awards', assignmentId, revealIndex: index } });
+    } catch { setError('화면에 전달하지 못했어요. 다시 시도해주세요.'); }
   }
 
-  function handleReset() {
-    setRevealIndex(-1);
+  function handleNext() {
+    if (revealIndex < orderedAwards.length - 1) return setCeremonyIndex(revealIndex + 1);
   }
+
+  function handleReset() { return setCeremonyIndex(-1); }
 
   if (loading) {
     return (
@@ -52,9 +66,9 @@ export default function AwardsCeremony({ assignmentId, readOnly = false }) {
   if (!awards || orderedAwards.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Trophy size={32} className="text-slate-500" />
-        <p className="text-slate-400 text-lg">시상 데이터가 없습니다</p>
-        <p className="text-slate-500 text-sm">먼저 과제 심사를 완료해주세요</p>
+        <DoranDoranMascot size={160} mood="waiting" />
+        <p className="text-slate-100 text-3xl font-semibold">{readOnly ? '마무리를 준비하고 있어요' : '아직 수상 결과가 없습니다'}</p>
+        <p className="text-slate-300 text-2xl">{readOnly ? '잠시 후 함께 축하해요' : '수상 결과를 준비한 뒤 시상식을 시작하세요'}</p>
       </div>
     );
   }
@@ -74,6 +88,7 @@ export default function AwardsCeremony({ assignmentId, readOnly = false }) {
         )}
       </motion.div>
 
+      {error && <p role="alert" className="text-red-300 text-base">{error}</p>}
       {/* Current reveal */}
       <div className="min-h-[250px] flex items-center justify-center w-full">
         <AnimatePresence mode="wait">

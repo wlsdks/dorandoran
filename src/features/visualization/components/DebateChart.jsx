@@ -1,7 +1,7 @@
 import { useMemo, memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVotes } from '@/hooks/useVotes';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 /** Parse debate vote value "for:opinion text" -> { side, opinion } */
 function parseDebateVote(value) {
@@ -14,7 +14,7 @@ function parseDebateVote(value) {
   return { side, opinion };
 }
 
-export default memo(function DebateChart({ sessionId, questionId }) {
+export default memo(function DebateChart({ sessionId, questionId, presenter = false, readOnly = false, page = 0, onPageChange }) {
   const { voteList, totalVotes } = useVotes(sessionId, questionId);
   const [filter, setFilter] = useState('all'); // 'all' | 'for' | 'against'
 
@@ -52,6 +52,10 @@ export default memo(function DebateChart({ sessionId, questionId }) {
     if (filter === 'all') return opinions;
     return opinions.filter((o) => o.side === filter);
   }, [opinions, filter]);
+
+  const pages = presenter ? Math.max(1, Math.ceil(filteredOpinions.length / 3)) : 1;
+  const currentPage = Math.min(Math.max(Number.isInteger(page) ? page : 0, 0), pages - 1);
+  const shownOpinions = presenter ? filteredOpinions.slice(currentPage * 3, currentPage * 3 + 3) : filteredOpinions;
 
   return (
     <div className="space-y-6 w-full max-w-xl mx-auto px-8">
@@ -102,7 +106,7 @@ export default memo(function DebateChart({ sessionId, questionId }) {
         transition={{ delay: 0.1 }}
         className="space-y-2"
       >
-        <div className="h-6 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
+        <div className="debate-ratio-bar h-6 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
           <motion.div
             animate={{ width: `${forPct}%` }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
@@ -135,7 +139,7 @@ export default memo(function DebateChart({ sessionId, questionId }) {
               <MessageCircle size={14} className="text-slate-400" />
               <p className="text-xs font-semibold text-slate-400 tracking-wider uppercase">의견</p>
             </div>
-            <div className="flex gap-1">
+            {!readOnly && !presenter && <div className="flex gap-1">
               {[
                 { value: 'all', label: '전체' },
                 { value: 'for', label: '찬성' },
@@ -144,7 +148,7 @@ export default memo(function DebateChart({ sessionId, questionId }) {
                 <button
                   key={f.value}
                   onClick={() => setFilter(f.value)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors duration-150 active:scale-[0.96] ${
+                  className={`min-h-11 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 active:scale-[0.96] ${
                     filter === f.value
                       ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
                       : 'bg-slate-50 dark:bg-slate-700 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-600'
@@ -153,13 +157,13 @@ export default memo(function DebateChart({ sessionId, questionId }) {
                   {f.label}
                 </button>
               ))}
-            </div>
+            </div>}
           </div>
 
           {/* Opinion cards */}
-          <div className="max-h-48 overflow-y-auto space-y-1.5 scrollbar-hide">
+          <div className={presenter ? "space-y-3" : "max-h-48 overflow-y-auto space-y-1.5 scrollbar-hide"}>
             <AnimatePresence mode="popLayout">
-              {filteredOpinions.map((op) => (
+              {shownOpinions.map((op) => (
                 <motion.div
                   key={op.id}
                   initial={{ opacity: 0, x: op.side === 'for' ? -12 : 12 }}
@@ -179,7 +183,7 @@ export default memo(function DebateChart({ sessionId, questionId }) {
                   >
                     {op.side === 'for' ? '찬' : '반'}
                   </span>
-                  <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed flex-1">{op.opinion}</p>
+                  <p className={`${presenter ? "text-2xl" : "text-sm"} text-slate-700 dark:text-slate-200 leading-relaxed flex-1 [word-break:keep-all]`}>{op.opinion}</p>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -192,6 +196,12 @@ export default memo(function DebateChart({ sessionId, questionId }) {
           </div>
         </motion.div>
       )}
+
+      {presenter && pages > 1 && <div className="classroom-response-pagination">
+        {onPageChange && <button className="presentation-button" aria-label="이전 의견 페이지" disabled={currentPage === 0} onClick={() => onPageChange(currentPage - 1)}><ChevronLeft size={20} /></button>}
+        <span>의견 {currentPage + 1} / {pages}</span>
+        {onPageChange && <button className="presentation-button" aria-label="다음 의견 페이지" disabled={currentPage === pages - 1} onClick={() => onPageChange(currentPage + 1)}><ChevronRight size={20} /></button>}
+      </div>}
 
       {/* Total count */}
       <div className="text-center text-slate-400 text-sm pt-2 border-t border-slate-100 dark:border-slate-700">

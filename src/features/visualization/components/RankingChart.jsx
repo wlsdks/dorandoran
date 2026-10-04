@@ -11,7 +11,7 @@ import { Check, X } from 'lucide-react';
  * - Overall accuracy percentage hero number
  * - Per-position accuracy bars
  */
-export default memo(function RankingChart({ sessionId, questionId, items = [] }) {
+export default memo(function RankingChart({ sessionId, questionId, items = [], revealed = true }) {
   const { votes } = useVotes(sessionId, questionId);
 
   const analysis = useMemo(() => {
@@ -55,6 +55,12 @@ export default memo(function RankingChart({ sessionId, questionId, items = [] })
 
     return { totalVoters, positionAccuracy, perfectCount, avgScore };
   }, [votes, items]);
+
+  if (!revealed) return <div className="text-center py-8 space-y-4">
+    <p className="text-5xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">{analysis.totalVoters}명</p>
+    <p className="text-xl text-slate-500 dark:text-slate-300">순서를 맞춰 제출해주세요</p>
+    <p className="text-base text-slate-500 dark:text-slate-300">정답 순서는 잠시 후 함께 공개합니다</p>
+  </div>;
 
   if (analysis.totalVoters === 0) {
     return (

@@ -57,7 +57,7 @@ export default memo(function MysteryBoxPresenter({ sessionId, questionId, questi
                 animate={{ opacity: [0.5, 1, 0.5], scale: [0.95, 1.05, 0.95] }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <HelpCircle size={40} className="text-slate-300 dark:text-slate-500" />
+                <HelpCircle size={40} className="text-slate-300 dark:text-slate-300" />
               </motion.div>
               <span
                 ref={textRef}
@@ -75,7 +75,7 @@ export default memo(function MysteryBoxPresenter({ sessionId, questionId, questi
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-sm text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-sm text-slate-400 dark:text-slate-300 whitespace-nowrap"
               >
                 {totalVotes}명 답변 중
               </motion.div>
@@ -87,13 +87,13 @@ export default memo(function MysteryBoxPresenter({ sessionId, questionId, questi
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={SPRING_BOUNCY}
-            className="relative w-full rounded-2xl bg-slate-900 dark:bg-slate-100 p-10 md:p-14 text-center shadow-2xl shadow-slate-900/20 overflow-hidden"
+            className="classroom-revealed-answer relative w-full rounded-2xl bg-slate-900 dark:bg-indigo-900 p-10 md:p-14 text-center shadow-2xl shadow-slate-900/20 overflow-hidden"
           >
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xs font-semibold text-white/70 dark:text-slate-500 uppercase tracking-wider mb-3"
+              className="text-xs font-semibold text-white/70 dark:text-slate-300 uppercase tracking-wider mb-3"
             >
               정답
             </motion.p>
@@ -101,7 +101,7 @@ export default memo(function MysteryBoxPresenter({ sessionId, questionId, questi
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: [0.8, 1.1, 0.95, 1.02, 1] }}
               transition={{ ...SPRING_BOUNCY, delay: 0.3 }}
-              className="text-4xl md:text-6xl font-bold text-white dark:text-slate-900 tracking-tight"
+              className="text-4xl md:text-6xl font-bold text-white dark:text-slate-100 tracking-tight"
             >
               {answer}
             </motion.p>
@@ -124,7 +124,7 @@ export default memo(function MysteryBoxPresenter({ sessionId, questionId, questi
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
-                className="mt-4 text-sm text-white/50 dark:text-slate-500"
+                className="mt-4 text-sm text-white/50 dark:text-slate-300"
               >
                 {totalVotes}명 참여
               </motion.p>
@@ -140,7 +140,7 @@ export default memo(function MysteryBoxPresenter({ sessionId, questionId, questi
               >
                 <div className="flex items-center justify-center gap-1.5 mb-4">
                   <Trophy size={16} className="text-amber-400 dark:text-amber-500" />
-                  <span className="text-xs font-semibold text-white/70 dark:text-slate-500 uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-white/70 dark:text-slate-300 uppercase tracking-wider">
                     당첨자
                   </span>
                 </div>
@@ -154,11 +154,11 @@ export default memo(function MysteryBoxPresenter({ sessionId, questionId, questi
                         transition={{ ...SPRING_BOUNCY, delay: 0.1 }}
                         className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white/15 dark:bg-slate-900/10"
                       >
-                        <span className="w-6 h-6 rounded-full bg-amber-400 dark:bg-amber-500 text-white dark:text-slate-900 flex items-center justify-center text-xs font-bold">
+                        <span className="w-6 h-6 rounded-full bg-amber-400 dark:bg-amber-500 text-white dark:text-slate-100 flex items-center justify-center text-xs font-bold">
                           {i + 1}
                         </span>
                         <Avatar name={name} size="sm" />
-                        <span className="text-lg font-bold text-white dark:text-slate-900">{name}</span>
+                        <span className="text-lg font-bold text-white dark:text-slate-100">{name}</span>
                       </motion.div>
                     ))}
                   </AnimatePresence>

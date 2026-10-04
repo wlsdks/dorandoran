@@ -76,18 +76,18 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
         role="control"
       />
     );
-    if (currentMode === 'breakTime') return <BreakTimer sessionId={sessionId} />;
-    if (currentMode === 'leaderboard') return <div className="w-full max-w-xl md:max-w-2xl [&_.max-w-xl]:max-w-2xl px-2 md:px-0"><Leaderboard entries={leaderboard} maxShow={10} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
-    if (currentMode === 'qaBoard') return <div className="w-full max-w-4xl"><ClassQABoard sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>;
-    if (currentMode === 'qaRanking') return <QARanking sessionId={sessionId} />;
+    if (currentMode === 'breakTime') return <BreakTimer sessionId={sessionId} presenter={presentMode} />;
+    if (currentMode === 'leaderboard') return <div className="w-full max-w-xl md:max-w-2xl [&_.max-w-xl]:max-w-2xl px-2 md:px-0" style={{ maxWidth: presentMode ? 1100 : undefined }}><Leaderboard presenter={presentMode} entries={leaderboard} maxShow={10} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
+    if (currentMode === 'qaBoard') return <div className="w-full max-w-4xl" style={{ maxWidth: presentMode ? 1100 : undefined }}><ClassQABoard presenter={presentMode} readOnly={presentMode} sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>;
+    if (currentMode === 'qaRanking') return <QARanking sessionId={sessionId} presenter={presentMode} readOnly={presentMode} />;
     if (currentMode === 'joinShow') return <JoinShow sessionId={sessionId} />;
-    if (currentMode === 'awards') return <AwardsCeremony assignmentId={session?.activeAssignmentId} />;
+    if (currentMode === 'awards') return <AwardsCeremony sessionId={sessionId} assignmentId={session?.activeAssignmentId} />;
     if (currentMode === 'randomPicker') return (
       <RandomPicker participants={onlineList} onResult={(w) => onGameResult?.(w, 'randomPicker')} sessionId={sessionId} role="control" />
     );
-    if (currentMode === 'comprehension') return <ComprehensionPresenter sessionId={sessionId} />;
-    if (currentMode === 'quickSurvey') return <SurveyPresenter sessionId={sessionId} />;
-    if (currentMode === 'discussion') return <DiscussionPresenter sessionId={sessionId} />;
+    if (currentMode === 'comprehension') return <ComprehensionPresenter sessionId={sessionId} presenter={presentMode} />;
+    if (currentMode === 'quickSurvey') return <SurveyPresenter sessionId={sessionId} presenter={presentMode} />;
+    if (currentMode === 'discussion') return <DiscussionPresenter sessionId={sessionId} presenter={presentMode} />;
     if (currentMode === 'combinedRanking') return <CombinedRanking session={session} />;
     if (currentMode === 'focus') return (
       <div className="flex flex-col items-center justify-center gap-4 md:gap-6 text-center">
@@ -141,7 +141,7 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
   // 퀴즈도 발표 모드에서 두구두구/정답 공개 가능. 단, 퀴즈는 점수 반영(revealQuiz)이 필요해
   // useQuestionActions의 함수를 통해 처리 — 일반 정답형/MH는 단순 revealedAt만 찍음(revealAnswer).
   const isQuiz = isQuizQuestion(question);
-  const hasAnswer = isQuiz || question.correctAnswer;
+  const hasAnswer = isQuiz || question.correctAnswer || question.type === 'ranking';
   const isMH = ['mysteryBox', 'hintQuiz'].includes(question.type);
   if (!hasAnswer && !isMH) return null;
 

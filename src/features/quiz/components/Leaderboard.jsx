@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState, memo, useCallback } from 'react';
-import { Trophy } from 'lucide-react';
+import { Trophy, Crown } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import LeaderboardRow from './LeaderboardRow';
+import AnimatedScore from './AnimatedScore';
 
 export default memo(function Leaderboard({
   entries,
@@ -10,6 +11,7 @@ export default memo(function Leaderboard({
   title = '리더보드',
   emptyLabel = '아직 점수가 없습니다',
   highlightId = null,
+  presenter = false,
 }) {
   const visible = entries.slice(0, maxShow);
 
@@ -43,14 +45,43 @@ export default memo(function Leaderboard({
     computeDeltas();
   }, [computeDeltas]);
 
+  const [displayPage, setDisplayPage] = useState(0);
+  const displayPages = Math.max(1, Math.ceil(visible.length / 6));
+  useEffect(() => {
+    if (!presenter || displayPages < 2) return;
+    const timer = setInterval(() => setDisplayPage(page => (page + 1) % displayPages), 10000);
+    return () => clearInterval(timer);
+  }, [presenter, displayPages]);
+
   if (visible.length === 0) {
     return (
       <div className="text-center py-10 space-y-2 flex flex-col items-center">
-        <DoranDoranMascot size="sm" />
-        <p className="text-slate-400 text-sm">{emptyLabel}</p>
-        <p className="text-slate-400 dark:text-slate-500 text-xs">퀴즈에 정답을 맞히면 점수가 올라갑니다</p>
+        <DoranDoranMascot size={presenter ? "lg" : "sm"} />
+        <p className={presenter ? "text-3xl font-semibold text-slate-100" : "text-slate-400 text-sm"}>{emptyLabel}</p>
+        <p className={presenter ? "text-2xl text-slate-300" : "text-slate-400 dark:text-slate-500 text-xs"}>퀴즈에 정답을 맞히면 점수가 올라갑니다</p>
       </div>
     );
+  }
+
+  if (presenter) {
+    const offset = (displayPage % displayPages) * 6;
+    return <div className="paper-surface max-w-[1100px] space-y-6">
+      {title && <h3 className="classroom-question-title font-bold text-center">{title}</h3>}
+      <ol className="space-y-2.5" start={offset + 1}>
+        {visible.slice(offset, offset + 6).map((entry, index) => {
+          const rank = offset + index;
+          return <motion.li key={entry.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className={`flex items-center gap-5 min-h-16 px-6 py-3 rounded-xl ${rank === 0 ? 'bg-indigo-100 text-indigo-950' : 'bg-slate-700/60 text-slate-100'}`}>
+            <span className="w-10 shrink-0 text-center text-2xl font-bold tabular-nums">
+              {rank === 0 ? <Crown size={28} className="mx-auto" /> : rank + 1}
+            </span>
+            <span className="flex-1 min-w-0 text-2xl md:text-3xl font-semibold break-words">{entry.nickname || '참여자'}</span>
+            <span className="text-2xl md:text-3xl font-bold tabular-nums shrink-0"><AnimatedScore value={Number(entry.total) || 0} /></span>
+          </motion.li>;
+        })}
+      </ol>
+      {displayPages > 1 && <p className="text-center text-lg text-slate-300">순위 {offset + 1}–{Math.min(offset + 6, visible.length)} · {displayPage % displayPages + 1} / {displayPages} · 10초마다 다음 순위</p>}
+    </div>;
   }
 
   return (

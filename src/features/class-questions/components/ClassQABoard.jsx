@@ -1,10 +1,11 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send } from 'lucide-react';
 import { useClassQuestions } from '@/features/class-questions/api/useClassQuestions';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import Button from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
+import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import QuestionCard from './QuestionCard';
 
 /**
@@ -14,11 +15,12 @@ import QuestionCard from './QuestionCard';
  *
  * Used in: PresentationView, LivePage, and student WaitingPage (via mode).
  */
-export default function ClassQABoard({ sessionId, showInput = true, role, isAdmin = false }) {
+export default function ClassQABoard({ sessionId, showInput = true, role, isAdmin = false, readOnly = false, presenter = false }) {
   const {
     questions, unansweredCount, postQuestion, toggleUpvote, postAnswer, toggleAnswerUpvote, toggleHidden, canPost,
   } = useClassQuestions(sessionId);
 
+  const displayOnly = readOnly || role === 'viewer';
   const [tab, setTab] = useState('all');
   const [inputText, setInputText] = useState('');
   const [anonymous, setAnonymous] = useState(false);
@@ -31,7 +33,8 @@ export default function ClassQABoard({ sessionId, showInput = true, role, isAdmi
   const answererName = role === 'admin' ? '강사' : role === 'staff' ? '스태프' : nickname;
 
   const filtered = useMemo(() => {
-    const base = tab === 'unanswered' ? questions.filter((q) => !q.answered) : questions;
+    const availableQuestions = displayOnly ? questions.filter(question => !question.hidden) : questions;
+    const base = !displayOnly && tab === 'unanswered' ? availableQuestions.filter((q) => !q.answered) : availableQuestions;
     // Q&A 보드: 강사/스태프 답변 완료 → 상단, 나머지 → upvote 순
     return [...base].sort((a, b) => {
       const aOfficial = a.answeredByRole ? 1 : 0;
@@ -39,18 +42,50 @@ export default function ClassQABoard({ sessionId, showInput = true, role, isAdmi
       if (aOfficial !== bOfficial) return bOfficial - aOfficial;
       return b.upvoteCount - a.upvoteCount || (b.timestamp || 0) - (a.timestamp || 0);
     });
-  }, [questions, tab]);
+  }, [questions, tab, displayOnly]);
+
+  const [displayPage, setDisplayPage] = useState(0);
+  const displayPageSize = filtered.some(question => (question.text || '').length > 110 || question.answerList?.some(answer => ['admin', 'staff'].includes(answer.role) && (answer.text || '').length > 160)) ? 1 : 3;
+  const displayPages = Math.max(1, Math.ceil(filtered.length / displayPageSize));
+  useEffect(() => {
+    if (!presenter || displayPages < 2) return;
+    const timer = setInterval(() => setDisplayPage(page => (page + 1) % displayPages), 12000);
+    return () => clearInterval(timer);
+  }, [presenter, displayPages]);
 
   const handlePostQuestion = useCallback(async () => {
     const trimmed = inputText.trim();
-    if (!trimmed) return;
+    if (displayOnly || !trimmed) return;
     setPostError('');
     const success = await postQuestion(trimmed, displayName, anonymous ? '' : pid);
     if (success) setInputText('');
     else setPostError('질문 등록에 실패했습니다. 잠시 후 다시 시도해주세요.');
-  }, [inputText, postQuestion, displayName, anonymous, pid]);
+  }, [inputText, postQuestion, displayName, anonymous, pid, displayOnly]);
 
-  if (questions.length === 0 && !showInput) {
+  if (presenter && displayOnly) {
+    const offset = (displayPage % displayPages) * displayPageSize;
+    return <section className="paper-surface max-w-[1100px] space-y-6" aria-label="수업 질문 화면">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className="classroom-question-title font-bold !mx-0">함께 나눈 질문</h2>
+        <p className="text-xl text-slate-300 shrink-0">{filtered.length}개 질문</p>
+      </div>
+      {filtered.length === 0 ? <div className="py-8 space-y-5 text-center">
+        <DoranDoranMascot size="lg" mood="waiting" />
+        <p className="text-3xl font-semibold text-slate-100">궁금한 점을 남겨주세요</p>
+        <p className="text-2xl text-slate-300">휴대폰에서 보낸 질문을 함께 살펴봅니다</p>
+      </div> : <div className="space-y-4">{filtered.slice(offset, offset + displayPageSize).map(question => {
+        const official = question.answerList?.find(answer => answer.role === 'admin' || answer.role === 'staff');
+        return <article key={question.id} className="rounded-xl bg-slate-700/50 p-5 space-y-2">
+          <div className="flex justify-between gap-4 text-lg text-slate-300"><span>{question.nickname || '익명'}</span><span className="shrink-0">공감 {question.upvoteCount}</span></div>
+          <p className="text-2xl md:text-[28px] font-medium text-slate-100 leading-snug break-words">{question.text}</p>
+          {official && <p className="text-2xl leading-snug text-indigo-200 break-words"><span className="font-bold">강사 답변 · </span>{official.text}</p>}
+        </article>;
+      })}</div>}
+      {displayPages > 1 && <p className="text-center text-lg text-slate-300">질문 {displayPage % displayPages + 1} / {displayPages} · 12초마다 다음 질문</p>}
+    </section>;
+  }
+
+  if (questions.length === 0 && (!showInput || displayOnly)) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
         <EmptyState
@@ -94,7 +129,7 @@ export default function ClassQABoard({ sessionId, showInput = true, role, isAdmi
       </div>
 
       {/* Question input */}
-      {showInput && (
+      {showInput && !displayOnly && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}

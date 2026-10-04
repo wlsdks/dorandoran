@@ -14,7 +14,7 @@ const LEVELS = [
 ];
 
 /** Student voting UI */
-function StudentComprehension({ sessionId }) {
+function StudentComprehension({ sessionId, embedded = false }) {
   const [voted, setVoted] = useState(null);
   const pid = getParticipantId();
 
@@ -28,7 +28,7 @@ function StudentComprehension({ sessionId }) {
   }
 
   return (
-    <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-6">
+    <div className={`${embedded ? "w-full py-4" : "min-h-dvh p-6"} bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center`}>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -40,7 +40,7 @@ function StudentComprehension({ sessionId }) {
           <p className="text-slate-400 text-[15px]">지금까지 내용이 이해되시나요?</p>
         </div>
 
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-2 justify-center w-full">
           {LEVELS.map((level, i) => {
             const Icon = level.icon;
             const isSelected = voted === level.key;
@@ -54,7 +54,7 @@ function StudentComprehension({ sessionId }) {
                 whileTap={{ scale: 0.9 }}
                 onClick={() => handleVote(level.key)}
                 disabled={hasVoted}
-                className={`flex flex-col items-center gap-3 p-6 rounded-2xl transition-colors duration-150 ${
+                className={`flex-1 min-w-0 min-h-12 flex flex-col items-center gap-2 px-2 py-4 rounded-2xl transition-colors duration-150 ${
                   isSelected
                     ? `${level.color} text-white ring-4 ${level.ring} shadow-lg`
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-sm'
@@ -83,9 +83,9 @@ function StudentComprehension({ sessionId }) {
 }
 
 /** Donut chart for presenter/admin */
-function DonutChart({ counts, total }) {
-  const size = 200;
-  const strokeWidth = 28;
+function DonutChart({ counts, total, presenter = false }) {
+  const size = presenter ? 300 : 200;
+  const strokeWidth = presenter ? 36 : 28;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
@@ -126,18 +126,18 @@ function DonutChart({ counts, total }) {
           key={total}
           initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
-          className="text-3xl font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight"
+          className={`${presenter ? "text-5xl" : "text-3xl"} font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight`}
         >
           {total}
         </motion.span>
-        <span className="text-xs text-slate-400">명 응답</span>
+        <span className={presenter ? "text-xl text-slate-300" : "text-xs text-slate-400"}>명 응답</span>
       </div>
     </div>
   );
 }
 
 /** Presenter view — donut chart + breakdown */
-export function ComprehensionPresenter({ sessionId, onReset }) {
+export function ComprehensionPresenter({ sessionId, onReset, presenter = false, readOnly = false }) {
   const [responses, setResponses] = useState({});
 
   useEffect(() => {
@@ -153,13 +153,13 @@ export function ComprehensionPresenter({ sessionId, onReset }) {
   entries.forEach(e => { if (counts[e.level] !== undefined) counts[e.level]++; });
 
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-lg mx-auto" onClick={e => e.stopPropagation()}>
-      <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">이해도 체크</h3>
+    <div className={`flex flex-col items-center gap-8 w-full mx-auto ${presenter ? "paper-surface max-w-[1000px]" : "max-w-lg"}`} onClick={e => e.stopPropagation()}>
+      <h3 className={`${presenter ? "text-3xl md:text-4xl" : "text-2xl"} font-bold tracking-tight text-slate-900 dark:text-slate-100`}>이해도 체크</h3>
 
-      <DonutChart counts={counts} total={total} />
+      <DonutChart counts={counts} total={total} presenter={presenter} />
 
       {/* Breakdown */}
-      <div className="flex gap-6">
+      <div className={`flex gap-6 ${presenter ? "md:gap-16" : ""}`}>
         {LEVELS.map(level => {
           const count = counts[level.key] || 0;
           const pct = total > 0 ? Math.round((count / total) * 100) : 0;
@@ -171,14 +171,14 @@ export function ComprehensionPresenter({ sessionId, onReset }) {
               className="text-center space-y-1"
             >
               <div className={`w-3 h-3 rounded-full mx-auto ${level.color}`} />
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight">{pct}%</p>
-              <p className="text-xs text-slate-400">{level.label} ({count})</p>
+              <p className={`${presenter ? "text-4xl" : "text-2xl"} font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight`}>{pct}%</p>
+              <p className={presenter ? "text-2xl text-slate-300" : "text-xs text-slate-400"}>{level.label} ({count})</p>
             </motion.div>
           );
         })}
       </div>
 
-      {onReset && total > 0 && (
+      {!readOnly && onReset && total > 0 && (
         <Button onClick={async () => { await remove(ref(db, `sessions/${sessionId}/comprehension`)); onReset?.(); }} variant="secondary" size="sm">
           <RotateCcw size={14} /> 초기화
         </Button>
