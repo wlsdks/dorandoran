@@ -9,6 +9,7 @@ import Leaderboard from '@/features/quiz/components/Leaderboard';
 import InstructorCommHub from './InstructorCommHub';
 import InstructorPeopleHub from './InstructorPeopleHub';
 import Button from '@/components/ui/Button';
+import { isResponseQuestion, questionParticipationKind } from '@/lib/response-questions';
 
 const SIDEBAR_TABS = [
   { id: 'communication', label: '소통', icon: MessageCircle },
@@ -75,6 +76,7 @@ function ActiveRightSidebar({ session, sessionId, count, participants, onlineLis
   }
 
   const activeQ = session?.currentQuestion ? session?.questions?.[session.currentQuestion] : null;
+  const activeKind = questionParticipationKind(activeQ);
   const voted = activeQ?.votes ? Object.keys(activeQ.votes).length : 0;
   const total = count || 0;
   const pct = total > 0 ? Math.min(100, Math.round((voted / total) * 100)) : 0;
@@ -105,12 +107,14 @@ function ActiveRightSidebar({ session, sessionId, count, participants, onlineLis
         </section>}
       </SidebarPanel>
       <SidebarPanel id={id} tab="status" activeTab={activeTab}>
-        {activeQ ? <div className="space-y-2">
+        {isResponseQuestion(activeQ) ? <div className="space-y-2">
           <div className="flex items-center justify-between text-xs"><span className="text-slate-500 dark:text-slate-400 font-semibold">참여율 {pct}%</span><span className="text-slate-600 dark:text-slate-300">{voted}/{total}명 응답</span></div>
           <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`참여율 ${pct}%`}>
             <motion.div className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ type: 'spring', stiffness: 200, damping: 20 }} />
           </div>
-        </div> : <p className="text-xs text-slate-500 dark:text-slate-400">활동을 시작하면 참여 현황이 표시됩니다.</p>}
+        </div> : <p className="text-xs text-slate-500 dark:text-slate-400">{activeQ
+          ? activeKind === 'material' ? '수업 자료 표시 중' : activeKind === 'submission' ? '개별 제출 활동 진행 중' : '활동 화면 표시 중'
+          : '활동을 시작하면 참여 현황이 표시됩니다.'}</p>}
         {session?.requireEmployeeId && <EventStats participants={onlineList} count={count} variant="sidebar" />}
         {leaderboard.length > 0 && <section className="space-y-3" aria-label="상위 랭킹"><h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">상위 랭킹</h3><Leaderboard entries={leaderboard} maxShow={5} title={null} /></section>}
         <Button onClick={copyLiveUrl} variant="secondary" size="sm" className="w-full h-12">{liveCopied ? <Check size={20} /> : <Monitor size={20} />}{liveCopied ? '링크 복사됨' : '전자칠판 링크 복사'}</Button>
@@ -123,8 +127,9 @@ function ReadOnlyRightSidebar({ session, participants, leaderboard, voteCounts }
   const id = useId();
   const [activeTab, setActiveTab] = useState('status');
   const allParticipants = Object.keys(participants).length;
+  const responseQuestions = Object.values(session?.questions || {}).filter(isResponseQuestion);
   const voterIds = new Set();
-  Object.values(session?.questions || {}).forEach((q) => {
+  responseQuestions.forEach((q) => {
     Object.keys(q.votes || {}).forEach((pid) => voterIds.add(pid));
   });
   const activeCount = Array.from(voterIds).filter((pid) => participants[pid]).length;
@@ -137,10 +142,10 @@ function ReadOnlyRightSidebar({ session, participants, leaderboard, voteCounts }
       <SidebarPanel id={id} tab="communication" activeTab={activeTab}><p className="text-xs text-slate-500 dark:text-slate-400">종료된 수업입니다. 참여자와 수업 현황을 확인할 수 있습니다.</p></SidebarPanel>
       <SidebarPanel id={id} tab="people" activeTab={activeTab}><ParticipantList participants={Object.entries(participants).map(([pid, data]) => ({ id: pid, ...data }))} voteCounts={voteCounts} /></SidebarPanel>
       <SidebarPanel id={id} tab="status" activeTab={activeTab}>
-        <div className="space-y-2">
+        {responseQuestions.length > 0 ? <div className="space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400"><span className="font-semibold">참여율 {pct}%</span><span>{activeCount}/{allParticipants}명 응답</span></div>
           <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`참여율 ${pct}%`}><div className="h-full bg-slate-700 dark:bg-slate-300 rounded-full" style={{ width: `${pct}%` }} /></div>
-        </div>
+        </div> : <p className="text-xs text-slate-500 dark:text-slate-400">이 수업에는 응답형 활동이 없습니다.</p>}
         {leaderboard.length > 0 && <section className="space-y-3" aria-label="상위 랭킹"><h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">상위 랭킹</h3><Leaderboard entries={leaderboard} maxShow={5} title={null} /></section>}
       </SidebarPanel>
     </div>

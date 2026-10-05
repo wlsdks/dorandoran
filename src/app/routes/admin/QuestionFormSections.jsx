@@ -5,6 +5,7 @@ import { QUIZ_DEFAULTS, QUIZ_EVENT_PRESETS } from '@/lib/quiz';
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'];
 const RANKING_LABELS = ['1', '2', '3', '4', '5', '6'];
 const GAP = 'pt-4';
+const MOBILE_ICON_TARGET = 'max-sm:min-h-11 max-sm:min-w-11 max-sm:flex max-sm:items-center max-sm:justify-center max-sm:shrink-0 max-sm:dark:text-slate-300 max-sm:[&>svg]:size-5';
 const INPUT = 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150';
 
 export function ChoiceOptionsSection({ options, setOptions, correctAnswer, setCorrectAnswer, setLocalError }) {
@@ -35,14 +36,14 @@ export function ChoiceOptionsSection({ options, setOptions, correctAnswer, setCo
               className={`flex-1 ${INPUT} py-2.5`} />
             {options.length > 2 && (
               <button onClick={() => removeOption(i)}
-                className="p-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 transition-colors duration-150 active:scale-90"
+                className={`p-1.5 ${MOBILE_ICON_TARGET} rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 transition-colors duration-150 active:scale-90`}
                 aria-label="선택지 삭제"><Trash2 size={14} /></button>
             )}
           </div>
         ))}
         {options.length < 5 && (
           <button onClick={() => setOptions([...options, ''])}
-            className="w-full py-2.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-400 text-sm hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-300 transition-colors duration-150 active:scale-[0.98] flex items-center justify-center gap-1.5">
+            className="w-full max-sm:min-h-11 py-2.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-400 text-sm hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-300 transition-colors duration-150 active:scale-[0.98] flex items-center justify-center gap-1.5">
             <Plus size={14} /> 선택지 추가
           </button>
         )}
@@ -94,7 +95,7 @@ export function RankingOptionsSection({ options, setOptions, setLocalError }) {
   return (
     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }} className={GAP}>
-      <div className="flex items-baseline gap-2 mb-2">
+      <div className="flex items-baseline gap-2 mb-2 max-sm:flex-col max-sm:items-start max-sm:gap-1">
         <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">정답 순서</p>
         <span className="text-[11px] text-slate-400">아래 순서가 정답입니다. 화살표로 조정하세요</span>
       </div>
@@ -110,22 +111,22 @@ export function RankingOptionsSection({ options, setOptions, setLocalError }) {
               className={`flex-1 ${INPUT} py-2.5`} />
             <div className="flex flex-col gap-0.5 shrink-0">
               <button onClick={() => moveRankingItem(i, 'up')} disabled={i === 0}
-                className="p-1 rounded text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 transition-colors duration-150 active:scale-90"
+                className={`p-1 ${MOBILE_ICON_TARGET} rounded text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 transition-colors duration-150 active:scale-90`}
                 aria-label="위로 이동"><ArrowUp size={12} /></button>
               <button onClick={() => moveRankingItem(i, 'down')} disabled={i === options.length - 1}
-                className="p-1 rounded text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 transition-colors duration-150 active:scale-90"
+                className={`p-1 ${MOBILE_ICON_TARGET} rounded text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 transition-colors duration-150 active:scale-90`}
                 aria-label="아래로 이동"><ArrowDown size={12} /></button>
             </div>
             {options.length > 3 && (
               <button onClick={() => removeOption(i)}
-                className="p-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 transition-colors duration-150 active:scale-90"
+                className={`p-1.5 ${MOBILE_ICON_TARGET} rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 transition-colors duration-150 active:scale-90`}
                 aria-label="항목 삭제"><Trash2 size={14} /></button>
             )}
           </div>
         ))}
         {options.length < 6 && (
           <button onClick={() => setOptions([...options, ''])}
-            className="w-full py-2.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-400 text-sm hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-300 transition-colors duration-150 active:scale-[0.98] flex items-center justify-center gap-1.5">
+            className="w-full max-sm:min-h-11 py-2.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-400 text-sm hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-300 transition-colors duration-150 active:scale-[0.98] flex items-center justify-center gap-1.5">
             <Plus size={14} /> 항목 추가
           </button>
         )}
@@ -450,7 +451,7 @@ export function QuizSettingsSection({ points, setPoints, event, setEvent, bettin
         <div className="flex gap-1.5">
           {[50, 100, 200, 500].map((v) => (
             <button key={v} onClick={() => setPoints(v)}
-              className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.96] ${
+              className={`flex-1 max-sm:min-h-11 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.96] ${
                 points === v ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'}`}>
               {v}점
             </button>
@@ -467,7 +468,7 @@ export function QuizSettingsSection({ points, setPoints, event, setEvent, bettin
             const isSelected = event?.id === preset.id;
             return (
               <button key={preset.id} onClick={() => setEvent(isSelected ? null : preset)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 active:scale-[0.96] ${
+                className={`max-sm:min-h-11 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 active:scale-[0.96] ${
                   isSelected ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'}`}>
                 {preset.label}
               </button>
@@ -485,11 +486,13 @@ export function QuizSettingsSection({ points, setPoints, event, setEvent, bettin
             <p className="text-[11px] text-slate-400 mt-0.5">학생이 배율을 선택 (1x/2x/3x)</p>
           </div>
           <button onClick={() => setBetting(!betting)}
-            className={`relative w-11 h-6 rounded-full transition-colors duration-150 ${betting ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-200 dark:bg-slate-600'}`}
+            className="w-11 h-6 max-sm:h-11 shrink-0 flex items-center justify-center"
             role="switch" aria-checked={betting} aria-label="포인트 베팅 활성화">
+            <span className={`relative block w-11 h-6 rounded-full transition-colors duration-150 ${betting ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-200 dark:bg-slate-600'}`}>
             <motion.div animate={{ x: betting ? 20 : 2 }}
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm" />
+            </span>
           </button>
         </div>
       </motion.div>

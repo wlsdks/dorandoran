@@ -60,12 +60,14 @@ const DMAlertItem = memo(function DMAlertItem({ dm, onRespond, onDismiss }) {
   );
 });
 
-export default function StaffDMAlert({ sessionId, staffId, staffName, senderType }) {
+export default function StaffDMAlert({ sessionId, staffId, staffName, senderType, inline = false }) {
   const { waitingDMs, activeDMs, respondToDM, resolveDM, sendMessage } = useStaffDMs(sessionId);
   const [dismissed, setDismissed] = useState(new Set());
   const [openDM, setOpenDM] = useState(null);
 
   const visibleWaiting = waitingDMs.filter((dm) => !dismissed.has(dm.id));
+  const ownedActive = activeDMs.filter(dm => dm.staffId === staffId);
+  const selectableActive = inline ? ownedActive : activeDMs;
 
   // Keep openDM in sync with live activeDMs data
   const liveDM = openDM ? activeDMs.find((d) => d.id === openDM.id) || openDM : null;
@@ -75,21 +77,25 @@ export default function StaffDMAlert({ sessionId, staffId, staffName, senderType
   }
 
   async function handleRespond(dm) {
-    await respondToDM(dm.id, staffId, staffName);
+    const result = await respondToDM(dm.id, staffId, staffName);
+    if (!result?.claimed) return;
     setDismissed((prev) => new Set([...prev, dm.id]));
     setOpenDM({ ...dm, status: 'active', staffName });
   }
 
   return (
     <>
-      {/* Waiting DM alerts */}
+      <div className={inline ? 'shrink-0 px-5' : undefined}>
       <AnimatePresence>
         {visibleWaiting.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed top-3 right-3 z-50 flex flex-col gap-2 w-80 max-w-[calc(100vw-1.5rem)]"
+            className={inline
+              ? 'flex flex-col gap-2 py-2 max-h-[min(32dvh,14rem)] overflow-y-auto overscroll-contain'
+              : 'fixed right-3 z-50 flex flex-col gap-2 w-80 max-w-[calc(100vw-1.5rem)] max-h-[calc(var(--app-visible-height,100dvh)-6rem)] overflow-y-auto overscroll-contain'}
+            style={inline ? undefined : { top: 'calc(env(safe-area-inset-top, 0px) + 4.5rem)' }}
           >
             <AnimatePresence mode="popLayout">
               {visibleWaiting.map((dm) => (
@@ -104,8 +110,16 @@ export default function StaffDMAlert({ sessionId, staffId, staffName, senderType
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Active DM indicator removed — DM is accessible via staff right panel */}
+      {inline && ownedActive.length > 0 && <section aria-label="내 1:1 도움" className="py-2 space-y-2 max-h-[min(24dvh,12rem)] overflow-y-auto overscroll-contain">
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">내 1:1 도움 · {ownedActive.length}명</p>
+        <div className="flex flex-wrap gap-2">
+          {ownedActive.map(dm => <button key={dm.id} type="button" aria-label={`${dm.studentName || '학생'} 1:1 도움 열기`}
+            onClick={() => setOpenDM(dm)} className="inline-flex min-h-11 min-w-11 max-w-full items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-sm text-slate-700 dark:text-slate-200">
+            <MessageSquare size={20} className="shrink-0" /><span className="truncate">{dm.studentName || '학생'}</span><span className="shrink-0 text-xs text-slate-500 dark:text-slate-400">진행 중</span>
+          </button>)}
+        </div>
+      </section>}
+      </div>
 
       {/* DM Chat modal */}
       <StaffDMChat
@@ -115,9 +129,11 @@ export default function StaffDMAlert({ sessionId, staffId, staffName, senderType
         onResolve={resolveDM}
         onSendMessage={sendMessage}
         staffName={staffName}
+        staffId={staffId}
+        sessionId={sessionId}
         senderType={senderType || 'staff'}
-        allActiveDMs={activeDMs}
-        onSwitchDM={setOpenDM}
+        allActiveDMs={selectableActive}
+        onSwitchDM={dm => { if (!inline || dm.staffId === staffId) setOpenDM(dm); }}
       />
     </>
   );

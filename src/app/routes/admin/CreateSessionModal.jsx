@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback, useLayoutEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { ref, set, get, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
@@ -12,6 +12,19 @@ import { useCourses } from '@/features/course/api/useCourses';
 
 export default function CreateSessionModal({ open, onClose, onCreated, sessions, adminUser }) {
   const [step, setStep] = useState('course'); // 'course' | 'new-course' | 'confirm' | 'preview'
+  const stepContentRef = useRef(null);
+  const previousStepRef = useRef(step);
+  const focusStep = useCallback(() => {
+    if (open) stepContentRef.current?.focus({ preventScroll: true });
+  }, [open]);
+  // The selected button disappears when a step exits. This wrapper stays
+  // mounted throughout the transition, so focus cannot leave with that button.
+  useLayoutEffect(() => {
+    const changed = step !== previousStepRef.current;
+    previousStepRef.current = step;
+    // Initial focus belongs to Modal, which first records its external trigger.
+    if (changed) focusStep();
+  }, [step, focusStep]);
   // 어떤 모드를 미리보기 중인지. 미리보기는 세션에 붙지 않아 아무것도 저장되지 않는다.
   const [previewMode, setPreviewMode] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState('');
@@ -192,6 +205,7 @@ export default function CreateSessionModal({ open, onClose, onCreated, sessions,
 
   return (
     <Modal open={open} onClose={handleClose} className={step === 'preview' ? 'sm:max-w-lg' : ''}>
+      <div ref={stepContentRef} tabIndex={-1} className="outline-none">
       <AnimatePresence mode="wait">
         {step === 'course' && (
           <CreateSessionStepCourse
@@ -233,6 +247,7 @@ export default function CreateSessionModal({ open, onClose, onCreated, sessions,
           <ModePreview mode={previewMode} onBack={() => setStep('confirm')} />
         )}
       </AnimatePresence>
+      </div>
     </Modal>
   );
 }

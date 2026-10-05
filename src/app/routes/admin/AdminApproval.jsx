@@ -125,8 +125,13 @@ export default function AdminApproval({ pendingAdmins, pendingCount, approveAdmi
     <>
       {/* Trigger button */}
       <button
-        onClick={() => setOpen(true)}
-        className="relative flex items-center gap-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors duration-150 active:scale-[0.96]"
+        onClick={event => {
+          // Safari pointer clicks do not always focus a plain button. Record
+          // this opener before Modal captures the focus it must restore.
+          event.currentTarget.focus({ preventScroll: true });
+          setOpen(true);
+        }}
+        className="relative flex max-sm:min-h-11 max-sm:min-w-11 items-center justify-center gap-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors duration-150 active:scale-[0.96]"
         aria-label="관리자 승인 관리"
       >
         <ShieldCheck size={18} />

@@ -49,6 +49,18 @@ export default memo(function ShortAnswerChart({ sessionId, questionId, correctAn
 
   const correctPct = totalVotes > 0 ? Math.round((correctCount / totalVotes) * 100) : 0;
 
+  if (presenter) return <section className="short-answer-chart">
+    <div className="short-answer-summary">
+      <div className="short-answer-value">
+        <p className="short-answer-caption">{revealed ? '정답' : '참여 화면에서 답을 입력해 주세요'}</p>
+        {revealed ? <p className="short-answer-text">{correctAnswer}</p> : <p className="short-answer-guidance">정답은 잠시 후 공개합니다</p>}
+      </div>
+      {revealed && totalVotes > 0 && <div className="short-answer-accuracy"><strong>{correctPct}%</strong><span>정답률 · {correctCount}/{totalVotes}명</span></div>}
+      {!revealed && <div className="short-answer-accuracy"><strong>{totalVotes}명</strong><span>응답 완료</span></div>}
+    </div>
+    {revealed && topAnswers.length > 0 && <AnswerDistribution answers={topAnswers} revealed presenter />}
+  </section>;
+
   return (
     <div className="space-y-8 w-full max-w-xl mx-auto px-8">
       {/* 정답 박스 — 공개 전 마스킹 / 공개 후 실제 정답 */}
@@ -63,7 +75,7 @@ export default memo(function ShortAnswerChart({ sessionId, questionId, correctAn
               {correctAnswer}
             </motion.p>
           ) : (
-            correctAnswer ? <MaskedAnswer answer={correctAnswer} /> : <p className="text-xl text-slate-500 dark:text-slate-300">휴대폰에서 답을 입력해주세요<br /><span className="text-base">정답은 잠시 후 공개합니다</span></p>
+            correctAnswer ? <MaskedAnswer answer={correctAnswer} /> : <p className="text-xl text-slate-500 dark:text-slate-300">참여 화면에서 답을 입력해 주세요<br /><span className="text-base">정답은 잠시 후 공개합니다</span></p>
           )}
         </div>
         {charCount > 0 && (

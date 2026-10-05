@@ -68,7 +68,7 @@ function MobileHeader({
   const modeInfo = MODE_MAP[currentMode];
   return <div className="flex items-center justify-between px-5 py-3.5 bg-white dark:bg-slate-800 shrink-0">
       <div className="flex items-center gap-3 min-w-0">
-        <button onClick={activeTab !== 'progress' ? onBackToTab : onBack} className="p-2 -ml-2 rounded-xl text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150" aria-label="뒤로">
+        <button onClick={activeTab !== 'progress' ? onBackToTab : onBack} className="min-h-11 min-w-11 flex items-center justify-center p-2 -ml-2 shrink-0 rounded-xl text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150" aria-label="뒤로">
           <ArrowLeft size={22} />
         </button>
         <div className="min-w-0">
@@ -88,19 +88,19 @@ function MobileHeader({
         </div>
       </div>
       <div className="flex items-center gap-1.5">
-        {isSetting && !effectiveReadOnly && <button onClick={onStartSession} className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-semibold transition-colors duration-150 active:scale-[0.96]">
+        {isSetting && !effectiveReadOnly && <button onClick={onStartSession} className="min-h-11 px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-semibold transition-colors duration-150 active:scale-[0.96]">
             수업 시작
           </button>}
         {/* Mode indicator — quick access to mode picker */}
         {!effectiveReadOnly && isActive && <motion.button whileTap={{
         scale: 0.92
-      }} onClick={onOpenModes} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors duration-150 ${isSpecialMode ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`} aria-label="모드 전환">
+      }} onClick={onOpenModes} className={`min-h-11 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors duration-150 ${isSpecialMode ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`} aria-label="모드 전환">
             {modeInfo ? <modeInfo.icon size={15} /> : <Gamepad2 size={15} />}
             <span className="max-w-[60px] truncate">{modeInfo?.label || '모드'}</span>
           </motion.button>}
         {!effectiveReadOnly && onOpenSettings && <motion.button whileTap={{
         scale: 0.9
-      }} onClick={onOpenSettings} className="p-2 rounded-xl text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150" aria-label="세션 설정">
+      }} onClick={onOpenSettings} className="min-h-11 min-w-11 flex items-center justify-center p-2 rounded-xl text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150" aria-label="세션 설정">
             <MoreHorizontal size={20} />
           </motion.button>}
       </div>

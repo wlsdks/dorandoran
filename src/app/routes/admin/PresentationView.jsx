@@ -89,7 +89,7 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
     if (currentMode === 'comprehension') return <ComprehensionPresenter sessionId={sessionId} presenter={presentMode} />;
     if (currentMode === 'quickSurvey') return <SurveyPresenter sessionId={sessionId} presenter={presentMode} />;
     if (currentMode === 'discussion') return <DiscussionPresenter sessionId={sessionId} presenter={presentMode} />;
-    if (currentMode === 'combinedRanking') return <CombinedRanking session={session} />;
+    if (currentMode === 'combinedRanking') return <CombinedRanking sessionId={sessionId} session={session} />;
     if (currentMode === 'focus') return (
       <div className="flex flex-col items-center justify-center gap-4 md:gap-6 text-center">
         <DoranDoranMascot size="lg" mood="focus" />

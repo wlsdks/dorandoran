@@ -1,0 +1,12 @@
+.student-rank-summary { container-type: inline-size; container-name: student-rank; }
+.student-rank-summary-layout { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .75rem; }
+.student-rank-summary-compact-meta { display: none; }
+@container student-rank (max-width: 20rem) {
+  .student-rank-summary-layout { grid-template-columns: minmax(0, 1fr) auto; row-gap: .5rem; }
+  .student-rank-summary-score { justify-self: end; }
+  .student-rank-summary-score > :last-child { display: none; }
+  .student-rank-summary-score > :first-child { justify-content: end; }
+  .student-rank-summary-compact-meta { display: block; grid-column: 1; grid-row: 2; }
+  .student-rank-summary-view { grid-column: 2; grid-row: 2; justify-self: end; }
+  .student-rank-summary-number { font-size: 1.25rem; }
+}

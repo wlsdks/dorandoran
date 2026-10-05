@@ -1,51 +1,14 @@
-import { memo, useEffect, useRef, useCallback } from 'react';
+import { memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { useDialogLayer } from '@/hooks/useDialogLayer';
 
 /** Mobile sheet: only the handle starts a dismissal drag; content scrolls normally. */
 export default memo(function BottomSheet({ open, onClose, ariaLabel, children }) {
-  const dialogRef = useRef(null);
-  const onCloseRef = useRef(onClose);
+  const { dialogRef, trapFocus } = useDialogLayer(open, onClose);
   const dragControls = useDragControls();
   const reducedMotion = useReducedMotion();
-
-  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
-
-  useEffect(() => {
-    if (!open) return;
-    const previousFocus = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const frame = requestAnimationFrame(() => dialogRef.current?.focus());
-    const handleEscape = (event) => {
-      if (event.key !== 'Escape') return;
-      event.preventDefault();
-      event.stopPropagation();
-      onCloseRef.current?.();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      cancelAnimationFrame(frame);
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = previousOverflow;
-      if (previousFocus?.isConnected) previousFocus.focus();
-    };
-  }, [open]);
-
-  const trapFocus = useCallback((event) => {
-    if (event.key !== 'Tab' || !dialogRef.current) return;
-    const focusable = Array.from(dialogRef.current.querySelectorAll('a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'))
-      .filter((element) => element.getClientRects().length > 0 && !element.closest('[hidden], [inert]'));
-    if (focusable.length === 0) { event.preventDefault(); dialogRef.current.focus(); return; }
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
-      event.preventDefault(); last.focus();
-    } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialogRef.current)) {
-      event.preventDefault(); first.focus();
-    }
-  }, []);
 
   if (typeof document === 'undefined') return null;
   return createPortal(
