@@ -4,7 +4,6 @@ import { Check, X, Flame } from 'lucide-react';
 import QuizEventBanner from '@/components/ui/QuizEventBanner';
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 import { hapticTap } from '@/lib/haptics';
-import { playCorrect, playIncorrect } from '@/lib/chime';
 
 // spring presets
 const SPRING_BOUNCY = {
@@ -100,13 +99,6 @@ export default function QuizResult({
   bet = 1,
   streak = 0
 }) {
-  const audioPlayed = useRef(false);
-  useEffect(() => {
-    if (audioPlayed.current) return;
-    audioPlayed.current = true;
-    if (isCorrect) playCorrect();else playIncorrect();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   const shakeVariants = {
     initial: {
       opacity: 0,

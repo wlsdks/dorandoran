@@ -7,7 +7,6 @@ import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { useDrawDisplay, drawPrimary, drawSecondary } from '@/lib/draw-display';
 import { useGameMirror } from '../api/useGameMirror';
 import DrawDisplayToggle from './DrawDisplayToggle';
-import { unlockNotificationAudio, playCorrect } from '@/lib/chime';
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 function pickLotteryWinners(participants, count) {
   const pool = [...participants];
@@ -326,7 +325,6 @@ export default function Lottery({
           if (!mountedRef.current || serialRef.current !== serial) return;
           setPhase('revealed');
           if (!synchronized) { setMirrorError(true); return; }
-          playCorrect();
           // 닉네임이 아닌 {id, nickname} 객체 전달 — 동명이인이어도 실제 뽑힌 학생 id로 당첨 귀속(오귀속 방지)
           // employeeId까지 넘긴다 — 사번 추첨에서는 사번이 당첨자를 확인하는 실제 식별자다
           onResult?.(picked.map(w => ({
@@ -350,7 +348,6 @@ export default function Lottery({
   }
   function draw() {
     if (isView || phase === 'rolling' || participants.length === 0) return;
-    unlockNotificationAudio();
     setMirrorError(false);
     const normalizedCount = Number.isFinite(count) && count > 0 ? count : 1;
     const {

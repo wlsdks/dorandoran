@@ -2,7 +2,7 @@
 // 브랜드 문자열 대신 이 앱의 저장 필드로 인식하며, 알려진 데이터만 이동한다.
 (function () {
   const namespace = 'dorandoran_';
-  const fields = /^(?:participant_id|nickname|joined_sessions|sound_muted|theme(?:_prev)?|admin|staff_nickname|draw_display|preview_last_ts|notes_.+|autoOpened_.+|(?:chat|qa|dm)_seen_.+)$/;
+  const fields = /^(?:participant_id|nickname|joined_sessions|theme(?:_prev)?|admin|staff_nickname|draw_display|preview_last_ts|notes_.+|autoOpened_.+|(?:chat|qa|dm)_seen_.+)$/;
   const anchors = /^(?:participant_id|joined_sessions|admin|staff_nickname|draw_display|preview_last_ts|theme_prev|notes_.+|autoOpened_.+|(?:chat|qa|dm)_seen_.+)$/;
 
   function upgrade(storage) {

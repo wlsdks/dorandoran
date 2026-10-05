@@ -53,7 +53,7 @@ function pathAt(progress, width, height) {
  * 긁는 손맛(궤적을 따라 벗겨지는 것)은 남기고 조작만 클릭 한 번으로 줄였다.
  */
 export default memo(function ScratchCell({
-  primary, secondary, index, revealed, scratching, highlight, interactive = true, presenter, onScratch, onRevealed, startedAt = null,
+  primary, secondary, index, revealed, scratching, highlight, interactive = true, disabled = false, presenter, onScratch, onRevealed, startedAt = null,
 }) {
   const reduced = useReducedMotion();
   const canvasRef = useRef(null);
@@ -134,7 +134,7 @@ export default memo(function ScratchCell({
     if (scratching && !revealed && !sweeping && !swept) sweep();
   }, [scratching, revealed, sweeping, swept, sweep]);
 
-  const size = presenter ? 'w-[clamp(176px,18vw,340px)] h-[clamp(96px,13dvh,176px)]' : 'w-24 h-20 sm:w-28 sm:h-24';
+  const size = presenter ? 'w-[clamp(176px,18vw,340px)] h-[clamp(96px,13dvh,176px)]' : 'w-[clamp(64px,20vw,112px)] h-[clamp(64px,18vw,96px)]';
   const primarySize = presenter ? 'text-[clamp(26px,2.4vw,44px)]' : 'text-base';
   const coinSize = presenter ? 34 : 26;
   return <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, scale: reduced ? 1 : highlight ? 1.025 : 1 }}
@@ -145,7 +145,7 @@ export default memo(function ScratchCell({
     </div>
     {!revealed && <motion.div className="absolute inset-0" animate={{ opacity: swept ? 0 : 1 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-      {interactive && <button onClick={() => onScratch?.(index)} disabled={sweeping} aria-label={`${index + 1}번 칸 긁기`} className="absolute inset-0 w-full h-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-2xl" />}
+      {interactive && <button onClick={() => onScratch?.(index)} disabled={disabled || sweeping} aria-label={`${index + 1}번 칸 긁기`} className="absolute inset-0 w-full h-full cursor-pointer disabled:cursor-wait focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-2xl" />}
       {sweeping && reduced && <span className="absolute inset-0 flex items-center justify-center text-slate-900 font-semibold">확인 중</span>}
       {sweeping && !reduced && <div ref={coinRef} aria-hidden="true" className="absolute top-0 left-0 rounded-full pointer-events-none"
         style={{ width: coinSize, height: coinSize, background: 'radial-gradient(circle at 32% 28%, #fef3c7 0%, #fbbf24 42%, #b45309 100%)', boxShadow: '0 3px 8px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(255,255,255,0.35)' }} />}

@@ -204,7 +204,7 @@
 | 키보드 단축키 | 강사 | 완료 | 좌우(질문 이동), Space(다음), R(정답공개), L(리더보드), Esc(대기) |
 | 연결 상태 배너 | 학생 | 완료 | 오프라인 시 경고, 재연결 시 자동 소멸. Firebase .info/connected |
 | 세션 경과 시간 | 강사 | 완료 | 헤더에 "N분 경과" 실시간 표시 |
-| 학생 알림음 | 학생 | 완료 | 새 질문 시 Web Audio API 2음 차임(C5→E5). 헤더 음소거 토글 |
+| 화면 피드백 | 전체 | 적용 | 효과음·음소거 설정 제거. 질문 전환·정답·당첨은 화면으로 안내 |
 | 에러 바운더리 | 전체 | 완료 | 라우트+시각화+투표 레벨 세분화, 한국어 복구 UI |
 | PWA 매니페스트 | 학생 | 완료 | 홈 화면 추가, 서비스워커, Apple 메타태그 |
 | Admin 빈 상태 | 강사 | 완료 | 마스코트 + 단계별 안내 |
@@ -506,7 +506,7 @@ src/
     useRecentQuestions, useTheme, useToast, useVotes
 
   lib/                       — 유틸리티 (10개)
-    auth.js, chime.js, csv.js, design-tokens.js, firebase.js,
+    auth.js, csv.js, design-tokens.js, firebase.js,
     participant.js, question-types.js, quiz.js, template-packs.js, utils.js
 ```
 

@@ -9,7 +9,6 @@ import { hapticSuccess } from '@/lib/haptics';
 import DrawDisplayToggle from './DrawDisplayToggle';
 import ScratchCell from './ScratchCell';
 import { getServerNow } from '@/features/timer/api/useTimer';
-import { unlockNotificationAudio, playCorrect } from '@/lib/chime';
 
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 
@@ -34,6 +33,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
   const [active, setActive] = useState(null);      // 지금 동전이 훑는 칸(한 번에 하나)
   const [activeStartedAt, setActiveStartedAt] = useState(null);
   const [mirrorError, setMirrorError] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const mountedRef = useRef(true);
   const roundRef = useRef(0);
   const [storedDisplayMode, setDisplayMode] = useDrawDisplay();
@@ -65,7 +65,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
     publish({ ...localState, activeIndex: active, activeStartedAt, displayMode });
   }, [isView, localState, active, activeStartedAt, publish, displayMode]);
   const revealedSet = useMemo(() => new Set(state.revealed || []), [state.revealed]);
-  const won = Boolean(state.won) && !mirrorError;
+  const won = Boolean(state.won) && !sharing && !mirrorError;
 
   const finish = useCallback(async () => {
     if (isView || publishedRef.current || !winner) return;
@@ -75,12 +75,14 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
       revealed: Array.from({ length: CELL_COUNT }, (_, i) => i), past: [...(localState.past || []), winner] };
     setActive(null);
     setActiveStartedAt(null);
-    setLocalState(nextState);
+    setSharing(true);
+    setLocalState({ ...nextState, past: localState.past || [] });
     const synchronized = await publish(nextState);
     if (!mountedRef.current || roundRef.current !== round) return;
+    setSharing(false);
     if (!synchronized) { setMirrorError(true); setLocalState({ ...nextState, past: localState.past || [] }); return; }
+    setLocalState(nextState);
     hapticSuccess();
-    playCorrect();
     onResult?.([{ id: winner.id, nickname: winner.nickname, ...(winner.employeeId ? { employeeId: winner.employeeId } : {}) }]);
   }, [isView, winner, onResult, localState, publish, displayMode]);
 
@@ -101,21 +103,20 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
   }, [isView, localState, finish]);
 
   const startScratch = useCallback((index) => {
-    if (isView || active !== null || revealedSet.has(index)) return;
-    unlockNotificationAudio();
+    if (isView || active !== null || sharing || revealedSet.has(index)) return;
     setActiveStartedAt(getServerNow());
     setActive(index);
-  }, [isView, active, revealedSet]);
+  }, [isView, active, sharing, revealedSet]);
 
   function dealBoard() {
-    if (isView || active !== null) return;
-    unlockNotificationAudio();
+    if (isView || active !== null || sharing) return;
     const next = buildScratchBoard(pool);
     if (!next) return;
     publishedRef.current = false;
     setActive(null);
     setActiveStartedAt(null);
     setMirrorError(false);
+    setSharing(false);
     roundRef.current += 1;
     const serial = getServerNow();
     setLocalState((prev) => ({
@@ -138,7 +139,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
   }
 
   const boardShell = presenter ? 'gap-3 p-4' : 'gap-2 p-3';
-  const cellShell = presenter ? 'w-[clamp(176px,18vw,340px)] h-[clamp(96px,13dvh,176px)]' : 'w-24 h-20 sm:w-28 sm:h-24';
+  const cellShell = presenter ? 'w-[clamp(176px,18vw,340px)] h-[clamp(96px,13dvh,176px)]' : 'w-[clamp(64px,20vw,112px)] h-[clamp(64px,18vw,96px)]';
 
   return (
     <div className={`flex flex-col items-center ${presenter ? 'gap-6' : 'gap-4'}`}>
@@ -146,9 +147,11 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
         <h3 className={`font-black tracking-tight text-slate-900 dark:text-slate-100 ${presenter ? 'text-4xl' : 'text-2xl'}`}>
           즉석복권
         </h3>
-        <p className={`text-slate-400 ${presenter ? 'text-lg' : 'text-sm'}`}>
+        <p role={active !== null || sharing ? 'status' : undefined} className={`text-slate-400 ${presenter ? 'text-lg' : 'text-sm'}`}>
           {!cells && (isView ? '강사 화면에서 판을 깔면 여기에 그대로 나옵니다' : '판을 깔고 칸을 눌러보세요')}
-          {cells && !won && (mirrorError ? '결과 공유를 기다리고 있어요' : isView ? '강사 화면에서 긁는 중' : '칸을 누르면 동전이 긁습니다. 한 줄 3칸이 같은 사람이면 당첨')}
+          {cells && !won && (mirrorError ? '결과 공유를 기다리고 있어요' : sharing ? '당첨 결과를 전자칠판과 공유하고 있어요'
+            : active !== null ? `${active + 1}번 칸을 긁고 있어요 · 잠시 후 다음 칸을 눌러주세요`
+              : isView ? '강사 화면에서 긁는 중' : '칸을 누르면 동전이 긁습니다. 한 줄 3칸이 같은 사람이면 당첨')}
           {won && winner && (
             <span className="inline-flex items-center gap-2">
               <Trophy size={presenter ? 22 : 15} className="text-amber-500" />
@@ -203,6 +206,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
                     startedAt={isView ? state.activeStartedAt : activeStartedAt}
                     highlight={won && rowIndex === state.winningRow}
                     interactive={!isView}
+                    disabled={active !== null || sharing}
                     presenter={presenter}
                     onScratch={startScratch}
                     onRevealed={handleRevealed}
@@ -227,8 +231,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
                 {line.map((i) => (
                   <motion.div
                     key={i}
-                    animate={{ opacity: reduced ? 0.5 : [0.35, 0.6, 0.35] }}
-                    transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.08, ease: 'easeInOut' }}
+                    animate={{ opacity: 0.5 }}
                     className={`rounded-2xl bg-slate-200 dark:bg-slate-700 ${cellShell}`}
                   />
                 ))}
@@ -244,7 +247,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
           강사 화면을 그대로 보여주는 중입니다
         </p>
       ) : (
-        <Button onClick={dealBoard} variant="primary" size={presenter ? 'lg' : 'md'} disabled={active !== null}>
+        <Button onClick={dealBoard} variant="primary" size={presenter ? 'lg' : 'md'} disabled={active !== null || sharing}>
           <Gift size={presenter ? 22 : 18} />
           {cells ? '새 복권 긁기' : '복권 시작하기'}
         </Button>

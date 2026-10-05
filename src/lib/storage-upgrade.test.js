@@ -23,7 +23,7 @@ describe('브랜드 변경 시 저장 데이터 유지', () => {
   it('참가자, 테마, 읽음 상태, 강사 메모와 로그인을 새 키로 옮긴다', () => {
     const joined = JSON.stringify({ lesson: { participantId: 'student-1', nickname: '김학생' } });
     const local = storage({ previous_participant_id: 'student-1', previous_joined_sessions: joined,
-      previous_nickname: '김학생', previous_theme: 'light', previous_sound_muted: 'true',
+      previous_nickname: '김학생', previous_theme: 'light',
       earlier_notes_lesson: '["다음 수업 메모"]', earlier_chat_seen_lesson: '7' });
     const session = storage({ previous_admin: '{"uid":"teacher-1"}', earlier_autoOpened_lesson_question: '1' });
     upgrade(local, session);
@@ -31,7 +31,6 @@ describe('브랜드 변경 시 저장 데이터 유지', () => {
     expect(local.getItem('dorandoran_joined_sessions')).toBe(joined);
     expect(local.getItem('dorandoran_nickname')).toBe('김학생');
     expect(local.getItem('dorandoran_theme')).toBe('light');
-    expect(local.getItem('dorandoran_sound_muted')).toBe('true');
     expect(local.getItem('dorandoran_notes_lesson')).toBe('["다음 수업 메모"]');
     expect(local.getItem('dorandoran_chat_seen_lesson')).toBe('7');
     expect(session.getItem('dorandoran_admin')).toBe('{"uid":"teacher-1"}');
