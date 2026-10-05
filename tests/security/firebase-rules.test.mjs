@@ -6,7 +6,8 @@ import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebas
 import { ref, get, set } from 'firebase/database';
 import { ref as storageRef, uploadBytes } from 'firebase/storage';
 
-const projectId = 'demo-dorandoran';
+const projectId = process.env.QA_RULES_PROJECT_ID || 'demo-dorandoran';
+if (!/^demo-[a-z0-9-]+$/.test(projectId)) throw new Error('Rules QA requires a demo project.');
 const origin = 'http://127.0.0.1:5175';
 const password = 'TestFixture-Only-Strong8';
 let environment;
@@ -52,6 +53,28 @@ test('비인증 사용자는 계정·DB 루트·점수에 접근할 수 없다',
   await assertFails(get(ref(db)));
   await assertFails(set(ref(db, 'admins/attacker'), { username: 'attacker', passwordHash: hash, role: 'master', approved: true }));
   await assertFails(set(ref(db, 'sessions/qa_room/scores/student_a'), { nickname: '가짜', total: 10000 }));
+});
+
+test('공개 점수 설정은 원본과 일치하며 미공개 정답·원본 투표는 포함할 수 없다', async () => {
+  await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), 'sessions/public_meta_probe'), {
+    creatorId: 'legacy_master', createdAt: 1, status: 'active',
+    participants: { student_a: { nickname: '공개 메타 QA', joinedAt: 1 } },
+    questions: { q: { type: 'quiz', title: '메타 검증', correctAnswer: 'A', points: 100, maxSpeedBonus: 50, speedWindowMs: 10000 } },
+  }));
+  const db = staff('legacy_master', 'master');
+  const path = 'sessions/public_meta_probe/publicQuestions/q';
+  const publicValue = { type: 'quiz', title: '메타 검증', points: 100, maxSpeedBonus: 50, speedWindowMs: 10000 };
+  await assertSucceeds(set(ref(db, path), publicValue));
+  await assertFails(set(ref(db, path), { ...publicValue, points: 999 }));
+  await assertFails(set(ref(db, path), { ...publicValue, correctAnswer: 'A' }));
+  await assertFails(set(ref(db, path), { ...publicValue, votes: { student_a: { value: 'A' } } }));
+  await assertFails(set(ref(db, path), { ...publicValue, awardedAt: 200 }));
+  await environment.withSecurityRulesDisabled(async context => {
+    await set(ref(context.database(), 'sessions/public_meta_probe/questions/q/revealedAt'), 200);
+    await set(ref(context.database(), 'sessions/public_meta_probe/questions/q/awardedAt'), 200);
+  });
+  await assertSucceeds(set(ref(db, path), { ...publicValue, correctAnswer: 'A', revealedAt: 200, awardedAt: 200 }));
+  await assertSucceeds(get(ref(student('student_a'), path + '/awardedAt')));
 });
 test('학생은 본인 DM만 읽고 타인 DM·미공개 정답을 읽을 수 없다', async () => {
   const a = student('student_a'); const b = student('student_b');

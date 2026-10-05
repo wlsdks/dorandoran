@@ -798,6 +798,18 @@
             },
             "spotlight": {
               ".validate": "newData.hasChildren(['voteId','nickname','value'])"
+            },
+            "points": {
+              ".validate": "newData.isNumber() && newData.val() === root.child('sessions').child($sid).child('questions').child($qId).child('points').val()"
+            },
+            "maxSpeedBonus": {
+              ".validate": "newData.isNumber() && newData.val() === root.child('sessions').child($sid).child('questions').child($qId).child('maxSpeedBonus').val()"
+            },
+            "speedWindowMs": {
+              ".validate": "newData.isNumber() && newData.val() === root.child('sessions').child($sid).child('questions').child($qId).child('speedWindowMs').val()"
+            },
+            "awardedAt": {
+              ".validate": "newData.isNumber() && newData.val() === root.child('sessions').child($sid).child('questions').child($qId).child('awardedAt').val()"
             }
           }
         },
