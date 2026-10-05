@@ -1,7 +1,7 @@
 import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
 import { lazy, Suspense, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useSession } from '@/features/session/api/useSession';
 import { isSpecialMode } from '@/lib/modes';
 import { useParticipants } from '@/features/participants/api/useParticipants';
@@ -48,6 +48,7 @@ const GameFallback = () => (
 );
 
 export default function LivePage() {
+  const reducedMotion = useReducedMotion();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('s');
   const { session, loading } = useSession(sessionId);
@@ -60,7 +61,7 @@ export default function LivePage() {
   const currentQId = session?.currentQuestion;
   const currentMode = session?.currentMode;
   const question = currentQId ? session?.questions?.[currentQId] : null;
-  const { totalVotes } = useVotes(sessionId, currentQId);
+  const { totalVotes, resultsHidden, loading: votesLoading } = useVotes(sessionId, currentQId);
 
   // 추첨 대상은 현재 참여자이며 모두 같은 확률로 선택한다.
   // 추첨 모드에서만 계산 — 그 외엔 scores 변경마다 300명 재계산하던 비용 제거.
@@ -141,10 +142,10 @@ export default function LivePage() {
             {isGameMode ? (
               <motion.div
                 key={`game-${currentMode}`}
-                initial={currentMode === 'leaderboard' ? { opacity: 0, y: -12 } : { opacity: 0, scale: 0.98 }}
-                animate={currentMode === 'leaderboard' ? { opacity: 1, y: 0 } : { opacity: 1, scale: 1 }}
-                exit={currentMode === 'leaderboard' ? { opacity: 0, y: 30 } : { opacity: 0, scale: 1.06 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reducedMotion ? 0.08 : 0.18, ease: 'easeOut' }}
                 className="w-full"
               >
                 <Suspense fallback={<GameFallback />}>
@@ -178,10 +179,10 @@ export default function LivePage() {
             ) : hasActiveQuestion ? (
               <motion.div
                 key={`question-${currentQId}`}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reducedMotion ? 0.08 : 0.18, ease: 'easeOut' }}
                 className="w-full space-y-6"
               >
                 {isRunning && endTime && (
@@ -194,12 +195,12 @@ export default function LivePage() {
                   <VizRenderer sessionId={sessionId} session={session} isPresenter />
                 </div>
 
-                {question?.type !== 'imageSlide' && <LiveParticipation voted={totalVotes} total={count} />}
+                {question?.type !== 'imageSlide' && <LiveParticipation voted={totalVotes} total={count} resultsHidden={resultsHidden} loading={votesLoading} />}
               </motion.div>
             ) : (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="flex flex-col items-center text-center space-y-5">
-                <motion.div animate={{ scale: [1, 1.03, 1] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
-                  <DoranDoranMascot size="lg" mood="waiting" />
+                <motion.div animate={reducedMotion ? {} : { scale: [1, 1.03, 1] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
+                  <DoranDoranMascot size="lg" mood="waiting" animated={!reducedMotion} />
                 </motion.div>
                 <h2 className="text-xl font-semibold text-slate-500 dark:text-slate-300 tracking-tight">
                   다음 질문을 기다리는 중...
