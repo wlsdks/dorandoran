@@ -1,6 +1,7 @@
 import { participationLeader } from '@/lib/participation';
 import { getStaffSession, logoutStaff } from '@/lib/auth-session';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ref, set, update, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -16,24 +17,18 @@ import { useQuestionActions } from '@/hooks/useQuestionActions';
 
 const getAdminUser = getStaffSession;
 
-function getUrlParam(key) {
-  return new URLSearchParams(window.location.search).get(key) || '';
-}
-
-function setUrlParams(params) {
-  const url = new URL(window.location);
-  url.searchParams.delete('s');
-  url.searchParams.delete('edit');
-  url.searchParams.delete('editName');
-  Object.entries(params).forEach(([k, v]) => {
-    if (v) url.searchParams.set(k, v);
-  });
-  window.history.replaceState({}, '', url);
-}
-
 export function useAdminSession() {
   const [adminUser, setAdminUser] = useState(() => getAdminUser());
-  const [sessionId, setSessionId] = useState(() => getUrlParam('s'));
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sessionId = searchParams.get('s') || '';
+  const selectSessionUrl = useCallback(id => {
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous);
+      ['s', 'edit', 'editName'].forEach(key => next.delete(key));
+      if (id) next.set('s', id);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
   const [readOnly, setReadOnly] = useState(false);
   const [presentMode, setPresentMode] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -120,9 +115,9 @@ export function useAdminSession() {
 
   // Navigation
   const handleLogin = useCallback(() => { setAdminUser(getAdminUser()); }, []);
-  const handleSelectSession = useCallback((id, isReadOnly) => { setSessionId(id); setReadOnly(isReadOnly); setUrlParams({ s: id }); }, []);
-  const handleBack = useCallback(() => { setSessionId(''); setReadOnly(false); setPresentMode(false); setUrlParams({}); }, []);
-  const handleLogout = useCallback(() => { setAdminUser(null); setSessionId(''); setUrlParams({}); logoutStaff().catch(() => {}); }, []);
+  const handleSelectSession = useCallback((id, isReadOnly) => { setReadOnly(isReadOnly); selectSessionUrl(id); }, [selectSessionUrl]);
+  const handleBack = useCallback(() => { setReadOnly(false); setPresentMode(false); selectSessionUrl(''); }, [selectSessionUrl]);
+  const handleLogout = useCallback(() => { setAdminUser(null); selectSessionUrl(''); logoutStaff().catch(() => {}); }, [selectSessionUrl]);
 
   // UI toggles
   const handleChatToggle = useCallback(() => {
@@ -154,6 +149,7 @@ export function useAdminSession() {
   // Session actions
   const [actionError, setActionError] = useState(null);
   const actionErrorTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(actionErrorTimerRef.current), []);
   const showActionError = useCallback((msg) => {
     setActionError(msg);
     if (actionErrorTimerRef.current) clearTimeout(actionErrorTimerRef.current);
