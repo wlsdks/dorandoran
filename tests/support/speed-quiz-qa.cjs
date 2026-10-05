@@ -22,6 +22,7 @@ async function capture(page, key) {
   const questions = {
     first: { type: 'quiz', title: '첫 번째 자동 진행', options: ['첫 정답', '첫 오답'], correctAnswer: '첫 정답', order: 1, points: 100, maxSpeedBonus: 0, betting: false },
     second: { type: 'quiz', title: '두 번째 자동 진행', options: ['둘째 정답', '둘째 오답'], correctAnswer: '둘째 정답', order: 2, points: 100, maxSpeedBonus: 0, betting: false },
+    third: { type: 'quiz', title: '세 번째 연속 정답 보너스', options: ['셋째 정답', '셋째 오답'], correctAnswer: '셋째 정답', order: 3, points: 100, maxSpeedBonus: 0, betting: false },
   };
   const fields = require('../../functions/public-question-fields.json');
   await db.ref(`sessions/${sid}`).set({ creatorId: 'legacy_master', courseId: 'course_a', courseName: '자동 진행 QA', status: 'active', currentMode: 'waiting', createdAt: Date.now(), questions,
@@ -44,24 +45,37 @@ async function capture(page, key) {
   await expect(student.getByRole('button', { name: '학습자 설정' })).toBeVisible();
   const uid = await student.evaluate(async () => { const { ensureAuthentication } = await import('/src/lib/auth-session.js'); return (await ensureAuthentication()).uid; });
   await teacher.getByText('스피드 퀴즈 (선택)', { exact: true }).click();
-  await teacher.getByRole('button', { name: /스피드 퀴즈.*2문제/ }).click();
-  for (const [index, id, answer] of [[1, 'first', '첫 정답'], [2, 'second', '둘째 정답']]) {
+  await teacher.getByRole('button', { name: /스피드 퀴즈.*3문제/ }).click();
+  for (const [index, id, answer, total] of [[1, 'first', '첫 정답', 100], [2, 'second', '둘째 정답', 200], [3, 'third', '셋째 정답', 320]]) {
     await expect(student.getByRole('button', { name: new RegExp(answer) })).toBeVisible({ timeout: 20_000 });
     await student.getByRole('button', { name: new RegExp(answer) }).click();
     await expect.poll(async () => (await db.ref(`sessions/${sid}/questions/${id}/votes/${uid}`).get()).exists()).toBe(true);
     await expect.poll(async () => (await db.ref(`sessions/${sid}/questions/${id}/awardedAt`).get()).exists(), { timeout: 20_000 }).toBe(true);
-    await expect.poll(async () => (await db.ref(`sessions/${sid}/scores/${uid}/total`).get()).val()).toBe(index * 100);
+    await expect.poll(async () => (await db.ref(`sessions/${sid}/scores/${uid}/total`).get()).val()).toBe(total);
+    if (id === 'third') {
+      await expect(student.getByText('+120점', { exact: true })).toBeVisible();
+      await capture(student, '3-student-combo-120');
+    }
     await capture(board, `${index}-board-auto-reveal`);
   }
   await expect.poll(async () => (await db.ref(`sessions/${sid}/currentMode`).get()).val(), { timeout: 10_000 }).toBe('leaderboard');
-  await capture(board, '3-board-auto-leaderboard');
+  await capture(board, '4-board-auto-leaderboard');
   await expect.poll(async () => (await db.ref(`sessions/${sid}/speedQuiz`).get()).exists(), { timeout: 10_000 }).toBe(false);
   const score = (await db.ref(`sessions/${sid}/scores/${uid}`).get()).val();
-  expect(score.streak).toBe(2);
-  expect(Object.keys(score.quizAwards)).toHaveLength(2);
+  expect(score.streak).toBe(3);
+  expect(Object.keys(score.quizAwards)).toHaveLength(3);
+  // Review after speedQuiz is cleared must retain the awarded combo receipt.
+  await teacher.getByRole('button', { name: '발표 모드', exact: true }).click();
+  await teacher.keyboard.press('ArrowLeft');
+  await expect.poll(async () => (await db.ref(`sessions/${sid}/currentQuestion`).get()).val()).toBe('second');
+  await teacher.keyboard.press('ArrowRight');
+  await expect.poll(async () => (await db.ref(`sessions/${sid}/currentQuestion`).get()).val()).toBe('third');
+  await expect(student.getByText('+120점', { exact: true })).toBeVisible();
+  expect((await db.ref(`sessions/${sid}/scores/${uid}/total`).get()).val()).toBe(320);
+  await capture(student, '5-student-combo-review');
   expect(errors).toEqual([]);
   fs.writeFileSync(path.join(directory, 'manifest.json'), JSON.stringify({ result: 'PASS', evidence, errors, total: score.total }, null, 2));
-  console.log('PASS actual 10-second speed quiz: two votes -> automatic reveals -> 200 points -> leaderboard -> stopped; pageerror0');
+  console.log('PASS actual 10-second speed quiz: three votes -> automatic reveals -> 320 points (third +120 combo) -> leaderboard -> stopped -> receipt review; pageerror0');
 })().catch(async error => { console.error(error); console.error(JSON.stringify((await db.ref(`sessions/${sid}`).get()).val())); await teacher?.screenshot({ path: path.join(directory, 'failure-teacher.png') }); await board?.screenshot({ path: path.join(directory, 'failure-board.png') }); process.exitCode = 1; }).finally(async () => {
   await browser?.close();
   await db.ref(`sessions/${sid}`).remove();

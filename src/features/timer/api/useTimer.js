@@ -1,4 +1,4 @@
-import { ref, onValue, update, serverTimestamp } from 'firebase/database';
+import { ref, onValue, update, runTransaction, serverTimestamp } from 'firebase/database';
 import { useEffect, useCallback } from 'react';
 import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { db } from '@/lib/firebase';
@@ -57,11 +57,22 @@ export function useTimer(sessionId) {
     });
   }, [sessionId]);
 
+  const expireTimer = useCallback(async () => {
+    const expectedEndTime = timerData?.endTime;
+    if (!sessionId || !expectedEndTime) return;
+    // Natural expiry keeps the Rules deadline. A stale ring must not finish a restarted timer.
+    await runTransaction(ref(db, `sessions/${sessionId}/timer`), (current) => {
+      if (!current?.running || current.endTime !== expectedEndTime || getServerNow() < current.endTime) return;
+      return { ...current, running: false };
+    }, { applyLocally: false });
+  }, [sessionId, timerData?.endTime]);
+
   return {
     isRunning: timerData?.running === true,
     endTime: timerData?.endTime || null,
     duration: timerData?.duration || 0,
     startTimer,
     stopTimer,
+    expireTimer,
   };
 }

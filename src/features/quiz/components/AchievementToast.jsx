@@ -66,11 +66,12 @@ export default function AchievementToast({ achievements }) {
       {visible && (
         <motion.div
           key={visible.id}
-          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+          role="status"
+          initial={{ opacity: 0, y: -8, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+          exit={{ opacity: 0, y: -8, scale: 0.97 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+          className="fixed top-[calc(5rem+env(safe-area-inset-top))] inset-x-4 max-w-sm mx-auto z-30 pointer-events-none"
         >
           <div className="relative overflow-hidden bg-slate-900 text-white rounded-xl shadow-2xl shadow-black/40 ring-1 ring-white/15">
             <div className="flex items-center gap-3 pl-3 pr-5 py-2.5">

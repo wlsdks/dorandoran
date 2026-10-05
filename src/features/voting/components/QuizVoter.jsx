@@ -8,6 +8,7 @@ import VoteErrorToast from './VoteErrorToast';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { getNickname, getParticipantId } from '@/lib/participant';
+import { QUIZ_DEFAULTS } from '@/lib/quiz';
 import { useMyVoteFull } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import BetSelector from './BetSelector';
@@ -72,10 +73,9 @@ export default memo(function QuizVoter({
     if (canRestore() && myVote) setHasAcknowledged(true);
   }, [myVote, canRestore]);
   const [selected, setSelected] = useState(null);
-  const [betMultiplier, setBetMultiplier] = useState(null);
+  const [betMultiplier, setBetMultiplier] = useState(1);
   const [error, setError] = useState(null);
   const bettingEnabled = question?.betting === true;
-  const needsBet = bettingEnabled && betMultiplier === null;
   useEffect(() => {
     if (!error) return;
     const t = setTimeout(() => setError(null), 4000);
@@ -93,7 +93,7 @@ export default memo(function QuizVoter({
         timestamp: serverTimestamp()
       };
       if (bettingEnabled && betMultiplier) {
-        voteData.bet = String(betMultiplier);
+        voteData.bet = betMultiplier;
       }
       if (confidence) {
         voteData.confidence = confidence;
@@ -208,8 +208,8 @@ export default memo(function QuizVoter({
       <AnimatePresence>
         {error && <VoteErrorToast message={error} />}
       </AnimatePresence>
-      <AnimatePresence mode="wait">
-        {needsBet ? <BetSelector key="bet" onSelect={setBetMultiplier} /> : <motion.div key="options" initial={{
+      {bettingEnabled && <BetSelector value={betMultiplier} onSelect={setBetMultiplier} disabled={disabled || selected !== null || pending} />}
+      <motion.div key="options" initial={{
         opacity: 0,
         y: 12
       }} animate={{
@@ -221,7 +221,7 @@ export default memo(function QuizVoter({
         damping: 25
       }} className="space-y-4">
             <p className="text-xs text-slate-400 text-center">
-              {bettingEnabled && betMultiplier ? `${betMultiplier}x 베팅 — ${betMultiplier > 1 ? '높은 위험, 높은 보상!' : '안전하게 참여'}` : question?.event ? '이벤트 라운드 — 보너스 점수가 적용됩니다' : '빠르게 답할수록 더 높은 점수를 받을 수 있습니다'}
+              {bettingEnabled ? '배율은 답을 고르기 전까지 바꿀 수 있어요. 답을 고르면 바로 제출됩니다.' : question?.event ? '이벤트 라운드 — 보너스 점수가 적용됩니다' : (question?.maxSpeedBonus ?? QUIZ_DEFAULTS.maxSpeedBonus) > 0 ? '빠르게 답할수록 더 높은 점수를 받을 수 있습니다' : '답을 고르면 바로 제출됩니다.'}
             </p>
 
             <div className="space-y-2.5">
@@ -256,7 +256,6 @@ export default memo(function QuizVoter({
           })}
             </div>
 
-          </motion.div>}
-      </AnimatePresence>
+          </motion.div>
     </div>;
 });

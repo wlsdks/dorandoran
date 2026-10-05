@@ -121,7 +121,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
 
       {isQuizQuestion(question) && question.event && (
         <div className="w-full max-w-xl self-center px-8">
-          <QuizEventBanner event={question.event} state={answerRevealed ? 'result' : 'active'} />
+          <QuizEventBanner event={question.event} state={answerRevealed ? 'result' : 'active'} compact={isPresenter} />
         </div>
       )}
 
@@ -176,7 +176,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
               />
               {(!isPresenter || answerRevealed) && <ConfidenceStats sessionId={sessionId} questionId={currentQId} />}
               {question.betting && (!isPresenter || answerRevealed) && (
-                <BetDistribution sessionId={sessionId} questionId={currentQId} />
+                <BetDistribution sessionId={sessionId} questionId={currentQId} presenter={isPresenter} />
               )}
               {isAdmin && !isPresenter && answerRevealed && (
                 <WrongAnswerAnalysis

@@ -24,6 +24,7 @@ try {
   await run('node', ['tests/support/judging-lifecycle-qa.cjs']);
   await run('node', ['tests/support/presentation-qa.cjs']);
   await run('node', ['tests/support/quiz-audience-qa.cjs']);
+  await run('node', ['tests/support/quiz-interaction-qa.cjs']);
   await run('node', ['tests/support/student-qa.cjs']);
   await run('node', ['tests/support/vote-ack-qa.cjs']);
   await run('node', ['tests/support/quiz-awards-qa.cjs']);
@@ -35,4 +36,5 @@ try {
   await run('node', ['tests/support/classroom-ui-qa.cjs']);
   await run('node', ['tests/support/classroom-ux-qa.cjs']);
   await run('node', ['tests/support/classroom-load-qa.cjs']);
+  await run('node', ['tests/support/quiz-load-qa.cjs']);
 } finally { for (const child of children) if (child.exitCode === null) child.kill('SIGTERM'); }
