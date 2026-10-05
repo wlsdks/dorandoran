@@ -167,6 +167,10 @@ forceWebSockets();
     await adminDb.ref(`sessions/${sid}/currentQuestion`).set(qid);
     clients.forEach(client => {
       client.openedResults = false;
+      client.liveAggregate = null;
+      roundOff.push(onValue(ref(client.db, `sessions/${sid}/publicQuizAggregates/${qid}`), snapshot => {
+        client.liveAggregate = snapshot.val();
+      }, error => errors.push(error.message)));
       roundOff.push(onValue(ref(client.db, `sessions/${sid}/publicQuestions/${qid}/revealedAt`), snapshot => {
         client.revealed = !!snapshot.val();
         if (!client.revealed || client.openedResults) return;
@@ -192,6 +196,8 @@ forceWebSockets();
         timestamp: serverTimestamp()
       }));
       assert.equal(clients.filter(c => c.openedResults).length, 0, 'quiz aggregate must remain hidden until reveal');
+      await waitFor(() => clients.every(c => c.liveAggregate?.total === count && c.liveAggregate.counts?.[0] === 100 && c.liveAggregate.counts?.[1] === 100), 'privacy-safe live ratios on every client');
+      assert.deepEqual(Object.keys(clients[0].liveAggregate).sort(), ['counts', 'round', 'total']);
       await teacher.getByRole('button', {
         name: '정답 공개',
         exact: true
@@ -231,7 +237,8 @@ forceWebSockets();
   console.log(JSON.stringify({
     result: 'PASS',
     type: 'quiz',
-    hiddenBeforeReveal: true,
+    individualVotesHiddenBeforeReveal: true,
+    sanitizedRatiosLiveBeforeReveal: true,
     correctStudents: 100,
     wrongStudents: 100,
     individuallyScored: 200,

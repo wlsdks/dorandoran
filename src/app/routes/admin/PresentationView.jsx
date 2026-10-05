@@ -51,7 +51,7 @@ function getModeVariants(mode) {
   return { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
 }
 
-function MainContent({ currentMode, sessionId, session, onlineList, leaderboard, drawParticipants, presentMode, studentUrl, count, onGameResult }) {
+function MainContent({ currentMode, sessionId, session, onlineList, leaderboard, drawParticipants, presentMode, studentUrl, count, onGameResult, onLeaderboardPageChange }) {
   const currentQId = session?.currentQuestion;
   const isActive = ['poll', 'quiz'].includes(currentMode) && currentQId;
 
@@ -77,7 +77,7 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
       />
     );
     if (currentMode === 'breakTime') return <BreakTimer sessionId={sessionId} presenter={presentMode} />;
-    if (currentMode === 'leaderboard') return <div className="w-full max-w-xl md:max-w-2xl [&_.max-w-xl]:max-w-2xl px-2 md:px-0" style={{ maxWidth: presentMode ? 1100 : undefined }}><Leaderboard presenter={presentMode} entries={leaderboard} maxShow={10} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
+    if (currentMode === 'leaderboard') return <div className="w-full px-2 md:px-0"><Leaderboard presenter={presentMode} entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} onPageChange={onLeaderboardPageChange} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
     if (currentMode === 'qaBoard') return <div className="w-full max-w-4xl" style={{ maxWidth: presentMode ? 1100 : undefined }}><ClassQABoard presenter={presentMode} readOnly={presentMode} sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>;
     if (currentMode === 'qaRanking') return <QARanking sessionId={sessionId} presenter={presentMode} readOnly={presentMode} />;
     if (currentMode === 'joinShow') return <JoinShow sessionId={sessionId} />;
@@ -280,6 +280,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
       speedQuiz: null,
       drumroll: null,
       timer: null, // 이전 질문 타이머 잔존 → 다음 질문 학생 잠금 전파 방지
+      ...(isQuizQuestion(q) ? { [`publicQuizAggregates/${qId}`]: null } : {}),
     };
     if (q.type === 'imageSlide' && !Number.isInteger(q.currentSlide)) updates[`questions/${qId}/currentSlide`] = 0;
     if (q.type === 'hintQuiz') updates[`questions/${qId}/revealedHints`] = 0;
@@ -340,7 +341,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
   return (
     <div className="dark classroom-stage presenter-stage h-dvh bg-slate-900 relative overflow-hidden">
       <ParticipationSpotlight sessionId={sessionId} />
-      <JoinToast sessionId={sessionId} />
+      {currentMode !== 'joinShow' && <JoinToast sessionId={sessionId} />}
       <ReactionOverlay sessionId={sessionId} />
       <ChatBubbleOverlay sessionId={sessionId} />
 
@@ -399,6 +400,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
           count={count}
           scores={scores}
           onGameResult={handleGameResult}
+          onLeaderboardPageChange={page => update(ref(db, `sessions/${sessionId}`), { leaderboardPage: page }).catch(() => {})}
         />
       </div>
 

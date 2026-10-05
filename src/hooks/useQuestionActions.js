@@ -132,6 +132,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
       updates[`questions/${qId}/revealedAt`] = null;
       // 이전 질문의 타이머 잔존 시 다음 질문까지 "시간 종료" 잠금이 전파되던 버그 — 전환 시 정리
       updates.timer = null;
+      if (isQuizQuestion(question)) updates[`publicQuizAggregates/${qId}`] = null;
 
       if (isQuizQuestion(question)) {
         updates[`questions/${qId}/awardedAt`] = null;
@@ -341,7 +342,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
   const showLeaderboard = useCallback(async () => {
     if (revealLocks.has(sessionId)) await awaitRevealLock(sessionId);
     try {
-      await update(ref(db, `sessions/${sessionId}`), { currentMode: 'leaderboard' });
+      await update(ref(db, `sessions/${sessionId}`), { currentMode: 'leaderboard', leaderboardPage: 0 });
     } catch {
       setError('리더보드 전환에 실패했습니다. 다시 시도해주세요.');
     }
@@ -370,6 +371,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
   async function resetQuestion(qId) {
     try {
       await update(ref(db, `sessions/${sessionId}`), {
+        [`publicQuizAggregates/${qId}`]: null,
         [`questions/${qId}/votes`]: null,
         [`questions/${qId}/aiGrades`]: null,
         [`questions/${qId}/revealedAt`]: null,
@@ -401,6 +403,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
         currentQuestion: null,
         currentMode: 'waiting',
         scores: null,
+        publicQuizAggregates: null,
         reactions: null,
         chat: null,
         handRaises: null,

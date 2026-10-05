@@ -11,6 +11,7 @@ const SECONDARY_FIELDS = [
   'currentMode',
   'status',
   'pendingEvent',
+  'leaderboardPage',
   'courseName',
   'courseId',
   'creatorId',

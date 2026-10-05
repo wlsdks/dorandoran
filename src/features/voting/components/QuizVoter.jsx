@@ -12,6 +12,7 @@ import { QUIZ_DEFAULTS } from '@/lib/quiz';
 import { useMyVoteFull } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import BetSelector from './BetSelector';
+import StudentLiveResults from './StudentLiveResults';
 const OPTION_STYLES = [{
   bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700',
   text: 'text-slate-800 dark:text-slate-200',
@@ -114,14 +115,20 @@ export default memo(function QuizVoter({
     submitVote(option, null);
   }
   if (question?.revealedAt && currentVote) {
-    return typeof renderResult === 'function' ? renderResult(currentVote) : null;
+    return <div className="space-y-4">
+      {typeof renderResult === 'function' ? renderResult(currentVote) : null}
+      <StudentLiveResults sessionId={sessionId} questionId={questionId} options={question.options || []} myAnswer={currentVote.value} revealed />
+    </div>;
   }
   if (currentVote) {
     const votedValue = currentVote.value;
     const optIdx = (question?.options || []).indexOf(votedValue);
     const ansLetter = optIdx >= 0 ? String.fromCharCode(65 + optIdx) : '';
     const betLabel = currentVote.bet ? BET_LABELS[parseInt(currentVote.bet, 10)] : null;
-    return <VoteConfirm submittedLabel="답안 제출 완료!" waitingLabel="정답 공개를 기다리는 중..." waitingDescription="강사가 정답과 순위를 공개하면 결과를 확인할 수 있습니다" selectedAnswer={ansLetter ? `${ansLetter}. ${votedValue}` : votedValue} selectedAnswerLabel={betLabel ? `내 답안 (${betLabel})` : '내 답안'} />;
+    return <div className="space-y-4">
+      <VoteConfirm submittedLabel="답안 제출 완료!" waitingLabel="정답 공개를 기다리는 중..." waitingDescription="강사가 정답과 순위를 공개하면 결과를 확인할 수 있습니다" selectedAnswer={ansLetter ? `${ansLetter}. ${votedValue}` : votedValue} selectedAnswerLabel={betLabel ? `내 답안 (${betLabel})` : '내 답안'} />
+      <StudentLiveResults sessionId={sessionId} questionId={questionId} options={question.options || []} myAnswer={votedValue} />
+    </div>;
   }
   if (question?.revealedAt) {
     const correctAnswer = question.correctAnswer;

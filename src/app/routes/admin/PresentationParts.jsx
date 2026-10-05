@@ -207,7 +207,7 @@ export function PresentModeMenu({ sessionId, currentMode, currentQuestion, hasLe
       prevQuestionRef.current = { q: currentQuestion, m: currentMode };
       setHasPrevQuestion(true);
     }
-    await update(ref(db, `sessions/${sessionId}`), { currentMode: mode, currentQuestion: null });
+    await update(ref(db, `sessions/${sessionId}`), { currentMode: mode, currentQuestion: null, ...(mode === 'leaderboard' ? { leaderboardPage: 0 } : {}) });
     setOpen(false);
   }
 

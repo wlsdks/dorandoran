@@ -96,6 +96,7 @@ export function useSpeedQuiz(sessionId, session, { startTimer, stopTimer }) {
         [`questions/${qId}/speedQuizRound`]: now,
         [`questions/${qId}/revealedAt`]: null,
         [`questions/${qId}/awardedAt`]: null,
+        [`publicQuizAggregates/${qId}`]: null,
       };
       const nextEvent = normalizeQuizEvent(sessionRef.current?.pendingEvent);
       if (nextEvent) {
@@ -189,7 +190,7 @@ export function useSpeedQuiz(sessionId, session, { startTimer, stopTimer }) {
         } else {
           // All quiz questions done, show leaderboard
           try {
-            await update(ref(db, `sessions/${sessionId}`), { currentMode: 'leaderboard' });
+            await update(ref(db, `sessions/${sessionId}`), { currentMode: 'leaderboard', leaderboardPage: 0 });
             if (mountedRef.current) setPhase('done');
             // End speed quiz after leaderboard is shown
             phaseTimerRef.current = setTimeout(async () => {
