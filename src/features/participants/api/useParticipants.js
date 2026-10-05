@@ -1,23 +1,14 @@
 import { participantIsOnline } from '@/lib/participants';
 import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { EMPTY_RECORD } from '@/lib/realtime';
+import { summarizeParticipants } from '@/lib/classroom-data';
 import { useMemo } from 'react';
 
 export function useParticipants(sessionId) {
   const { value } = useRealtimeValue(sessionId ? `sessions/${sessionId}/participants` : null);
   const participants = value || EMPTY_RECORD;
 
-  const list = useMemo(
-    () => Object.entries(participants).map(([id, data]) => ({ id, ...data, online: participantIsOnline(data) })),
-    [participants]
-  );
-
-  const onlineList = useMemo(
-    () => list.filter(p => p.online),
-    [list]
-  );
-
-  const count = onlineList.length;
+  const { list, onlineList, count } = useMemo(() => summarizeParticipants(participants), [participants]);
 
   return { participants, list, onlineList, count };
 }

@@ -64,7 +64,7 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry || speedQuizActive}
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Play size={20} />
         {nextEvent && <PartyPopper size={20} />}
         첫 활동 시작
@@ -72,7 +72,7 @@ export default memo(function QuickProgressCard({
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Square size={20} />
         대기 화면
       </Button>
@@ -82,14 +82,14 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={() => onReveal?.(currentEntry[0])} variant="primary" size="md"
         disabled={speedQuizActive}
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Check size={20} />
         정답 공개
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled={speedQuizActive}
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Square size={20} />
         대기 화면
       </Button>
@@ -99,7 +99,7 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={onShowLeaderboard} variant="secondary" size="md"
         disabled={speedQuizActive}
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Trophy size={20} />
         리더보드
       </Button>
@@ -107,7 +107,7 @@ export default memo(function QuickProgressCard({
     secondaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry || speedQuizActive}
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Play size={20} />
         다음 활동
       </Button>
@@ -116,20 +116,20 @@ export default memo(function QuickProgressCard({
     /* Mystery Box / Hint Quiz — waiting for reveal */
     primaryBtn = (
       <Button onClick={() => onRevealAnswer?.(currentEntry[0])} variant="primary" size="md"
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Eye size={20} />
         정답 공개
       </Button>
     );
     secondaryBtn = canRevealHint ? (
       <Button onClick={() => onRevealHint?.(currentEntry[0])} variant="secondary" size="md"
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <ChevronRight size={20} />
         힌트 공개 ({currentQ.revealedHints || 0}/{(currentQ.hints || []).length})
       </Button>
     ) : (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Square size={20} />
         대기 화면
       </Button>
@@ -139,14 +139,14 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry}
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Play size={20} />
         다음 활동
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Square size={20} />
         대기 화면
       </Button>
@@ -155,14 +155,14 @@ export default memo(function QuickProgressCard({
     /* 정답형 질문 (choice, ox, fillinblank, ranking) — reveal */
     primaryBtn = (
       <Button onClick={() => onRevealAnswer?.(currentEntry[0])} variant="primary" size="md"
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Eye size={20} />
         정답 공개
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Square size={20} />
         대기 화면
       </Button>
@@ -172,14 +172,14 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry}
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Play size={20} />
         다음 활동
       </Button>
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Square size={20} />
         대기 화면
       </Button>
@@ -189,7 +189,7 @@ export default memo(function QuickProgressCard({
     primaryBtn = (
       <Button onClick={handleActivateNext} variant="primary" size="md"
         disabled={!nextEntry || speedQuizActive}
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Play size={20} />
         다음 활동
         {nextEvent && <PartyPopper size={20} />}
@@ -197,7 +197,7 @@ export default memo(function QuickProgressCard({
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled={speedQuizActive}
-        className="h-12 py-2.5 text-sm gap-1.5">
+        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Square size={20} />
         대기 화면
       </Button>

@@ -101,7 +101,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
 
       {/* Header — hidden for Q&A, or when hideTitle is set.
           aiJudge + isPresenter 조합은 상단 공간이 커서 그리드 잘림 → 제목/간격 축소. */}
-      {!isFeed && !question.hideTitle && (() => {
+      {!isFeed && question.type !== 'fillinblank' && !question.hideTitle && (() => {
         const compact = isPresenter && question.type === 'aiJudge';
         return (
           <div className={`text-center self-center ${compact ? 'space-y-1' : 'space-y-2'}`}>
@@ -144,6 +144,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 questionId={currentQId}
                 options={options}
                 presenter={isPresenter}
+                hideResults={isPresenter && question.type === 'quiz' && !answerRevealed}
                 page={question.displayPage || 0}
                 onPageChange={isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined}
                 correctValue={question.correctAnswer}
@@ -167,13 +168,14 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 questionId={currentQId}
                 options={options}
                 presenter={isPresenter}
+                hideResults={isPresenter && !answerRevealed}
                 page={question.displayPage || 0}
                 onPageChange={isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined}
                 correctValue={question.correctAnswer}
                 revealed={answerRevealed}
               />
-              <ConfidenceStats sessionId={sessionId} questionId={currentQId} />
-              {question.betting && (
+              {(!isPresenter || answerRevealed) && <ConfidenceStats sessionId={sessionId} questionId={currentQId} />}
+              {question.betting && (!isPresenter || answerRevealed) && (
                 <BetDistribution sessionId={sessionId} questionId={currentQId} />
               )}
               {isAdmin && !isPresenter && answerRevealed && (

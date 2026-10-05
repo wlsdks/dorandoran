@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { onValue, ref } from 'firebase/database';
-import { db } from '@/lib/firebase';
+import { auth } from '@/lib/auth-session';
+import { realtimeSource, realtimeSnapshot, subscribeRealtime } from '@/lib/realtime-store';
 
 /** 세션 메타만 개별 구독한다. 큰 참가자/채팅 트리를 함께 내려받지 않는다. */
 export function useRealtimeRecord(path, keys, select) {
-  const source = useMemo(() => ({ path, keys, select }), [path, keys, select]);
+  const userId = auth.currentUser?.uid;
+  const source = useMemo(() => ({ path, keys, select, userId }), [path, keys, select, userId]);
   const [snapshot, setSnapshot] = useState(null);
   useEffect(() => {
     if (!source.path) return;
@@ -14,16 +15,22 @@ export function useRealtimeRecord(path, keys, select) {
     const errors = new Map();
     const publish = () => setSnapshot({ source, value, loading: received.size < keys.length && errors.size === 0,
       error: errors.values().next().value || null });
-    const unsubs = keys.map((key) => onValue(ref(db, `${source.path}/${key}`), (snap) => {
-      if (!active) return;
-      const raw = snap.val();
-      const next = source.select?.[key] ? source.select[key](raw) : raw;
-      if (received.has(key) && Object.is(value[key], next) && !errors.has(key)) return;
-      received.add(key);
-      errors.delete(key);
-      value = { ...value, [key]: next };
-      publish();
-    }, (error) => { if (active) { errors.set(key, error); publish(); } }));
+    const unsubs = keys.map(key => {
+      const leaf = realtimeSource(`${source.path}/${key}`, { select: source.select?.[key], userId: source.userId });
+      const receive = () => {
+        if (!active) return;
+        const snapshot = realtimeSnapshot(leaf);
+        if (snapshot.loading) return;
+        if (snapshot.error) { errors.set(key, snapshot.error); publish(); return; }
+        const next = snapshot.value;
+        if (received.has(key) && Object.is(value[key], next) && !errors.has(key)) return;
+        received.add(key); errors.delete(key);
+        value = { ...value, [key]: next }; publish();
+      };
+      const unsubscribe = subscribeRealtime(leaf, receive);
+      receive();
+      return unsubscribe;
+    });
     return () => { active = false; unsubs.forEach((unsub) => unsub()); };
   }, [source, keys]);
   const current = snapshot?.source === source ? snapshot : null;

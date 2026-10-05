@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Volume2, VolumeOff, Sun, Moon, Users, Settings, X, UserRound } from 'lucide-react';
+import { Trophy, Sun, Moon, Users, Settings, X, UserRound } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
@@ -26,16 +26,8 @@ export default function StudentHeader({
     setTheme
   } = useTheme();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [muted, setMuted] = useState(() => localStorage.getItem('dorandoran_sound_muted') === 'true');
   const nickname = getNickname();
   const totalScore = myScore?.total || 0;
-  const toggleMute = useCallback(() => {
-    setMuted(prev => {
-      const next = !prev;
-      localStorage.setItem('dorandoran_sound_muted', String(next));
-      return next;
-    });
-  }, []);
   const handleChangeNickname = useCallback(() => {
     setSettingsOpen(false);
     clearSessionJoined(sessionId);
@@ -72,7 +64,6 @@ export default function StudentHeader({
             <span className="flex items-center gap-2"><Users size={18} />{liveCount}명 참여 중</span>
 
           </div>
-          <button type="button" onClick={toggleMute} aria-label={muted ? '알림음 켜기' : '알림음 끄기'} aria-pressed={!muted} className={rowClass}>{muted ? <VolumeOff size={22} /> : <Volume2 size={22} />}<span className="flex-1">알림음</span><span>{muted ? '꺼짐' : '켜짐'}</span></button>
           <button type="button" onClick={() => setTheme(isDark ? 'light' : 'dark')} aria-label={isDark ? '라이트 모드' : '다크 모드'} className={rowClass}>{isDark ? <Sun size={22} /> : <Moon size={22} />}<span className="flex-1">화면 테마</span><span>{isDark ? '다크' : '라이트'}</span></button>
           <button type="button" onClick={handleChangeNickname} aria-label="닉네임 변경" className={rowClass}><UserRound size={22} /><span className="min-w-0 flex-1 truncate">{nickname || '학습자'}</span><span className="shrink-0">닉네임 변경</span></button>
         </div>

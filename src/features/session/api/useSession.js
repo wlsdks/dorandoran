@@ -29,12 +29,12 @@ const SECONDARY_FIELDS_WITH_POINTER = ['currentQuestion', ...SECONDARY_FIELDS];
 const SESSION_FIELDS = ['questions', ...SECONDARY_FIELDS_WITH_POINTER];
 
 /** 학생에게는 본인 투표만 표시한다. 네트워크 전송량은 기존 중첩 스키마의 한계가 남는다. */
-export function useSession(sessionId, { participantId } = {}) {
+export function useSession(sessionId, { participantId, readOnly = false } = {}) {
   const staffProfile = getStaffSession();
   const privileged = Boolean(staffProfile);
   const keys = privileged ? SESSION_FIELDS : SECONDARY_FIELDS_WITH_POINTER;
   const { value, loading, error } = useRealtimeRecord(sessionId ? `sessions/${sessionId}` : null, keys);
-  const canPublish = staffProfile?.role === 'master' || (staffProfile?.role === 'admin' && staffProfile.uid === value?.creatorId);
+  const canPublish = !readOnly && (staffProfile?.role === 'master' || (staffProfile?.role === 'admin' && staffProfile.uid === value?.creatorId));
   const { value: visible, loading: viewLoading, error: viewError } = useRealtimeValue(!privileged && sessionId ? `sessions/${sessionId}/publicQuestions` : null);
   const questionSignature = Object.keys(visible || EMPTY_RECORD).sort().join(',');
   const questionIds = useMemo(() => questionSignature ? questionSignature.split(',') : [], [questionSignature]);

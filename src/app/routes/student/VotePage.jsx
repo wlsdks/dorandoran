@@ -8,7 +8,6 @@ import { useAchievements } from '@/features/quiz/api/useAchievements';
 import { useSpeedQuizStudent } from '@/features/quiz/api/useSpeedQuizStudent';
 import AchievementToast from '@/features/quiz/components/AchievementToast';
 import { getParticipantId } from '@/lib/participant';
-import { useQuestionChime } from '@/hooks/useQuestionChime';
 import StudentHeader from './StudentHeader';
 import WaitingPage from './WaitingPage';
 import ActivePollView from './ActivePollView';
@@ -25,7 +24,6 @@ export default memo(function VotePage({ sessionId }) {
   const { isRunning: timerRunning, endTime, duration } = useTimer(sessionId);
   const [timerExpired, setTimerExpired] = useState(false);
 
-  useQuestionChime(session?.currentQuestion);
 
   const handleTimerExpire = useCallback(() => setTimerExpired(true), []);
 

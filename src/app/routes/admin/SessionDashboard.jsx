@@ -70,7 +70,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
   const isFiltering = searchQuery.trim() !== '' || statusFilter !== 'all';
 
   const { courseGroups, ungrouped } = useMemo(() => {
-    const groups = {};
+    const groups = Object.create(null);
     const noGroup = [];
     filteredSessions.forEach((s) => {
       if (s.courseName) {

@@ -13,11 +13,15 @@ describe('buildQuestionData', () => {
       correctAnswer: 'B'
     });
   });
-  it('choice: correctAnswer가 목록에 없으면 첫 옵션으로 보정', () => {
+  it('choice: 없는 정답을 임의로 첫 선택지에 지정하지 않는다', () => {
     expect(buildQuestionData('choice', {
       options: ['A', 'B'],
       correctAnswer: 'Z'
-    }).correctAnswer).toBe('A');
+    }).correctAnswer).toBeUndefined();
+  });
+  it('의견 투표는 정답 없이 저장하고 퀴즈는 정답을 유지한다', () => {
+    expect(buildQuestionData('choice', { options: ['실습', '토론'], correctAnswer: '' })).toEqual({ options: ['실습', '토론'] });
+    expect(buildQuestionData('quiz', { options: ['A', 'B'], correctAnswer: 'B' }).correctAnswer).toBe('B');
   });
   it('ranking: correctAnswer는 인덱스 문자열', () => {
     expect(buildQuestionData('ranking', {

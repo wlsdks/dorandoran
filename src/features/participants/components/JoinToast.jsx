@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 import Avatar from '@/components/ui/Avatar';
 import { ROSTER_SOURCE } from '@/lib/roster';
+import { abortableDelay } from '@/lib/async-work';
 
 const MAX_VISIBLE = 5;
 const DISPLAY_MS = 400;
@@ -13,45 +14,41 @@ const MAX_QUEUE = 50;
 export default function JoinToast({ sessionId }) {
   const [visible, setVisible] = useState([]);
   const queueRef = useRef([]);
-  const runningRef = useRef(false);
-  const mountedRef = useRef(true);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => { mountedRef.current = false; };
-  }, []);
-
-  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   // 큐에서 5명씩 꺼내서 하나씩 아래로 추가 → 다 차면 클리어 → 반복
-  async function drainQueue() {
-    if (runningRef.current) return;
-    runningRef.current = true;
+  async function drainQueue(job) {
+    if (job.running) return;
+    job.running = true;
+    const signal = job.controller.signal;
+    try {
 
-    while (mountedRef.current && queueRef.current.length > 0) {
+    while (!signal.aborted && queueRef.current.length > 0) {
       // 5명 한 배치
       const batch = queueRef.current.splice(0, MAX_VISIBLE);
       setVisible([]);
-      await sleep(100);
+      await abortableDelay(100, signal);
 
       for (let i = 0; i < batch.length; i++) {
-        if (!mountedRef.current) break;
-        setVisible(prev => [...prev, { nickname: batch[i], id: Date.now() + Math.random() }]);
-        await sleep(DISPLAY_MS);
+        if (signal.aborted) break;
+        setVisible(prev => [...prev, { sessionId, nickname: batch[i], id: Date.now() + Math.random() }]);
+        await abortableDelay(DISPLAY_MS, signal);
       }
 
       // 배치 표시 후 잠깐 유지 → 클리어
-      await sleep(BATCH_PAUSE_MS);
-      if (!mountedRef.current) break;
+      await abortableDelay(BATCH_PAUSE_MS, signal);
+      if (signal.aborted) break;
       setVisible([]);
-      await sleep(150);
+      await abortableDelay(150, signal);
     }
 
-    runningRef.current = false;
+    } catch (error) { if (!signal.aborted) throw error; }
+    finally { job.running = false; }
   }
 
   useEffect(() => {
     if (!sessionId) return;
+    const job = { controller: new AbortController(), running: false };
+    queueRef.current = [];
     const participantsRef = ref(db, `sessions/${sessionId}/participants`);
     let initial = true;
 
@@ -65,11 +62,11 @@ export default function JoinToast({ sessionId }) {
 
       if (queueRef.current.length >= MAX_QUEUE) queueRef.current.splice(0, 10);
       queueRef.current.push(data.nickname);
-      drainQueue();
+      drainQueue(job).catch(() => {});
     });
 
     const initTimer = setTimeout(() => { initial = false; }, 2000);
-    return () => { unsub(); clearTimeout(initTimer); queueRef.current = []; };
+    return () => { job.controller.abort(); unsub(); clearTimeout(initTimer); queueRef.current = []; };
     // drainQueue는 같은 컴포넌트 inline 함수 + ref-based이라 stale closure 영향 없음
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
@@ -77,7 +74,7 @@ export default function JoinToast({ sessionId }) {
   return (
     <div className="fixed top-20 right-4 z-30 flex flex-col items-end gap-2 pointer-events-none" role="log" aria-label="참여자 알림" aria-live="polite">
       <AnimatePresence>
-        {visible.map((item) => (
+        {visible.filter(item => item.sessionId === sessionId).map((item) => (
           <motion.div
             key={item.id}
             initial={{ opacity: 0, x: 44, scale: 0.92 }}

@@ -22,7 +22,7 @@ export default memo(function Leaderboard({
   const computeDeltas = useCallback(() => {
     // Only compute ranks for visible entries + highlighted entry (not all 300)
     const relevantEntries = entries.slice(0, maxShow + 5);
-    const newRanks = {};
+    const newRanks = Object.create(null);
     relevantEntries.forEach((entry, i) => { newRanks[entry.id] = i; });
     if (highlightId) {
       const hIdx = entries.findIndex(e => e.id === highlightId);
@@ -30,7 +30,7 @@ export default memo(function Leaderboard({
     }
 
     const prev = prevRanksRef.current;
-    const deltas = {};
+    const deltas = Object.create(null);
     Object.keys(newRanks).forEach((id) => {
       if (prev[id] !== undefined) {
         deltas[id] = prev[id] - newRanks[id];

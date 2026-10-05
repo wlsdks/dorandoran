@@ -51,7 +51,7 @@ export default function LivePage() {
   const reducedMotion = useReducedMotion();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('s');
-  const { session, loading } = useSession(sessionId);
+  const { session, loading } = useSession(sessionId, { readOnly: true });
   const { onlineList, count } = useParticipants(sessionId);
   const { isRunning, endTime, duration } = useTimer(sessionId);
   const { leaderboard } = useScores(['leaderboard','combinedRanking'].includes(session?.currentMode) ? sessionId : null);
@@ -62,6 +62,7 @@ export default function LivePage() {
   const currentMode = session?.currentMode;
   const question = currentQId ? session?.questions?.[currentQId] : null;
   const { totalVotes, resultsHidden, loading: votesLoading } = useVotes(sessionId, currentQId);
+  const audienceResultsHidden = resultsHidden || (question?.type === 'quiz' && !question.revealedAt);
 
   // 추첨 대상은 현재 참여자이며 모두 같은 확률로 선택한다.
   // 추첨 모드에서만 계산 — 그 외엔 scores 변경마다 300명 재계산하던 비용 제거.
@@ -195,7 +196,7 @@ export default function LivePage() {
                   <VizRenderer sessionId={sessionId} session={session} isPresenter />
                 </div>
 
-                {question?.type !== 'imageSlide' && <LiveParticipation voted={totalVotes} total={count} resultsHidden={resultsHidden} loading={votesLoading} />}
+                {question?.type !== 'imageSlide' && <LiveParticipation voted={totalVotes} total={count} resultsHidden={audienceResultsHidden} loading={votesLoading} />}
               </motion.div>
             ) : (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="flex flex-col items-center text-center space-y-5">

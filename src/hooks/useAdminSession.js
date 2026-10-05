@@ -70,7 +70,7 @@ export function useAdminSession() {
   const voteCounts = useMemo(() => {
     const questions = session?.questions;
     if (!questions) return {};
-    const counts = {};
+    const counts = Object.create(null);
     for (const q of Object.values(questions)) {
       if (!q.votes) continue;
       for (const pid of Object.keys(q.votes)) { counts[pid] = (counts[pid] || 0) + 1; }

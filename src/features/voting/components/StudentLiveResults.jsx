@@ -1,5 +1,6 @@
 import { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
+import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useVotes } from '@/hooks/useVotes';
 import { formatPercent } from '@/lib/utils';
 import { Users, Check } from 'lucide-react';
@@ -16,6 +17,7 @@ import { Users, Check } from 'lucide-react';
  * @param {string} props.myAnswer - the option this student voted for
  */
 export default memo(function StudentLiveResults({ sessionId, questionId, options, myAnswer }) {
+  const { connected } = useConnectionStatus();
   const { totalVotes, countByValue, resultsHidden, loading } = useVotes(sessionId, questionId);
 
   const maxCount = useMemo(() => {
@@ -38,7 +40,7 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
     >
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 tracking-tight">
-          실시간 집계 <span className="font-normal text-slate-400 dark:text-slate-500">· 확정 전</span>
+          {connected ? '실시간 집계' : '마지막 집계 · 연결 복구 대기'} <span className="font-normal text-slate-400 dark:text-slate-500">· 확정 전</span>
         </p>
         <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
           <Users size={12} />

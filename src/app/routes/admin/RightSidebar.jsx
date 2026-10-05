@@ -1,4 +1,4 @@
-import { useId, useState, memo } from 'react';
+import { useId, useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Users, MessageCircle, BarChart3, Copy, Check, Monitor, ListPlus } from 'lucide-react';
 import ParticipantList from '@/features/participants/components/ParticipantList';
@@ -42,10 +42,13 @@ function SidebarTabs({ activeTab, onChange, id }) {
   );
 }
 
-function SidebarPanel({ id, tab, activeTab, children }) {
+const SidebarPanel = memo(function SidebarPanel({ id, tab, activeTab, children }) {
   const hidden = tab !== activeTab;
+  const [visited, setVisited] = useState(!hidden);
+  useEffect(() => { if (!hidden) setVisited(true); }, [hidden]);
+  if (hidden && !visited) return null;
   return <div id={`${id}-panel-${tab}`} role="tabpanel" aria-labelledby={`${id}-tab-${tab}`} hidden={hidden} inert={hidden} className="space-y-5">{children}</div>;
-}
+}, (previous, next) => previous.id === next.id && previous.tab === next.tab && previous.tab !== previous.activeTab && next.tab !== next.activeTab);
 
 function ActiveRightSidebar({ session, sessionId, count, participants, onlineList, leaderboard, voteCounts, studentUrl, courseId }) {
   const id = useId();
@@ -146,11 +149,11 @@ function ReadOnlyRightSidebar({ session, participants, leaderboard, voteCounts }
 
 export default memo(function RightSidebar({ session, sessionId, effectiveReadOnly, participants, onlineList, count, leaderboard, voteCounts, studentUrl, sidebarCollapsed, isDrawer = false, courseId }) {
   const content = effectiveReadOnly
-    ? <ReadOnlyRightSidebar session={session} participants={participants} leaderboard={leaderboard} voteCounts={voteCounts} />
-    : <ActiveRightSidebar session={session} sessionId={sessionId} count={count} participants={participants} onlineList={onlineList} leaderboard={leaderboard} voteCounts={voteCounts} studentUrl={studentUrl} courseId={courseId} />;
+    ? <ReadOnlyRightSidebar key={sessionId} session={session} participants={participants} leaderboard={leaderboard} voteCounts={voteCounts} />
+    : <ActiveRightSidebar key={sessionId} session={session} sessionId={sessionId} count={count} participants={participants} onlineList={onlineList} leaderboard={leaderboard} voteCounts={voteCounts} studentUrl={studentUrl} courseId={courseId} />;
   if (isDrawer) return content;
   return (
-    <motion.div animate={{ width: sidebarCollapsed ? 0 : '28%', minWidth: sidebarCollapsed ? 0 : 280 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }} className="border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 min-w-0 max-w-[460px] h-full">
+    <motion.div animate={{ width: sidebarCollapsed ? 0 : 'clamp(280px, 22vw, 320px)', minWidth: sidebarCollapsed ? 0 : 280 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }} className="border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 min-w-0 max-w-[460px] h-full">
       <div className="min-w-[280px] p-5 overflow-y-auto h-full scrollbar-hide">{content}</div>
     </motion.div>
   );

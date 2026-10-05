@@ -1,70 +1,10 @@
 import { motion as motionTokens } from '@/lib/design-tokens';
-import { useEffect, useRef, useCallback } from 'react';
+import { useDialogLayer } from '@/hooks/useDialogLayer';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Modal({ open, onClose, children, className = '', ariaLabel, size = 'md', centered = false, theme = '' }) {
-  const dialogRef = useRef(null);
-  const previousFocusRef = useRef(null);
-
-  // ESC key handler + scroll lock
-  useEffect(() => {
-    if (!open) return;
-    const onEscKey = (e) => {
-      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onClose?.(); }
-    };
-    document.addEventListener('keydown', onEscKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onEscKey);
-      document.body.style.overflow = prev;
-    };
-  }, [open, onClose]);
-
-  // Save previous focus and restore on close
-  useEffect(() => {
-    if (!open) {
-      if (previousFocusRef.current) {
-        previousFocusRef.current.focus();
-        previousFocusRef.current = null;
-      }
-      return;
-    }
-    previousFocusRef.current = document.activeElement;
-    const rafId = requestAnimationFrame(() => {
-      dialogRef.current?.focus();
-    });
-    return () => cancelAnimationFrame(rafId);
-  }, [open]);
-
-  // Focus trap: keep Tab cycling within the dialog
-  const trapFocus = useCallback(
-    (e) => {
-      if (e.key !== 'Tab' || !dialogRef.current) return;
-
-      const focusable = dialogRef.current.querySelectorAll(
-        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-      );
-      if (focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (e.shiftKey) {
-        if (document.activeElement === first || document.activeElement === dialogRef.current) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    },
-    []
-  );
+  const { dialogRef, trapFocus } = useDialogLayer(open, onClose);
 
   // Portal로 document.body에 렌더. 조상 중 display:none/hidden (예: 탭 허브 비활성 탭)
   // 이 있어도 Modal 자체는 영향받지 않음.

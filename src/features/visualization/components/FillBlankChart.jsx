@@ -5,10 +5,10 @@ import { normalizeAnswer } from '@/lib/utils';
 import AnswerDistribution from './AnswerDistribution';
 
 /** Renders the sentence with the blank highlighted. */
-function SentenceDisplay({ title, correctAnswer, revealed }) {
+function SentenceDisplay({ title, correctAnswer, revealed, presenter }) {
   const parts = title.split('___');
   return (
-    <p className="text-lg text-slate-700 dark:text-slate-200 leading-relaxed text-center">
+    <h2 className={`${presenter ? 'classroom-question-title' : 'text-3xl'} fillblank-sentence font-bold text-slate-900 dark:text-slate-100 leading-snug text-center`}>
       {parts.map((part, i) => (
         <span key={i}>
           {part}
@@ -17,7 +17,7 @@ function SentenceDisplay({ title, correctAnswer, revealed }) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.2 }}
-              className={`inline-block mx-1 px-3 py-1 rounded-lg text-lg font-bold tracking-tight border-b-2 ${
+              className={`inline-block mx-1 px-3 py-1 rounded-lg font-bold tracking-tight border-b-2 ${
                 revealed
                   ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-500'
                   : 'bg-slate-50 dark:bg-slate-700 text-slate-300 border-dashed border-slate-300 dark:border-slate-500'
@@ -28,7 +28,7 @@ function SentenceDisplay({ title, correctAnswer, revealed }) {
           )}
         </span>
       ))}
-    </p>
+    </h2>
   );
 }
 
@@ -70,10 +70,10 @@ export default memo(function FillBlankChart({ sessionId, questionId, title, corr
   return (
     <div className="space-y-6 w-full max-w-xl mx-auto px-8">
       {/* Sentence with blank */}
-      <SentenceDisplay title={title} correctAnswer={correctAnswer} revealed={revealed} />
+      <SentenceDisplay title={title} correctAnswer={correctAnswer} revealed={revealed} presenter={presenter} />
 
       {/* Accuracy hero stat */}
-      {correctAnswer && totalVotes > 0 && (
+      {revealed && correctAnswer && totalVotes > 0 && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

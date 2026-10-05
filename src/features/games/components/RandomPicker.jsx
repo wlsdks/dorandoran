@@ -7,7 +7,6 @@ import { useDrawDisplay, drawPrimary, drawSecondary } from '@/lib/draw-display';
 import { useGameMirror } from '../api/useGameMirror';
 import DrawDisplayToggle from './DrawDisplayToggle';
 import { hapticSuccess } from '@/lib/haptics';
-import { unlockNotificationAudio, playCorrect } from '@/lib/chime';
 
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 
@@ -21,8 +20,8 @@ const TICK_MS = 1000;
  * 왜 안 나오지"처럼 보이고, 가려진 채 도는 편이 "지금 고르는 중"으로 읽힌다.
  */
 const MASK_MS = 700;
-/** 카운트다운 숫자별 회전 간격과 흐림. 숫자가 내려갈수록 느려지고 뿌예진다. */
-const TENSION = { 3: { spin: 240, blur: 3 }, 2: { spin: 400, blur: 5 }, 1: { spin: 620, blur: 8 } };
+/** 카운트다운 숫자별 회전 간격. 숫자가 내려갈수록 느려지고 뿌예진다. */
+const TENSION = { 3: { spin: 240 }, 2: { spin: 400 }, 1: { spin: 620 } };
 
 /**
  * RandomPicker — 랜덤 발표자 선정 (콜드콜).
@@ -82,8 +81,8 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
   // 전자칠판에서도 이름이 돌아야 한다 — 굴러가는 이름은 연출이라 각 화면이 따로 만든다
   useEffect(() => {
     if (!isView) return;
-    if (reduced || !viewPicking || viewSelected || participants.length === 0) return;
-    const interval = viewMasked ? 60 : (TENSION[viewCountdown]?.spin ?? 90);
+    if (reduced || viewMasked || !viewPicking || viewSelected || participants.length === 0) return;
+    const interval = TENSION[viewCountdown]?.spin ?? 90;
     const spin = setInterval(() => {
       setRolling(participants[Math.floor(Math.random() * participants.length)]);
     }, interval);
@@ -101,7 +100,6 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
    */
   const pick = useCallback(() => {
     if (isView || picking || names.length === 0) return;
-    unlockNotificationAudio();
     setMirrorError(false);
     timeoutsRef.current.splice(0).forEach(clearTimeout);
     serialRef.current += 1;
@@ -141,11 +139,11 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
     at(SPIN_MS, () => { setCountdown(3); spin(TENSION[3].spin); });
     at(SPIN_MS + TICK_MS, () => { setCountdown(2); spin(TENSION[2].spin); });
     at(SPIN_MS + TICK_MS * 2, () => { setCountdown(1); spin(TENSION[1].spin); });
-    // 1이 끝나면 이름을 가린다. 회전은 계속 — 가려진 채로 빠르게 돌다가 확정된 사람이 나온다.
+    // 1이 끝나면 이름을 가린다. 표시하지 않는 이름의 재렌더를 멈추고 확정된 사람을 공개한다.
     at(SPIN_MS + TICK_MS * 3, () => {
       setCountdown(null);
       setMasked(true);
-      spin(60);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     });
     at(SPIN_MS + TICK_MS * 3 + MASK_MS, async () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -159,7 +157,6 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
       setHistory(prev => [...prev, { id: winnerP.id, nickname: winnerP.nickname }]);
       if (!synchronized) { setMirrorError(true); return; }
       hapticSuccess();
-      playCorrect();
       // employeeId까지 넘긴다 — 사번으로 호명하는 자리에서는 사번이 실제 식별자다
       onResult?.([{
         id: winnerP.id,
@@ -277,17 +274,15 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
             {viewSelected ? (
               <motion.div
                 key="selected"
-                initial={{ opacity: 0.6, scale: reduced ? 1 : 0.96, filter: reduced ? "blur(0px)" : "blur(12px)" }}
+                initial={{ opacity: 0.6, scale: reduced ? 1 : 0.96 }}
                 animate={{
                   opacity: 1,
                   scale: 1,
-                  filter: 'blur(0px)',
                   x: reduced ? 0 : [0, -4, 3, 0], // 흐림이 걷히는 동안 한 번 흔들린다
                 }}
                 transition={{
                   opacity: { duration: 0.5, ease: 'easeOut' },
                   scale: { type: 'spring', stiffness: 260, damping: 15, delay: 0.25 },
-                  filter: { duration: reduced ? 0 : 0.45, ease: [0.22, 1, 0.36, 1] },
                   x: { duration: 0.6, ease: 'easeInOut', delay: 0.3 },
                 }}
                 className="text-center"
@@ -306,10 +301,10 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
                 animate={{ y: 0, opacity: 0.6 }}
                 exit={{ y: -14, opacity: 0 }}
                 transition={{ duration: 0.09, ease: 'linear' }}
-                style={{ filter: `blur(${viewMasked ? 18 : (TENSION[viewCountdown]?.blur ?? 0.6)}px)` }}
+
                 className="text-3xl font-bold text-slate-400 dark:text-slate-500 tracking-tight tabular-nums"
               >
-                {drawPrimary(rolling, displayMode)}
+                {viewMasked ? '곧 공개합니다' : drawPrimary(rolling, displayMode)}
               </motion.p>
             ) : (
               <p className={isView ? "text-2xl text-slate-300" : "text-lg text-slate-400"}>

@@ -1,5 +1,5 @@
 import { useMemo, memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useVotes } from '@/hooks/useVotes';
 
 /**
@@ -12,7 +12,7 @@ function bucketize(voteList) {
   const buckets = new Array(BUCKET_COUNT).fill(0);
   voteList.forEach((v) => {
     const num = parseInt(v.value, 10);
-    if (isNaN(num)) return;
+    if (!Number.isFinite(num) || num < 0 || num > 100) return;
     const idx = Math.min(Math.floor(num / 10), BUCKET_COUNT - 1);
     buckets[idx]++;
   });
@@ -60,146 +60,62 @@ function getBarColor(bucketIndex) {
 
 export default memo(function ScaleChart({ sessionId, questionId, minLabel = '낮음', maxLabel = '높음' }) {
   const { voteList, totalVotes } = useVotes(sessionId, questionId);
+  const reduced = useReducedMotion();
 
   const buckets = useMemo(() => bucketize(voteList), [voteList]);
   const stats = useMemo(() => computeStats(voteList), [voteList]);
   const maxBucket = useMemo(() => Math.max(...buckets, 1), [buckets]);
 
   return (
-    <div className="space-y-7 w-full max-w-xl mx-auto px-8">
-      {/* Average hero display */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="text-center"
-      >
-        <motion.p
-          key={stats.avg}
-          initial={{ scale: 1.2 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-          className="text-7xl font-bold text-slate-900 dark:text-slate-100 tabular-nums leading-none"
-        >
+    <section className="scale-result w-full max-w-xl mx-auto px-4" aria-label="척도 응답 결과">
+      <div className="text-center">
+        <p className="scale-result-average font-bold text-slate-900 dark:text-slate-100 tabular-nums leading-none">
           {stats.count > 0 ? stats.avg : '--'}
-        </motion.p>
-        <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">평균 · 100점 만점</p>
-      </motion.div>
-
-      {/* 감정 온도계 게이지 — 아쉬움 → 최고, 평균 위치를 포인터로 명확히 */}
-      {stats.count > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          {/* 평균 포인터 (트랙 위) */}
-          <div className="relative h-7">
-            <motion.div
-              className="absolute flex flex-col items-center -translate-x-1/2"
-              initial={{ left: '0%', opacity: 0 }}
-              animate={{ left: `${stats.avg}%`, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            >
-              <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums mb-0.5 whitespace-nowrap">평균 {stats.avg}</span>
-              <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-slate-900 dark:border-t-slate-100" />
-            </motion.div>
-          </div>
-          {/* 그라데이션 트랙 (낮음→높음) */}
-          <div className="relative h-5 rounded-full bg-gradient-to-r from-slate-200 via-slate-400 to-slate-700 dark:from-slate-700 dark:via-slate-500 dark:to-slate-200">
-            {/* 중앙값 마커 */}
-            {stats.count >= 3 && (
-              <motion.div
-                className="absolute top-1/2 -translate-y-1/2 w-1 h-7 rounded-full bg-white/90 dark:bg-slate-900/70 ring-1 ring-black/10"
-                style={{ left: `${stats.median}%` }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                title={`중앙값: ${stats.median}`}
-              />
-            )}
-          </div>
-          {/* 양끝 라벨 — 실제 척도 의미(아쉬움/최고)를 크게 */}
-          <div className="flex justify-between mt-2.5">
-            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{minLabel}</span>
-            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{maxLabel}</span>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Distribution histogram */}
-      {stats.count > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.3 }}
-          className="space-y-2"
-        >
-          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">응답 분포</p>
-          <div className="scale-histogram flex items-end gap-1.5 h-24">
-            {buckets.map((count, i) => {
-              const heightPct = maxBucket > 0 ? (count / maxBucket) * 100 : 0;
-              return (
-                <motion.div
-                  key={i}
-                  className="flex-1 h-full flex flex-col items-center justify-end gap-1"
-                >
-                  {count > 0 && (
-                    <motion.span
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tabular-nums"
-                    >
-                      {count}
-                    </motion.span>
-                  )}
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: `${Math.max(heightPct * 0.75, count > 0 ? 8 : 2)}%` }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 20, delay: i * 0.05 }}
-                    className={`w-full rounded-t-md ${count > 0 ? getBarColor(i) : 'bg-slate-100 dark:bg-slate-800'}`}
-                    style={{ minHeight: count > 0 ? '4px' : '2px' }}
-                  />
-                </motion.div>
-              );
-            })}
-          </div>
-          {/* 분포 축 라벨 — 왼쪽=낮은 점수, 오른쪽=높은 점수 (숫자 버킷보다 직관적) */}
-          <div className="flex justify-between pt-1 border-t border-slate-100 dark:border-slate-700/60">
-            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">{minLabel}</span>
-            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">{maxLabel}</span>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Stats summary */}
-      {stats.count >= 3 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="flex justify-center gap-6"
-        >
-          <div className="text-center">
-            <p className="text-lg font-bold tracking-tight text-slate-700 dark:text-slate-200 tabular-nums">{stats.median}</p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500">중앙값</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold tracking-tight text-slate-700 dark:text-slate-200 tabular-nums">{stats.min}</p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500">최솟값</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold tracking-tight text-slate-700 dark:text-slate-200 tabular-nums">{stats.max}</p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500">최댓값</p>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Total count */}
-      <div className="text-center text-slate-400 text-sm pt-2 border-t border-slate-100 dark:border-slate-700">
-        총 <span className="text-slate-600 dark:text-slate-300 font-semibold">{totalVotes}</span>명 응답
+        </p>
+        <p className="scale-result-caption text-slate-500 dark:text-slate-300 mt-2">평균 · 100점 만점</p>
       </div>
-    </div>
+
+      {stats.count > 0 && <>
+        <div>
+          <div className="relative h-4 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden"
+            role="img" aria-label={`평균 ${stats.avg}점, ${minLabel}에서 ${maxLabel} 사이`}>
+            <motion.div className="h-full w-full bg-indigo-500 dark:bg-indigo-400 origin-left"
+              initial={{ scaleX: reduced ? stats.avg / 100 : 0 }} animate={{ scaleX: stats.avg / 100 }}
+              transition={{ duration: reduced ? 0 : 0.24, ease: 'easeOut' }} />
+          </div>
+          <div className="scale-result-caption flex justify-between gap-4 mt-2 text-slate-600 dark:text-slate-300 font-medium">
+            <span>{minLabel}</span><span className="text-right">{maxLabel}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <p className="scale-result-caption font-medium text-slate-600 dark:text-slate-300">응답 분포</p>
+          <div className="scale-result-histogram flex items-end gap-1.5" role="img"
+            aria-label={buckets.map((count, i) => `${i * 10}~${i === BUCKET_COUNT - 1 ? 100 : i * 10 + 9}점 ${count}명`).join(', ')}>
+            {buckets.map((count, i) => (
+              <div key={i} className="flex-1 h-full min-w-0 flex flex-col gap-1">
+                <span className="scale-result-caption text-center font-semibold text-slate-500 dark:text-slate-300 tabular-nums" aria-hidden="true">
+                  {count > 0 ? count : '\u00a0'}
+                </span>
+                <div className="flex-1 min-h-0">
+                  <motion.div className={`h-full w-full rounded-t-md origin-bottom ${count > 0 ? getBarColor(i) : 'bg-slate-200 dark:bg-slate-700'}`}
+                    initial={{ scaleY: reduced ? Math.max(count / maxBucket, 0.02) : 0 }}
+                    animate={{ scaleY: Math.max(count / maxBucket, 0.02) }}
+                    transition={{ duration: reduced ? 0 : 0.24, ease: 'easeOut' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="scale-result-caption flex justify-between text-slate-500 dark:text-slate-300 border-t border-slate-200 dark:border-slate-700 pt-2" aria-hidden="true">
+            <span>0점</span><span>100점</span>
+          </div>
+        </div>
+      </>}
+
+      <p className="scale-result-caption text-center text-slate-500 dark:text-slate-300 tabular-nums">
+        {stats.count >= 3 && <>중앙값 <strong className="text-slate-700 dark:text-slate-100">{stats.median}</strong> · 범위 {stats.min}–{stats.max}점 · </>}
+        총 <strong className="text-slate-700 dark:text-slate-100">{totalVotes}</strong>명 응답
+      </p>
+    </section>
   );
 });

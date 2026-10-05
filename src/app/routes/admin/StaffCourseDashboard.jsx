@@ -74,7 +74,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
     if (courses.length === 0) return;
     authenticatedRequest('/api/staff/resources', { resource: 'sessions' }).then(({ items }) => {
       const data = Object.fromEntries(items.map(item => [item.id, item]));
-      const counts = {};
+      const counts = Object.create(null);
       Object.values(data).forEach((s) => {
         if (s.courseId && (s.status === 'active' || s.status === 'reviewing')) {
           counts[s.courseId] = (counts[s.courseId] || 0) + 1;

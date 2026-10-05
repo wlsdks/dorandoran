@@ -51,17 +51,21 @@ export function ChoiceOptionsSection({ options, setOptions, correctAnswer, setCo
   );
 }
 
-export function CorrectAnswerSection({ options, correctAnswer, setCorrectAnswer, setLocalError }) {
+export function CorrectAnswerSection({ optional = false, options, correctAnswer, setCorrectAnswer, setLocalError }) {
   return (
     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }} className={GAP}>
-      <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">정답 선택</p>
+      <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">{optional ? '정답 선택 (선택)' : '정답 선택'}</p>
+      {optional && <>
+        <p className="text-sm text-slate-500 dark:text-slate-300 mb-2">의견을 묻는 투표는 정답 없이 진행할 수 있어요.</p>
+        <button type="button" aria-pressed={!correctAnswer} onClick={() => { setCorrectAnswer(''); setLocalError(null); }} className="min-h-11 px-3 mb-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200">정답 없음 · 의견 투표</button>
+      </>}
       <div className="flex flex-wrap gap-2">
         {options.filter((o) => o.trim()).map((option, i) => {
           const isCorrect = correctAnswer === option;
           return (
-            <button key={option} onClick={() => { setCorrectAnswer(option); setLocalError(null); }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.96] flex items-center gap-1.5 ${
+            <button key={option} aria-pressed={isCorrect} onClick={() => { setCorrectAnswer(option); setLocalError(null); }}
+              className={`min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.96] flex items-center gap-1.5 ${
                 isCorrect ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'}`}>
               {isCorrect && <Check size={14} />}
               <span className="font-bold">{OPTION_LABELS[i]}</span>{option}

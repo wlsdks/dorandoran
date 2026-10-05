@@ -1,3 +1,4 @@
+import { useDialogLayer } from '@/hooks/useDialogLayer';
 import { useState, useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,13 +16,7 @@ export default memo(function ChatPanel({ sessionId, senderName, senderType, open
   const isStaffOrInstructor = senderType === 'staff' || senderType === 'instructor';
   const [channel, setChannel] = useState('public');
 
-  // 패널 열릴 때 배경 스크롤 잠금
-  useEffect(() => {
-    if (!open || inline) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, [open, inline]);
+  const { dialogRef, trapFocus } = useDialogLayer(open && !inline, onClose);
 
   const publicChat = useChat(sessionId);
   // Only subscribe to staffChat for staff/instructor — students skip the Firebase listener entirely
@@ -134,7 +129,7 @@ export default memo(function ChatPanel({ sessionId, senderName, senderType, open
       {open && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" onClick={onClose} />
-          <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="mobile-conversation fixed inset-x-0 bottom-0 top-[max(10vh,env(safe-area-inset-top))] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[420px] sm:h-[600px] bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden">
+          <motion.div ref={dialogRef} role="dialog" aria-modal="true" aria-label={channel === 'staff' ? '운영 채팅' : '전체 채팅'} tabIndex={-1} onKeyDown={trapFocus} initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="mobile-conversation fixed inset-x-0 bottom-0 top-[max(10vh,env(safe-area-inset-top))] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[420px] sm:h-[600px] bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden">
             {/* Drag handle (mobile only) */}
             <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
               <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-600" />

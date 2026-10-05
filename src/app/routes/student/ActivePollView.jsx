@@ -95,11 +95,11 @@ export default memo(function ActivePollView({
         )}
 
         {/* Question title card */}
-        <QuestionCard
+        {question.type !== 'fillinblank' && <QuestionCard
           question={question}
           questionId={questionId}
           questionProgress={questionProgress}
-        />
+        />}
 
         {/* Timer countdown bar */}
         <AnimatePresence>
