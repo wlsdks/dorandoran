@@ -28,7 +28,7 @@ const app = initializeApp({
     databaseURL: 'https://demo-dorandoran.firebaseio.com'
   }, 'copy-QA'),
   db = getDatabase(app),
-  sid = 'qa_endstate_' + process.pid,
+  sid = 'qa_endstate_long_session_code_for_mobile_' + process.pid,
   report = {
     checks: [],
     errors: []
@@ -84,7 +84,43 @@ let browser, uid;
     name: '학습자 설정'
   })).toBeVisible();
   uid = await p.evaluate(async () => (await import('/src/lib/auth-session.js')).auth.currentUser.uid);
+  const codeButton = p.getByRole('button', { name: '세션 코드 복사', exact: true });
+  await expect(codeButton).toBeVisible();
+  for (const font of [16, 24]) {
+    await p.setViewportSize({ width: 320, height: 844 });
+    await p.evaluate(font => document.documentElement.style.fontSize = font + 'px', font);
+    await expect.poll(() => codeButton.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      return box.left >= 0 && box.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth;
+    })).toBe(true);
+    await p.waitForTimeout(700);
+    await p.screenshot({ path: path.join(process.env.QA_ARTIFACT_DIR || os.tmpdir(), `dorandoran-code-320-font${font}-${process.pid}.png`) });
+  }
+  await p.evaluate(() => document.documentElement.style.fontSize = '16px');
+  await p.setViewportSize({ width: 390, height: 844 });
+  report.checks.push('long session code stays within 320px viewport at normal and large font sizes');
+  await p.evaluate(() => Object.defineProperty(navigator, 'clipboard', {
+    configurable: true, value: { writeText: async value => { window.__copiedCode = value; } }
+  }));
+  await codeButton.click();
+  await expect.poll(() => p.evaluate(() => window.__copiedCode)).toBe(sid);
+  expect(await p.evaluate(() => window.__copyTimers.size)).toBe(1);
   await db.ref('sessions/' + sid + '/status').set('ended');
+  await expect(codeButton).toHaveCount(0);
+  await expect.poll(() => p.evaluate(() => window.__copyTimers.size)).toBe(0);
+  report.checks.push('truncated code copies its full value and clears feedback timer on waiting-page unmount');
+  await db.ref('sessions/' + sid).update({ status: 'active', currentMode: 'joinShow' });
+  await expect(codeButton).toBeVisible();
+  await p.evaluate(() => Object.defineProperty(navigator, 'clipboard', {
+    configurable: true, value: { writeText: () => new Promise(resolve => { window.__resolveWaitingCopy = resolve; }) }
+  }));
+  await codeButton.click();
+  await db.ref('sessions/' + sid + '/status').set('ended');
+  await expect(codeButton).toHaveCount(0);
+  await p.evaluate(() => window.__resolveWaitingCopy());
+  await p.waitForTimeout(200);
+  expect(await p.evaluate(() => window.__copyTimers.size)).toBe(0);
+  report.checks.push('waiting-page clipboard completion after unmount does not schedule feedback');
   await expect(p.getByRole('button', {
     name: '링크 복사',
     exact: true

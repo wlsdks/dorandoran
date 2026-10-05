@@ -13,16 +13,16 @@ import { useGameResult } from '@/features/games/api/useGameResult';
 import PersistentAssignmentCard from '@/features/ai-judge/components/PersistentAssignmentCard';
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 const TIPS = [{
-  text: '강사가 질문을 활성화하면 자동으로 전환됩니다',
+  text: '활동이 시작되면 화면이 자동으로 바뀌어요',
   icon: Zap
 }, {
-  text: '하단 바에서 손들기, 긴급 질문을 보낼 수 있어요',
+  text: '질문이 있으면 아래에서 손들기나 질문을 눌러주세요',
   icon: Hand
 }, {
-  text: '채팅으로 다른 학생들과 소통해보세요',
+  text: '채팅으로 강사와 다른 학습자에게 이야기를 전해보세요',
   icon: MessageSquare
 }, {
-  text: '퀴즈에서 빠르게 답하면 보너스 점수를 받을 수 있어요',
+  text: '상단 총점을 누르면 내 점수와 계산 기준을 볼 수 있어요',
   icon: Trophy
 }, {
   text: '하단 반응 버튼으로 수업에 참여해보세요',
@@ -79,19 +79,29 @@ function CopyableCode({
 }) {
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef(null);
-  useEffect(() => () => clearTimeout(copiedTimer.current), []);
+  const copyScope = useRef(null);
+  useEffect(() => {
+    const scope = { active: true };
+    copyScope.current = scope;
+    return () => {
+      scope.active = false;
+      clearTimeout(copiedTimer.current);
+    };
+  }, []);
   const handleCopy = useCallback(async () => {
+    const scope = copyScope.current;
     try {
       await navigator.clipboard.writeText(code);
+      if (!scope?.active || copyScope.current !== scope) return;
       setCopied(true);
       clearTimeout(copiedTimer.current);
       copiedTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {/* clipboard not available */}
   }, [code]);
-  return <button onClick={handleCopy} className="inline-flex items-center gap-1.5 min-h-11 px-3.5 py-2 rounded-full text-[13px] font-medium bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700/60 text-slate-500 dark:text-slate-400 transition-colors duration-150 active:scale-[0.96]" aria-label="세션 코드 복사">
-      {code}
+  return <button onClick={handleCopy} className="inline-flex max-w-full min-w-0 items-center gap-1.5 min-h-11 px-3.5 py-2 rounded-full text-[13px] font-medium bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700/60 text-slate-500 dark:text-slate-400 transition-colors duration-150 active:scale-[0.96]" aria-label="세션 코드 복사">
+      <span className="min-w-0 truncate" title={code}>{code}</span>
       <AnimatePresence mode="wait">
-        {copied ? <motion.span key="check" initial={{
+        {copied ? <motion.span key="check" className="shrink-0" initial={{
         scale: 0.5,
         opacity: 0
       }} animate={{
@@ -102,7 +112,7 @@ function CopyableCode({
         opacity: 0
       }}>
             <Check size={12} className="text-emerald-500" />
-          </motion.span> : <motion.span key="copy" initial={{
+          </motion.span> : <motion.span key="copy" className="shrink-0" initial={{
         scale: 0.5,
         opacity: 0
       }} animate={{
@@ -369,7 +379,7 @@ export default memo(function WaitingPage({
             stiffness: 300,
             damping: 25
           }} className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight leading-tight">
-                  {nickname} 님, 준비됐어요!
+                  {nickname}님, 준비됐어요!
                 </motion.p>}
               {courseName && <motion.p initial={{
             opacity: 0
@@ -479,7 +489,7 @@ export default memo(function WaitingPage({
           stiffness: 300,
           damping: 25
         }} className="flex items-center justify-center">
-              <CopyableCode code={sessionId} />
+              <CopyableCode key={sessionId} code={sessionId} />
             </motion.div>
 
             {/* Rotating tips */}

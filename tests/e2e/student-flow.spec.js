@@ -59,7 +59,7 @@ test.describe('학생 플로우', () => {
     await page.getByText('참여하기').click();
 
     // Should transition to WaitingPage (no active question yet)
-    await expect(page.getByText('강사가 질문을 활성화하면')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('테스트학생님, 준비됐어요!', { exact: true })).toBeVisible({ timeout: 10000 });
   });
 
   test('질문 활성화 시 투표 화면으로 자동 전환', async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe('학생 플로우', () => {
 
     await page.getByPlaceholder('닉네임 입력').fill('학생A');
     await page.getByText('참여하기').click();
-    await expect(page.getByText('강사가 질문을 활성화하면')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('학생A님, 준비됐어요!', { exact: true })).toBeVisible({ timeout: 10000 });
 
     // Activate question from Firebase
     await activateQuestion(sessionId, 'q1');
