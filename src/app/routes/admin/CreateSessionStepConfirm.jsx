@@ -78,11 +78,11 @@ export default function CreateSessionStepConfirm({
         <div className="flex items-center justify-between">
           <span className="text-slate-500 text-sm">차수</span>
           <div className="flex items-center gap-2">
-            <button onClick={() => onSetRoundNumber(Math.max(1, roundNumber - 1))} className="w-7 h-7 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors duration-150 active:scale-90 text-sm font-medium">
+            <button onClick={() => onSetRoundNumber(Math.max(1, roundNumber - 1))} aria-label="차수 줄이기" className="w-7 h-7 max-sm:w-11 max-sm:h-11 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors duration-150 active:scale-90 text-sm font-medium">
               -
             </button>
             <span className="font-bold text-slate-900 dark:text-slate-100 text-lg w-10 text-center">{roundNumber}</span>
-            <button onClick={() => onSetRoundNumber(roundNumber + 1)} className="w-7 h-7 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors duration-150 active:scale-90 text-sm font-medium">
+            <button onClick={() => onSetRoundNumber(roundNumber + 1)} aria-label="차수 늘리기" className="w-7 h-7 max-sm:w-11 max-sm:h-11 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors duration-150 active:scale-90 text-sm font-medium">
               +
             </button>
             <span className="text-slate-400 text-sm">차</span>

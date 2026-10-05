@@ -18,7 +18,7 @@ export default function SessionSearchFilter({ searchQuery, onSearchChange, statu
     <div className="space-y-4">
       {/* Search input + action */}
       <div className="flex items-center gap-3">
-      <div className="relative flex-1">
+      <div className="relative flex-1 min-w-0">
         <Search
           size={16}
           className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors duration-150 ${
@@ -34,7 +34,7 @@ export default function SessionSearchFilter({ searchQuery, onSearchChange, statu
           onBlur={() => setFocused(false)}
           placeholder="강의명으로 검색..."
           aria-label="세션 검색"
-          className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-9 py-2.5 text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150"
+          className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-9 max-sm:pr-12 py-2.5 text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150"
         />
         <AnimatePresence>
           {searchQuery && (
@@ -47,7 +47,7 @@ export default function SessionSearchFilter({ searchQuery, onSearchChange, statu
                 onSearchChange('');
                 inputRef.current?.focus();
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90"
+              className="absolute right-3 max-sm:right-0 top-1/2 -translate-y-1/2 p-0.5 max-sm:min-h-11 max-sm:min-w-11 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90"
               aria-label="검색어 지우기"
             >
               <X size={14} />
@@ -64,7 +64,7 @@ export default function SessionSearchFilter({ searchQuery, onSearchChange, statu
           <button
             key={filter.key}
             onClick={() => onStatusChange(filter.key)}
-            className={`shrink-0 px-3 py-1 text-xs font-medium rounded-lg transition-colors duration-150 active:scale-[0.96] ${
+            className={`shrink-0 px-3 py-1 max-sm:min-h-11 text-xs font-medium rounded-lg transition-colors duration-150 active:scale-[0.96] ${
               statusFilter === filter.key
                 ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                 : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'

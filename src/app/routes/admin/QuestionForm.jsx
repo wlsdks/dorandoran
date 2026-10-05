@@ -159,9 +159,9 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
 
       {/* 제목 표시 설정 */}
       <div className="pt-2">
-        <button type="button" onClick={() => setHideTitle(!hideTitle)}
-          className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
-          <span className={`w-4 h-4 rounded border flex items-center justify-center text-xs ${hideTitle ? 'bg-slate-900 dark:bg-slate-100 border-slate-900 dark:border-slate-100 text-white dark:text-slate-900' : 'border-slate-300 dark:border-slate-600'}`}>
+        <button type="button" onClick={() => setHideTitle(!hideTitle)} aria-pressed={hideTitle}
+          className="flex max-sm:min-h-11 items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+          <span aria-hidden="true" className={`w-4 h-4 rounded border flex items-center justify-center text-xs ${hideTitle ? 'bg-slate-900 dark:bg-slate-100 border-slate-900 dark:border-slate-100 text-white dark:text-slate-900' : 'border-slate-300 dark:border-slate-600'}`}>
             {hideTitle && '✓'}
           </span>
           프레젠터/전자칠판에서 제목 숨기기
