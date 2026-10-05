@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { auth, getStaffSession } from '@/lib/auth-session';
+import { throwIfAborted, withDeadline } from '@/lib/async-work';
 
 const PROXY_URL = (import.meta.env.VITE_GEMINI_PROXY_URL || '/api/gemini').replace(/\/$/, '');
 import { AI_ENABLED, AI_DISABLED_MESSAGE, hasVerifiedAIConfiguration } from '@/lib/ai-config';
@@ -16,14 +17,20 @@ export function getGeminiModel({ model, generationConfig = {}, systemInstruction
     baseUrl: new URL(PROXY_URL, window.location.origin).href, apiVersion: 'v1beta',
   } });
   return {
-    async generateContent(request) {
-      if (!auth.currentUser) throw new Error('승인된 강사 로그인이 필요합니다.');
-      const payload = typeof request === 'string' || Array.isArray(request) ? { contents: request } : request;
-      const result = await client.models.generateContent({ model, contents: payload.contents,
-        config: { ...generationConfig, ...payload.generationConfig, systemInstruction: payload.systemInstruction || systemInstruction,
-          safetySettings: payload.safetySettings || safetySettings, httpOptions: { headers: { Authorization: `Bearer ${await auth.currentUser.getIdToken()}` } } },
-      });
-      return { response: { text: () => result.text || '' } };
+    async generateContent(request, { signal, timeoutMs = 45000, timeoutMessage = 'AI 요청 타임아웃' } = {}) {
+      return withDeadline(async requestSignal => {
+        if (!auth.currentUser) throw new Error('승인된 강사 로그인이 필요합니다.');
+        const user = auth.currentUser;
+        const token = await user.getIdToken();
+        throwIfAborted(requestSignal);
+        if (auth.currentUser?.uid !== user.uid) throw new Error('로그인이 변경되어 요청을 중단했습니다.');
+        const payload = typeof request === 'string' || Array.isArray(request) ? { contents: request } : request;
+        const result = await client.models.generateContent({ model, contents: payload.contents,
+          config: { ...generationConfig, ...payload.generationConfig, systemInstruction: payload.systemInstruction || systemInstruction,
+            safetySettings: payload.safetySettings || safetySettings, httpOptions: { abortSignal: requestSignal, timeout: timeoutMs, headers: { Authorization: `Bearer ${token}` } } },
+        });
+        return { response: { text: () => result.text || '' } };
+      }, timeoutMs, { signal, message: timeoutMessage });
     },
   };
 }

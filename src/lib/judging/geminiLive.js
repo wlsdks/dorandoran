@@ -3,6 +3,7 @@
  * 분리 이유: 사후 과제(gemini.js)와 라이브 심사는 호출 패턴/프롬프트/모델 fallback이 다르고
  * 합치면 698줄까지 커져 navigability가 떨어짐.
  */
+import { abortableDelay, throwIfAborted } from '@/lib/async-work';
 import { JUDGES } from './judges';
 import { getGeminiModel } from '@/lib/gemini/client';
 import { withRetry, urlToInlinePart, parseJudgeResponse } from './gemini';
@@ -20,7 +21,7 @@ const LIVE_MODEL_NAME = 'gemini-2.5-flash-lite';
  * 이미지 로드 실패는 throw로 승격 — 네트워크 문제로 다른 학생 대비 점수가 왜곡되는
  * 것보다 "이 판사 실패"로 마킹 후 avgScore에서 제외하는 게 공정함.
  */
-async function buildLiveParts(submission) {
+async function buildLiveParts(submission, signal) {
   const parts = [];
   // 심사 편향 방지를 위해 제출자 이름은 AI에 전달하지 않음 — 작품(제목/설명/이미지/코드) 자체만 평가.
   const textBits = [];
@@ -41,10 +42,11 @@ async function buildLiveParts(submission) {
     let imagePart = null;
     for (let i = 0; i < 3; i++) {
       try {
-        imagePart = await urlToInlinePart(submission.imageUrl);
+        imagePart = await urlToInlinePart(submission.imageUrl, { signal });
         break;
       } catch {
-        if (i < 2) await new Promise(r => setTimeout(r, 400 * (i + 1)));
+        throwIfAborted(signal);
+        if (i < 2) await abortableDelay(400 * (i + 1), signal);
       }
     }
     if (imagePart) {
@@ -126,9 +128,9 @@ const LIVE_MODEL_FALLBACKS = [
  * 이전 구조: 7명 × N건 = 7N회 호출 (rate limit + quota 부담)
  * 신 구조: N건 = N회 호출 (1/7로 축소)
  */
-async function evaluateAllJudgesAtOnce(submission, questionTitle) {
+async function evaluateAllJudgesAtOnce(submission, questionTitle, signal) {
   const systemInstruction = buildAllJudgesSystemInstruction(questionTitle);
-  const { parts, imageFailed } = await buildLiveParts(submission);
+  const { parts, imageFailed } = await buildLiveParts(submission, signal);
 
   let lastErr = null;
   for (const modelName of LIVE_MODEL_FALLBACKS) {
@@ -140,7 +142,7 @@ async function evaluateAllJudgesAtOnce(submission, questionTitle) {
       // - temperature 0.75: lite가 thinking 없이도 페르소나 차별화하도록 발산성 ↑
       // - 타임아웃 60초: lite는 Pro보다 빠르지만 7판사 출력은 여전히 무거움
       const result = await withRetry(
-        () => model.generateContent({
+        deadlineSignal => model.generateContent({
           contents: [{ role: 'user', parts }],
           generationConfig: {
             temperature: 0.75,
@@ -148,10 +150,11 @@ async function evaluateAllJudgesAtOnce(submission, questionTitle) {
             responseMimeType: 'application/json',
             ...(isPro ? {} : { thinkingConfig: { thinkingBudget: 0 } }),
           },
-        }),
+        }, { signal: deadlineSignal, timeoutMs: 60000 }),
         2,
         2500,
         60000,
+        { signal },
       );
       const raw = parseJudgeResponse(result.response.text());
 
@@ -180,6 +183,7 @@ async function evaluateAllJudgesAtOnce(submission, questionTitle) {
       }
       return { judges: out, imageFailed };
     } catch (err) {
+      throwIfAborted(signal);
       lastErr = err;
       const msg = (err?.message || '').toLowerCase();
       // 모델 미지원/잘못된 ID는 다음 fallback. 429(rate)·파싱 에러는 즉시 throw.
@@ -202,7 +206,7 @@ async function evaluateAllJudgesAtOnce(submission, questionTitle) {
  * onJudgeStart(judge): 판사가 "지금 이 작품 보는 중" 시작 시점 훅
  * onJudgeComplete(judgeId, result): 판사 완료
  */
-export async function judgeLiveSubmission(submission, questionTitle, onJudgeComplete, onJudgeStart) {
+export async function judgeLiveSubmission(submission, questionTitle, onJudgeComplete, onJudgeStart, { signal } = {}) {
   // pacing 파라미터 — 전자칠판에 7명 판사의 "조사 중 → 평가 완료" 흐름을 체감하도록.
   // 30명 기준 1분 안 완료 목표로 단축. 7명 판사 thinking 연출은 유지하되 간격만 좁힘.
   const START_STAGGER_MS = 180;
@@ -211,18 +215,20 @@ export async function judgeLiveSubmission(submission, questionTitle, onJudgeComp
   const DONE_STAGGER_MS = 140;  // 결과 도착 후 판사별 done 방송 간격
 
   // 1) 모든 판사 thinking 시작 방송 (stagger) + 같은 시점에 백그라운드로 단일 API 호출 시작
-  const judgePromise = evaluateAllJudgesAtOnce(submission, questionTitle).catch((err) => err);
+  const judgePromise = evaluateAllJudgesAtOnce(submission, questionTitle, signal).catch((err) => err);
 
   const startTimes = {};
   for (let i = 0; i < JUDGES.length; i++) {
-    if (i > 0) await new Promise((r) => setTimeout(r, START_STAGGER_MS));
+    if (i > 0) await abortableDelay(START_STAGGER_MS, signal);
     const judge = JUDGES[i];
     startTimes[judge.id] = Date.now();
-    onJudgeStart?.(judge);
+    throwIfAborted(signal);
+    await onJudgeStart?.(judge);
   }
 
   // 2) API 응답 대기
   const apiResult = await judgePromise;
+  throwIfAborted(signal);
   const apiFailed = apiResult instanceof Error;
 
   // 3) 결과를 판사별로 stagger 방송 — 동시에 done되지 않도록 + MIN_THINK_MS 보장
@@ -248,8 +254,9 @@ export async function judgeLiveSubmission(submission, questionTitle, onJudgeComp
     }
 
     const waitMs = minDoneAt - Date.now();
-    if (waitMs > 0) await new Promise((r) => setTimeout(r, waitMs));
-    onJudgeComplete?.(judge.id, results[judge.id]);
+    if (waitMs > 0) await abortableDelay(waitMs, signal);
+    throwIfAborted(signal);
+    await onJudgeComplete?.(judge.id, results[judge.id]);
   }
 
   const valid = Object.values(results).filter(r => !r.error);

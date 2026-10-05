@@ -35,8 +35,7 @@ ${question}
 
 위 질문에 확실하게 답할 수 있으면만 답하고, 그렇지 않으면 canAnswer:false로 응답하세요.`;
 
-  const result = await Promise.race([
-    model.generateContent({
+  const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.2,
@@ -44,9 +43,7 @@ ${question}
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('AI 답변 타임아웃')), 20000)),
-  ]);
+    }, { timeoutMs: 20000, timeoutMessage: "AI 답변 타임아웃" });
 
   let text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   try {

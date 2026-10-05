@@ -85,8 +85,7 @@ ${questionLines}
 
 위 데이터만 근거로 강사에게 "오늘 수업의 인사이트 + 다음 수업에 할 액션"을 구체적으로 제시해주세요. 데이터에 없는 학생 감정·의도·태도는 추측하지 마세요. 질문 주제가 내부 은어로 보이면 해석 거부.`;
 
-  const result = await Promise.race([
-    model.generateContent({
+  const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.3,
@@ -94,9 +93,7 @@ ${questionLines}
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('인사이트 생성 타임아웃')), 30000)),
-  ]);
+    }, { timeoutMs: 30000, timeoutMessage: "인사이트 생성 타임아웃" });
 
   let text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   try {

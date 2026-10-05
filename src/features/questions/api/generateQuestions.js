@@ -48,8 +48,7 @@ ${topic}
 [요청]
 위 주제로 ${count}개의 참여 질문을 만들어주세요. 유형을 섞어서 다양하게 구성해주세요.`;
 
-  const result = await Promise.race([
-    model.generateContent({
+  const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.8,
@@ -57,9 +56,7 @@ ${topic}
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('질문 생성 타임아웃')), 30000)),
-  ]);
+    }, { timeoutMs: 30000, timeoutMessage: "질문 생성 타임아웃" });
 
   let text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   let parsed;
