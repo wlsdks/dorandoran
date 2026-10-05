@@ -5,8 +5,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 function FlipDigit({ digit }) {
   return (
     <div
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] ring-1 ring-white/10"
-      style={{ width: 'clamp(3.2rem, 12vw, 9rem)', height: 'clamp(5rem, 19vw, 14rem)' }}
+      className="flip-digit relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] ring-1 ring-white/10"
+      style={{ width: 'var(--flip-digit-width, clamp(3.2rem, 12vw, 9rem))', height: 'var(--flip-digit-height, clamp(5rem, 19vw, 14rem))' }}
     >
       <AnimatePresence initial={false} mode="popLayout">
         <motion.span
@@ -16,7 +16,7 @@ function FlipDigit({ digit }) {
           exit={{ y: '105%' }}
           transition={{ type: 'spring', stiffness: 280, damping: 28 }}
           className="absolute inset-0 flex items-center justify-center font-bold tabular-nums text-white leading-none"
-          style={{ fontSize: 'clamp(3rem, 13vw, 10rem)' }}
+          style={{ fontSize: 'var(--flip-digit-font, clamp(3rem, 13vw, 10rem))' }}
         >
           {digit}
         </motion.span>

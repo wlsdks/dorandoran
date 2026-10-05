@@ -1,3 +1,4 @@
+import './LargeDisplayGames.css';
 import { useState, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Gift, Minus, Plus, RotateCcw, Sparkles, Trophy, Monitor, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -392,7 +393,7 @@ export default function Lottery({
   const isRolling = viewPhase === 'rolling';
   const currentWinner = viewWinners[viewSlot]; // 해당 슬롯이 멈췄으면 winner
 
-  return <div className={`flex flex-col items-center gap-6 w-full mx-auto ${presenter ? "max-w-[min(88vw,1600px)]" : "max-w-3xl"}`} onClick={e => e.stopPropagation()}>
+  return <div data-presenter={presenter} data-multiple={viewWinners.length > 3} data-phase={viewPhase} className={`lottery-stage flex flex-col items-center gap-6 w-full mx-auto ${presenter ? "max-w-[min(88vw,1600px)]" : "max-w-3xl"}`} onClick={e => e.stopPropagation()}>
       {/* Count selector — 조작 화면의 idle에서만. 전자칠판에는 조작 수단을 두지 않는다. */}
       {!isView && viewPhase === 'idle' && <>
           <div className="flex items-center gap-3">
@@ -458,7 +459,7 @@ export default function Lottery({
         </div>}
 
       {/* 중앙: 현재 회전 중인 큰 슬롯 (rolling) 또는 발표 끝난 모든 winners (revealed) */}
-      <div className={`flex items-center justify-center ${presenter ? 'min-h-[28rem]' : 'min-h-[18rem]'}`}>
+      <div className={`lottery-center flex items-center justify-center ${presenter ? 'min-h-[28rem]' : 'min-h-[18rem]'}`}>
         <AnimatePresence mode="wait">
           {viewPhase === 'idle' && <motion.div key="idle" initial={{
           opacity: 0
@@ -488,13 +489,13 @@ export default function Lottery({
           type: 'spring',
           stiffness: 300,
           damping: 25
-        }} className="flex flex-col items-center gap-5">
+        }} className="lottery-results flex flex-col items-center gap-5">
               {!reduced && !mirrorError && <Suspense fallback={null}><ConfettiBurst /></Suspense>}
               <h3 className={`inline-flex items-center gap-3 font-bold tracking-tight text-slate-900 dark:text-slate-100 ${presenter ? 'text-[clamp(36px,3.2vw,64px)]' : 'text-2xl'}`}>
                 <Trophy className="h-[0.8em] w-[0.8em] text-amber-500" aria-hidden="true" />
                 {mirrorError ? '결과 공유 대기' : `${viewWinners.length}명 당첨!`}
               </h3>
-              <div className={`flex flex-wrap justify-center ${presenter ? (viewWinners.length > 3 ? 'gap-6 max-w-[1120px]' : 'gap-6 w-full') : 'gap-3'}`}>
+              <div data-presenter={presenter} data-multiple={viewWinners.length > 3} className={`lottery-result-grid flex flex-wrap justify-center ${presenter ? (viewWinners.length > 3 ? 'gap-6 max-w-[1120px]' : 'gap-6 w-full') : 'gap-3'}`}>
                 {visibleWinners.map((w, i) => <motion.div key={`final-${w.id}`} layout initial={{
               opacity: 0,
               scale: 0.85
@@ -506,16 +507,16 @@ export default function Lottery({
               type: 'spring',
               stiffness: 360,
               damping: 22
-            }} className={`flex flex-col items-center bg-slate-900 rounded-2xl shadow-lg ${presenter ? (viewWinners.length === 1 ? 'w-[clamp(340px,30vw,680px)] min-h-[clamp(340px,40dvh,540px)] p-8 justify-center' : viewWinners.length <= 3 ? 'w-[clamp(270px,21vw,460px)] min-h-[clamp(340px,38dvh,500px)] p-6 justify-center' : 'w-[clamp(200px,22vw,340px)] min-h-[240px] p-5') : 'w-28 h-36 p-3'}`}>
-                    <Avatar name={w.nickname} size={presenter ? "2xl" : "lg"} className={presenter ? (viewWinners.length > 3 ? "shrink-0 !w-[clamp(72px,6vw,128px)] !h-[clamp(72px,6vw,128px)] !text-[clamp(28px,2.5vw,48px)]" : "shrink-0 !w-[clamp(96px,10vw,192px)] !h-[clamp(96px,10vw,192px)] !text-[clamp(32px,3.5vw,64px)]") : ""} />
+            }} className={`lottery-result-card flex flex-col items-center bg-slate-900 rounded-2xl shadow-lg ${presenter ? (viewWinners.length === 1 ? 'w-[clamp(340px,30vw,680px)] min-h-[clamp(340px,40dvh,540px)] p-8 justify-center' : viewWinners.length <= 3 ? 'w-[clamp(270px,21vw,460px)] min-h-[clamp(340px,38dvh,500px)] p-6 justify-center' : 'w-[clamp(200px,22vw,340px)] min-h-[240px] p-5') : 'w-28 h-36 p-3'}`}>
+                    <Avatar name={w.nickname} size={presenter ? "2xl" : "lg"} className={presenter ? (viewWinners.length > 3 ? "lottery-result-avatar shrink-0" : "shrink-0 !w-[clamp(96px,10vw,192px)] !h-[clamp(96px,10vw,192px)] !text-[clamp(32px,3.5vw,64px)]") : ""} />
                     {/* 발표 후 남는 화면 — 강사가 당첨자를 호명하는 곳이라 사번이 여기에도 있어야 한다. */}
-                    <div className={`text-white font-bold mt-4 tabular-nums max-w-full text-center leading-tight ${presenter ? (viewWinners.length === 1 ? 'text-[clamp(36px,4.5vw,80px)] break-words' : viewWinners.length <= 3 ? 'text-[clamp(32px,3.5vw,64px)] break-words' : 'text-[clamp(26px,2.5vw,40px)] break-words') : 'text-base truncate'}`}>
+                    <div className={`lottery-result-name text-white font-bold mt-4 tabular-nums max-w-full text-center leading-tight ${presenter ? (viewWinners.length === 1 ? 'text-[clamp(36px,4.5vw,80px)] break-words' : viewWinners.length <= 3 ? 'text-[clamp(32px,3.5vw,64px)] break-words' : 'text-[clamp(26px,2.5vw,40px)] break-words') : 'text-base truncate'}`}>
                       {drawPrimary(w, displayMode)}
                     </div>
                     {drawSecondary(w, displayMode) && <div className={`text-white/60 font-medium tabular-nums truncate max-w-full ${presenter ? 'text-[clamp(22px,2vw,32px)] mt-2' : 'text-[11px]'}`}>
                         {drawSecondary(w, displayMode)}
                       </div>}
-                    <span className={`mt-2 rounded-full bg-amber-500 text-white font-bold ${presenter ? 'text-xl md:text-2xl px-4 py-2' : 'text-[10px] px-2 py-0.5'}`}>
+                    <span className={`lottery-result-position mt-2 rounded-full bg-amber-500 text-white font-bold ${presenter ? 'text-xl md:text-2xl px-4 py-2' : 'text-[10px] px-2 py-0.5'}`}>
                       #{currentResultPage * 6 + i + 1} {mirrorError ? '확인 중' : '당첨'}
                     </span>
                   </motion.div>)}
