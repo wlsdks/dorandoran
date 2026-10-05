@@ -168,6 +168,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 questionId={currentQId}
                 options={options}
                 presenter={isPresenter}
+                hideResults={isPresenter && !answerRevealed}
                 page={question.displayPage || 0}
                 onPageChange={isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined}
                 correctValue={question.correctAnswer}

@@ -16,10 +16,13 @@ const app = initializeApp({ projectId: 'demo-dorandoran', databaseURL: 'https://
   const board = await context.newPage(); board.on('pageerror', error => errors.push(error.message));
   await board.goto(`http://127.0.0.1:5175/live?s=${sid}`);
   await expect(board.getByText('응답 집계는 정답 공개 후 표시됩니다', { exact: true })).toBeVisible();
-  expect(await board.getByText('50%', { exact: true }).count()).toBe(0);
+  expect(await board.evaluate(async () => (await import('/src/lib/auth-session.js')).getStaffSession()?.role)).toBe('master');
+  await expect(board.locator('.poll-column-value')).toHaveCount(0);
   // 승인된 강사의 같은 브라우저여도 관객 화면은 공개 뷰를 발행하지 않는다.
   await board.waitForTimeout(350); expect((await db.ref(`sessions/${sid}/publicQuestions`).get()).val()).toEqual(view);
   const at = Date.now(); await db.ref(`sessions/${sid}`).update({ 'questions/q/revealedAt': at, 'publicQuestions/q/revealedAt': at, 'publicQuestions/q/correctAnswer': 'B' });
-  await expect(board.getByText('50%', { exact: true })).toHaveCount(2); await expect(board.getByText(/^응답\s*2명$/)).toBeVisible();
+  await expect(board.locator('.poll-column-value')).toHaveCount(2);
+  await expect(board.locator('.poll-column-value').nth(0)).toContainText('50%');
+  await expect(board.locator('.poll-column-value').nth(1)).toContainText('50%'); await expect(board.getByText(/^응답\s*2명$/)).toBeVisible();
   expect(errors).toEqual([]); console.log(JSON.stringify({ result: 'PASS', sameStaffContext: true, hiddenBeforeReveal: true, percentagesAfterReveal: [50, 50], boardWritesQuestionView: false, errors }));
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => { await browser?.close(); await db.ref(`sessions/${sid}`).remove(); await deleteApp(app); process.exit(process.exitCode || 0); });
