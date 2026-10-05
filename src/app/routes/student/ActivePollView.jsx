@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { ExternalLink, Globe } from 'lucide-react';
 import { embedDisplayUrl, safeEmbedUrl } from '@/lib/embed';
 import { useMyVote } from '@/hooks/useMyVote';
@@ -64,8 +64,8 @@ export default memo(function ActivePollView({
   const votingLocked = timerExpired || !!question?.revealedAt;
 
   return (
-    <div className={`min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center px-4 sm:px-5 ${question.type === 'ranking' && !hasVoted ? 'pb-[calc(11rem+env(safe-area-inset-bottom))]' : 'pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-28'} pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pt-[calc(5rem+env(safe-area-inset-top))]`}>
-      <StudentHeader sessionId={sessionId} />
+    <MotionConfig reducedMotion="user"><div className={`min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center px-4 sm:px-5 ${question.type === 'ranking' && !hasVoted ? 'pb-[calc(11rem+env(safe-area-inset-bottom))]' : 'pb-[calc(8rem+env(safe-area-inset-bottom))] sm:pb-32'} pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pt-[calc(5rem+env(safe-area-inset-top))]`}>
+      <StudentHeader sessionId={sessionId} question={question} isSpeedQuiz={isSpeedQuiz} />
 
       <div className="w-full min-w-0 max-w-xl space-y-5 sm:my-auto">
         {/* 상시 과제 — 수업 내내 노출, 다른 질문과 독립적 */}
@@ -214,7 +214,7 @@ export default memo(function ActivePollView({
                     className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 text-sm font-medium active:scale-[0.98] transition-transform duration-150"
                   >
                     <ExternalLink size={15} />
-                    내 폰에서 열기
+                    자료 새 창에서 열기
                   </a>
                   <span className="text-xs text-slate-400 tabular-nums">{embedDisplayUrl(question.embedUrl)}</span>
                 </div>
@@ -273,6 +273,6 @@ export default memo(function ActivePollView({
 
       <ReviewingBanner sessionId={sessionId} />
       <StudentBottomBar sessionId={sessionId} />
-    </div>
+    </div></MotionConfig>
   );
 });

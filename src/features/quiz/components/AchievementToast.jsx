@@ -1,107 +1,95 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkle, Flame, CheckCheck, Zap, Crown } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { Sparkle, Flame, CheckCheck, Zap, Crown, X } from 'lucide-react';
 
-const ICON_MAP = {
-  Sparkle,
-  Flame,
-  CheckCheck,
-  Zap,
-  Crown,
-};
+const ICON_MAP = { Sparkle, Flame, CheckCheck, Zap, Crown };
+const DISPLAY_DURATION = 3000;
+const EMPTY_ACHIEVEMENTS = [];
 
-const DISPLAY_DURATION = 3500;
-
-/**
- * AchievementToast — shows a small toast when a new achievement is earned.
- * Tracks previously shown achievements and only shows new ones.
- * Now with icon spin animation and timer progress bar.
- *
- * @param {{ achievements: Array<{id, label, description, icon}> }} props
- */
-export default function AchievementToast({ achievements }) {
-  const [visible, setVisible] = useState(null);
-  const shownRef = useRef(new Set());
-  const queueRef = useRef([]);
-  const timerRef = useRef(null);
-
-  function showNext() {
-    const next = queueRef.current.shift();
-    if (!next) {
-      timerRef.current = null;
-      return;
-    }
-    setVisible(next);
-    timerRef.current = setTimeout(() => {
-      setVisible(null);
-      timerRef.current = setTimeout(showNext, 300);
-    }, DISPLAY_DURATION);
+function storedIds(key) {
+  try {
+    const ids = JSON.parse(sessionStorage.getItem(key) || '[]');
+    return new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === 'string') : []);
+  } catch { return new Set(); }
+}
+function persistIds(controller) {
+  try { sessionStorage.setItem(controller.scope, JSON.stringify([...controller.seen])); } catch { /* This mount still remembers its baseline. */ }
+}
+function cancelTimer(controller) {
+  if (controller.timer !== null) clearTimeout(controller.timer);
+  controller.timer = null;
+}
+function advance(controller, publish) {
+  cancelTimer(controller);
+  const now = Date.now();
+  if (controller.active && controller.active.expiresAt <= now) controller.active = null;
+  if (!controller.active && controller.queue.length) {
+    controller.active = { achievement: controller.queue.shift(), scope: controller.scope, expiresAt: now + DISPLAY_DURATION };
   }
+  publish(controller.active);
+  if (controller.active) {
+    controller.timer = setTimeout(() => {
+      controller.timer = null;
+      advance(controller, publish);
+    }, Math.max(0, controller.active.expiresAt - Date.now()));
+  }
+}
+
+/** Session/learner-scoped, read-only achievement feedback. Existing achievements establish a silent ready baseline. */
+export default function AchievementToast({ achievements = EMPTY_ACHIEVEMENTS, sessionId, participantId, ready = false }) {
+  const scope = sessionId && participantId ? `dorandoran_achievement_seen:${JSON.stringify([sessionId, participantId])}` : null;
+  const [visible, setVisible] = useState(null);
+  const controllerRef = useRef({ scope: null, seen: new Set(), queue: [], active: null, timer: null, baselined: false });
+  const reduced = useReducedMotion();
 
   useEffect(() => {
-    const newOnes = achievements.filter((a) => !shownRef.current.has(a.id));
-    if (newOnes.length === 0) return;
+    const controller = controllerRef.current;
+    cancelTimer(controller);
+    if (controller.scope !== scope) {
+      controller.scope = scope;
+      controller.seen = scope ? storedIds(scope) : new Set();
+      controller.queue = [];
+      controller.active = null;
+      controller.baselined = false;
+    }
+    if (ready && scope) {
+      if (!controller.baselined) {
+        achievements.forEach((achievement) => controller.seen.add(achievement.id));
+        controller.baselined = true;
+        persistIds(controller);
+      } else {
+        achievements.forEach((achievement) => {
+          if (!achievement?.id || controller.seen.has(achievement.id)) return;
+          controller.seen.add(achievement.id);
+          controller.queue.push(achievement);
+        });
+        persistIds(controller);
+      }
+      // StrictMode, fresh array props, and Fast Refresh cancel/restart the timer;
+      // the active absolute expiry is retained, so its 3s deadline never moves.
+      advance(controller, setVisible);
+    }
+    return () => cancelTimer(controller);
+  }, [achievements, ready, scope]);
 
-    newOnes.forEach((a) => {
-      shownRef.current.add(a.id);
-      queueRef.current.push(a);
-    });
-
-    if (!timerRef.current) showNext();
-    // showNext는 같은 컴포넌트 함수 + recursive trigger (timerRef로 self-driven)이라 의도적 omit
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [achievements]);
-
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
+  const dismiss = useCallback(() => {
+    const controller = controllerRef.current;
+    controller.active = null;
+    advance(controller, setVisible);
   }, []);
-
-  const Icon = visible ? (ICON_MAP[visible.icon] || Sparkle) : null;
-
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          key={visible.id}
-          role="status"
-          initial={{ opacity: 0, y: -8, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -8, scale: 0.97 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="fixed top-[calc(5rem+env(safe-area-inset-top))] inset-x-4 max-w-sm mx-auto z-30 pointer-events-none"
-        >
-          <div className="relative overflow-hidden bg-slate-900 text-white rounded-xl shadow-2xl shadow-black/40 ring-1 ring-white/15">
-            <div className="flex items-center gap-3 pl-3 pr-5 py-2.5">
-              {/* Animated icon */}
-              <motion.div
-                className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0"
-                initial={{ rotate: -90, scale: 0.5 }}
-                animate={{ rotate: 0, scale: [1, 1.15, 1] }}
-                transition={{
-                  rotate: { type: 'spring', stiffness: 300, damping: 25 },
-                  scale: { duration: 0.6, delay: 0.2, times: [0, 0.5, 1] },
-                }}
-              >
-                <Icon size={16} className="text-white" />
-              </motion.div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold leading-tight">{visible.label}</p>
-                <p className="text-xs text-slate-300 leading-tight mt-0.5">{visible.description}</p>
-              </div>
-            </div>
-            {/* Timer progress bar */}
-            <motion.div
-              className="absolute bottom-0 left-0 h-[2px] bg-white/25"
-              initial={{ width: '100%' }}
-              animate={{ width: '0%' }}
-              transition={{ duration: DISPLAY_DURATION / 1000, ease: 'linear' }}
-            />
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+  if (typeof document === 'undefined') return null;
+  const current = ready && visible?.scope === scope ? visible.achievement : null;
+  const Icon = current ? ICON_MAP[current.icon] || Sparkle : Sparkle;
+  return createPortal(
+    <AnimatePresence key={scope}>
+      {current && <motion.div key={current.id} role="status" aria-live="polite" data-achievement-id={current.id}
+        initial={reduced ? { opacity: 0 } : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : 0.14 }}
+        className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] inset-x-4 max-w-[320px] mx-auto z-40 flex items-center gap-2 pl-3 pr-1 rounded-xl bg-slate-800 dark:bg-slate-700 text-slate-100 shadow-lg ring-1 ring-slate-600/50">
+        <Icon size={18} className="shrink-0 text-indigo-300" aria-hidden="true" />
+        <p className="min-w-0 flex-1 truncate text-sm font-medium">{current.label}</p>
+        <button type="button" onClick={dismiss} aria-label="업적 알림 닫기" className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl text-slate-300 hover:bg-slate-600/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"><X size={18} /></button>
+      </motion.div>}
+    </AnimatePresence>, document.body
   );
 }

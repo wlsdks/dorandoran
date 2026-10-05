@@ -32,7 +32,7 @@ export default memo(function VotePage({ sessionId }) {
     setTimerExpired(Boolean(endTime && endTime <= getServerNow()));
   }, [session?.currentQuestion, endTime, timerRunning]);
 
-  const { myScore } = useMyScore(sessionId);
+  const { myScore, loading: scoreLoading, error: scoreError } = useMyScore(sessionId);
   const participantId = myPid;
   // useAchievements는 본인 점수(scores[pid])만 사용 → 본인 점수만 넘겨 전체 구독 회피
   const { achievements } = useAchievements(session, participantId ? { [participantId]: myScore } : {});
@@ -97,7 +97,6 @@ export default memo(function VotePage({ sessionId }) {
           animate={variants.animate}
           exit={variants.exit}
           transition={ENTER_TRANSITION}
-          style={{ willChange: 'transform, opacity' }}
         >
           <VoteModeContent
             sessionId={sessionId}
@@ -126,7 +125,7 @@ export default memo(function VotePage({ sessionId }) {
 
       <DrumrollOverlay active={!!session?.drumroll} />
       <ChatBubbleOverlay sessionId={sessionId} />
-      <AchievementToast achievements={achievements} />
+      <AchievementToast achievements={achievements} sessionId={sessionId} participantId={participantId} ready={Boolean(participantId && !scoreLoading && !scoreError)} />
     </>
   );
 });
