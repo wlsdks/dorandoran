@@ -29,6 +29,7 @@ try {
   await run('node', ['tests/support/ranking-highlight-qa.cjs']);
   await run('node', ['tests/support/reaction-sheet-qa.cjs']);
   await run('node', ['tests/support/end-state-qa.cjs']);
+  await run('node', ['tests/support/dialog-layer-qa.cjs']);
   await run('node', ['tests/support/student-qa.cjs']);
   await run('node', ['tests/support/vote-ack-qa.cjs']);
   await run('node', ['tests/support/quiz-awards-qa.cjs']);
