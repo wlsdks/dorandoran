@@ -71,9 +71,10 @@ async function capture(page, key) {
   expect(Object.keys(score.quizAwards)).toHaveLength(3);
   // Review after speedQuiz is cleared must retain the awarded combo receipt.
   await teacher.getByRole('button', { name: '발표 모드', exact: true }).click();
-  await teacher.keyboard.press('ArrowLeft');
+  // Ranking arrow keys browse ranks; use the explicit lesson control to review a quiz.
+  await teacher.getByRole('button', { name: '이전', exact: true }).click();
   await expect.poll(async () => (await db.ref(`sessions/${sid}/currentQuestion`).get()).val()).toBe('second');
-  await teacher.keyboard.press('ArrowRight');
+  await teacher.getByRole('button', { name: '다음 활동', exact: true }).click();
   await expect.poll(async () => (await db.ref(`sessions/${sid}/currentQuestion`).get()).val()).toBe('third');
   await expect(student.getByText('+120점', { exact: true })).toBeVisible();
   expect((await db.ref(`sessions/${sid}/scores/${uid}/total`).get()).val()).toBe(420);
