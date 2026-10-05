@@ -6,6 +6,7 @@ import { useReportData } from '@/features/report/api/useReportData';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
+import EmptyState from '@/components/ui/EmptyState';
 import LearningReportCard from '@/features/report/components/LearningReportCard';
 
 const ACHIEVEMENT_ICONS = { Award, Flame, CheckCheck, Zap, Crown };
@@ -95,17 +96,10 @@ export default function ReportPage() {
 
   if (!sessionId || !participantId) {
     return (
-      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-        <div className="flex flex-col items-center text-center space-y-4 max-w-sm">
-          <DoranDoranMascot size="lg" mood="thinking" />
-          <div className="space-y-1.5">
-            <p className="text-slate-700 dark:text-slate-200 text-base font-semibold">유효하지 않은 리포트 링크입니다</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm leading-relaxed">세션 종료 화면의 "내 학습 리포트" 버튼을 눌러주세요</p>
-          </div>
-          <a href="/" className="mt-2 px-5 py-2.5 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors">
-            홈으로 돌아가기
-          </a>
-        </div>
+      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
+        <EmptyState title="유효하지 않은 리포트 링크입니다" titleAs="h1" description={'수업 종료 화면에서 “내 학습 리포트”를 눌러 주세요.'} mascotSize="lg" mood="thinking">
+          <a href="/" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-slate-900 dark:bg-slate-100 px-5 text-sm font-semibold text-white dark:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">홈으로 돌아가기</a>
+        </EmptyState>
       </div>
     );
   }
@@ -158,7 +152,7 @@ export default function ReportPage() {
   return (
     <div className="min-h-dvh bg-slate-50 dark:bg-slate-900">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 pt-[env(safe-area-inset-top)]">
         <div className="max-w-xl mx-auto px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <DoranDoranMascot size="xs" />

@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { HelpCircle, FileText, Copy, Check } from 'lucide-react';
 import StudentHeader from './StudentHeader';
@@ -13,22 +13,32 @@ export default function SessionEndedPage({ sessionId, session, reviewing = false
   const reducedMotion = useReducedMotion();
   const [showQA, setShowQA] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState('');
+  const copyTimer = useRef(null);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; clearTimeout(copyTimer.current); };
+  }, []);
   const isEnded = session?.status === 'ended';
   const participantId = getParticipantId();
   const reportUrl = `${window.location.origin}/report?s=${sessionId}&p=${participantId}`;
 
   async function handleCopyReport() {
+    setCopyError('');
     try {
       await navigator.clipboard.writeText(reportUrl);
+      if (!mounted.current) return;
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
+      if (mounted.current) setCopyError('링크를 복사하지 못했어요. 내 학습 리포트를 직접 열어 주세요.');
     }
   }
 
   return (
-    <div className={`min-h-dvh w-full max-w-full bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 pt-20 ${reviewing || isEnded ? 'pb-36' : 'pb-8'}`}>
+    <div className={`min-h-dvh w-full max-w-full bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 pt-[calc(5rem+env(safe-area-inset-top))] ${reviewing || isEnded ? 'pb-36' : 'pb-8'}`}>
       <StudentHeader sessionId={sessionId} />
 
       {/* Confetti on session end */}
@@ -73,6 +83,8 @@ export default function SessionEndedPage({ sessionId, session, reviewing = false
           </button>
         </motion.div>
       )}
+
+      {copyError && <p role="alert" className="w-full max-w-xl mt-3 px-1 text-sm text-red-600 dark:text-red-300">{copyError}</p>}
 
       {/* reviewing: full bottom bar (chat + questions) */}
       {reviewing && <StudentBottomBar sessionId={sessionId} />}

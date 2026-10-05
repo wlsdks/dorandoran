@@ -21,6 +21,7 @@ export default function EmptyState({
   mood = 'waiting',
   children,
   className = '',
+  titleAs: Title = 'p',
 }) {
   return (
     <motion.div
@@ -32,9 +33,9 @@ export default function EmptyState({
       <DoranDoranMascot size={mascotSize} mood={mood} />
 
       <div className="mt-6 space-y-2">
-        <p className="text-slate-800 dark:text-slate-200 text-xl font-bold tracking-tight">{title}</p>
+        <Title className="text-slate-800 dark:text-slate-200 text-xl font-bold tracking-tight">{title}</Title>
         {description && (
-          <p className="text-slate-400 dark:text-slate-500 text-sm leading-relaxed max-w-sm">{description}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed max-w-sm">{description}</p>
         )}
       </div>
 

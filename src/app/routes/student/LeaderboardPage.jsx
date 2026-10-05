@@ -5,6 +5,7 @@ import StudentBottomBar from './StudentBottomBar';
 import Leaderboard from '@/features/quiz/components/Leaderboard';
 import { useScores } from '@/features/quiz/api/useScores';
 import { getParticipantId } from '@/lib/participant';
+import './RankSummary.css';
 
 const PAGE_SIZE = 8;
 
@@ -12,16 +13,19 @@ const PAGE_SIZE = 8;
 function MyRankSummary({ rank, entry, total, onOpen }) {
   if (!entry || rank <= 0) return null;
   const pct = Math.max(1, Math.min(100, Math.ceil(rank / total * 100)));
-  return <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3" aria-label="내 순위 요약">
+  return <div className="student-rank-summary rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3" aria-label="내 순위 요약">
+    <div className="student-rank-summary-layout">
     <div className="shrink-0">
       <p className="text-xs text-slate-500 dark:text-slate-400">내 순위</p>
-      <p className="text-2xl leading-tight font-bold tabular-nums text-slate-900 dark:text-slate-100">{rank}<span className="ml-1 text-sm font-medium text-slate-500 dark:text-slate-400">위</span></p>
+      <p className="student-rank-summary-number text-2xl leading-tight font-bold tabular-nums text-slate-900 dark:text-slate-100">{rank}<span className="ml-1 text-sm font-medium text-slate-500 dark:text-slate-400">위</span></p>
     </div>
-    <div className="min-w-0 flex-1 text-center">
-      <p className="flex items-center justify-center gap-1 text-base font-semibold tabular-nums text-slate-700 dark:text-slate-200"><Trophy size={14} className="shrink-0" />{entry.total}점</p>
+    <div className="student-rank-summary-score min-w-0 text-center">
+      <p className="flex items-center justify-center gap-1 whitespace-nowrap text-base font-semibold tabular-nums text-slate-700 dark:text-slate-200"><Trophy size={14} className="shrink-0" />{entry.total}점</p>
       <p className="text-xs text-slate-500 dark:text-slate-400">{total}명 · 상위 {pct}%</p>
     </div>
-    <button type="button" onClick={onOpen} aria-label="내 순위 페이지로 이동" className="inline-flex min-h-11 items-center justify-center gap-1 shrink-0 rounded-lg px-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">보기<ArrowRight size={16} /></button>
+    <p className="student-rank-summary-compact-meta text-xs text-slate-500 dark:text-slate-400">{total}명 · 상위 {pct}%</p>
+    <button type="button" onClick={onOpen} aria-label="내 순위 페이지로 이동" className="student-rank-summary-view inline-flex min-h-11 items-center justify-center gap-1 shrink-0 rounded-lg px-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">보기<ArrowRight size={16} /></button>
+    </div>
   </div>;
 }
 
@@ -42,7 +46,7 @@ export default function LeaderboardPage({ sessionId, highlight = null }) {
     listRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
   }
 
-  return <div className="h-dvh overflow-y-auto overscroll-contain bg-slate-50 dark:bg-slate-900 px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-20">
+  return <div className="h-dvh overflow-y-auto overscroll-contain bg-slate-50 dark:bg-slate-900 px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]">
     <StudentHeader sessionId={sessionId} />
     <div className="w-full max-w-md mx-auto space-y-4">
       <MyRankSummary rank={myRank} entry={myEntry} total={leaderboard.length} onOpen={openMyRank} />
