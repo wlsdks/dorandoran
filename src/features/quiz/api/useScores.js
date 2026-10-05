@@ -1,6 +1,7 @@
 import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { EMPTY_RECORD } from '@/lib/realtime';
 import { ref, set } from 'firebase/database';
+import { summarizeScores } from '@/lib/classroom-data';
 import { useMemo, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { getParticipantId } from '@/lib/participant';
@@ -21,12 +22,7 @@ export function useScores(sessionId) {
   const { value } = useRealtimeValue(sessionId ? `sessions/${sessionId}/scores` : null);
   const scores = value || EMPTY_RECORD;
 
-  const leaderboard = useMemo(
-    () => Object.entries(scores)
-      .map(([id, data]) => ({ id, ...data }))
-      .sort((a, b) => (b.total || 0) - (a.total || 0) || (a.nickname || '').localeCompare(b.nickname || '')),
-    [scores]
-  );
+  const leaderboard = useMemo(() => summarizeScores(scores), [scores]);
 
   const resetScores = useCallback(async () => {
     if (!sessionId) return;

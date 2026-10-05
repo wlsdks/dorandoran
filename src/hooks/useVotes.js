@@ -2,6 +2,7 @@ import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { useRealtimeRecord } from '@/hooks/useRealtimeRecord';
 import { getStaffSession } from '@/lib/auth-session';
 import { EMPTY_RECORD, adaptiveVoteThrottle } from '@/lib/realtime';
+import { summarizeVotes } from '@/lib/classroom-data';
 import { useMemo, useCallback } from 'react';
 const ACCESS_FIELDS = ['type', 'revealedAt'];
 
@@ -15,21 +16,7 @@ export function useVotes(sessionId, questionId) {
   const { value, error, loading } = useRealtimeValue(sessionId && questionId && !resultsHidden ? `sessions/${sessionId}/questions/${questionId}/votes` : null, { scope: revealScope, throttleMs: adaptiveVoteThrottle });
   const votes = value || EMPTY_RECORD;
 
-  const voteList = useMemo(
-    () => Object.entries(votes).map(([id, data]) => ({ id, ...data })),
-    [votes]
-  );
-
-  const totalVotes = voteList.length;
-
-  /** Pre-computed tally: { value: count } */
-  const tallied = useMemo(() => {
-    const counts = Object.create(null);
-    voteList.forEach(v => {
-      counts[v.value] = (counts[v.value] || 0) + 1;
-    });
-    return counts;
-  }, [voteList]);
+  const { voteList, tallied, totalVotes } = useMemo(() => summarizeVotes(votes), [votes]);
 
   const countByValue = useCallback(
     (value) => tallied[value] || 0,
