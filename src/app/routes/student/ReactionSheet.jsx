@@ -10,7 +10,9 @@ export default function ReactionSheet({ open, onClose, sessionId }) {
   const { dialogRef, trapFocus } = useDialogLayer(open, onClose);
   const reduced = useReducedMotion();
   const frameRef = useRef(null);
+  const activeRef = useRef(false);
   const keepInputVisible = useCallback(() => {
+    if (!activeRef.current) return;
     if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     frameRef.current = requestAnimationFrame(() => {
       frameRef.current = null;
@@ -26,13 +28,19 @@ export default function ReactionSheet({ open, onClose, sessionId }) {
   }, [dialogRef]);
   useEffect(() => {
     if (!open) return;
+    activeRef.current = true;
+    const body = dialogRef.current?.querySelector('[data-reaction-scroll]');
+    const observer = body && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(keepInputVisible) : null;
+    if (body) observer?.observe(body);
     window.visualViewport?.addEventListener('resize', keepInputVisible);
     return () => {
+      activeRef.current = false;
+      observer?.disconnect();
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
       window.visualViewport?.removeEventListener('resize', keepInputVisible);
     };
-  }, [open, keepInputVisible]);
+  }, [open, keepInputVisible, dialogRef]);
   if (typeof document === 'undefined') return null;
   return createPortal(<AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : 0.14 }}
     className="viewport-overlay fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/60 sm:items-center sm:p-4" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
