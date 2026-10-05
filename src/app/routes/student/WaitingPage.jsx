@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo, lazy, Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
 import { Users, Zap, Hand, MessageSquare, Trophy, Heart, Copy, Check, Gift, Coffee, UserCircle, Award, Mic } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { useParticipantCount } from '@/features/participants/api/useParticipants';
@@ -25,14 +25,16 @@ const TIPS = [{
   text: '퀴즈에서 빠르게 답하면 보너스 점수를 받을 수 있어요',
   icon: Trophy
 }, {
-  text: '리액션으로 수업에 참여해보세요',
+  text: '하단 반응 버튼으로 수업에 참여해보세요',
   icon: Heart
 }];
 
 /** Rotating tips with icon and crossfade animation. */
 function RotatingTip() {
+  const reduced = useReducedMotion();
   const [index, setIndex] = useState(0);
   useEffect(() => {
+    if (reduced) return;
     const interval = setInterval(() => {
       setIndex(prev => {
         const next = prev + 1;
@@ -45,7 +47,7 @@ function RotatingTip() {
       });
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [reduced]);
   const tip = TIPS[index];
   const Icon = tip.icon;
   return <div className="relative h-10 flex items-center justify-center overflow-hidden">
@@ -76,14 +78,17 @@ function CopyableCode({
   code
 }) {
   const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef(null);
+  useEffect(() => () => clearTimeout(copiedTimer.current), []);
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      clearTimeout(copiedTimer.current);
+      copiedTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {/* clipboard not available */}
   }, [code]);
-  return <button onClick={handleCopy} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px] font-medium bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700/60 text-slate-500 dark:text-slate-400 transition-colors duration-150 active:scale-[0.96]" aria-label="세션 코드 복사">
+  return <button onClick={handleCopy} className="inline-flex items-center gap-1.5 min-h-11 px-3.5 py-2 rounded-full text-[13px] font-medium bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700/60 text-slate-500 dark:text-slate-400 transition-colors duration-150 active:scale-[0.96]" aria-label="세션 코드 복사">
       {code}
       <AnimatePresence mode="wait">
         {copied ? <motion.span key="check" initial={{
@@ -182,7 +187,7 @@ export default memo(function WaitingPage({
       return () => clearTimeout(t);
     }
   }, [gameResult, isWinner, currentMode, showsWinner]);
-  return <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]">
+  return <MotionConfig reducedMotion="user"><div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]">
       <StudentHeader sessionId={sessionId} />
 
       {/* 🎉 당첨 풀스크린 블라스트 */}
@@ -364,7 +369,7 @@ export default memo(function WaitingPage({
             stiffness: 300,
             damping: 25
           }} className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight leading-tight">
-                  {nickname}님, 준비 완료!
+                  {nickname} 님, 준비됐어요!
                 </motion.p>}
               {courseName && <motion.p initial={{
             opacity: 0
@@ -498,5 +503,5 @@ export default memo(function WaitingPage({
 
       <ReviewingBanner sessionId={sessionId} />
       <StudentBottomBar sessionId={sessionId} />
-    </div>;
+    </div></MotionConfig>;
 });

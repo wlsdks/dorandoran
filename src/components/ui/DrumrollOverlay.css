@@ -1,0 +1,15 @@
+.reveal-overlay { position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:28px;overflow:hidden;color:#f1f5f9;background:#0b1220; }
+.reveal-overlay::before { content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,#312e8155,transparent 65%); }
+.reveal-scene { position:relative;width:min(850px,100%);text-align:center;padding:clamp(32px,5vh,54px) 32px;border-top:1px solid #a5b4fc33;border-bottom:1px solid #a5b4fc33; }
+.reveal-eyebrow { display:inline-flex;align-items:center;gap:9px;color:#a5b4fc;font-size:20px;font-weight:600;letter-spacing:.02em; }
+.reveal-heading { margin-top:22px;color:#f1f5f9;font-size:clamp(28px,3.3vw,46px);font-weight:650;letter-spacing:-.035em;line-height:1.3;word-break:keep-all; }
+.reveal-description { margin-top:12px;color:#cbd5e1;font-size:22px;line-height:1.5; }
+.reveal-countdown { position:relative;display:flex;align-items:center;justify-content:center;margin-top:28px;min-height:160px;font-size:clamp(104px,10vw,144px);font-weight:700;line-height:1;letter-spacing:-.05em;font-variant-numeric:tabular-nums;color:#e0e7ff; }
+.reveal-countdown span { position:absolute;inset:0;display:flex;align-items:center;justify-content:center; }
+.reveal-countdown-ready { font-size:clamp(46px,5vw,64px);letter-spacing:-.045em; }
+.reveal-beat { margin-top:20px;color:#a5b4fc;font-size:22px;font-weight:500;letter-spacing:.01em; }
+.reveal-progress { display:flex;gap:10px;max-width:300px;margin:30px auto 0; }
+.reveal-progress > div { flex:1;height:4px;background:#334155;border-radius:4px;overflow:hidden; }
+.reveal-progress span { display:block;width:100%;height:100%;background:#a5b4fc;transform-origin:left; }
+@media(max-height:650px) { .reveal-scene { padding:24px; }.reveal-countdown { min-height:110px;margin-top:16px; }.reveal-heading { margin-top:14px; }.reveal-progress { margin-top:22px; } }
+@media(max-width:500px) { .reveal-overlay { padding:22px; }.reveal-scene { padding:32px 8px; }.reveal-heading { font-size:28px; }.reveal-description { font-size:18px; }.reveal-countdown { min-height:140px; }.reveal-countdown-ready { font-size:44px; }.reveal-eyebrow,.reveal-beat { font-size:18px; } }

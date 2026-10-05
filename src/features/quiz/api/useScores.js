@@ -13,9 +13,9 @@ import { getParticipantId } from '@/lib/participant';
  */
 export function useMyScore(sessionId) {
   const pid = getParticipantId();
-  const { value: myScore } = useRealtimeValue(sessionId && pid ? `sessions/${sessionId}/scores/${pid}` : null);
+  const { value: myScore, loading, error } = useRealtimeValue(sessionId && pid ? `sessions/${sessionId}/scores/${pid}` : null);
 
-  return { myScore };
+  return { myScore, loading, error };
 }
 
 export function useScores(sessionId) {

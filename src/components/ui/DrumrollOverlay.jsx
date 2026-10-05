@@ -1,32 +1,58 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import DoranDoranMascot from './DoranDoranMascot';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
+import './DrumrollOverlay.css';
 
-/** 짧은 한 번의 가속→정지→공개. 화면으로만 공개 상태를 전달한다. */
+/** One bounded countdown. Timers and animations stop on cancellation or unmount. */
 export default memo(function DrumrollOverlay({ active, onComplete, duration = 2500 }) {
   const [phase, setPhase] = useState(0);
-  const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const reduced = useReducedMotion();
   const onCompleteRef = useRef(onComplete);
+  const totalMs = Number.isFinite(duration) ? Math.max(0, duration) : 2500;
   useEffect(() => { onCompleteRef.current = onComplete; });
   useEffect(() => {
-    if (!active) { setPhase(0); return; }
-    const timers = [setTimeout(() => setPhase(1), duration * 0.3), setTimeout(() => setPhase(2), duration * 0.67),
-      setTimeout(() => setPhase(3), duration * 0.9), setTimeout(() => onCompleteRef.current?.(), duration)];
+    setPhase(0);
+    if (!active) return;
+    const timers = [
+      setTimeout(() => setPhase(1), totalMs * 0.27),
+      setTimeout(() => setPhase(2), totalMs * 0.54),
+      setTimeout(() => setPhase(3), totalMs * 0.8),
+      setTimeout(() => onCompleteRef.current?.(), totalMs),
+    ];
     return () => timers.forEach(clearTimeout);
-  }, [active, duration]);
+  }, [active, totalMs]);
   if (typeof document === 'undefined') return null;
-  return createPortal(<AnimatePresence>{active && <motion.div role="status" aria-live="polite"
-    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
-    className="fixed inset-0 z-[80] bg-slate-950/95 flex items-center justify-center p-6">
-    <div className="text-center w-full max-w-3xl">
-      <p className="text-indigo-200 text-lg sm:text-2xl font-semibold mb-6">잠시 후, 정답을 공개합니다</p>
-      <motion.div animate={reduced ? {} : { scale: phase === 3 ? 1 : [1, 1.025, 1] }} transition={{ duration: phase > 1 ? 0.25 : 0.5 }} className="flex justify-center mb-6">
-        <DoranDoranMascot size={180} mood={phase === 3 ? 'happy' : 'thinking'} animated={false} />
-      </motion.div>
-      <p className="text-[clamp(2.5rem,6vw,6rem)] font-extrabold tracking-tight text-slate-50 leading-tight">{phase === 3 ? '정답은…' : '두구두구'}</p>
-      <div className="mt-8 h-2 max-w-md mx-auto bg-slate-700 rounded-full overflow-hidden"><motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: duration / 1000, ease: 'linear' }} className="h-full w-full origin-left bg-indigo-300" /></div>
-    </div>
+
+  return createPortal(<AnimatePresence>{active && <motion.div
+    className="reveal-overlay" role="status" aria-live="polite" aria-atomic="true"
+    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    transition={{ duration: reduced ? 0.08 : 0.2 }}>
+    <motion.div className="reveal-scene"
+      initial={{ opacity: 0, y: reduced ? 0 : 12 }} animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: reduced ? 0 : 12 }} transition={{ duration: reduced ? 0.08 : 0.32, ease: 'easeOut' }}>
+      <p className="reveal-eyebrow"><Sparkles size={20} aria-hidden="true" />정답 공개</p>
+      <h2 className="reveal-heading">어떤 답을 고르셨나요?</h2>
+      <p className="reveal-description">잠시 후, 정답을 공개합니다</p>
+
+      <div className="reveal-countdown" aria-hidden="true">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span key={phase} className={phase === 3 ? 'reveal-countdown-ready' : ''}
+            initial={{ opacity: 0, y: reduced ? 0 : 24 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: reduced ? 0 : -24, transition: { duration: reduced ? 0.04 : 0.12 } }}
+            transition={{ duration: reduced ? 0.08 : 0.22, ease: [0.22, 1, 0.36, 1] }}>
+            {phase < 3 ? 3 - phase : '정답은…'}
+          </motion.span>
+        </AnimatePresence>
+      </div>
+      <p className="reveal-beat" aria-hidden="true">{phase === 3 ? '이제 공개합니다' : '두구두구…'}</p>
+      <div className="reveal-progress" aria-hidden="true">
+        {[0, 1, 2].map(index => <div key={index}>
+          <motion.span initial={{ scaleX: reduced ? 1 : 0 }} animate={{ scaleX: 1 }}
+            transition={{ duration: reduced ? 0 : totalMs / 3000, delay: reduced ? 0 : index * totalMs / 3000, ease: 'linear' }} />
+        </div>)}
+      </div>
+      <span className="sr-only">{phase === 3 ? '정답을 공개합니다' : '정답 공개를 준비하고 있습니다'}</span>
+    </motion.div>
   </motion.div>}</AnimatePresence>, document.body);
 });

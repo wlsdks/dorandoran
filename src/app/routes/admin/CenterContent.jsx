@@ -8,6 +8,7 @@ import { MainContent } from './PresentationView';
 import { SuspenseFallback } from '@/components/ui/Skeleton';
 import PersistentAssignmentBar from '@/features/ai-judge/components/PersistentAssignmentBar';
 import { isQuizQuestion } from '@/lib/quiz';
+import { normalizeRankingHighlight } from '@/lib/ranking-highlight';
 
 const ClassSummary = lazy(() => import('./ClassSummary'));
 
@@ -115,6 +116,14 @@ export default function CenterContent({
               scores={scores}
               count={count}
               onGameResult={onGameResult}
+              onLeaderboardPageChange={effectiveReadOnly ? undefined : page => update(ref(db, `sessions/${sessionId}`), { leaderboardPage: page })}
+              onHighlightChange={effectiveReadOnly ? undefined : config => {
+                const selected = normalizeRankingHighlight(config);
+                return update(ref(db, `sessions/${sessionId}`), {
+                  leaderboardHighlight: selected,
+                  ...(selected ? { leaderboardPage: Math.floor((selected.activeRank - 1) / 8) } : {}),
+                });
+              }}
             />
           )}
         </motion.div>

@@ -12,6 +12,7 @@ import { useParticipants } from '@/features/participants/api/useParticipants';
 import { useScores } from '@/features/quiz/api/useScores';
 import { useAdminApprovals } from '@/features/session/api/useAdminApprovals';
 import { useTimer } from '@/features/timer/api/useTimer';
+import { useQuizDistributionPublisher } from '@/hooks/useQuizDistributionPublisher';
 import { useSpeedQuiz } from '@/features/quiz/api/useSpeedQuiz';
 import { useQuestionActions } from '@/hooks/useQuestionActions';
 
@@ -66,6 +67,8 @@ export function useAdminSession() {
   const isEnded = session?.status === 'ended';
   const effectiveReadOnly = readOnly || isEnded || isReviewing;
   const isMaster = adminUser?.role === 'master';
+  useQuizDistributionPublisher(sessionId, session, !effectiveReadOnly && session?.status === 'active' &&
+    (isMaster || (adminUser?.role === 'admin' && adminUser?.uid === session?.creatorId)));
 
   const voteCounts = useMemo(() => {
     const questions = session?.questions;

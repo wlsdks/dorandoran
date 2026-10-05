@@ -182,7 +182,7 @@ export default function MobileAdminView({
           damping: 28
         }} className="h-full overflow-y-auto overscroll-contain scrollbar-hide">
               <div className="bg-white dark:bg-slate-800 p-5 space-y-5">
-                <QuestionManager sessionId={s.sessionId} questions={s.session?.questions || {}} currentQuestion={s.session?.currentQuestion} scores={s.scores} participants={s.participants} pendingEvent={null} readOnly={s.effectiveReadOnly} formOpen={s.showCenterForm} onAddClick={s.effectiveReadOnly ? undefined : () => {
+                <QuestionManager sessionId={s.sessionId} questions={s.session?.questions || {}} currentQuestion={s.session?.currentQuestion} scores={s.scores} participants={s.participants} pendingEvent={s.session?.pendingEvent || null} readOnly={s.effectiveReadOnly} formOpen={s.showCenterForm} onAddClick={s.effectiveReadOnly ? undefined : () => {
               s.handleShowCenterForm();
               setActiveTab('results');
             }} onEditClick={s.effectiveReadOnly ? undefined : qId => {

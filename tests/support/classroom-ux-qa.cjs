@@ -173,7 +173,7 @@ async function questionNamed(title) {
       await student.getByRole('button', { name: /실습/ }).click();
       await expect(student.getByText('내 응답', { exact: true })).toBeVisible();
       await expect.poll(async () => (await sessionRef.child(`questions/${pollId}/votes/${learnerUid}/value`).get()).val()).toBe('실습');
-      await expect(student.getByText('실시간 집계', { exact: false })).toBeVisible();
+      await expect(student.getByText('전체 선택 비율 · 실시간', { exact: true })).toBeVisible();
     });
     await checked('offline snapshot label and queued response acknowledge on reconnect', async () => {
       await student.evaluate(async () => {
@@ -181,7 +181,8 @@ async function questionNamed(title) {
         const { goOffline } = await import('/node_modules/.vite/deps/firebase_database.js');
         goOffline(db);
       });
-      await expect(student.getByText('마지막 집계 · 연결 복구 대기', { exact: false })).toBeVisible();
+      await expect(student.getByText('마지막 집계 · 연결 복구 대기', { exact: true })).toBeVisible();
+      await expect(student.getByText('· 실시간', { exact: true })).toHaveCount(0);
       await expect(student.getByText('A. 실습', { exact: true })).toBeVisible();
       await student.getByRole('button', { name: '답 바꾸기', exact: true }).click();
       await student.getByRole('button', { name: /토론/ }).click();
@@ -193,7 +194,7 @@ async function questionNamed(title) {
         goOnline(db);
       });
       await expect(student.getByText('B. 토론', { exact: true })).toBeVisible();
-      await expect(student.getByText('실시간 집계', { exact: false })).toBeVisible();
+      await expect(student.getByText('전체 선택 비율 · 실시간', { exact: true })).toBeVisible();
       await expect.poll(async () => (await sessionRef.child(`questions/${pollId}/votes/${learnerUid}/value`).get()).val()).toBe('토론');
     });
     for (const page of [teacher, student]) expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);

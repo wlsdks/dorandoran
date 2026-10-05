@@ -815,6 +815,53 @@
         },
         "aiEnabled": {
           ".validate": "newData.isBoolean()"
+        },
+        "publicQuizAggregates": {
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
+          "$qId": {
+            ".validate": "newData.hasChildren(['round','total','counts']) && root.child('sessions').child($sid).child('questions').child($qId).child('type').val() === 'quiz'",
+            "round": {
+              ".validate": "newData.isNumber() && newData.val() === (root.child('sessions').child($sid).child('questions').child($qId).child('activatedAt').exists() ? root.child('sessions').child($sid).child('questions').child($qId).child('activatedAt').val() : 0)"
+            },
+            "total": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 200000 && newData.val() % 1 === 0"
+            },
+            "counts": {
+              ".validate": "newData.hasChildren()",
+              "$index": {
+                ".validate": "$index.matches(/^(0|[1-9][0-9]?)$/) && newData.isNumber() && newData.val() >= 0 && newData.val() <= newData.parent().parent().child('total').val() && newData.val() % 1 === 0"
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "leaderboardPage": {
+          ".read": "auth != null",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000 && newData.val() % 1 === 0"
+        },
+        "leaderboardHighlight": {
+          ".read": "((auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) || (auth != null && root.child('sessionViewers').child($sid).child(auth.uid).val() === true) || (((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true)))",
+          ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
+          ".validate": "newData.hasChildren(['ranks','activeRank','enabled']) && newData.child('enabled').val() === true && (newData.child('activeRank').val() === newData.child('ranks').child('0').val() || newData.child('activeRank').val() === newData.child('ranks').child('1').val() || newData.child('activeRank').val() === newData.child('ranks').child('2').val() || newData.child('activeRank').val() === newData.child('ranks').child('3').val() || newData.child('activeRank').val() === newData.child('ranks').child('4').val() || newData.child('activeRank').val() === newData.child('ranks').child('5').val() || newData.child('activeRank').val() === newData.child('ranks').child('6').val() || newData.child('activeRank').val() === newData.child('ranks').child('7').val() || newData.child('activeRank').val() === newData.child('ranks').child('8').val() || newData.child('activeRank').val() === newData.child('ranks').child('9').val())",
+          "ranks": {
+            ".validate": "newData.hasChildren()",
+            "$index": {
+              ".validate": "$index.matches(/^[0-9]$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 200000 && newData.val() % 1 === 0"
+            }
+          },
+          "activeRank": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 200000 && newData.val() % 1 === 0"
+          },
+          "enabled": {
+            ".validate": "newData.isBoolean()"
+          },
+          "$other": {
+            ".validate": false
+          }
         }
       }
     },

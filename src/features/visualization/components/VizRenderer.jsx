@@ -107,9 +107,9 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           <div className={`text-center self-center ${compact ? 'space-y-1' : 'space-y-2'}`}>
             <Badge variant="primary">{TYPE_LABELS[question.type] || question.type}</Badge>
             <h2 className={`${compact ? 'text-xl' : isPresenter ? 'classroom-question-title' : 'text-3xl'} font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight`}>{question.title}</h2>
-            {hasCorrectAnswer && isQuizQuestion(question) && (!answerRevealed || options.length > 6 || !['choice','quiz','ox'].includes(question.type)) && (
+            {hasCorrectAnswer && isQuizQuestion(question) && answerRevealed && (options.length > 6 || !['choice','quiz','ox'].includes(question.type)) && (
               <p className={isPresenter ? "text-slate-200 text-xl lg:text-2xl" : "text-slate-400 text-sm"}>
-                {answerRevealed ? <span className="inline-block rounded-xl bg-indigo-100 text-indigo-950 px-5 py-2 font-bold">정답 · {question.correctAnswer}</span> : '휴대폰에서 답을 골라주세요'}
+                <span className="inline-block rounded-xl bg-indigo-100 text-indigo-950 px-5 py-2 font-bold">정답 · {question.correctAnswer}</span>
               </p>
             )}
             {question.imageUrl && (
@@ -168,7 +168,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 questionId={currentQId}
                 options={options}
                 presenter={isPresenter}
-                hideResults={isPresenter && !answerRevealed}
+                hideResults={false}
                 page={question.displayPage || 0}
                 onPageChange={isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined}
                 correctValue={question.correctAnswer}

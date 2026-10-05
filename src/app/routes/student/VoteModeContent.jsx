@@ -43,7 +43,7 @@ export function VoteModeContent({
   if (currentMode === 'leaderboard') {
     return (
       <Suspense fallback={<SuspenseFallback />}>
-        <LazyLeaderboardPage sessionId={sessionId} />
+        <LazyLeaderboardPage sessionId={sessionId} highlight={session?.leaderboardHighlight} />
       </Suspense>
     );
   }

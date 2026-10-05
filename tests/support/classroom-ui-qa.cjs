@@ -156,10 +156,13 @@ const health = async p => {
       name: '다음 보기 페이지'
     }).click();
     await expect.poll(async () => (await db.ref('sessions/' + sid + '/questions/many/displayPage').get()).val()).toBe(1);
-    const firstLabel = await p.locator('.classroom-option-label').first().innerText();
+    // Choice letters and answer text are now separate accessible spans.
+    const firstLabel = await p.locator('.classroom-option-label').first().locator('span').last().innerText();
+    const firstLetter = await p.locator('.classroom-option-label').first().locator('span').first().innerText();
     await expect(board.getByText(firstLabel, {
       exact: true
     })).toBeVisible();
+    await expect(board.locator('.classroom-option-label').first().locator('span').first()).toHaveText(firstLetter);
     await expect(board.getByText('1. 다양한 관점에서 생각해볼 수 있어요', {
       exact: true
     })).not.toBeVisible();

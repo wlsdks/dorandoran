@@ -71,7 +71,9 @@ function ScoreDelta({
 
 /** Animated crown for 1st place — bounces when leader changes. */
 function AnimatedCrown({
-  leaderId
+  leaderId,
+  presenter = false,
+  featured = false,
 }) {
   return <motion.span key={leaderId} initial={{
     scale: 0.4,
@@ -86,7 +88,7 @@ function AnimatedCrown({
     stiffness: 500,
     damping: 18
   }} className="inline-flex justify-center w-full">
-      <Crown size={18} className="text-white dark:text-slate-900" />
+      <Crown size={18} style={presenter ? { width: 'clamp(18px, 1.32vw, 30px)', height: 'clamp(18px, 1.32vw, 30px)' } : undefined} className={featured ? 'text-indigo-700 dark:text-indigo-200' : presenter ? 'text-indigo-950' : 'text-white dark:text-slate-900'} />
     </motion.span>;
 }
 const PODIUM_STYLES = ['bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100', 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-600', 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600'];
@@ -98,30 +100,35 @@ export default function LeaderboardRow({
   isHighlighted,
   isPodium,
   podiumIndex,
-  rankDelta
+  rankDelta,
+  presenter = false,
+  orderIndex = 0,
+  reducedMotion = false,
+  isFeatured = false,
+  isHighlightCandidate = false,
 }) {
   const isLeader = rank === 0;
-  const podiumStyle = isPodium ? PODIUM_STYLES[podiumIndex] : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700';
+  const podiumStyle = isFeatured ? presenter ? 'bg-indigo-950/80 text-indigo-50 border-indigo-300' : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-950 dark:text-indigo-100 border-indigo-400'
+    : presenter ? isLeader ? 'bg-indigo-100 text-indigo-950 border-indigo-100' : 'bg-slate-700/45 text-slate-100 border-transparent'
+    : isPodium ? PODIUM_STYLES[podiumIndex] : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700';
   const highlightStyle = isHighlighted && !isPodium ? 'ring-2 ring-slate-900/20 dark:ring-slate-400/30 border-slate-400 dark:border-slate-500 bg-slate-50 dark:bg-slate-700' : isHighlighted && isPodium ? 'ring-2 ring-white/30' : '';
 
   // Rank-up flash: brief emerald overlay when rank improved
   const [showFlash, setShowFlash] = useState(false);
   const prevDeltaRef = useRef(0);
   useEffect(() => {
-    if (rankDelta > 0 && rankDelta !== prevDeltaRef.current) {
+    const previous = prevDeltaRef.current;
+    prevDeltaRef.current = rankDelta;
+    if (!reducedMotion && rankDelta > 0 && rankDelta !== previous) {
       setShowFlash(true);
       const t = setTimeout(() => setShowFlash(false), 600);
-      prevDeltaRef.current = rankDelta;
       return () => clearTimeout(t);
     }
-  }, [rankDelta]);
-  return <motion.div layout layoutId={entry.id} initial={isLeader ? {
+    setShowFlash(false);
+  }, [rankDelta, reducedMotion]);
+  return <motion.div layout={reducedMotion ? false : 'position'} initial={reducedMotion ? false : {
     opacity: 0,
-    scale: 0.85,
-    y: -16
-  } : {
-    opacity: 0,
-    x: -20
+    y: 4
   }} animate={{
     opacity: 1,
     scale: 1,
@@ -133,11 +140,11 @@ export default function LeaderboardRow({
       stiffness: 500,
       damping: 30
     },
-    delay: rank * 0.045,
+    delay: Math.min(orderIndex, 5) * 0.018,
     type: 'spring',
     stiffness: isLeader ? 500 : 300,
     damping: isLeader ? 22 : 25
-  }} className={`relative flex items-center gap-3 px-4 py-3 rounded-xl border overflow-hidden ${podiumStyle} ${highlightStyle}`}>
+  }} data-ranking-featured={isFeatured ? 'true' : undefined} data-rank={rank + 1} style={{ ...(presenter ? { minHeight: 'clamp(44px, 3.22vw, 92px)' } : {}), boxShadow: isFeatured ? 'inset 4px 0 0 #a5b4fc' : 'none' }} className={`relative flex items-center ${presenter ? 'gap-3 px-4 py-1.5 rounded-lg' : 'gap-2.5 min-h-14 px-3 py-2 rounded-xl'} border overflow-hidden transition-colors ${reducedMotion ? 'duration-0' : 'duration-250'} ${podiumStyle} ${isFeatured ? '' : highlightStyle} ${isHighlightCandidate && !isFeatured ? 'ring-1 ring-inset ring-indigo-400/40' : ''}`}>
       {/* Rank-up flash overlay */}
       <AnimatePresence>
         {showFlash && <motion.div key="flash" initial={{
@@ -151,32 +158,34 @@ export default function LeaderboardRow({
       </AnimatePresence>
 
       {/* Rank number / crown / medal */}
-      <span className={`w-6 text-center font-bold text-sm shrink-0 ${rank >= 3 ? 'text-slate-500 dark:text-slate-400' : ''}`}>
-        {isLeader ? <AnimatedCrown leaderId={entry.id} /> : rank === 1 ? <Medal size={16} className="mx-auto" /> : rank + 1}
+      <span style={presenter ? { width: 'clamp(36px, 2.64vw, 68px)', fontSize: 'clamp(18px, 1.3vw, 30px)' } : undefined} className={`${presenter ? 'leading-tight' : 'w-6 text-sm'} text-center font-bold shrink-0 tabular-nums ${rank >= 3 ? presenter ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400' : ''}`} aria-label={`${rank + 1}위`}>
+        {isLeader ? <AnimatedCrown leaderId={entry.id} presenter={presenter} featured={isFeatured} /> : !presenter && rank === 1 ? <Medal size={16} className="mx-auto" /> : rank + 1}
       </span>
 
-      <Avatar name={entry.nickname} size="sm" />
+      {!presenter && <Avatar name={entry.nickname} size="sm" />}
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="font-medium text-sm truncate">{entry.nickname}</span>
-          {isHighlighted && <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-md ${isLeader ? 'bg-white/20 text-white' : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'}`}>나</span>}
+          <span className={presenter ? 'font-semibold text-[clamp(20px,1.55vw,42px)] leading-tight truncate' : 'font-medium text-sm truncate'}>{entry.nickname || '참여자'}</span>
+          {isHighlighted && <span className={`shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded-md ${isFeatured ? 'bg-indigo-600 text-white' : isLeader ? 'bg-white/20 text-white dark:text-slate-900' : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'}`}>나</span>}
+          {presenter && isFeatured && <span className="shrink-0 rounded-md bg-indigo-400/20 px-2 py-1 font-semibold text-indigo-100 text-[clamp(11px,.85vw,22px)]">강조 순위</span>}
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+        {!presenter && <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+          {isFeatured && <span className="font-semibold text-indigo-700 dark:text-indigo-200">강조 순위</span>}
           {rankDelta !== 0 && <RankChange delta={rankDelta} />}
           {(entry.streak || 0) > 1 && <span className={`inline-flex items-center gap-0.5 font-medium ${(entry.streak || 0) >= 3 ? 'text-amber-500' : ''}`}>
               <Flame size={13} />
               {entry.streak}연속
             </span>}
 
-        </div>
+        </div>}
       </div>
 
       <div className="text-right shrink-0 min-w-[56px]">
-        <span className={`font-bold text-sm block ${isLeader ? 'text-white dark:text-slate-900' : 'text-slate-900 dark:text-slate-100'}`}>
-          <AnimatedScore value={entry.total} />
+        <span className={`font-bold block ${presenter ? `text-[clamp(22px,1.7vw,46px)] leading-tight ${isFeatured ? 'text-indigo-50' : isLeader ? 'text-indigo-950' : 'text-slate-100'}` : `text-sm ${isFeatured ? 'text-indigo-950 dark:text-indigo-50' : isLeader ? 'text-white dark:text-slate-900' : 'text-slate-900 dark:text-slate-100'}`}`}>
+          <AnimatedScore value={Number(entry.total) || 0} />
         </span>
-        <ScoreDelta points={entry.lastPoints} questionId={entry.lastQuestionId} isLeader={isLeader} />
+        {!presenter && <ScoreDelta points={entry.lastPoints} questionId={entry.lastQuestionId} isLeader={isLeader} />}
       </div>
     </motion.div>;
 }

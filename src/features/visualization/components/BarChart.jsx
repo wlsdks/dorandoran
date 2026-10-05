@@ -33,7 +33,7 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               {correct && <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-900 text-white px-3 py-1 mb-2 text-sm lg:text-lg font-bold"><Check size={20} />정답</span>}
-              <p className={`${presenter ? 'classroom-option-label' : 'text-lg'} font-semibold leading-snug break-words`}>{option}</p>
+              <p className={`${presenter ? 'classroom-option-label' : 'text-lg'} font-semibold leading-snug break-words flex items-start gap-3`}><span className="poll-option-letter shrink-0">{String.fromCharCode(65 + index)}</span><span>{option}</span></p>
             </div>
             {!concealed && !loading && <div className="classroom-option-statistics flex items-baseline gap-3 shrink-0">
               <AnimatedNumber value={count} className={`${presenter ? 'classroom-option-count' : 'text-3xl'} leading-none font-bold tabular-nums`} />

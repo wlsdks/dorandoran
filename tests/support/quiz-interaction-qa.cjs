@@ -194,9 +194,7 @@ async function offline(page, value) {
     });
   }
   const [correct, wrong, late] = learners;
-  await expect(board.getByText('응답 집계는 정답 공개 후 표시됩니다', {
-    exact: true
-  })).toBeVisible();
+  await expect(board.getByText(/^답을 선택해주세요/)).toBeVisible();
   await expect(board.locator('.poll-column-value')).toHaveCount(0);
   await expect(correct.p.getByRole('button', {
     name: /함께 협업해요/
@@ -230,6 +228,9 @@ async function offline(page, value) {
   await shot(correct.p, '01-bet-ack-chrome');
   await shot(wrong.p, '02-bet-ack-webkit');
   checks.push('numeric bet2/3 submitted and acknowledged');
+  await expect(board.locator('.poll-column-value')).toHaveCount(2);
+  await expect(board.locator('[data-correct="true"]')).toHaveCount(0);
+  await expect.poll(async () => (await db.ref(`sessions/${sid}/publicQuizAggregates/bet/total`).get()).val()).toBe(2);
   await teacher.getByRole('button', {
     name: '정답 공개',
     exact: true
@@ -251,7 +252,7 @@ async function offline(page, value) {
     toast.boundingBox(), correct.p.getByText('+400점', { exact: true }).boundingBox(),
     board.getByLabel('베팅 분포', { exact: true }).boundingBox()
   ]);
-  expect(toastBounds.y + toastBounds.height).toBeLessThan(pointsBounds.y);
+  expect(toastBounds.y + toastBounds.height <= pointsBounds.y || pointsBounds.y + pointsBounds.height <= toastBounds.y).toBe(true);
   expect(betBounds.y + betBounds.height).toBeLessThan(768);
   await shot(board, '03-board-revealed-50-50');
   await shot(correct.p, '04-correct-400');

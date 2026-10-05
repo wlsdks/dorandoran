@@ -1,261 +1,125 @@
-import { useRef, useState, useMemo, useCallback, useEffect, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Send, X } from 'lucide-react';
+import { useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { MessageCircle, X } from 'lucide-react';
 import { ref, push, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { useReactions } from '@/features/reactions/api/useReactions';
 import { REACTIONS } from '@/features/reactions/reactionConfig';
 
-const COOLDOWN_MS = 3000; // 스펙: 학생당 3초 1회 — 300명 시 write 폭주(최대 ~600/s → ~100/s)로 감소
-const FLASH_MS = 500;
-const PARTICLE_COUNT = 8;
-
-/** Tiny dot particles that burst outward on tap. */
-function TapParticles({ color }) {
-  // useMemo로 mount 시 한 번만 평가 — render body에서 Math.random 호출 회피.
-  // 결정적 분포(seeded)는 시각 효과상 불필요 (튀는 입자라 random 본 의미가 자연스러움)
-  const particles = useMemo(
-    () => Array.from({ length: PARTICLE_COUNT }, (_, i) => {
-      const angle = (i / PARTICLE_COUNT) * 360;
-      const rad = (angle * Math.PI) / 180;
-       
-      const distance = 22 + Math.random() * 14;
-      return {
-        id: i,
-        x: Math.cos(rad) * distance,
-        y: Math.sin(rad) * distance,
-         
-        size: 3 + Math.random() * 3,
-      };
-    }),
-    []
-  );
-
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          initial={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-          animate={{ opacity: 0, x: p.x, y: p.y, scale: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="absolute top-1/2 left-1/2 rounded-full"
-          style={{
-            width: p.size,
-            height: p.size,
-            backgroundColor: color,
-            marginLeft: -p.size / 2,
-            marginTop: -p.size / 2,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/** Single reaction button with tap feedback + particles. */
-const ReactionButton = memo(function ReactionButton({ reaction, isFlash, isShaking, onTap }) {
-  const { type, icon: Icon, label, buttonClass, activeClass, accentColor } = reaction;
-
-  return (
-    <div className="relative">
-      <motion.button
-        whileTap={{ scale: 0.9 }}
-        animate={isShaking ? { x: [0, -2, 2, 0] } : { x: 0 }}
-        transition={isShaking ? { duration: 0.2 } : { type: 'spring', stiffness: 500, damping: 30 }}
-        onClick={() => onTap(type)}
-        aria-label={label}
-        className={`relative flex h-12 w-12 items-center justify-center rounded-xl border transition-colors duration-200 ${
-          isFlash ? activeClass : buttonClass
-        }`}
-      >
-        <Icon
-          size={20}
-          fill={isFlash && type === 'heart' ? 'currentColor' : 'none'}
-        />
-      </motion.button>
-      <AnimatePresence>
-        {isFlash && <TapParticles color={accentColor} />}
-      </AnimatePresence>
-    </div>
-  );
-});
-
+const COOLDOWN_MS = 3000;
 const BUBBLE_MAX = 20;
-const BUBBLE_COOLDOWN = 3000;
+// Match the existing RTDB string-length limit without leaving a lone surrogate.
+function clampMessage(value) {
+  let result = '';
+  for (const character of value) {
+    if (result.length + character.length > BUBBLE_MAX) break;
+    result += character;
+  }
+  return result;
+}
+const LABELS = { thumbsup: '좋아요', fire: '열정', heart: '하트', laugh: '재밌어요', clap: '축하해요' };
+const tileBase = 'reaction-tile min-h-[84px] min-w-0 w-full px-2 py-3 flex flex-col items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400';
+const tileRest = 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-slate-700/40 dark:border-slate-600/50 dark:text-slate-100 dark:hover:bg-slate-700';
+const tileSelected = 'bg-indigo-50 border-indigo-400 text-indigo-700 dark:bg-indigo-500/20 dark:border-indigo-400 dark:text-indigo-200';
 
-export default function ReactionBar({ sessionId, bubbleSessionId }) {
+/** A compact chooser. Wire reaction types and chatBubbles retain the existing board protocol. */
+export default function ReactionBar({ sessionId, bubbleSessionId, onInputFocus }) {
   const { sendReaction } = useReactions(sessionId, { subscribe: false });
-  const [flashType, setFlashType] = useState(null);
-  const cooldownRef = useRef(-Infinity);
-  const flashTimerRef = useRef(null);
-  const shakeTimerRef = useRef(null);
-
-  // 학생 본인 화면에도 이모지가 떠오르게 — 탭 즉시 "반응했다"는 만족 피드백(전자칠판 안 봐도 됨).
-  // Firebase 구독 없이 로컬 애니메이션이라 가볍고 즉각적. 전자칠판 오버레이와 별개.
-  const [floaters, setFloaters] = useState([]);
-  const floaterIdRef = useRef(0);
-  const floaterTimersRef = useRef(new Set());
-  const spawnFloater = useCallback((type) => {
-    const reaction = REACTIONS.find((r) => r.type === type);
-    if (!reaction) return;
-    const id = ++floaterIdRef.current;
-    const drift = ((id * 37) % 60) - 30; // 결정적 좌우 분산(연타 시 겹침 방지)
-    setFloaters((f) => [...f, { id, Icon: reaction.icon, color: reaction.accentColor, type, drift }]);
-    const timer = setTimeout(() => { floaterTimersRef.current.delete(timer); setFloaters((f) => f.filter((x) => x.id !== id)); }, 1200);
-    floaterTimersRef.current.add(timer);
-  }, []);
-
-  // Bubble input state
+  const reduced = useReducedMotion();
+  const mounted = useRef(false);
+  const lastReactionAt = useRef(-Infinity);
+  const [selected, setSelected] = useState(null);
+  const [feedback, setFeedback] = useState('');
   const [bubbleOpen, setBubbleOpen] = useState(false);
-  const barRef = useRef(null);
   const [bubbleText, setBubbleText] = useState('');
-  const [canBubble, setCanBubble] = useState(true);
-  const bubbleSendingRef = useRef(false); // 동기적 중복 방지
-  const bubbleInputRef = useRef(null);
-  const bubbleCooldownRef = useRef(null);
+  const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
+  const [bubbleCooldownUntil, setBubbleCooldownUntil] = useState(0);
+  const inputRef = useRef(null);
 
-  useEffect(() => () => {
-    floaterTimersRef.current.forEach(clearTimeout); floaterTimersRef.current.clear();
-    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
-    if (bubbleCooldownRef.current) clearTimeout(bubbleCooldownRef.current);
-    if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
-  }, []);
-
-  // 한마디 입력이 열려 있을 때 바깥 터치/클릭하면 닫기
   useEffect(() => {
-    if (!bubbleOpen) return;
-    const onOutside = (e) => {
-      if (barRef.current && !barRef.current.contains(e.target)) setBubbleOpen(false);
-    };
-    document.addEventListener('pointerdown', onOutside);
-    return () => document.removeEventListener('pointerdown', onOutside);
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  useEffect(() => {
+    if (!selected) return;
+    const timer = setTimeout(() => setSelected(null), 800);
+    return () => clearTimeout(timer);
+  }, [selected]);
+  useEffect(() => {
+    if (!bubbleCooldownUntil) return;
+    const timer = setTimeout(() => setBubbleCooldownUntil(0), Math.max(0, bubbleCooldownUntil - performance.now()));
+    return () => clearTimeout(timer);
+  }, [bubbleCooldownUntil]);
+  useLayoutEffect(() => {
+    if (bubbleOpen) inputRef.current?.focus({ preventScroll: true });
   }, [bubbleOpen]);
 
-  const [cooldownShake, setCooldownShake] = useState(null);
-
-  const handleReaction = useCallback((type) => {
+  const handleReaction = useCallback(async (type) => {
     const now = performance.now();
-    if (now - cooldownRef.current < COOLDOWN_MS) {
-      setCooldownShake(type);
-      if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
-      shakeTimerRef.current = setTimeout(() => setCooldownShake(null), 300);
+    if (now - lastReactionAt.current < COOLDOWN_MS) {
+      setFeedback('잠시 후 다시 보낼 수 있어요.');
       return;
     }
-    cooldownRef.current = now;
-    if ('vibrate' in navigator) navigator.vibrate(8);
-    setFlashType(type);
-    spawnFloater(type);
-    sendReaction(type);
-    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
-    flashTimerRef.current = setTimeout(() => setFlashType(null), FLASH_MS);
-  }, [sendReaction, spawnFloater]);
+    lastReactionAt.current = now;
+    setSelected(type);
+    setFeedback('');
+    if (!reduced && 'vibrate' in navigator) navigator.vibrate(8);
+    const sent = await sendReaction(type);
+    if (!mounted.current) return;
+    if (!sent) lastReactionAt.current = -Infinity;
+    setFeedback(sent ? `${LABELS[type]} 반응을 보냈어요.` : '반응을 보내지 못했어요. 다시 시도해 주세요.');
+  }, [sendReaction, reduced]);
 
-  const handleBubbleSend = useCallback(async () => {
-    const sid = bubbleSessionId || sessionId;
-    const trimmed = bubbleText.trim();
-    if (!trimmed || !canBubble || !sid || bubbleSendingRef.current) return;
-    bubbleSendingRef.current = true; // 즉시 차단 (동기)
+  const handleBubbleSend = useCallback(async (event) => {
+    event?.preventDefault();
+    const text = bubbleText.trim(), sid = bubbleSessionId || sessionId;
+    if (!text || !sid || sendingRef.current || bubbleCooldownUntil) return;
+    sendingRef.current = true;
+    setSending(true);
     try {
       await push(ref(db, `sessions/${sid}/chatBubbles`), {
-        text: trimmed,
-        nickname: getNickname() || '익명',
-        participantId: getParticipantId(),
-        timestamp: serverTimestamp(),
+        text, nickname: getNickname() || '익명', participantId: getParticipantId(), timestamp: serverTimestamp(),
       });
+      if (!mounted.current) return;
       setBubbleText('');
       setBubbleOpen(false);
-      setCanBubble(false);
-      bubbleCooldownRef.current = setTimeout(() => {
-        setCanBubble(true);
-        bubbleSendingRef.current = false;
-      }, BUBBLE_COOLDOWN);
+      setFeedback('한마디를 보냈어요.');
+      setBubbleCooldownUntil(performance.now() + COOLDOWN_MS);
     } catch {
-      bubbleSendingRef.current = false;
+      if (mounted.current) setFeedback('한마디를 보내지 못했어요. 다시 시도해 주세요.');
+    } finally {
+      sendingRef.current = false;
+      if (mounted.current) setSending(false);
     }
-  }, [bubbleText, canBubble, bubbleSessionId, sessionId]);
+  }, [bubbleText, bubbleSessionId, sessionId, bubbleCooldownUntil]);
 
-  return (
-    <div className="relative" ref={barRef}>
-      {/* 본인 화면 이모지 플로터 — 탭 위치에서 위로 떠오르며 페이드(로컬 피드백) */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center overflow-visible z-10">
-        <AnimatePresence>
-          {floaters.map((f) => (
-            <motion.div
-              key={f.id}
-              initial={{ opacity: 0, y: 4, scale: 0.4 }}
-              animate={{ opacity: [0, 1, 1, 0], y: -84, scale: [0.4, 1.3, 1, 0.85], x: f.drift }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.1, ease: 'easeOut', times: [0, 0.2, 0.6, 1] }}
-              className="absolute"
-              style={{ color: f.color }}
-            >
-              <f.Icon size={30} fill={f.type === 'heart' ? 'currentColor' : 'none'} strokeWidth={2} />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {/* Bubble input popup */}
-      <AnimatePresence>
-        {bubbleOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white dark:bg-slate-700 rounded-full shadow-lg border border-slate-200 dark:border-slate-600 pl-4 pr-1.5 py-1.5 z-10"
-          >
-            <input
-              ref={bubbleInputRef}
-              type="text"
-              value={bubbleText}
-              onChange={e => setBubbleText([...e.target.value].slice(0, BUBBLE_MAX).join(''))}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleBubbleSend(); if (e.key === 'Escape') setBubbleOpen(false); }}
-              placeholder="한마디..."
-              maxLength={BUBBLE_MAX}
-              className="w-28 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none"
-              autoFocus
-            />
-            <button
-              onClick={handleBubbleSend}
-              disabled={!bubbleText.trim() || !canBubble}
-              className="w-8 h-8 rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 flex items-center justify-center disabled:opacity-30 transition-colors shrink-0"
-            >
-              <Send size={12} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="flex items-center justify-center gap-1.5">
-        {REACTIONS.map((reaction) => (
-          <ReactionButton
-            key={reaction.type}
-            reaction={reaction}
-            isFlash={flashType === reaction.type}
-            isShaking={cooldownShake === reaction.type}
-            onTap={handleReaction}
-          />
-        ))}
-        {/* Bubble button — inline with reactions */}
-        {bubbleSessionId && (
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => { setBubbleOpen(v => !v); setTimeout(() => bubbleInputRef.current?.focus(), 100); }}
-            disabled={!canBubble && !bubbleOpen}
-            className={`relative flex h-12 w-12 items-center justify-center rounded-xl border transition-colors duration-200 ${
-              bubbleOpen
-                ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100'
-                : `border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 ${canBubble ? 'active:bg-slate-100 dark:active:bg-slate-700' : 'opacity-40'}`
-            }`}
-            aria-label="한마디 보내기"
-          >
-            <MessageCircle size={20} />
-          </motion.button>
-        )}
-      </div>
+  return <div className="space-y-3">
+    <div className="grid gap-2" data-reaction-grid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, max(30%, 5.25rem)), 1fr))' }}>
+      {REACTIONS.map(({ type, icon: Icon }) => <motion.button key={type} type="button" onClick={() => handleReaction(type)} aria-label={LABELS[type]} aria-pressed={selected === type}
+        whileTap={{ scale: reduced ? 1 : 0.97 }} transition={{ duration: 0.1 }} className={`${tileBase} ${selected === type ? tileSelected : tileRest}`}>
+        <Icon size={26} strokeWidth={1.8} className="shrink-0 text-indigo-500 dark:text-indigo-300" fill={selected === type && type === 'heart' ? 'currentColor' : 'none'} aria-hidden="true" />
+        <span className="max-w-full text-center [word-break:keep-all] [overflow-wrap:anywhere]">{LABELS[type]}</span>
+      </motion.button>)}
+      {bubbleSessionId && <motion.button type="button" onClick={() => setBubbleOpen((open) => !open)} aria-label="한마디 입력" aria-expanded={bubbleOpen} aria-controls="reaction-word-editor"
+        whileTap={{ scale: reduced ? 1 : 0.97 }} transition={{ duration: 0.1 }} className={`${tileBase} ${bubbleOpen ? tileSelected : tileRest}`}>
+        <MessageCircle size={26} strokeWidth={1.8} className="shrink-0 text-indigo-500 dark:text-indigo-300" aria-hidden="true" /><span>한마디</span>
+      </motion.button>}
     </div>
-  );
+    {bubbleOpen && <form id="reaction-word-editor" onSubmit={handleBubbleSend} className="border-t border-slate-200 dark:border-slate-700 pt-2 space-y-2">
+      <div className="flex items-center justify-between gap-2"><label htmlFor="reaction-word-input" className="text-sm font-semibold text-slate-700 dark:text-slate-200">한마디</label><button type="button" onClick={() => setBubbleOpen(false)} aria-label="한마디 입력 닫기" className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"><X size={18} /></button></div>
+      <div className="flex items-center gap-2" data-message-controls>
+        <div className="relative flex-1 min-w-0">
+          <input id="reaction-word-input" ref={inputRef} type="text" value={bubbleText} onChange={(event) => setBubbleText(clampMessage(event.target.value))} disabled={sending} placeholder="입력해 주세요" aria-label="한마디 내용" enterKeyHint="send" onFocus={onInputFocus}
+            onKeyDown={(event) => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }}
+            className={`w-full min-h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 px-3 py-3 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${bubbleText ? 'pr-12' : ''}`} />
+          {bubbleText && <button type="button" onClick={() => { setBubbleText(''); inputRef.current?.focus(); }} disabled={sending} aria-label="입력 지우기" className="absolute right-0 top-1/2 -translate-y-1/2 h-11 w-11 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-300"><X size={16} /></button>}
+        </div>
+        <button type="submit" disabled={!bubbleText.trim() || sending || Boolean(bubbleCooldownUntil)} aria-label="한마디 보내기" className="min-h-12 shrink-0 px-3 rounded-xl bg-indigo-600 dark:bg-indigo-400 text-white dark:text-slate-950 font-semibold text-sm disabled:opacity-40">{sending ? '보내는 중' : '보내기'}</button>
+      </div>
+      <p className="text-xs text-slate-500 dark:text-slate-400">{bubbleText.length}/{BUBBLE_MAX}자 · 일부 이모지는 2자 이상으로 셉니다</p>
+    </form>}
+    {feedback && <p role="status" className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{feedback}</p>}
+  </div>;
 }

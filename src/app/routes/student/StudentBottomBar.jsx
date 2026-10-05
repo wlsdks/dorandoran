@@ -6,11 +6,11 @@ import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname, getLastSeen, saveLastSeen } from '@/lib/participant';
 import { useMyHandRaise } from '@/features/hand-raise/api/useHandRaises';
 import { useStudentDM } from '@/features/dm/api/useStudentDM';
-import { motion } from 'framer-motion';
-import { Hand, MessageCircle, MessageSquare, HelpCircle, Headset, Send, MoreHorizontal, Smile, X, ChevronDown } from 'lucide-react';
+import { motion, MotionConfig, useReducedMotion } from 'framer-motion';
+import { Hand, MessageCircle, MessageSquare, HelpCircle, Headset, Send, MoreHorizontal, Smile, X } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
-import ReactionBar from '@/features/reactions/components/ReactionBar';
+import ReactionSheet from './ReactionSheet';
 import ReactionOverlay from '@/features/reactions/components/ReactionOverlay';
 import ChatPanel from '@/features/chat/components/ChatPanel';
 import ClassQAPanel from '@/features/class-questions/components/ClassQAPanel';
@@ -21,11 +21,12 @@ import { timing } from '@/lib/design-tokens';
 const UNREAD_DOT = 'absolute top-1 right-1 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-800';
 
 // Base button style — 48px+ touch target, consistent look
-const BTN_BASE = 'h-[56px] w-full rounded-xl font-medium text-sm flex flex-col items-center justify-center gap-0.5 transition-colors duration-150 relative active:scale-[0.96]';
+const BTN_BASE = 'h-[56px] w-full rounded-xl font-medium text-sm flex flex-col items-center justify-center gap-0.5 transition-colors duration-150 relative active:scale-[0.98] motion-reduce:active:scale-100';
 const BTN_DEFAULT = `${BTN_BASE} bg-slate-50 text-slate-600 hover:bg-slate-100 active:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:active:bg-slate-600`;
 const BTN_ACTIVE = `${BTN_BASE} bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900`;
 
 export default memo(function StudentBottomBar({ sessionId }) {
+  const reduced = useReducedMotion();
   const [showMore, setShowMore] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
   const [showQuestionInput, setShowQuestionInput] = useState(false);
@@ -126,7 +127,7 @@ export default memo(function StudentBottomBar({ sessionId }) {
   }
 
   return createPortal(
-    <>
+    <MotionConfig reducedMotion="user">
       <ReactionOverlay sessionId={sessionId} />
       <ChatPanel sessionId={sessionId} senderName={nickname} senderType="student" open={showChat} onClose={() => setShowChat(false)} onNewMessage={handleNewMessage} />
       <ClassQAPanel sessionId={sessionId} open={showQA} onClose={() => setShowQA(false)} onNewQuestion={handleNewQuestion} />
@@ -189,21 +190,19 @@ export default memo(function StudentBottomBar({ sessionId }) {
             <MessageCircle size={24} className="shrink-0 text-slate-600 dark:text-slate-300" />
             <span className="flex-1"><span className="block font-semibold text-slate-900 dark:text-slate-100">긴급 질문</span><span className="block text-sm text-slate-500 dark:text-slate-300">수업 중 바로 확인이 필요할 때 보내요</span></span>
           </button>
-          <button type="button" onClick={() => setShowReactions(value => !value)} aria-expanded={showReactions} aria-controls="student-reaction-tools" className="w-full min-h-14 flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-left font-semibold text-slate-900 dark:text-slate-100">
-            <Smile size={24} className="shrink-0 text-slate-600 dark:text-slate-300" /><span className="flex-1">반응 보내기</span><ChevronDown size={18} className={showReactions ? 'rotate-180' : ''} />
-          </button>
-          {showReactions && <div id="student-reaction-tools" className="pt-1 [&>div>div:last-child]:flex-wrap"><ReactionBar sessionId={sessionId} bubbleSessionId={sessionId} /></div>}
         </div>
       </Modal>
 
+      <ReactionSheet open={showReactions} onClose={() => setShowReactions(false)} sessionId={sessionId} />
+
       <motion.div
-        initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        initial={reduced ? false : { opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: reduced ? 0 : 0.16 }}
         role="toolbar" aria-label="참여 도구"
         className="mobile-learning-tools fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200/70 dark:border-slate-700/50 z-30 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
       >
         <div className="max-w-[620px] mx-auto px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-1.5">
             <motion.button whileTap={{ scale: 0.96 }} onClick={toggleHand} aria-pressed={isRaised} aria-label={isRaised ? '손 내리기' : '손들기'} className={isRaised ? BTN_ACTIVE : BTN_DEFAULT}>
               <motion.div animate={isRaised ? { rotate: [0, -18, 14, -10, 8, 0] } : { rotate: 0 }} transition={{ duration: 0.7, ease: 'easeInOut' }}><Hand size={22} /></motion.div>
               <span className="text-sm">{isRaised ? '손 내리기' : '손들기'}</span>
@@ -212,6 +211,9 @@ export default memo(function StudentBottomBar({ sessionId }) {
               <HelpCircle size={22} /><span className="text-sm">질문</span>
               {hasNewQuestion && <span className={`${UNREAD_DOT} bg-red-500`} />}
             </motion.button>
+            <motion.button whileTap={{ scale: reduced ? 1 : 0.98 }} onClick={() => setShowReactions(true)} aria-label="반응 보내기" aria-haspopup="dialog" className={BTN_DEFAULT}>
+              <Smile size={22} /><span className="text-sm">반응</span>
+            </motion.button>
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => setShowMore(true)} aria-label="참여 도구 더보기" aria-haspopup="dialog" className={BTN_DEFAULT}>
               <MoreHorizontal size={22} /><span className="text-sm">더보기</span>
               {(hasUnread || dmUnread > 0) && <span className={`${UNREAD_DOT} bg-red-500`} />}
@@ -219,7 +221,7 @@ export default memo(function StudentBottomBar({ sessionId }) {
           </div>
         </div>
       </motion.div>
-    </>,
+    </MotionConfig>,
     document.body,
   );
 });

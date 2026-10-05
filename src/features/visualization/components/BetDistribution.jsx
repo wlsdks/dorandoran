@@ -28,12 +28,12 @@ export default memo(function BetDistribution({ sessionId, questionId, presenter 
   if (presenter) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}
-        aria-label="베팅 분포" className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2 mt-3 text-xl text-slate-300">
-        <span className="font-medium">베팅</span>
+        aria-label="베팅 분포" className="flex flex-wrap items-center justify-center gap-3 mt-4 border-t border-slate-600/50 pt-4 text-lg text-slate-300">
+        <span className="font-medium mr-1">선택한 배율</span>
         {BET_CONFIG.map(({ multiplier, label }) => (
-          <span key={multiplier} className="whitespace-nowrap">
-            {label} <strong className="text-slate-100 tabular-nums">{distribution.counts[multiplier]}명</strong>
-            <span className="ml-2 tabular-nums">{Math.round(distribution.counts[multiplier] / distribution.total * 100)}%</span>
+          <span key={multiplier} className="whitespace-nowrap rounded-lg bg-slate-700/50 px-3 py-2 inline-flex items-center gap-3">
+            <span>{label.split(' ')[0]}</span><strong className="text-slate-100 tabular-nums">{distribution.counts[multiplier]}명</strong>
+            <span className="tabular-nums text-slate-400">{Math.round(distribution.counts[multiplier] / distribution.total * 100)}%</span>
           </span>
         ))}
       </motion.div>

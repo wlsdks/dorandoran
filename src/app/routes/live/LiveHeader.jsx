@@ -13,15 +13,15 @@ export default memo(function LiveHeader({ courseName, roundNumber, count, handCo
   const studentUrl = sessionId ? `${window.location.origin}/?s=${sessionId}` : '';
 
   return (
-    <header className="flex items-center justify-between px-3 sm:px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 relative gap-2">
+    <header className="live-header flex items-center justify-between px-3 sm:px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 relative gap-2">
       <div className="flex items-center gap-2 shrink-0">
         <DoranDoranMascot size="xs" />
-        <span className="hidden sm:inline text-slate-900 dark:text-slate-100 font-bold text-lg tracking-tight">도란도란</span>
+        <span className="live-header-brand hidden sm:inline text-slate-900 dark:text-slate-100 font-bold text-lg tracking-tight">도란도란</span>
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 justify-center">
         {courseName && (
-          <span className="text-slate-500 dark:text-slate-300 text-sm sm:text-base font-medium truncate min-w-0 max-w-[400px]">
+          <span className="live-header-title text-slate-500 dark:text-slate-300 text-sm sm:text-base font-medium truncate min-w-0 max-w-[400px]">
             {courseName}
           </span>
         )}

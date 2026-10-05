@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import QuizResult from '@/features/quiz/components/QuizResult';
 import { getQuizReward } from '@/lib/quiz';
-import { getComboMultiplier } from '@/features/quiz/api/useSpeedQuiz';
+import { quizComboMultiplier } from '@/lib/quiz-awards';
+import QuizScoreGuide from './QuizScoreGuide';
 
 // --- Lazy-loaded mode pages ---
 const LazyLeaderboardPage = lazy(() => import('./LeaderboardPage'));
@@ -19,6 +20,9 @@ const LazyGroupDiscussion = lazy(() => import('@/features/session/components/Gro
 // poll/quiz: slide up   leaderboard: curtain from top
 // special modes: scale-in   waiting: fade   ended/reviewing: slide from below
 export function getModeVariants(modeKey) {
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
+  }
   if (modeKey === 'leaderboard') {
     return {
       initial: {
@@ -125,10 +129,11 @@ export function QuizResultFromVote({
   const matchingReceipt = receipt?.round === question.revealedAt && Number.isFinite(receipt?.points);
   const matchingLegacy = Boolean(question.awardedAt && score?.lastQuestionId === questionId && Number.isFinite(score?.lastPoints));
   const scoreApplied = matchingReceipt || matchingLegacy;
-  const expected = isSpeedQuiz && reward.isCorrect ? Math.round(reward.points * getComboMultiplier(streak)) : reward.points;
+  const speedRound = isSpeedQuiz || Boolean(question.speedQuizRound > 0 && question.speedQuizRound === question.activatedAt);
+  const expected = speedRound && reward.isCorrect ? Math.round(reward.points * quizComboMultiplier(streak)) : reward.points;
   const points = matchingReceipt ? receipt.points : matchingLegacy ? score.lastPoints : 0;
   return <>
-    <QuizResult isCorrect={reward.isCorrect} points={points} correctAnswer={question.correctAnswer} bet={reward.bet || 1} streak={scoreApplied && reward.isCorrect ? streak : 0} />
+    <QuizResult isCorrect={reward.isCorrect} points={points} correctAnswer={question.correctAnswer} bet={reward.bet || 1} streak={scoreApplied && reward.isCorrect ? streak : 0} scoreApplied={scoreApplied} scoreDetails={<QuizScoreGuide question={question} vote={currentVote} points={scoreApplied ? points : undefined} streak={streak} isSpeedQuiz={speedRound} />} />
     {!scoreApplied && <p role="status" className="text-center text-sm text-slate-500 dark:text-slate-300">점수 반영을 확인하고 있어요{expected ? ` · 예상 ${expected}점` : ''}</p>}
   </>;
 

@@ -55,6 +55,52 @@ test('비인증 사용자는 계정·DB 루트·점수에 접근할 수 없다',
   await assertFails(set(ref(db, 'sessions/qa_room/scores/student_a'), { nickname: '가짜', total: 10000 }));
 });
 
+test('퀴즈 공개 전 집계는 참가자에게 숫자만 허용하고 원본/위조/지난 회차를 거부한다', async () => {
+  const path = 'sessions/public_distribution_probe';
+  await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), path), {
+    creatorId: 'legacy_master', courseId: 'course_a', createdAt: 1,
+    participants: { student_a: { nickname: '도란' }, student_b: { nickname: '두런' } },
+    questions: { q: { type: 'quiz', title: '비율 검증', options: ['A', 'B'], correctAnswer: 'B', activatedAt: 101,
+      votes: { student_b: { value: 'B', nickname: '두런' } } } },
+  }));
+  const master = staff('legacy_master', 'master'), guest = student('student_a');
+  const aggregatePath = `${path}/publicQuizAggregates/q`;
+  const valid = { round: 101, total: 2, counts: [1, 1] };
+  await assertSucceeds(set(ref(master, aggregatePath), valid));
+  assert.deepEqual((await assertSucceeds(get(ref(guest, aggregatePath)))).val(), valid);
+  await assertFails(get(ref(guest, `${path}/questions/q/correctAnswer`)));
+  await assertFails(get(ref(guest, `${path}/questions/q/votes`)));
+  await assertFails(get(ref(student('outsider'), aggregatePath)));
+  await assertFails(set(ref(guest, aggregatePath), { ...valid, total: 999 }));
+  await assertFails(set(ref(staff('legacy_staff', 'staff'), aggregatePath), valid));
+  for (const invalid of [{ ...valid, nickname: 'leak' }, { ...valid, correctAnswer: 'B' },
+    { ...valid, counts: [-1, 3] }, { ...valid, counts: [0.5, 1.5] }, { ...valid, round: 100 }]) {
+    await assertFails(set(ref(master, aggregatePath), invalid));
+  }
+  await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), `${path}/questions/q/activatedAt`), 202));
+  await assertFails(set(ref(master, aggregatePath), valid));
+  await assertSucceeds(set(ref(master, aggregatePath), { round: 202, total: 0, counts: [0, 0] }));
+});
+
+test('순위 강조는 수업 소유자만 지정하고 참가자는 읽기만 가능하다', async () => {
+  const path = 'sessions/qa_room/leaderboardHighlight';
+  const owner = staff('legacy_teacher', 'admin');
+  const valid = { ranks: [1, 3, 10], activeRank: 3, enabled: true };
+  await assertSucceeds(set(ref(owner, path), valid));
+  assert.deepEqual((await assertSucceeds(get(ref(student('student_a'), path)))).val(), valid);
+  await assertFails(get(ref(student('outsider'), path)));
+  await assertFails(set(ref(student('student_a'), path), valid));
+  await assertFails(set(ref(staff('legacy_staff', 'staff'), path), valid));
+  await assertFails(set(ref(staff('other_teacher', 'admin'), path), valid));
+  for (const invalid of [{ ...valid, activeRank: 2 }, { ...valid, ranks: [0] },
+    { ...valid, ranks: [1.5] }, { ...valid, ranks: [] }, { ...valid, enabled: false },
+    { ...valid, ranks: Array.from({ length: 11 }, (_, i) => i + 1) },
+    { ...valid, studentId: 'student_a' }, { ...valid, total: 999 }]) {
+    await assertFails(set(ref(owner, path), invalid));
+  }
+  await assertSucceeds(set(ref(owner, path), null));
+});
+
 test('공개 점수 설정은 원본과 일치하며 미공개 정답·원본 투표는 포함할 수 없다', async () => {
   await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), 'sessions/public_meta_probe'), {
     creatorId: 'legacy_master', createdAt: 1, status: 'active',

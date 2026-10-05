@@ -62,7 +62,7 @@ export default function LivePage() {
   const currentMode = session?.currentMode;
   const question = currentQId ? session?.questions?.[currentQId] : null;
   const { totalVotes, resultsHidden, loading: votesLoading } = useVotes(sessionId, currentQId);
-  const audienceResultsHidden = resultsHidden || (question?.type === 'quiz' && !question.revealedAt);
+  const audienceResultsHidden = resultsHidden;
 
   // 추첨 대상은 현재 참여자이며 모두 같은 확률로 선택한다.
   // 추첨 모드에서만 계산 — 그 외엔 scores 변경마다 300명 재계산하던 비용 제거.
@@ -128,7 +128,7 @@ export default function LivePage() {
         sessionId={sessionId} startedAt={session?.startedAt} status={session?.status} />
       <ConnectionBanner />
       <ParticipationSpotlight sessionId={sessionId} />
-      <JoinToast sessionId={sessionId} />
+      {currentMode !== 'joinShow' && <JoinToast sessionId={sessionId} />}
       <ReactionOverlay sessionId={sessionId} />
       <ChatBubbleOverlay sessionId={sessionId} />
       <DrumrollOverlay active={!!session?.drumroll} />
@@ -138,7 +138,7 @@ export default function LivePage() {
           넘치면(aiJudge 그리드 등) 상단부터 스크롤되어 상단 잘림도 방지 — 두 요구를 동시 충족.
           폭은 QHD(2560) 프로젝터에서 작게 떠 보이지 않도록 2xl 이상에서 확장. */}
       <div className="flex-1 flex justify-center items-start overflow-y-auto px-8 pt-4 pb-10">
-        <div className={`w-full mx-auto my-auto ${question?.type === 'imageSlide' ? 'max-w-none' : 'max-w-[1600px]'}`} >
+        <div className={`w-full mx-auto my-auto ${question?.type === 'imageSlide' ? 'max-w-none' : currentMode === 'joinShow' ? 'max-w-[2200px]' : 'max-w-[1800px]'}`} >
           <AnimatePresence mode="wait">
             {isGameMode ? (
               <motion.div
@@ -158,7 +158,7 @@ export default function LivePage() {
                     <ScratchCard sessionId={sessionId} role="view" presenter />
                   )}
                   {currentMode === 'breakTime' && <BreakTimer sessionId={sessionId} presenter readOnly />}
-                  {currentMode === 'leaderboard' && <div className="w-full max-w-2xl mx-auto [&_.max-w-xl]:max-w-none" style={{ maxWidth: 1100 }}><Leaderboard presenter entries={leaderboard} maxShow={10} title="실시간 리더보드" /></div>}
+                  {currentMode === 'leaderboard' && <div className="w-full"><Leaderboard presenter entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} highlight={session?.leaderboardHighlight} title="실시간 리더보드" /></div>}
                   {currentMode === 'qaBoard' && <div className="w-full max-w-4xl mx-auto" style={{ maxWidth: 1100 }}><ClassQABoard presenter readOnly sessionId={sessionId} showInput={false} role="viewer" /></div>}
                   {currentMode === 'qaRanking' && <QARanking sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'joinShow' && <JoinShow sessionId={sessionId} />}

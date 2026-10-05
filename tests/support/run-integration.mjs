@@ -25,10 +25,14 @@ try {
   await run('node', ['tests/support/presentation-qa.cjs']);
   await run('node', ['tests/support/quiz-audience-qa.cjs']);
   await run('node', ['tests/support/quiz-interaction-qa.cjs']);
+  await run('node', ['tests/support/achievement-lifecycle-qa.cjs']);
+  await run('node', ['tests/support/ranking-highlight-qa.cjs']);
+  await run('node', ['tests/support/reaction-sheet-qa.cjs']);
   await run('node', ['tests/support/student-qa.cjs']);
   await run('node', ['tests/support/vote-ack-qa.cjs']);
   await run('node', ['tests/support/quiz-awards-qa.cjs']);
   await run('node', ['tests/support/lesson-event-qa.cjs']);
+  await run('node', ['tests/support/quiz-event-selection-qa.cjs']);
   await run('node', ['tests/support/speed-quiz-qa.cjs']);
   await run('node', ['tests/support/game-pages-qa.cjs']);
   await run('node', ['tests/support/submission-qa.cjs']);
