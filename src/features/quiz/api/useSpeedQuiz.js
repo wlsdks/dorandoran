@@ -1,7 +1,7 @@
 import { ref, onValue, update, set, remove, get } from 'firebase/database';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { db } from '@/lib/firebase';
-import { isQuizQuestion } from '@/lib/quiz';
+import { isQuizQuestion, normalizeQuizEvent } from '@/lib/quiz';
 import { logger } from '@/lib/logger';
 import { getServerNow } from '@/features/timer/api/useTimer';
 import { awardQuizRound, quizComboMultiplier } from '@/lib/quiz-awards';
@@ -89,14 +89,20 @@ export function useSpeedQuiz(sessionId, session, { startTimer, stopTimer }) {
     // (elapsedMs = vote.timestamp - activatedAt)가 강사 기기 시계 오차 없이 정확해짐.
     const now = getServerNow();
     try {
-      await update(ref(db, `sessions/${sessionId}`), {
+      const updates = {
         currentQuestion: qId,
         currentMode: 'quiz',
         [`questions/${qId}/activatedAt`]: now,
         [`questions/${qId}/speedQuizRound`]: now,
         [`questions/${qId}/revealedAt`]: null,
         [`questions/${qId}/awardedAt`]: null,
-      });
+      };
+      const nextEvent = normalizeQuizEvent(sessionRef.current?.pendingEvent);
+      if (nextEvent) {
+        updates[`questions/${qId}/event`] = nextEvent;
+        updates.pendingEvent = null;
+      }
+      await update(ref(db, `sessions/${sessionId}`), updates);
       await startTimer(SPEED_QUIZ_TIMER);
       setPhase('question');
       advancingRef.current = false;

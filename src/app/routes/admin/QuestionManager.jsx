@@ -4,7 +4,7 @@ import { BookmarkPlus, PanelLeftClose, Plus, Eye, RotateCcw, Sparkles, Check, Ch
 import Button from '@/components/ui/Button';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Toast from '@/components/ui/Toast';
-import { isQuizQuestion } from '@/lib/quiz';
+import { isQuizQuestion, normalizeQuizEvent } from '@/lib/quiz';
 import { useAdminKeyboardShortcuts } from '@/hooks/useAdminKeyboardShortcuts';
 import { useQuestionLibrary } from '@/features/questions/api/useQuestionLibrary';
 import { useQuestionActions } from '@/hooks/useQuestionActions';
@@ -47,6 +47,7 @@ export default function QuestionManager({
   sessionId,
   questions,
   currentQuestion,
+  pendingEvent = null,
   scores = {},
   participants = {},
   onAddClick,
@@ -88,7 +89,7 @@ export default function QuestionManager({
     error, toast, questionList,
     handleSubmit, activateQuestion, clearActive,
     deleteQuestion, duplicateQuestion, moveQuestion, reorderQuestion, resetQuestion,
-    importFromLibrary, revealQuiz, revealHint, revealAnswer, setSlide, resetAllQuestions, showLeaderboard,
+    importFromLibrary, revealQuiz, revealHint, revealAnswer, setSlide, resetAllQuestions, showLeaderboard, armEvent, clearPendingEvent,
   } = useQuestionActions(sessionId, questions, currentQuestion, scores, participants);
 
   const handleTogglePersistent = useCallback((qId) => {
@@ -101,8 +102,8 @@ export default function QuestionManager({
   const nextEntry = activeIndex >= 0 ? questionList[activeIndex + 1] : questionList[0];
 
   const completedCount = questionList.filter(([, q]) => q.activatedAt || q.revealedAt).length;
-  const handleActivate = useCallback((qId) => activateQuestion(qId), [activateQuestion]);
-  const handleNextEvent = useCallback(() => {}, []);
+  const handleActivate = useCallback((qId, event = pendingEvent) => activateQuestion(qId, normalizeQuizEvent(event)), [activateQuestion, pendingEvent]);
+  const handleNextEvent = useCallback((event) => event ? armEvent(normalizeQuizEvent(event)) : clearPendingEvent(), [armEvent, clearPendingEvent]);
 
   async function handleSaveToLibrary(qId) {
     const question = questions?.[qId];
@@ -159,6 +160,7 @@ export default function QuestionManager({
             onSlide={setSlide}
             onShowLeaderboard={showLeaderboard}
             onNextEvent={handleNextEvent}
+            nextEvent={normalizeQuizEvent(pendingEvent)}
             speedQuizActive={speedQuizActive}
             onStartSpeedQuiz={onStartSpeedQuiz}
             onEndSpeedQuiz={onEndSpeedQuiz}

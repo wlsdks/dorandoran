@@ -285,13 +285,13 @@ export default function PresentationView({ sessionId, session, currentMode, onli
     if (q.type === 'hintQuiz') updates[`questions/${qId}/revealedHints`] = 0;
     if (['mysteryBox', 'hintQuiz'].includes(q.type)) updates[`questions/${qId}/revealedWinners`] = 0;
     // 발표모드에서도 점수 이벤트 적용 — 대시보드 빠른진행과 동일 경로
-    updates[`questions/${qId}/event`] = nextEvent && isQuizQuestion(q) ? normalizeQuizEvent(nextEvent) : null;
-    updates.pendingEvent = null; // 예고 소진
+    if (nextEvent && isQuizQuestion(q)) {
+      updates[`questions/${qId}/event`] = normalizeQuizEvent(nextEvent);
+      updates.pendingEvent = null; // 새 퀴즈에 적용할 때 한 번만 소진
+    }
     await update(ref(db, `sessions/${sessionId}`), updates);
     trimEphemeralFeeds(sessionId); // 리액션·한마디 최근 50 유지(비동기, 실패 무해)
   }, [sessionId, session?.questions]);
-
-  const [nextEvent, setNextEvent] = useState(null);
 
   const goPrev = useCallback(() => {
     if (currentQIdx > 0) goToQuestion(questionList[currentQIdx - 1][0]);
@@ -299,10 +299,9 @@ export default function PresentationView({ sessionId, session, currentMode, onli
 
   const goNext = useCallback(() => {
     if (currentQIdx < questionList.length - 1) {
-      goToQuestion(questionList[currentQIdx + 1][0], nextEvent);
-      setNextEvent(null); // 1회성 — 적용 후 해제
+      goToQuestion(questionList[currentQIdx + 1][0], session?.pendingEvent);
     }
-  }, [currentQIdx, questionList, goToQuestion, nextEvent]);
+  }, [currentQIdx, questionList, goToQuestion, session?.pendingEvent]);
 
   const [slideBookmark, setSlideBookmark] = useState(null);
   const current = session?.questions?.[session?.currentQuestion];

@@ -44,14 +44,19 @@ async function capture(page, key) {
   await student.getByRole('button', { name: '참여하기', exact: true }).click();
   await expect(student.getByRole('button', { name: '학습자 설정' })).toBeVisible();
   const uid = await student.evaluate(async () => { const { ensureAuthentication } = await import('/src/lib/auth-session.js'); return (await ensureAuthentication()).uid; });
+  await teacher.getByText('다음 퀴즈 이벤트 (선택)', { exact: true }).click();
+  await teacher.getByRole('button', { name: '2배 점수', exact: true }).click();
+  await expect.poll(async () => (await db.ref(`sessions/${sid}/pendingEvent/id`).get()).val()).toBe('double-points');
   await teacher.getByText('스피드 퀴즈 (선택)', { exact: true }).click();
   await teacher.getByRole('button', { name: /스피드 퀴즈.*3문제/ }).click();
-  for (const [index, id, answer, total] of [[1, 'first', '첫 정답', 100], [2, 'second', '둘째 정답', 200], [3, 'third', '셋째 정답', 320]]) {
+  for (const [index, id, answer, total] of [[1, 'first', '첫 정답', 200], [2, 'second', '둘째 정답', 300], [3, 'third', '셋째 정답', 420]]) {
     await expect(student.getByRole('button', { name: new RegExp(answer) })).toBeVisible({ timeout: 20_000 });
     await student.getByRole('button', { name: new RegExp(answer) }).click();
     await expect.poll(async () => (await db.ref(`sessions/${sid}/questions/${id}/votes/${uid}`).get()).exists()).toBe(true);
     await expect.poll(async () => (await db.ref(`sessions/${sid}/questions/${id}/awardedAt`).get()).exists(), { timeout: 20_000 }).toBe(true);
     await expect.poll(async () => (await db.ref(`sessions/${sid}/scores/${uid}/total`).get()).val()).toBe(total);
+    expect((await db.ref(`sessions/${sid}/pendingEvent`).get()).exists()).toBe(false);
+    expect((await db.ref(`sessions/${sid}/questions/${id}/event/id`).get()).val()).toBe(id === 'first' ? 'double-points' : null);
     if (id === 'third') {
       await expect(student.getByText('+120점', { exact: true })).toBeVisible();
       await capture(student, '3-student-combo-120');
@@ -71,11 +76,11 @@ async function capture(page, key) {
   await teacher.keyboard.press('ArrowRight');
   await expect.poll(async () => (await db.ref(`sessions/${sid}/currentQuestion`).get()).val()).toBe('third');
   await expect(student.getByText('+120점', { exact: true })).toBeVisible();
-  expect((await db.ref(`sessions/${sid}/scores/${uid}/total`).get()).val()).toBe(320);
+  expect((await db.ref(`sessions/${sid}/scores/${uid}/total`).get()).val()).toBe(420);
   await capture(student, '5-student-combo-review');
   expect(errors).toEqual([]);
   fs.writeFileSync(path.join(directory, 'manifest.json'), JSON.stringify({ result: 'PASS', evidence, errors, total: score.total }, null, 2));
-  console.log('PASS actual 10-second speed quiz: three votes -> automatic reveals -> 320 points (third +120 combo) -> leaderboard -> stopped -> receipt review; pageerror0');
+  console.log('PASS actual 10-second speed quiz: one-shot event selected in UI -> 200/300/420 points (third +120 combo) -> leaderboard -> stopped -> receipt review; pageerror0');
 })().catch(async error => { console.error(error); console.error(JSON.stringify((await db.ref(`sessions/${sid}`).get()).val())); await teacher?.screenshot({ path: path.join(directory, 'failure-teacher.png') }); await board?.screenshot({ path: path.join(directory, 'failure-board.png') }); process.exitCode = 1; }).finally(async () => {
   await browser?.close();
   await db.ref(`sessions/${sid}`).remove();

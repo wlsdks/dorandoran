@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { memo } from 'react';
 import { Play, Square, Zap, PartyPopper, Check, Trophy, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { QUIZ_EVENT_PRESETS, isQuizQuestion } from '@/lib/quiz';
@@ -27,20 +27,15 @@ export default memo(function QuickProgressCard({
   onSlide,
   onShowLeaderboard,
   onNextEvent,
+  nextEvent = null,
   speedQuizActive,
   onStartSpeedQuiz,
   onEndSpeedQuiz,
   speedQuizCount,
 }) {
-  const [nextEvent, setNextEvent] = useState(null);
-
   function handleActivateNext() {
     if (!nextEntry) return;
-    onActivate(nextEntry[0]);
-    if (nextEvent) {
-      onNextEvent?.(nextEvent);
-      setNextEvent(null);
-    }
+    onActivate(nextEntry[0], nextEvent);
   }
 
   const currentQ = currentEntry?.[1];
@@ -288,7 +283,7 @@ export default memo(function QuickProgressCard({
             return (
               <button
                 key={preset.id}
-                onClick={() => setNextEvent(isSelected ? null : preset)}
+                onClick={() => onNextEvent?.(isSelected ? null : preset)}
                 className={`min-h-11 px-2.5 py-2 rounded-md text-xs font-medium transition-colors duration-150 active:scale-[0.96] ${
                   isSelected
                     ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'

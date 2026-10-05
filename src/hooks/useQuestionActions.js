@@ -138,6 +138,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
         updates[`questions/${qId}/speedQuizRound`] = null;
         if (nextEvent) {
           updates[`questions/${qId}/event`] = normalizeQuizEvent(nextEvent);
+          updates.pendingEvent = null;
         }
       }
 
@@ -352,8 +353,9 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
       await set(ref(db, `sessions/${sessionId}/pendingEvent`), eventPreset);
     } catch {
       setError('이벤트 예약에 실패했습니다. 다시 시도해주세요.');
+      showToast('이벤트 예약에 실패했습니다. 다시 시도해주세요.');
     }
-  }, [sessionId]);
+  }, [sessionId, showToast]);
 
   const clearPendingEvent = useCallback(async () => {
     try {
@@ -361,8 +363,9 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
       await remove(ref(db, `sessions/${sessionId}/pendingEvent`));
     } catch {
       setError('이벤트 해제에 실패했습니다. 다시 시도해주세요.');
+      showToast('이벤트 해제에 실패했습니다. 다시 시도해주세요.');
     }
-  }, [sessionId]);
+  }, [sessionId, showToast]);
 
   async function resetQuestion(qId) {
     try {
