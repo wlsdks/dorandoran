@@ -18,3 +18,9 @@ it('명단의 접속 판정과 동점 순서를 공유하되 입력을 수정하
   const scores = { a: { nickname: 'B', total: 5 }, b: { nickname: 'A', total: 5 } };
   const leaderboard = summarizeScores(scores); expect(leaderboard.map(p => p.id)).toEqual(['b', 'a']); expect(summarizeScores(scores)).toBe(leaderboard);
 });
+it('희소 배열의 null 자리와 잘못된 레거시 값은 유령 응답·참여자로 세지 않는다', () => {
+  expect(summarizeVotes([null, { value: 'A' }, null]).totalVotes).toBe(1);
+  expect(summarizeVotes('invalid').totalVotes).toBe(0);
+  expect(summarizeParticipants([null, { nickname: 'A' }]).list).toHaveLength(1);
+  expect(summarizeScores([null, { total: 1 }])).toHaveLength(1);
+});
