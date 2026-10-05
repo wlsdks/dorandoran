@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect, useRef, useMemo, memo } from 'react';
+import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { useSession } from '@/features/session/api/useSession';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VotePageSkeleton, SuspenseFallback } from '@/components/ui/Skeleton';
-import { useTimer } from '@/features/timer/api/useTimer';
+import { useTimer, getServerNow } from '@/features/timer/api/useTimer';
 import { useMyScore } from '@/features/quiz/api/useScores';
 import { useAchievements } from '@/features/quiz/api/useAchievements';
 import { useSpeedQuizStudent } from '@/features/quiz/api/useSpeedQuizStudent';
@@ -27,16 +27,10 @@ export default memo(function VotePage({ sessionId }) {
 
   const handleTimerExpire = useCallback(() => setTimerExpired(true), []);
 
-  const prevQuestionRef = useRef(session?.currentQuestion);
-  const prevEndTimeRef = useRef(endTime);
   useEffect(() => {
-    const currentQId = session?.currentQuestion;
-    if (currentQId !== prevQuestionRef.current || (endTime && endTime !== prevEndTimeRef.current)) {
-      setTimerExpired(false);
-    }
-    prevQuestionRef.current = currentQId;
-    prevEndTimeRef.current = endTime;
-  }, [session?.currentQuestion, endTime]);
+    // A late join/reload must respect the retained deadline; explicit cancellation unlocks everyone.
+    setTimerExpired(Boolean(endTime && endTime <= getServerNow()));
+  }, [session?.currentQuestion, endTime, timerRunning]);
 
   const { myScore } = useMyScore(sessionId);
   const participantId = myPid;

@@ -73,6 +73,7 @@ export default memo(function AdminSessionHeader({
   duration,
   onTimerStart,
   onTimerStop,
+  onTimerExpire,
   onBack,
   onStartSession,
   onEndSession,
@@ -240,7 +241,7 @@ export default memo(function AdminSessionHeader({
               aria-expanded={timerOpen}
             >
               {timerRunning ? (
-                <TimerRing endTime={endTime} duration={duration} onExpire={onTimerStop} size="sm" />
+                <TimerRing endTime={endTime} duration={duration} onExpire={onTimerExpire} size="sm" />
               ) : (
                 <>
                   <Clock size={20} />

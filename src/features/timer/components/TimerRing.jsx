@@ -23,7 +23,7 @@ export default function TimerRing({ endTime, duration, onExpire, size = 'md' }) 
     let interval;
 
     function tick() {
-      // 만료 후엔 interval 정지 — onExpire(=stopTimer write)가 200ms마다 반복 호출되던 버그 방지
+      // 만료 후엔 interval 정지 — 완료 콜백이 200ms마다 반복 호출되던 버그 방지
       if (firedRef.current) { if (interval) clearInterval(interval); return; }
       // 서버 시간 기준 remaining — 학생 기기 시계 편차 보정 (endTime은 서버 시간 기준 저장됨)
       const remaining = Math.max(0, Math.ceil((endTime - getServerNow()) / 1000));

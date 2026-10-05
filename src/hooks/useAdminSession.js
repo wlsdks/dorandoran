@@ -43,7 +43,7 @@ export function useAdminSession() {
   const { session, loading } = useSession(sessionId);
   const { participants, onlineList, count } = useParticipants(sessionId);
   const { scores, leaderboard, resetScores } = useScores(sessionId);
-  const { isRunning: timerRunning, endTime, duration, startTimer, stopTimer } = useTimer(sessionId);
+  const { isRunning: timerRunning, endTime, duration, startTimer, stopTimer, expireTimer } = useTimer(sessionId);
   const { pendingAdmins, pendingCount, approveAdmin, rejectAdmin } = useAdminApprovals(adminUser?.role === 'master');
 
   const { active: speedQuizActive, startSpeedQuiz, endSpeedQuiz, quizCount: speedQuizCount } = useSpeedQuiz(
@@ -237,7 +237,7 @@ export function useAdminSession() {
     participants, onlineList, count, scores, leaderboard, resetScores,
     voteCounts, drawParticipants, studentUrl, questionProgress, addModeCard,
     // Timer
-    timerRunning, endTime, duration, startTimer, stopTimer,
+    timerRunning, endTime, duration, startTimer, stopTimer, expireTimer,
     // Speed quiz
     speedQuizActive, startSpeedQuiz, endSpeedQuiz, speedQuizCount,
     // UI state
