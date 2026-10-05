@@ -20,7 +20,7 @@ export default memo(function HintQuizPresenter({ sessionId, questionId, question
   const visibleWinners = presetWinners.slice(0, revealedWinners);
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto px-4 pt-4">
+    <div className="hint-quiz-stage flex flex-col items-center gap-6 w-full max-w-2xl mx-auto px-4 pt-4">
       {!revealed && (
         <motion.div
           initial={{ opacity: 0 }}

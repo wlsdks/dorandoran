@@ -11,7 +11,7 @@ import { Check, X } from 'lucide-react';
  * - Overall accuracy percentage hero number
  * - Per-position accuracy bars
  */
-export default memo(function RankingChart({ sessionId, questionId, items = [], revealed = true }) {
+export default memo(function RankingChart({ sessionId, questionId, items = [], revealed = true, presenter = false }) {
   const { votes } = useVotes(sessionId, questionId);
 
   const analysis = useMemo(() => {
@@ -71,7 +71,7 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], r
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6 px-4">
+    <div className={`w-full max-w-xl mx-auto space-y-6 px-4 ${presenter ? 'ranking-chart-stage' : ''}`}>
       {/* Hero stats */}
       <div className="text-center space-y-1">
         <motion.p
@@ -152,7 +152,7 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], r
       </div>
 
       {/* Correct order reference */}
-      <div className="rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 px-4 py-3">
+      {!presenter && <div className="rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 px-4 py-3">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">정답 순서</p>
         <div className="flex flex-wrap gap-1.5">
           {items.map((item, i) => (
@@ -161,7 +161,7 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], r
             </span>
           ))}
         </div>
-      </div>
+      </div>}
     </div>
   );
 });

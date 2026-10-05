@@ -35,6 +35,7 @@ import { lazy, Suspense, useState, useEffect } from 'react';
 
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 import { TYPE_LABELS } from '@/lib/question-types';
+import './PresentationViz.css';
 
 export default memo(function VizRenderer({ sessionId, session, isAdmin = false, isPresenter = false }) {
   const { available } = useAIAvailability();
@@ -94,7 +95,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
   const framed = isPresenter && !['imageSlide', 'webEmbed', 'aiJudge'].includes(question.type);
 
   return (
-    <div className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : isPresenter ? 'justify-center gap-5 py-3' : 'justify-center gap-6 py-4'} ${framed ? 'paper-surface' : ''} relative`}>
+    <div data-question-kind={question.type} className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : isPresenter ? 'justify-center gap-5 py-3' : 'justify-center gap-6 py-4'} ${framed ? 'paper-surface presentation-viz' : ''} relative`}>
       {confettiWave > 0 && hasCorrectAnswer && <Suspense fallback={null}>
         <div className="absolute right-10 top-12 pointer-events-none z-10 scale-75"><ConfettiBurst key={revealedAt} /></div>
       </Suspense>}
@@ -205,7 +206,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           )}
           {question.type === 'scale' && <ScaleChart sessionId={sessionId} questionId={currentQId} minLabel={question.minLabel} maxLabel={question.maxLabel} />}
           {question.type === 'debate' && <DebateChart sessionId={sessionId} questionId={currentQId} presenter={isPresenter} readOnly={isPresenter && !isAdmin} page={question.displayPage || 0} onPageChange={onDisplayPageChange} />}
-          {question.type === 'ranking' && <RankingChart sessionId={sessionId} questionId={currentQId} items={options} revealed={answerRevealed || !isPresenter} />}
+          {question.type === 'ranking' && <RankingChart presenter={isPresenter} sessionId={sessionId} questionId={currentQId} items={options} revealed={answerRevealed || !isPresenter} />}
           {question.type === 'fillinblank' && (
             <FillBlankChart presenter={isPresenter}
               sessionId={sessionId}
@@ -223,7 +224,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
               revealed={answerRevealed}
             />
           )}
-          {question.type === 'check' && <CheckProgress sessionId={sessionId} questionId={currentQId} />}
+          {question.type === 'check' && <CheckProgress presenter={isPresenter} sessionId={sessionId} questionId={currentQId} />}
           {question.type === 'imageSlide' && (
             <ImageSlidePresenter
                 presenter={isPresenter}

@@ -25,14 +25,14 @@ export default memo(function CorrectAnswerRanking({ sessionId, questionId, corre
 
   if (ranking.length === 0) return null;
 
-  if (presenter) return <section className="mt-6 space-y-4 max-w-[960px] mx-auto">
+  if (presenter) return <section className="correct-answer-stage mt-6 space-y-4 max-w-[960px] mx-auto">
     <p className="text-2xl text-slate-100 font-semibold">정답을 맞힌 {ranking.length}명 · {totalVotes}명 참여</p>
     <ol className="grid grid-cols-2 gap-3">
-      {ranking.slice(0, 6).map(entry => <li key={entry.id} className="flex items-center gap-4 bg-slate-700 rounded-xl p-4 text-2xl text-slate-100">
+      {ranking.slice(0, 4).map(entry => <li key={entry.id} className="flex items-center gap-4 bg-slate-700 rounded-xl p-4 text-2xl text-slate-100">
         <span className="text-indigo-300 tabular-nums shrink-0">{entry.rank}</span><span className="min-w-0 break-words">{entry.nickname}</span>
       </li>)}
     </ol>
-    {ranking.length > 6 && <p className="text-xl text-slate-300">먼저 답한 6명 표시 · 그 외 {ranking.length - 6}명</p>}
+    {ranking.length > 4 && <p className="text-xl text-slate-300">먼저 답한 4명 표시 · 그 외 {ranking.length - 4}명</p>}
   </section>;
 
   const filtered = search.trim()

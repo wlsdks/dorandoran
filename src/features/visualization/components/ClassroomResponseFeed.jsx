@@ -19,7 +19,7 @@ export default memo(function ClassroomResponseFeed({ sessionId, questionId, ques
     {spotlight ? <article className="classroom-response-card classroom-response-spotlight">
       <p className="classroom-response-caption">함께 살펴볼 생각 · {spotlight.nickname || '익명'}</p>
       <p className="classroom-response-text">{spotlight.value}</p>
-    </article> : responses.length ? <div className="classroom-response-grid">
+    </article> : responses.length ? <div className={`classroom-response-grid ${pageSize === 1 ? 'classroom-response-single' : ''}`}>
       {responses.slice(page * pageSize, (page + 1) * pageSize).map(item => <article key={item.id} className="classroom-response-card">
         <p className="classroom-response-caption"><MessageCircle size={20} />{item.nickname || '익명'}</p>
         <p className="classroom-response-text">{item.value}</p>

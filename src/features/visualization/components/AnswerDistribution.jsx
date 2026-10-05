@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 /** 라벨을 막대 밖에 두어 막대의 밝기와 무관하게 읽을 수 있게 한다. */
 export default function AnswerDistribution({ answers, revealed = false, presenter = false }) {
   const max = Math.max(1, ...answers.map(answer => answer.count));
-  const limit = presenter ? 6 : 10;
+  const limit = presenter ? 4 : 10;
   return <div className="answer-distribution space-y-4">
     {answers.slice(0, limit).map(answer => <div key={answer.answer}>
       <div className="answer-distribution-label flex items-start justify-between gap-4 mb-2 text-slate-700 dark:text-slate-100">

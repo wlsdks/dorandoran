@@ -1,0 +1,43 @@
+/* Display-only reading rules; mobile and instructor editing surfaces keep their own layout. */
+.presentation-viz .classroom-response-single { grid-template-columns:minmax(0,1fr); }
+.presentation-viz .classroom-response-feed { gap:16px; }
+.presentation-viz .classroom-visualization[data-kind='subjective'],.presentation-viz .classroom-visualization[data-kind='qna'] { padding:0; }
+.presentation-viz .classroom-response-single .classroom-response-card { padding:18px; }
+.presentation-viz .classroom-response-single .classroom-response-caption { margin-bottom:12px; }
+.presentation-viz .classroom-response-single .classroom-response-text { font-size:24px;line-height:1.45; }
+.presentation-viz .short-answer-chart { display:flex;flex-direction:column;gap:20px;width:100%;max-width:1200px;margin:auto; }
+.presentation-viz .short-answer-summary { display:flex;align-items:center;justify-content:space-between;gap:32px;padding:20px 24px;border-radius:14px;background:#334155; }
+.presentation-viz .short-answer-caption { font-size:20px;line-height:1.4;color:#cbd5e1;margin-bottom:8px; }
+.presentation-viz .short-answer-text { font-size:44px;line-height:1.2;font-weight:650;color:#f1f5f9;overflow-wrap:anywhere; }
+.presentation-viz .short-answer-guidance { font-size:24px;line-height:1.4; }
+.presentation-viz .short-answer-accuracy { display:flex;flex-direction:column;gap:8px;text-align:right;flex-shrink:0; }
+.presentation-viz .short-answer-accuracy strong { font-size:40px;line-height:1;font-weight:650; }.presentation-viz .short-answer-accuracy span { font-size:20px;color:#cbd5e1; }
+.presentation-viz .correct-answer-stage { margin-top:18px;max-width:1200px; }
+.presentation-viz .classroom-revealed-answer { padding:24px!important; }
+.presentation-viz .hint-quiz-stage { padding-top:0;gap:16px; }
+.presentation-viz .ranking-chart-stage { display:flex;flex-direction:column;gap:18px; }
+.presentation-viz .ranking-chart-stage > * { margin-top:0!important; }
+.presentation-viz .check-progress-stage { display:flex;flex-direction:column;gap:20px; }
+.presentation-viz .check-progress-stage > * { margin-top:0!important; }
+.presentation-viz .check-completed-list { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px; }
+.presentation-viz .check-completed-list > div { border:0;border-radius:10px;min-width:0;padding:10px;background:#334155; }
+.presentation-viz .check-completed-list > div > div { width:24px;height:24px;flex-shrink:0; }
+.presentation-viz .check-completed-list > span { grid-column:1/-1;padding:0;font-size:18px; }
+@media(max-height:850px) and (min-width:768px) {
+ .presentation-viz.paper-surface { gap:16px;padding-block:20px!important; }
+ .presentation-viz .classroom-response-single .classroom-response-text { font-size:22px;line-height:1.4; }
+ .presentation-viz .correct-answer-stage { margin-top:12px; }.presentation-viz .correct-answer-stage > ol { gap:10px; }.presentation-viz .correct-answer-stage > ol > li { padding:10px 14px; }
+ .presentation-viz .correct-answer-stage > p { font-size:20px;line-height:1.4; }.presentation-viz .classroom-revealed-answer { padding:20px!important; }
+ .presentation-viz .ranking-chart-stage { gap:14px; }.presentation-viz .check-progress-stage { gap:14px; }
+ .presentation-viz .check-progress-stage > div:first-child > div { margin-block-end:8px!important; }
+}
+@media(min-width:1700px) {
+ .presentation-viz .classroom-visualization > .max-w-xl,.presentation-viz .classroom-visualization > .max-w-2xl { max-width:1400px; }
+ .presentation-viz .classroom-visualization .text-sm,.presentation-viz .scale-result-caption { font-size:clamp(24px,.9vw,32px); }
+ .presentation-viz .classroom-response-single .classroom-response-text { font-size:clamp(28px,.9vw,36px); }
+ .presentation-viz .classroom-response-card .classroom-response-caption,.presentation-viz .classroom-response-pagination { font-size:clamp(24px,.85vw,32px); }
+ .presentation-viz .short-answer-caption,.presentation-viz .short-answer-accuracy span { font-size:clamp(24px,.9vw,32px); }
+ .presentation-viz .short-answer-text { font-size:clamp(52px,1.8vw,72px); }.presentation-viz .short-answer-accuracy strong { font-size:clamp(48px,1.6vw,64px); }
+ .presentation-viz .correct-answer-stage { max-width:1400px; }.presentation-viz .correct-answer-stage > p,.presentation-viz .correct-answer-stage > ol > li { font-size:clamp(26px,.95vw,36px); }
+ .presentation-viz .check-completed-list > div { padding:14px; }.presentation-viz .check-completed-list .text-xs { font-size:clamp(24px,.85vw,32px); }
+}
