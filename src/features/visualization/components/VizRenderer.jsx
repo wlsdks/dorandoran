@@ -144,6 +144,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 questionId={currentQId}
                 options={options}
                 presenter={isPresenter}
+                hideResults={isPresenter && question.type === 'quiz' && !answerRevealed}
                 page={question.displayPage || 0}
                 onPageChange={isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined}
                 correctValue={question.correctAnswer}
@@ -172,8 +173,8 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 correctValue={question.correctAnswer}
                 revealed={answerRevealed}
               />
-              <ConfidenceStats sessionId={sessionId} questionId={currentQId} />
-              {question.betting && (
+              {(!isPresenter || answerRevealed) && <ConfidenceStats sessionId={sessionId} questionId={currentQId} />}
+              {question.betting && (!isPresenter || answerRevealed) && (
                 <BetDistribution sessionId={sessionId} questionId={currentQId} />
               )}
               {isAdmin && !isPresenter && answerRevealed && (

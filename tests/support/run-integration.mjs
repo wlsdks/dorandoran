@@ -23,6 +23,7 @@ try {
   await run('node', ['tests/support/realtime-stress.cjs']);
   await run('node', ['tests/support/judging-lifecycle-qa.cjs']);
   await run('node', ['tests/support/presentation-qa.cjs']);
+  await run('node', ['tests/support/quiz-audience-qa.cjs']);
   await run('node', ['tests/support/student-qa.cjs']);
   await run('node', ['tests/support/vote-ack-qa.cjs']);
   await run('node', ['tests/support/quiz-awards-qa.cjs']);
