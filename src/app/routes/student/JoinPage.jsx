@@ -123,6 +123,7 @@ export default function JoinPage({ sessionId, onJoin }) {
               입력하신 코드 <span className="font-bold text-slate-700 dark:text-slate-200 tabular-nums">{sessionId}</span>에 해당하는 세션이 없습니다.
               <br />세션 코드를 다시 확인해주세요.
             </p>
+            <a href="/" className="min-h-12 inline-flex items-center justify-center px-5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900">다른 수업으로 참여</a>
           </div>
         </motion.div>
       </div>

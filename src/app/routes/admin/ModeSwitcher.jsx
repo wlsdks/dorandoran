@@ -54,7 +54,7 @@ export default memo(function ModeSwitcher({ currentMode, isSpecialMode, leaderbo
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.96 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute top-full left-0 mt-1.5 w-52 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg z-40 py-1.5 overflow-hidden max-h-[70vh] overflow-y-auto"
+            role="region" aria-label="수업 화면 선택" className="mt-2 w-full min-w-52 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm py-1.5 max-h-[min(420px,60dvh)] overflow-y-auto overscroll-contain"
           >
             {groups.map((group, gi) => (
               <div key={group.label}>
@@ -80,7 +80,7 @@ export default memo(function ModeSwitcher({ currentMode, isSpecialMode, leaderbo
                           onClick={() => { onAddModeCard(mode); onToggle(); }}
                           title="질문 목록에 추가"
                           aria-label={`${label}을(를) 질문 목록에 추가`}
-                          className="px-2.5 text-slate-300 dark:text-slate-600 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors duration-100"
+                          className="min-w-11 min-h-11 px-2.5 text-slate-300 dark:text-slate-600 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors duration-100"
                         >
                           <Plus size={14} />
                         </button>

@@ -65,14 +65,14 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
     if (isRanking && cleanOptions.length < 3) { setLocalError('순위 맞추기는 최소 3개 항목이 필요합니다.'); return; }
     if (isFillInBlank && !title.includes('___')) { setLocalError('빈칸 위치를 ___ (밑줄 3개)로 표시해주세요.'); return; }
     if (isFillInBlank && !correctAnswer.trim()) { setLocalError('정답을 입력해주세요.'); return; }
-    if ((type === 'quiz' || type === 'choice') && !correctAnswer) { setLocalError('정답을 선택해주세요.'); return; }
+    if (type === 'quiz' && !cleanOptions.includes(correctAnswer)) { setLocalError('정답을 선택해주세요.'); return; }
     if (type === 'ox' && !correctAnswer) { setLocalError('정답을 선택해주세요.'); return; }
     if (isMysteryBox && !correctAnswer.trim()) { setLocalError('정답을 입력해주세요.'); return; }
     if (isShortAnswer && !correctAnswer.trim()) { setLocalError('정답을 입력해주세요.'); return; }
     if (isHintQuiz && !correctAnswer.trim()) { setLocalError('정답을 입력해주세요.'); return; }
     if (isHintQuiz && hints.filter(h => h.trim()).length === 0) { setLocalError('최소 1개의 힌트가 필요합니다.'); return; }
     if (type === 'imageSlide' && slideImages.length === 0) { setLocalError('최소 1장의 이미지가 필요합니다.'); return; }
-    if (isSubjective && !modelAnswer.trim()) { setLocalError('모범답안을 입력해주세요. AI 채점 기준이 됩니다.'); return; }
+    if (isSubjective && available && !modelAnswer.trim()) { setLocalError('모범답안을 입력해주세요. AI 채점 기준이 됩니다.'); return; }
     // 주소는 저장 전에 정규화한다. 스킴 없는 입력은 https로 읽고, 위험한 스킴과 앱 자신은 막는다.
     let safeEmbed = '';
     if (isWebEmbed) {
@@ -213,7 +213,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
           setAcceptableAnswers={setAcceptableAnswers} setLocalError={setLocalError} />}
       </AnimatePresence>
       <AnimatePresence>
-        {isChoiceLike && <CorrectAnswerSection options={options} correctAnswer={correctAnswer}
+        {isChoiceLike && <CorrectAnswerSection optional={type === 'choice'} options={options} correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
       </AnimatePresence>
       <AnimatePresence>
@@ -239,7 +239,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
           setWinners={setWinners} setLocalError={setLocalError} />}
       </AnimatePresence>
       <AnimatePresence>
-        {isSubjective && (
+        {isSubjective && available && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
             <div className="pt-4">

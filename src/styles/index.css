@@ -229,3 +229,21 @@ input, textarea, select {
 .classroom-visualization .debate-ratio-bar > :last-child { background:#64748b; }
 .classroom-visualization .classroom-revealed-answer { background:#312e81; }
 .classroom-visualization .classroom-revealed-answer .text-4xl { font-size:clamp(36px,3.5vw,56px); }
+
+/* Compact scale results keep classroom captions readable on 768px projectors. */
+.scale-result { display:flex;flex-direction:column;gap:20px; }
+.scale-result-average { font-size:64px; }
+.scale-result-caption { font-size:14px;line-height:1.4; }
+.scale-result-histogram { height:100px; }
+.classroom-visualization .scale-result { gap:20px; }
+.classroom-visualization .scale-result-average { font-size:72px; }
+.classroom-visualization .scale-result-caption { font-size:20px; }
+.classroom-visualization .scale-result-histogram { height:120px; }
+.fillblank-sentence { text-wrap:balance;word-break:keep-all;overflow-wrap:anywhere; }
+.fillblank-sentence > span > span { font-size:inherit; }
+.classroom-visualization .mystery-option-list > li { font-size:clamp(24px,2vw,30px); }
+@media(max-height:850px) and (min-width:768px) {
+ .classroom-visualization .scale-result { gap:16px; }
+ .classroom-visualization .scale-result-histogram { height:100px; }
+ .classroom-visualization .scale-result-average { font-size:64px; }
+}

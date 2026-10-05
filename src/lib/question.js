@@ -20,7 +20,8 @@ export function buildQuestionData(type, fields = {}) {
   const isChoiceLike = type === 'choice' || type === 'quiz';
   if (isChoiceLike) {
     data.options = cleanOptions;
-    data.correctAnswer = cleanOptions.includes(correctAnswer) ? correctAnswer : cleanOptions[0];
+    if (type === 'quiz') data.correctAnswer = cleanOptions.includes(correctAnswer) ? correctAnswer : cleanOptions[0];
+    else if (cleanOptions.includes(correctAnswer)) data.correctAnswer = correctAnswer;
   }
   if (type === 'ranking') {
     data.options = cleanOptions;

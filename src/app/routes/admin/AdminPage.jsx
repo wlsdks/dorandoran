@@ -111,7 +111,7 @@ export default function AdminPage() {
           </AnimatePresence>}
 
         {!isTablet && <motion.div animate={{
-        width: s.sidebarCollapsed ? 0 : '28%',
+        width: s.sidebarCollapsed ? 0 : 'clamp(280px, 22vw, 320px)',
         minWidth: s.sidebarCollapsed ? 0 : 280
       }} transition={{
         duration: 0.3,

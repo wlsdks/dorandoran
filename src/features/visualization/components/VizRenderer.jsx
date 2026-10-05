@@ -101,7 +101,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
 
       {/* Header — hidden for Q&A, or when hideTitle is set.
           aiJudge + isPresenter 조합은 상단 공간이 커서 그리드 잘림 → 제목/간격 축소. */}
-      {!isFeed && !question.hideTitle && (() => {
+      {!isFeed && question.type !== 'fillinblank' && !question.hideTitle && (() => {
         const compact = isPresenter && question.type === 'aiJudge';
         return (
           <div className={`text-center self-center ${compact ? 'space-y-1' : 'space-y-2'}`}>

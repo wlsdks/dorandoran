@@ -1,4 +1,5 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
+import { useDialogLayer } from '@/hooks/useDialogLayer';
 import { useState, useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -197,17 +198,10 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
   const prevCountRef = useRef(getLastSeen(sessionId, 'qa'));
 
   // 패널 열릴 때 배경 스크롤 잠금
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, [open]);
-
+  const { dialogRef, trapFocus } = useDialogLayer(open, onClose);
   const participantId = getParticipantId();
   const nickname = getNickname();
 
-  // Notify parent of new questions when panel is closed
   useEffect(() => {
     if (loading) return;
     if (prevCountRef.current >= 0 && questions.length > prevCountRef.current && !open && onNewQuestion) {
@@ -253,6 +247,7 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
           />
 
           <motion.div
+            ref={dialogRef} role="dialog" aria-modal="true" aria-label="수업 질문" tabIndex={-1} onKeyDown={trapFocus}
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
