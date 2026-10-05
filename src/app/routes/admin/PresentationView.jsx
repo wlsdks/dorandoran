@@ -82,7 +82,7 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
     if (currentMode === 'qaBoard') return <div className="w-full max-w-4xl" style={{ maxWidth: presentMode ? 1100 : undefined }}><ClassQABoard presenter={presentMode} readOnly={presentMode} sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>;
     if (currentMode === 'qaRanking') return <QARanking sessionId={sessionId} presenter={presentMode} readOnly={presentMode} />;
     if (currentMode === 'joinShow') return <JoinShow sessionId={sessionId} />;
-    if (currentMode === 'awards') return <AwardsCeremony sessionId={sessionId} assignmentId={session?.activeAssignmentId} />;
+    if (currentMode === 'awards') return <AwardsCeremony presenter={presentMode} sessionId={sessionId} assignmentId={session?.activeAssignmentId} />;
     if (currentMode === 'randomPicker') return (
       <RandomPicker presenter={presentMode} participants={onlineList} onResult={(w) => onGameResult?.(w, 'randomPicker')} sessionId={sessionId} role="control" />
     );

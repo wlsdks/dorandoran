@@ -162,7 +162,7 @@ export default function LivePage() {
                   {currentMode === 'qaBoard' && <div className="w-full max-w-4xl mx-auto" style={{ maxWidth: 1100 }}><ClassQABoard presenter readOnly sessionId={sessionId} showInput={false} role="viewer" /></div>}
                   {currentMode === 'qaRanking' && <QARanking sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'joinShow' && <JoinShow sessionId={sessionId} />}
-                  {currentMode === 'awards' && <AwardsCeremony sessionId={sessionId} assignmentId={session?.activeAssignmentId} readOnly />}
+                  {currentMode === 'awards' && <AwardsCeremony presenter sessionId={sessionId} assignmentId={session?.activeAssignmentId} readOnly />}
                   {currentMode === 'randomPicker' && <RandomPicker participants={onlineList} sessionId={sessionId} role="view" presenter />}
                   {currentMode === 'comprehension' && <ComprehensionPresenter sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'quickSurvey' && <SurveyPresenter sessionId={sessionId} presenter readOnly />}

@@ -6,6 +6,7 @@ import { getServerNow } from '@/features/timer/api/useTimer';
 import BreakMascot from './BreakMascot';
 import FlipClock from './FlipClock';
 import Button from '@/components/ui/Button';
+import './LargeDisplayGames.css';
 
 const PRESETS = [
   { label: '5분', seconds: 300 },
@@ -75,7 +76,7 @@ export default function BreakTimer({ sessionId, readOnly = false, presenter = fa
     : null;
 
   return (
-    <div className={`flex flex-col items-center gap-8 md:gap-10 w-full ${presenter ? "max-w-[1200px] mx-auto" : ""}`} onClick={(e) => e.stopPropagation()}>
+    <div data-presenter={presenter} className={`break-timer-stage flex flex-col items-center gap-8 md:gap-10 w-full ${presenter ? "max-w-[1200px] mx-auto" : ""}`} onClick={(e) => e.stopPropagation()}>
       {/* 라벨 + 마스코트 */}
       <motion.div
         initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
@@ -84,10 +85,10 @@ export default function BreakTimer({ sessionId, readOnly = false, presenter = fa
       >
         <BreakMascot size={64} />
         <div className="text-left">
-          <p className={`${presenter ? "text-3xl md:text-4xl" : "text-2xl md:text-3xl"} font-bold tracking-tight text-slate-900 dark:text-slate-100`}>
+          <p className={`break-timer-title ${presenter ? "text-3xl md:text-4xl" : "text-2xl md:text-3xl"} font-bold tracking-tight text-slate-900 dark:text-slate-100`}>
             {isFinished ? '쉬는 시간 끝!' : '쉬는 시간'}
           </p>
-          <p className={presenter ? "text-2xl text-slate-300" : "text-sm text-slate-400 dark:text-slate-500"}>
+          <p className={`break-timer-caption ${presenter ? "text-2xl text-slate-300" : "text-sm text-slate-400 dark:text-slate-500"}`}>
             {isFinished ? '이제 수업을 다시 시작할게요'
               : running ? `${formatTime(remaining)} 후 수업을 이어갑니다`
               : '잠시 후 수업을 이어갑니다'}
@@ -99,7 +100,7 @@ export default function BreakTimer({ sessionId, readOnly = false, presenter = fa
       <motion.div
         initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 26, delay: 0.05 }}
-        className={isFinished ? 'animate-pulse' : ''}
+        className={`break-clock-display ${isFinished ? 'animate-pulse' : ''}`}
       >
         <FlipClock showSeconds values={countdownValues} />
       </motion.div>

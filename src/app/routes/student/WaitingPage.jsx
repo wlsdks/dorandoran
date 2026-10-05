@@ -67,7 +67,7 @@ function RotatingTip() {
         damping: 25
       }} className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-[14px] text-center absolute px-4">
           <Icon size={16} className="text-slate-400 shrink-0" />
-          <span>{tip.text}</span>
+          <span className="break-keep [overflow-wrap:anywhere]">{tip.text}</span>
         </motion.div>
       </AnimatePresence>
     </div>;
@@ -378,7 +378,7 @@ export default memo(function WaitingPage({
             type: 'spring',
             stiffness: 300,
             damping: 25
-          }} className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight leading-tight">
+          }} className="break-keep [overflow-wrap:anywhere] text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight leading-tight">
                   {nickname}님, 준비됐어요!
                 </motion.p>}
               {courseName && <motion.p initial={{
@@ -388,7 +388,7 @@ export default memo(function WaitingPage({
           }} transition={{
             delay: 0.15,
             duration: 0.3
-          }} className="text-slate-500 dark:text-slate-400 text-base font-medium">
+          }} className="break-keep [overflow-wrap:anywhere] text-slate-500 dark:text-slate-400 text-base font-medium">
                   {courseName}
                 </motion.p>}
               <motion.div initial={{

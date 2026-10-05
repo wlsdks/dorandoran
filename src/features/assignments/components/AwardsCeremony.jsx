@@ -10,6 +10,7 @@ import { useAssignment } from '@/features/assignments/api/useAssignments';
 import { getAwardById } from '@/lib/judging/judges';
 import AwardReveal from './AwardReveal';
 import Button from '@/components/ui/Button';
+import './AwardsStage.css';
 
 // Ceremony order: special awards first, then rank awards (ascending drama)
 const CEREMONY_ORDER = ['planning', 'creative', 'design', 'practical', 'outstanding', 'excellence', 'grand'];
@@ -18,7 +19,7 @@ const CEREMONY_ORDER = ['planning', 'creative', 'design', 'practical', 'outstand
  * AwardsCeremony — 프레젠터/전자칠판용 시상식 연출 화면.
  * 강사가 "다음 발표" 버튼으로 순서대로 공개.
  */
-export default function AwardsCeremony({ assignmentId, sessionId, readOnly = false }) {
+export default function AwardsCeremony({ assignmentId, sessionId, readOnly = false, presenter = false }) {
   const { assignment } = useAssignment(assignmentId);
   const { awards, loading } = useAwards(assignmentId);
   const [localIndex, setLocalIndex] = useState(-1);
@@ -74,7 +75,7 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
   }
 
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-2xl mx-auto py-8" onClick={e => e.stopPropagation()}>
+    <div data-presenter={presenter} className="awards-stage flex flex-col items-center gap-8 w-full max-w-2xl mx-auto py-8" onClick={e => e.stopPropagation()}>
       {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: -12 }}
@@ -82,15 +83,15 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
         className="text-center space-y-2"
       >
         <Trophy size={28} className="mx-auto text-white/60" />
-        <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">시상식</h2>
+        <h2 className="awards-stage-title text-3xl md:text-4xl font-bold text-white tracking-tight">시상식</h2>
         {assignment && (
-          <p className="text-white/40 text-sm">{assignment.title}</p>
+          <p className="awards-stage-subtitle text-white/40 text-sm">{assignment.title}</p>
         )}
       </motion.div>
 
       {error && <p role="alert" className="text-red-300 text-base">{error}</p>}
       {/* Current reveal */}
-      <div className="min-h-[250px] flex items-center justify-center w-full">
+      <div className="awards-stage-reveal min-h-[250px] flex items-center justify-center w-full">
         <AnimatePresence mode="wait">
           {!isStarted ? (
             <motion.div
@@ -100,7 +101,7 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
               exit={{ opacity: 0 }}
               className="text-center space-y-4"
             >
-              <p className="text-white/50 text-lg">{orderedAwards.length}개 수상 발표 예정</p>
+              <p className="awards-stage-pending text-white/50 text-lg">{orderedAwards.length}개 수상 발표 예정</p>
               {!readOnly && (
                 <Button onClick={handleNext} size="lg" className="bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20">
                   시상 시작 <ChevronRight size={18} />
@@ -119,6 +120,7 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
                 awardId={currentAward.id}
                 winner={currentAward}
                 revealed={true}
+                presenter={presenter}
               />
             </motion.div>
           )}
@@ -173,7 +175,7 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
               {orderedAwards.slice(0, revealIndex).map((a) => {
                 const info = getAwardById(a.id);
                 return (
-                  <span key={a.id} className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full text-xs text-white/50">
+                  <span key={a.id} className="awards-stage-previous inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full text-xs text-white/50">
                     {info?.name}: <span className="text-white/80 font-medium">{a.name}</span>
                   </span>
                 );

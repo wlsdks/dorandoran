@@ -9,7 +9,7 @@ const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
  * unrevealed: 봉투(카드 뒤집기 전)
  * revealed: 이름 + 점수 + 상 이름
  */
-export default memo(function AwardReveal({ awardId, winner, revealed }) {
+export default memo(function AwardReveal({ awardId, winner, revealed, presenter = false }) {
   const award = getAwardById(awardId);
   if (!award || !winner) return null;
 
@@ -38,7 +38,7 @@ export default memo(function AwardReveal({ awardId, winner, revealed }) {
       initial={{ rotateY: 90, opacity: 0 }}
       animate={{ rotateY: 0, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className="flex flex-col items-center gap-4 relative"
+      data-presenter={presenter} data-grand={isGrand} className="award-reveal flex flex-col items-center gap-4 relative"
     >
       {isGrand && (
         <Suspense fallback={null}><ConfettiBurst /></Suspense>
@@ -47,7 +47,7 @@ export default memo(function AwardReveal({ awardId, winner, revealed }) {
         initial={{ scale: 0.5 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.1 }}
-        className={`${isGrand ? 'w-24 h-24' : 'w-20 h-20'} rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center ring-4 ring-slate-200 dark:ring-slate-700`}
+        className={`award-reveal-avatar ${isGrand ? 'w-24 h-24' : 'w-20 h-20'} rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center ring-4 ring-slate-200 dark:ring-slate-700`}
       >
         <span className={`${isGrand ? 'text-4xl' : 'text-3xl'} font-bold text-slate-900 dark:text-slate-100`}>
           {winner.name?.charAt(0).toUpperCase()}
@@ -59,16 +59,16 @@ export default memo(function AwardReveal({ awardId, winner, revealed }) {
         transition={{ delay: 0.2 }}
         className="text-center space-y-2"
       >
-        <p className={`${isGrand ? 'text-4xl md:text-5xl' : 'text-3xl md:text-4xl'} font-bold text-white tracking-tight`}>
+        <p className={`award-reveal-name ${isGrand ? 'text-4xl md:text-5xl' : 'text-3xl md:text-4xl'} font-bold text-white tracking-tight`}>
           {winner.name}
         </p>
         <div className="flex items-center justify-center gap-3">
-          <span className="inline-flex items-center px-4 py-1.5 bg-white/10 rounded-full text-sm font-bold text-white/90">
+          <span className="award-reveal-label inline-flex items-center px-4 py-1.5 bg-white/10 rounded-full text-sm font-bold text-white/90">
             {award.name}
           </span>
-          <span className="text-white/60 text-lg tabular-nums font-medium">{winner.score}점</span>
+          <span className="award-reveal-score text-white/60 text-lg tabular-nums font-medium">{winner.score}점</span>
         </div>
-        {judge && <p className="text-base text-white/50">{judge.name} ({judge.role}) 선정</p>}
+        {judge && <p className="award-reveal-judge text-base text-white/50">{judge.name} ({judge.role}) 선정</p>}
       </motion.div>
     </motion.div>
   );
