@@ -128,7 +128,7 @@ export function QuizResultFromVote({
   const expected = isSpeedQuiz && reward.isCorrect ? Math.round(reward.points * getComboMultiplier(streak)) : reward.points;
   const points = matchingReceipt ? receipt.points : matchingLegacy ? score.lastPoints : 0;
   return <>
-    <QuizResult isCorrect={reward.isCorrect} points={points} correctAnswer={question.correctAnswer} event={question.event || null} bet={reward.bet || 1} streak={scoreApplied && reward.isCorrect ? streak : 0} />
+    <QuizResult isCorrect={reward.isCorrect} points={points} correctAnswer={question.correctAnswer} bet={reward.bet || 1} streak={scoreApplied && reward.isCorrect ? streak : 0} />
     {!scoreApplied && <p role="status" className="text-center text-sm text-slate-500 dark:text-slate-300">점수 반영을 확인하고 있어요{expected ? ` · 예상 ${expected}점` : ''}</p>}
   </>;
 

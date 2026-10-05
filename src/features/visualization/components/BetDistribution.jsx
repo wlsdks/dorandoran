@@ -9,7 +9,7 @@ const BET_CONFIG = [
   { multiplier: 3, label: '3x 올인', Icon: Flame },
 ];
 
-export default memo(function BetDistribution({ sessionId, questionId }) {
+export default memo(function BetDistribution({ sessionId, questionId, presenter = false }) {
   const { votes } = useVotes(sessionId, questionId);
 
   const distribution = useMemo(() => {
@@ -24,6 +24,21 @@ export default memo(function BetDistribution({ sessionId, questionId }) {
   }, [votes]);
 
   if (distribution.total === 0) return null;
+
+  if (presenter) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}
+        aria-label="베팅 분포" className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2 mt-3 text-xl text-slate-300">
+        <span className="font-medium">베팅</span>
+        {BET_CONFIG.map(({ multiplier, label }) => (
+          <span key={multiplier} className="whitespace-nowrap">
+            {label} <strong className="text-slate-100 tabular-nums">{distribution.counts[multiplier]}명</strong>
+            <span className="ml-2 tabular-nums">{Math.round(distribution.counts[multiplier] / distribution.total * 100)}%</span>
+          </span>
+        ))}
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

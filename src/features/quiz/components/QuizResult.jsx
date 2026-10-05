@@ -1,7 +1,6 @@
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Check, X, Flame } from 'lucide-react';
-import QuizEventBanner from '@/components/ui/QuizEventBanner';
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 import { hapticTap } from '@/lib/haptics';
 
@@ -95,7 +94,6 @@ export default function QuizResult({
   isCorrect,
   points,
   correctAnswer,
-  event = null,
   bet = 1,
   streak = 0
 }) {
@@ -229,15 +227,6 @@ export default function QuizResult({
 
           </motion.div>}
 
-        {event && <motion.div initial={{
-        opacity: 0
-      }} animate={{
-        opacity: 1
-      }} transition={{
-        delay: 0.5
-      }} className="w-full border-t border-slate-100 dark:border-slate-700 pt-4">
-            <QuizEventBanner event={event} state="result" compact />
-          </motion.div>}
       </div>
     </motion.div>;
 }
