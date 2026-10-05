@@ -1,0 +1,42 @@
+# 오프라인 수업과 Firebase 운영
+
+학습자는 QR 링크를 열고 닉네임을 입력해 바로 참여한다. 회원 가입·이메일·비밀번호를 요구하지 않는다. 화면 뒤에서는 Firebase 익명 인증 UID를 이용해 본인 응답·제출·DM의 소유자를 구분한다. 같은 브라우저의 기존 인증을 재사용하며, 동시 인증 준비 요청도 하나로 합친다. 인증을 제거하거나 공개 DB 쓰기를 허용하는 방식으로 입장 한도를 우회하지 않는다.
+
+## 연결과 입장 한도
+
+RTDB Spark는 동시 연결 100개, Blaze는 데이터베이스당 200,000개까지 지원한다. 연결은 로그인 회원 수가 아니라 연결 중인 기기·브라우저 탭·서버 앱 수다. 학습자 200명 외에 강사·전자칠판·추가 탭도 포함한다. 컴포넌트 구독을 합쳐도 이 연결 한도가 바뀌지는 않는다. [RTDB 한도](https://firebase.google.com/docs/database/usage/limits)
+
+익명 인증도 같은 IP에서의 신규 인증 생성 제한을 적용받는다. 공식 기본 한도는 IP당 시간당 100개이며, Firebase Console에서 임시 증가를 예약할 수 있다. 모든 사람이 같은 교실 Wi-Fi로 처음 접속하는 행사에서는 행사 시간과 예상 인원에 맞춰 이 한도를 확인한다. Blaze와 인증 생성 한도는 별도다. [익명 인증](https://firebase.google.com/docs/auth/web/anonymous-auth), [Auth 한도](https://firebase.google.com/docs/auth/limits)
+
+요금제는 행사 전에 현재 상태를 확인한다. 결제 계정을 프로젝트에 연결하면 Firebase는 Blaze로 자동 전환된다. 단순히 비용이 발생하지 않았다는 이유로 Spark라고 판단하지 않는다. [요금제 전환](https://firebase.google.com/docs/projects/billing/firebase-pricing-plans)
+
+2026-02-03 이후 Cloud Storage 접근에는 Blaze가 필요하다. 행사 후 Spark로 내리면 기존 이미지를 읽을 수 없게 될 수 있다. 데이터 보존과 접근 가능 여부는 별개다. [Storage 변경 안내](https://firebase.google.com/docs/storage/faqs-storage-changes-announced-sept-2024)
+
+## 실시간 집계를 유지하는 최적화
+
+모바일에서도 전체 투표 집계와 참여 정보를 유지한다. 같은 인증 사용자·경로·쿼리·공개 회차·선택 함수·처리 간격의 구독만 공유하고, 다른 권한이나 회차의 스냅샷은 분리한다. 마지막 소비자가 나가면 SDK 구독·대기 flush·값을 해제한다. Firebase SDK 자체도 같은 쿼리의 네트워크 읽기를 재사용하므로, 이 개선의 주된 이점은 중복 값 변환·계산·JS 콜백 감소다. 구독 개수만으로 다운로드나 연결 비용 감소율을 주장하지 않는다.
+
+메타데이터는 필요한 하위 필드만 읽는다. 서버는 목록 전체를 유지하되 행 4개 × 필드 4개로 동시 조회를 제한한다. 요청 실패 시 시작된 작업을 모두 기다려 응답 뒤에 조회가 남지 않게 한다. 공개 질문 뷰의 동시 초기화는 하나로 합치며 강사가 먼저 발행한 최신 뷰를 덮어쓰지 않는다. [구독과 해제](https://firebase.google.com/docs/database/web/read-and-write), [Functions 자원 관리](https://firebase.google.com/docs/functions/tips)
+
+API 함수는 인스턴스당 동시 요청 8개, 512MiB, 최대 인스턴스 4개를 사용한다. AI 프록시는 최대 인스턴스 5개다. 배포 전 실제 수업 부하·콜드 스타트·오류율을 확인해 조정한다. 이는 과금 전체를 막는 상한이나 서비스 성능 보장이 아니다. [Functions 동시 요청](https://firebase.google.com/docs/functions/manage-functions#allow_concurrent_requests)
+
+AI 요청·재시도·연출 지연·이미지 다운로드는 취소 신호를 전송까지 전달한다. 중단 후에는 실행 중 DB 쓰기가 끝나기를 기다리고 초기화한다. 이미지 스트림은 읽는 도중 크기를 제한하고 과제 판사 7명이 같은 스크린샷을 다시 다운로드하지 않는다. 실제 AI 모델 응답·품질·과금은 로컬 가짜 모델 검증과 다르다.
+
+## 사용량 계산
+
+가끔 진행하는 2시간 수업의 비용은 시간만으로 확정되지 않는다. 질문 수, 응답·채팅 길이, 재접속, 이미지 크기와 조회 횟수가 중요하다. `200명 × 20개 활동 × 응답당 100~200바이트 × 200개 집계 수신자`를 가정하면 응답 방송 본문만 약 80~160MB다. 이는 예시 계산이며 프로토콜·TLS·초기 명단·질문·채팅·다른 프로젝트 사용량을 제외한다. RTDB profiler 값도 실제 청구 다운로드와 같지 않다. [사용량 측정](https://firebase.google.com/docs/database/usage/monitor-performance)
+
+이미지 20개가 각각 500KB이고 200명이 한 번씩 읽으면 본문만 약 2GB다. 압축·캐시와 전자칠판의 필요한 슬라이드 미리 읽기를 유지한다. AI를 사용하지 않은 수업은 모델 호출 비용을 계산에 넣지 않는다. 실제 청구는 해당 Storage 버킷·Hosting·RTDB·Functions 무료 구간과 다른 사용량을 함께 확인해야 한다. 최신 금액은 [Firebase 가격표](https://firebase.google.com/pricing)를 참고한다. 예산 알림은 지출 상한이 아니다. [예산 알림](https://firebase.google.com/docs/projects/billing/budget-alerts)
+
+## 재현 가능한 로컬 검증
+
+```sh
+VITE_GEMINI_API_KEY= npm run check
+npm run test:integration
+```
+
+전체 통합 검증은 `demo-dorandoran` Auth/Database/Storage 에뮬레이터를 새로 띄워 테스트 데이터만 사용한다. 이미 실행 중인 개인 데모에 전체 Rules 테스트를 붙이면 테스트 초기화가 실행되므로, 별도의 에뮬레이터 실행을 사용한다.
+
+`tests/support/classroom-load-qa.cjs`는 실제 Web SDK 익명 인증 200개와 RTDB 연결 200개를 만든다. 20개 활동의 4,000개 응답, 모든 연결의 100/100 전체 집계, 20개 연결의 재접속 복구를 검증하고 자기 테스트 데이터·인증 사용자만 제거한다. 로컬 에뮬레이터는 운영 연결·인증 생성 제한이나 실제 교실 Wi-Fi, 윈도우 PC 성능, 청구량을 검증하지 않는다. 2시간 체류를 압축된 20회 부하 검증으로 대신했다고 표현하지 않는다.
+
+운영 반영과 기존 강사 UID·데이터 보존 절차는 [SECURITY.md](SECURITY.md)를 따른다. 코드 머지는 운영 배포가 아니다.

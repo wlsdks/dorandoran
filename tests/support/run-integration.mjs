@@ -17,9 +17,11 @@ try {
     if (i === 59) throw new Error('QA 서버 시작 실패');
     await pause(250);
   }
+  await run('node', ['--test', 'tests/security/resource-lifecycle.test.cjs']);
   await run('node', ['--test', 'tests/security/firebase-rules.test.mjs']);
   await run('node', ['tests/support/seed-runtime.cjs']);
   await run('node', ['tests/support/realtime-stress.cjs']);
+  await run('node', ['tests/support/judging-lifecycle-qa.cjs']);
   await run('node', ['tests/support/presentation-qa.cjs']);
   await run('node', ['tests/support/student-qa.cjs']);
   await run('node', ['tests/support/vote-ack-qa.cjs']);
@@ -30,4 +32,5 @@ try {
   await run('node', ['tests/support/submission-qa.cjs']);
   await run('node', ['tests/support/audio-qa.cjs']);
   await run('node', ['tests/support/classroom-ui-qa.cjs']);
+  await run('node', ['tests/support/classroom-load-qa.cjs']);
 } finally { for (const child of children) if (child.exitCode === null) child.kill('SIGTERM'); }

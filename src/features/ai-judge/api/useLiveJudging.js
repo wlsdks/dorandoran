@@ -289,13 +289,13 @@ export function useLiveJudging(sessionId, questionId) {
           aiJudgeLog: null,
         });
       } else {
-        await runTransaction(ref(db, `${base}/aiJudgeState`), current => current?.status === 'judging' ? { ...current, status: 'aborted' } : undefined, { applyLocally: false });
+        await runTransaction(ref(db, `${base}/aiJudgeState`), current => current?.status === 'judging' ? { ...current, status: 'aborted' } : current === null ? null : undefined, { applyLocally: false });
       }
     } catch (err) {
       if (!run.signal.aborted) logger.error('라이브 심사 실행 실패:', err);
       await runTransaction(ref(db, `${base}/aiJudgeState`), current => current?.status === 'judging'
         ? { ...current, status: run.signal.aborted ? 'aborted' : 'error', message: run.signal.aborted ? null : (err.message || '알 수 없는 오류') }
-        : undefined, { applyLocally: false }).catch(() => {});
+        : current === null ? null : undefined, { applyLocally: false }).catch(() => {});
     } finally {
       if (runRef.current === run) {
         runRef.current = null;

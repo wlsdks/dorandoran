@@ -104,7 +104,7 @@ export function useJudging(assignmentId) {
       // 취소/실패 시 실행 중 상태만 되돌린다. 삭제된 과제를 다시 만들지 않는다.
       await runTransaction(ref(db, `assignments/${assignmentId}`), current => current?.status === 'judging'
         ? { ...current, status: 'open', judgeError: run.signal.aborted ? null : (err?.message || '심사 중 오류가 발생했습니다') }
-        : undefined, { applyLocally: false }).catch(() => {});
+        : current === null ? null : undefined, { applyLocally: false }).catch(error => logger.warn('심사 중단 상태 저장 실패:', error));
     } finally {
       if (runRef.current === run) {
         runRef.current = null;
