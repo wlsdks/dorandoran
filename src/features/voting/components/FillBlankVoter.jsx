@@ -44,7 +44,7 @@ function AnswerDistribution({ sessionId, questionId, correctAnswer }) {
   const { correctCount, topAnswers } = useMemo(() => {
     // 대소문자·띄어쓰기 무시로 그룹화("머신 러닝"="머신러닝"). 표시는 처음 등장한 원문 유지.
     const normCorrect = normalizeAnswer(correctAnswer);
-    const freq = {};
+    const freq = Object.create(null);
     let correct = 0;
     voteList.forEach((v) => {
       const raw = (v.value || '').trim();

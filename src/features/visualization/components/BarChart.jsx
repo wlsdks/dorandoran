@@ -10,7 +10,7 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
   const { totalVotes, countByValue, resultsHidden, loading } = useVotes(sessionId, questionId);
   const counts = useMemo(() => options.map(option => countByValue(option)), [options, countByValue]);
   const longest = Math.max(0, ...options.map(option => String(option).length));
-  const pageSize = longest > 48 ? 2 : longest > 24 ? 4 : 6;
+  const pageSize = longest > 24 ? 2 : 6;
   const paged = presenter && options.length > pageSize;
   const pages = paged ? Math.ceil(options.length / pageSize) : 1;
   const currentPage = Math.min(Math.max(Number.isInteger(page) ? page : 0, 0), pages - 1);

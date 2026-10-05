@@ -121,7 +121,7 @@ export function exportQuestionSummary(session, participants, filename) {
     }
 
     // Distribution: count per option value
-    const dist = {};
+    const dist = Object.create(null);
     Object.values(votes).forEach((v) => {
       const val = v.value || '(없음)';
       dist[val] = (dist[val] || 0) + 1;

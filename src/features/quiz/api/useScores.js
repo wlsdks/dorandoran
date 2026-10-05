@@ -27,7 +27,7 @@ export function useScores(sessionId) {
   const resetScores = useCallback(async () => {
     if (!sessionId) return;
     // Reset all scores to 0 but keep nicknames
-    const resetData = {};
+    const resetData = Object.create(null);
     Object.entries(scores).forEach(([id, data]) => {
       resetData[id] = { ...data, nickname: data.nickname, total: 0 };
     });

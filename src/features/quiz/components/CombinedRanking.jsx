@@ -23,7 +23,7 @@ export default memo(function CombinedRanking({ session }) {
 
   const ranking = useMemo(() => {
     const questions = session?.questions || {};
-    const scoreMap = {};
+    const scoreMap = Object.create(null);
 
     Object.values(questions).forEach((q) => {
       if (!q.correctAnswer) return;

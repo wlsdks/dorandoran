@@ -13,7 +13,7 @@ export default function WrongAnswerAnalysis({ sessionId, questionId, questionTit
   const [error, setError] = useState('');
 
   const voteDistribution = useMemo(() => {
-    const dist = {};
+    const dist = Object.create(null);
     for (const v of voteList) {
       if (v.value) dist[v.value] = (dist[v.value] || 0) + 1;
     }
