@@ -26,13 +26,15 @@ const { createClassroomService } = require('./classroom-service');
 const { createHttpApi } = require('./http-api');
 const { verifiedUser, verifiedStaff, createRateLimit } = require('./access');
 const { readStaffProfile } = require('./staff-profile');
+const { fetchUpstream } = require('./upstream');
 
 const adminApp = getApps()[0] || initializeApp(process.env.APP_DATABASE_URL ? { databaseURL: process.env.APP_DATABASE_URL } : undefined);
 const adminAuth = getAuth(adminApp);
 const adminDb = getDatabase(adminApp);
-exports.staffApi = onRequest({ region: 'asia-northeast3', cors: false, maxInstances: 4 }, createHttpApi(createStaffService({ auth: adminAuth, db: adminDb })));
-exports.assignmentApi = onRequest({ region: 'asia-northeast3', cors: false, maxInstances: 4 }, createHttpApi(createAssignmentService({ auth: adminAuth, db: adminDb })));
-exports.classroomApi = onRequest({ region: 'asia-northeast3', cors: false, maxInstances: 4 }, createHttpApi(createClassroomService({ auth: adminAuth, db: adminDb })));
+const API_RUNTIME = { region: 'asia-northeast3', cors: false, maxInstances: 4, concurrency: 8, memory: '512MiB', timeoutSeconds: 60 };
+exports.staffApi = onRequest(API_RUNTIME, createHttpApi(createStaffService({ auth: adminAuth, db: adminDb }), { maxBodyBytes: 8192 }));
+exports.assignmentApi = onRequest(API_RUNTIME, createHttpApi(createAssignmentService({ auth: adminAuth, db: adminDb })));
+exports.classroomApi = onRequest(API_RUNTIME, createHttpApi(createClassroomService({ auth: adminAuth, db: adminDb }), { maxBodyBytes: 4096 }));
 
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 
@@ -90,7 +92,8 @@ exports.geminiProxy = onRequest(
     secrets: [GEMINI_API_KEY],
     // 최악의 경우 과금 폭주를 막는 상한. 교실 규모에는 충분하다.
     maxInstances: 5,
-    memory: '256MiB',
+    concurrency: 8,
+    memory: '512MiB',
     timeoutSeconds: 120,
     // Hosting rewrite를 통해서만 부르므로 CORS는 필요 없다. 직접 호출 시엔 Origin 검사로 막는다.
     cors: false,
@@ -116,6 +119,7 @@ exports.geminiProxy = onRequest(
     if (req.method !== 'POST') {
       return deny(res, 405, 'POST만 허용됩니다.');
     }
+    if ((req.rawBody?.length || 0) > MAX_BODY_BYTES) return deny(res, 413, '요청 본문이 너무 큽니다.');
 
     // Origin은 인증이 아니다. 서버가 검증한 Firebase 사용자와 승인된 강사만 호출할 수 있다.
     let actor;
@@ -198,24 +202,23 @@ exports.geminiProxy = onRequest(
     // x-goog-api-key는 서버 시크릿으로 덮어쓴다.
     let upstream;
     try {
-      upstream = await fetch(`${UPSTREAM}${path}`, {
+      upstream = await fetchUpstream(`${UPSTREAM}${path}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-goog-api-key': GEMINI_API_KEY.value(),
         },
         body,
-        signal: AbortSignal.timeout(30_000),
-      });
+      }, res);
     } catch (err) {
-      console.error('업스트림 호출 실패', err);
+      if (res.destroyed) return;
+      console.error('업스트림 호출 실패', { name: err.name });
       return deny(res, 502, 'Gemini 호출에 실패했습니다.');
     }
 
     if (!upstream.ok) return deny(res, upstream.status, 'AI 요청 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
-    const text = await upstream.text();
     res.status(upstream.status);
-    res.set('Content-Type', upstream.headers.get('Content-Type') || 'application/json');
-    return res.send(text);
+    res.set('Content-Type', upstream.contentType || 'application/json');
+    return res.send(upstream.text);
   },
 );
