@@ -80,14 +80,6 @@ export default function StaffMobileView({ sessionId, session, adminUser, onBack,
 
   return (
     <div className="h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col overflow-hidden">
-      {/* DM alerts for help requests */}
-      <StaffDMAlert
-        sessionId={sessionId}
-        staffId={adminUser?.uid}
-        staffName={adminUser?.displayName || '스태프'}
-        senderType="staff"
-      />
-
       {/* Header — mobile app style (no border, backdrop blur) */}
       <header className="bg-white dark:bg-slate-800 shrink-0">
         <div className="flex items-center gap-3 px-5 py-3.5">
@@ -118,6 +110,16 @@ export default function StaffMobileView({ sessionId, session, adminUser, onBack,
 
       {/* P2-3: 강사 현재 진행 상황 — 질문 변경 시 자동 갱신 */}
       <CurrentContext session={session} />
+
+      {/* Tablet staff have no desktop right panel: keep their active help
+          conversations reachable, without covering the header controls. */}
+      <StaffDMAlert
+        sessionId={sessionId}
+        staffId={adminUser?.uid}
+        staffName={adminUser?.displayName || '스태프'}
+        senderType="staff"
+        inline
+      />
 
       {/* Tab content */}
       <div className="flex-1 overflow-hidden">
