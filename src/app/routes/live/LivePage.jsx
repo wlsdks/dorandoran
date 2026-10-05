@@ -158,7 +158,7 @@ export default function LivePage() {
                     <ScratchCard sessionId={sessionId} role="view" presenter />
                   )}
                   {currentMode === 'breakTime' && <BreakTimer sessionId={sessionId} presenter readOnly />}
-                  {currentMode === 'leaderboard' && <div className="w-full"><Leaderboard presenter entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} title="실시간 리더보드" /></div>}
+                  {currentMode === 'leaderboard' && <div className="w-full"><Leaderboard presenter entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} highlight={session?.leaderboardHighlight} title="실시간 리더보드" /></div>}
                   {currentMode === 'qaBoard' && <div className="w-full max-w-4xl mx-auto" style={{ maxWidth: 1100 }}><ClassQABoard presenter readOnly sessionId={sessionId} showInput={false} role="viewer" /></div>}
                   {currentMode === 'qaRanking' && <QARanking sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'joinShow' && <JoinShow sessionId={sessionId} />}

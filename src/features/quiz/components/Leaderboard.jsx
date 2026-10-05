@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { Trophy, ChevronLeft, ChevronRight } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import LeaderboardRow from './LeaderboardRow';
+import RankingHighlightControls from './RankingHighlightControls';
+import { normalizeRankingHighlight, rankingHighlightEntry } from '@/lib/ranking-highlight';
 
 const EMPTY_ENTRIES = [];
 const clampPage = (value, count) => Math.max(0, Math.min(count - 1, Number.isFinite(Number(value)) ? Math.trunc(Number(value)) : 0));
@@ -34,6 +36,8 @@ export default memo(function Leaderboard({
   pageSize = 8,
   page,
   onPageChange,
+  highlight = null,
+  onHighlightChange,
 }) {
   const ranked = Array.isArray(entries) ? entries : EMPTY_ENTRIES;
   const paginated = presenter || paginate;
@@ -44,6 +48,9 @@ export default memo(function Leaderboard({
   const currentPage = clampPage(localPage, pageCount);
   const offset = paginated ? currentPage * size : 0;
   const visible = ranked.slice(offset, paginated ? offset + size : totalShown);
+  const featured = normalizeRankingHighlight(highlight);
+  const featuredEntry = rankingHighlightEntry(ranked, featured);
+  const featuredOnPage = featured && featured.activeRank > offset && featured.activeRank <= offset + visible.length;
   const reducedMotion = useReducedMotion();
   const swipeStart = useRef(null);
   const previousExternalPage = useRef(page);
@@ -138,15 +145,25 @@ export default memo(function Leaderboard({
     style={presenter ? STAGE_STYLE : undefined}
     className={presenter ? 'mx-auto rounded-2xl border border-slate-700 bg-slate-800' : 'w-full max-w-md mx-auto space-y-2'}
   >
-    {title && <div className={presenter ? 'flex items-center justify-center gap-2 mb-3' : 'flex items-center gap-2 mb-3'}>
+    {(title || onHighlightChange) && <div className={presenter ? 'flex flex-wrap items-center justify-between gap-3 mb-3' : 'flex flex-wrap items-center gap-2 mb-3'}>
+      <div className={`flex items-center gap-2 ${presenter ? 'flex-1 justify-center' : ''}`}>
       {!presenter && <Trophy size={20} className="text-slate-500" />}
-      <h3 className={presenter ? 'text-[clamp(22px,2vw,48px)] leading-tight font-bold tracking-tight text-slate-100' : 'text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100'}>{title}</h3>
+      {title && <h3 className={presenter ? 'text-[clamp(22px,2vw,48px)] leading-tight font-bold tracking-tight text-slate-100' : 'text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100'}>{title}</h3>}
+      </div>
+      {onHighlightChange && <RankingHighlightControls highlight={highlight} onHighlightChange={onHighlightChange} maxRank={ranked.length} />}
+    </div>}
+
+    {featured && !featuredOnPage && <div aria-label="현재 강조 순위" className="flex items-center gap-3 mb-3 rounded-xl border border-indigo-400/50 bg-indigo-950/60 px-3 py-2 text-indigo-100">
+      <span className="shrink-0 text-sm font-semibold">강조 순위 {featured.activeRank}위</span>
+      <span className="min-w-0 flex-1 truncate text-sm">{featuredEntry?.nickname || '현재 목록에 없습니다'}</span>
+      {featuredEntry && paginated && <button type="button" onKeyDown={keepButtonActivationLocal} onClick={() => goToPage(Math.floor((featured.activeRank - 1) / size))} aria-label="현재 강조 순위 보기" className="min-h-11 shrink-0 rounded-lg px-2 text-sm font-semibold hover:bg-indigo-900">보기<ChevronRight size={14} className="inline" /></button>}
     </div>}
 
     <div onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={() => { swipeStart.current = null; }} style={{ touchAction: 'pan-y' }}>
       <motion.ol key={currentPage} start={offset + 1} initial={reducedMotion ? false : { opacity: 0, x: 5 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.14 }} className={presenter ? 'flex flex-col' : 'space-y-2'} style={presenter ? { gap: 'clamp(4px, .292vw, 10px)' } : undefined}>
         {visible.map((entry, index) => <li key={entry.id}>
           <LeaderboardRow entry={entry} rank={offset + index} orderIndex={index} presenter={presenter} reducedMotion={reducedMotion}
+            isFeatured={featured?.activeRank === offset + index + 1} isHighlightCandidate={featured?.ranks.includes(offset + index + 1)}
             isHighlighted={entry.id === highlightId} isPodium={offset + index < 3} podiumIndex={offset + index} rankDelta={rankDeltas[entry.id] || 0} />
         </li>)}
       </motion.ol>

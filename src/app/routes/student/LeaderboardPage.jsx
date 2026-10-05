@@ -25,7 +25,7 @@ function MyRankSummary({ rank, entry, total, onOpen }) {
   </div>;
 }
 
-export default function LeaderboardPage({ sessionId }) {
+export default function LeaderboardPage({ sessionId, highlight = null }) {
   const { leaderboard } = useScores(sessionId);
   const participantId = getParticipantId();
   const [page, setPage] = useState(0);
@@ -48,6 +48,7 @@ export default function LeaderboardPage({ sessionId }) {
       <MyRankSummary rank={myRank} entry={myEntry} total={leaderboard.length} onOpen={openMyRank} />
       <div ref={listRef} className="scroll-mt-20">
         <Leaderboard entries={leaderboard} paginate pageSize={PAGE_SIZE} page={page} onPageChange={setPage}
+          highlight={highlight}
           title="현재 리더보드" highlightId={participantId} emptyLabel="아직 점수가 집계되지 않았습니다" />
       </div>
     </div>

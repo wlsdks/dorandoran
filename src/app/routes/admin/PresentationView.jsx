@@ -1,4 +1,5 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
+import { normalizeRankingHighlight } from '@/lib/ranking-highlight';
 import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
 import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
@@ -51,7 +52,7 @@ function getModeVariants(mode) {
   return { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
 }
 
-function MainContent({ currentMode, sessionId, session, onlineList, leaderboard, drawParticipants, presentMode, studentUrl, count, onGameResult, onLeaderboardPageChange }) {
+function MainContent({ currentMode, sessionId, session, onlineList, leaderboard, drawParticipants, presentMode, studentUrl, count, onGameResult, onLeaderboardPageChange, onHighlightChange }) {
   const currentQId = session?.currentQuestion;
   const isActive = ['poll', 'quiz'].includes(currentMode) && currentQId;
 
@@ -77,7 +78,7 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
       />
     );
     if (currentMode === 'breakTime') return <BreakTimer sessionId={sessionId} presenter={presentMode} />;
-    if (currentMode === 'leaderboard') return <div className="w-full px-2 md:px-0"><Leaderboard presenter={presentMode} entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} onPageChange={onLeaderboardPageChange} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
+    if (currentMode === 'leaderboard') return <div className="w-full px-2 md:px-0"><Leaderboard presenter={presentMode} paginate entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} onPageChange={onLeaderboardPageChange} highlight={session?.leaderboardHighlight} onHighlightChange={onHighlightChange} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
     if (currentMode === 'qaBoard') return <div className="w-full max-w-4xl" style={{ maxWidth: presentMode ? 1100 : undefined }}><ClassQABoard presenter={presentMode} readOnly={presentMode} sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>;
     if (currentMode === 'qaRanking') return <QARanking sessionId={sessionId} presenter={presentMode} readOnly={presentMode} />;
     if (currentMode === 'joinShow') return <JoinShow sessionId={sessionId} />;
@@ -241,7 +242,7 @@ export function PresentRevealControls({ sessionId, session, onRevealQuiz, onReve
 
 
 
-export default function PresentationView({ sessionId, session, currentMode, onlineList, leaderboard, drawParticipants, studentUrl, count, onExit, scores, participants }) {
+export default function PresentationView({ sessionId, session, currentMode, onlineList, leaderboard, drawParticipants, studentUrl, count, onExit, scores, participants, readOnly = false }) {
 
   const { available: aiAvailable } = useAIAvailability();
   // 발표 모드에 있는 동안만 전체화면 + 화면 꺼짐 방지
@@ -400,7 +401,11 @@ export default function PresentationView({ sessionId, session, currentMode, onli
           count={count}
           scores={scores}
           onGameResult={handleGameResult}
-          onLeaderboardPageChange={page => update(ref(db, `sessions/${sessionId}`), { leaderboardPage: page }).catch(() => {})}
+          onLeaderboardPageChange={readOnly ? undefined : page => update(ref(db, `sessions/${sessionId}`), { leaderboardPage: page }).catch(() => {})}
+          onHighlightChange={readOnly ? undefined : config => {
+            const selected = normalizeRankingHighlight(config);
+            return update(ref(db, `sessions/${sessionId}`), { leaderboardHighlight: selected, ...(selected ? { leaderboardPage: Math.floor((selected.activeRank - 1) / 8) } : {}) });
+          }}
         />
       </div>
 
