@@ -31,9 +31,9 @@ export default function StudentHeader({ sessionId, question, isSpeedQuiz = false
   return <MotionConfig reducedMotion="user">
     <motion.header initial={reduced ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduced ? 0 : 0.16 }} aria-label="도란도란 학생 헤더" className="fixed top-0 left-0 right-0 z-20 bg-white dark:bg-slate-800 border-b border-slate-200/70 dark:border-slate-700/50 pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <div className="flex items-center justify-between gap-2 px-4 py-2 max-w-[620px] mx-auto min-h-16">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <DoranDoranMascot size={30} animated={false} />
-          <span className="inline-flex items-center gap-1.5 font-bold text-[15px] text-slate-900 dark:text-slate-100 tracking-tight whitespace-nowrap">도란도란
+        <div className="flex flex-1 items-center gap-1.5 min-w-0 overflow-hidden">
+          <span className="shrink-0"><DoranDoranMascot size={30} animated={false} /></span>
+          <span className="inline-flex min-w-0 items-center gap-1.5 font-bold text-[15px] text-slate-900 dark:text-slate-100 tracking-tight whitespace-nowrap"><span className="truncate">도란도란</span>
             <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${connected ? 'bg-emerald-400' : 'bg-amber-400'}`} role="img" aria-label={connected ? '서버 연결됨' : '서버 재연결 중'} />
           </span>
         </div>

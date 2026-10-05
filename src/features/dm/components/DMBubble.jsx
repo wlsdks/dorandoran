@@ -6,6 +6,7 @@ import { formatChatTime } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { useDMTyping } from '@/features/dm/api/useDMTyping';
+import { useDialogLayer } from '@/hooks/useDialogLayer';
 
 const DMMessage = memo(function DMMessage({ msg, isOwn }) {
   if (msg.senderType === 'system') {
@@ -90,20 +91,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
   const [sendError, setSendError] = useState('');
   const [requestError, setRequestError] = useState('');
   const messagesEndRef = useRef(null);
-
-  // 패널 열릴 때 배경 스크롤 잠금
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, []);
-
-  // Esc로 모달 닫기
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
+  const { dialogRef, trapFocus } = useDialogLayer(true, onClose);
 
   const rawDMs = activeDMs || (activeDM ? [activeDM] : []);
   const resolvedCount = rawDMs.filter((d) => d.status === 'resolved').length;
@@ -148,7 +136,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
 
   const isWaiting = currentDM?.status === 'waiting';
   const isResolved = currentDM?.status === 'resolved';
-  const TAB_CLS = (active) => `flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ${
+  const TAB_CLS = (active) => `flex-1 min-h-11 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ${
     active ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
   }`;
 
@@ -156,7 +144,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
     <>
       <motion.div key="dm-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50" onClick={onClose} />
-      <motion.div key="dm-panel" initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }}
+      <motion.div key="dm-panel" ref={dialogRef} role="dialog" aria-modal="true" aria-label="도움" tabIndex={-1} onKeyDown={trapFocus} initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         className="mobile-conversation fixed inset-x-0 bottom-0 top-[10vh] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[400px] sm:h-[520px] bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden">
 
@@ -288,7 +276,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
                       <DoranDoranMascot size="sm" mood="waiting" />
                       <p className="text-[15px] text-slate-400 dark:text-slate-500 text-center">도움 요청 내역이 없습니다</p>
                       <motion.button whileTap={{ scale: 0.96 }} onClick={() => setTab('new')}
-                        className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-medium transition-colors duration-150">
+                        className="min-h-11 px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-medium transition-colors duration-150">
                         새 도움 요청하기
                       </motion.button>
                     </div>
@@ -310,7 +298,7 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
                 )}
               </div>
             ) : (
-              <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 scrollbar-hide">
+              <div className="dm-request-body flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5 scrollbar-hide">
                 {requestSent ? (
                   <div className="flex flex-col items-center justify-center h-full gap-3">
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}
@@ -321,15 +309,15 @@ export default function DMBubble({ activeDMs, activeDM, senderName, onSendMessag
                     <p className="text-xs text-slate-400 dark:text-slate-500">스태프가 곧 응답합니다</p>
                   </div>
                 ) : (
-                  <form onSubmit={handleRequestSubmit} className="space-y-4">
-                    <div className="text-center space-y-1">
+                  <form onSubmit={handleRequestSubmit} className="dm-request-form space-y-4">
+                    <div className="dm-request-intro text-center space-y-1">
                       <Headset size={24} className="text-slate-900 dark:text-slate-100 mx-auto mb-2" />
                       <p className="text-slate-900 dark:text-slate-100 font-bold text-lg tracking-tight">도움 요청</p>
                       <p className="text-slate-400 dark:text-slate-500 text-xs">스태프에게 1:1 도움을 요청합니다</p>
                     </div>
                     <textarea value={requestText} onChange={(e) => setRequestText(e.target.value)}
                       placeholder="어떤 도움이 필요하신가요?" aria-label="도움 요청 내용" maxLength={200} rows={3} autoFocus
-                      className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-colors duration-150" />
+                      className="dm-request-textarea w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-colors duration-150" />
                     {requestError && (
                       <p className="text-xs text-red-500 dark:text-red-400">{requestError}</p>
                     )}
