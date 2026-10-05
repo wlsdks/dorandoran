@@ -122,6 +122,7 @@ async function setup(p) {
     if (m.type() === 'error') errors.push(m.text());
   });
   await p.goto(base + '/');
+  await p.waitForLoadState('networkidle');
   await setup(p);
   const a = {
       id: 'first-correct',
@@ -169,6 +170,7 @@ async function setup(p) {
     events: toastHarness.events
   }));
   await p.reload();
+  await p.waitForLoadState('networkidle');
   await setup(p);
   await p.evaluate(() => toastHarness.render({
     ready: true
