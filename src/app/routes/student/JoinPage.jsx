@@ -78,8 +78,9 @@ export default function JoinPage({ sessionId, onJoin }) {
     if (requireEmployeeId) setShowEmployeeId(true);
   }, [requireEmployeeId]);
 
-  // Reliable autoFocus for mobile browsers (slight delay for page transition)
+  // Focus desktops only; mobile users should see the entry screen before opening their keyboard.
   useEffect(() => {
+    if (!window.matchMedia('(pointer: fine)').matches) return;
     const t = setTimeout(() => inputRef.current?.focus(), 150);
     return () => clearTimeout(t);
   }, []);
@@ -121,7 +122,7 @@ export default function JoinPage({ sessionId, onJoin }) {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">세션을 찾을 수 없어요</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               입력하신 코드 <span className="font-bold text-slate-700 dark:text-slate-200 tabular-nums">{sessionId}</span>에 해당하는 세션이 없습니다.
-              <br />세션 코드를 다시 확인해주세요.
+              <br />세션 코드를 다시 확인해 주세요.
             </p>
             <a href="/" className="min-h-12 inline-flex items-center justify-center px-5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900">다른 수업으로 참여</a>
           </div>
@@ -144,7 +145,7 @@ export default function JoinPage({ sessionId, onJoin }) {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">추첨 전용 세션이에요</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               이 세션은 진행자가 명단으로 추첨만 진행합니다.
-              <br />앞 화면에서 결과를 확인해주세요.
+              <br />앞 화면에서 결과를 확인해 주세요.
             </p>
           </div>
         </motion.div>
@@ -155,7 +156,7 @@ export default function JoinPage({ sessionId, onJoin }) {
   return (
     <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col">
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center px-5 pt-[14vh] pb-32">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center px-5 pt-[max(3rem,env(safe-area-inset-top))] sm:pt-[14vh] pb-32">
         <div className="w-full max-w-sm">
           {/* Header — collapses when keyboard is open to maximize input visibility */}
           <motion.div
@@ -265,7 +266,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                       className="text-sm text-red-500 dark:text-red-400"
                       role="alert"
                     >
-                      {error || `${NICKNAME_MIN}자 이상 입력해주세요`}
+                      {error || `${NICKNAME_MIN}자 이상 입력해 주세요`}
                     </motion.span>
                   ) : (
                     <motion.span
@@ -276,7 +277,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                       transition={{ duration: 0.15 }}
                       className={`text-sm ${isValid ? 'text-emerald-500 dark:text-emerald-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}
                     >
-                      {isValid ? '참여 준비 완료' : '2~10자로 입력해주세요'}
+                      {isValid ? '참여 준비 완료' : '2~10자로 입력해 주세요'}
                     </motion.span>
                   )}
                 </AnimatePresence>

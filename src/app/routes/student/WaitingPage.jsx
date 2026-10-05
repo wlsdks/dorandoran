@@ -369,7 +369,7 @@ export default memo(function WaitingPage({
             stiffness: 300,
             damping: 25
           }} className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight leading-tight">
-                  {nickname}님, 준비 완료!
+                  {nickname} 님, 준비됐어요!
                 </motion.p>}
               {courseName && <motion.p initial={{
             opacity: 0
