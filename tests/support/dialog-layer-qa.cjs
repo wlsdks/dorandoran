@@ -129,14 +129,26 @@ async function exercise(engine, html) {
       delete visualViewport.height; delete visualViewport.offsetTop;
       visualViewport.dispatchEvent(new Event('resize'));
     });
+    await expect.poll(() => page.evaluate(() => ({
+      height: parseFloat(document.documentElement.style.getPropertyValue('--app-visible-height')),
+      top: parseFloat(document.documentElement.style.getPropertyValue('--app-visible-top')),
+    }))).toEqual({ height: 600, top: 0 });
     await launcher.press('Enter'); await expect(sheet).toBeFocused();
+    // Viewport restoration and motion feature registration use animation frames.
+    // Measure the handle only after both frames, before beginning a real gesture.
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const initialTop = (await sheet.boundingBox()).y;
     const handle = await page.locator('.cursor-grab').boundingBox();
     await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
     await page.mouse.down();
+    await page.waitForTimeout(80);
     for (let step = 1; step <= 10; step++) {
       await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2 + 20 * step);
       await page.waitForTimeout(20); // Allow real pointer/animation frames to run.
     }
+    await expect.poll(async () => (await sheet.boundingBox()).y - initialTop,
+      { message: `${engine} handle must move the sheet before releasing the gesture` }).toBeGreaterThan(100);
+    const dragPixels = (await sheet.boundingBox()).y - initialTop;
     await page.mouse.up(); await expect(sheet).toHaveCount(0); await expect(launcher).toBeFocused();
     await launcher.press('Enter'); await expect(sheet).toBeFocused();
     await page.locator('#nested-open').focus(); await page.locator('#nested-open').press('Enter');
@@ -151,7 +163,7 @@ async function exercise(engine, html) {
     expect(preventedAfterUnmount).toEqual([false, false]);
     report.checks.push({ engine, naturalTab: true, reverseTab: true, disabledSkipped: true,
       deletedFocusRecovery: true, nestedEscapeOne: true, triggerFocusRestore: true,
-      shortViewport: true, handleDragClose: true, unmountCleanup: true });
+      shortViewport: true, handleDragClose: true, dragPixels, unmountCleanup: true });
     save();
   } catch (error) {
     await page.screenshot({ path: path.join(artifacts, `${engine}-failure.png`) }).catch(() => {});
