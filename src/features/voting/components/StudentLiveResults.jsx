@@ -31,7 +31,7 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
     >
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 tracking-tight">
-          {connected ? '전체 선택 비율' : '마지막 집계 · 연결 복구 대기'} {!revealed && <span className="font-normal text-slate-400 dark:text-slate-500">· 실시간</span>}
+          {connected ? '전체 선택 비율' : '마지막 집계 · 연결 복구 대기'} {connected && !revealed && <span className="font-normal text-slate-400 dark:text-slate-500">· 실시간</span>}
         </p>
         <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
           <Users size={12} />
