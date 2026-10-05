@@ -11,7 +11,8 @@ export function useVotes(sessionId, questionId) {
   // RTDB의 permission_denied는 구독을 끝낸다. 공개 전에는 구독하지 않고,
   // 안전한 공개 메타데이터가 바뀌면 새 구독을 시작한다. 강사는 계속 원본을 집계한다.
   const resultsHidden = !privileged && (!access?.type || (access.type === 'quiz' && !access.revealedAt));
-  const { value, error, loading } = useRealtimeValue(sessionId && questionId && !resultsHidden ? `sessions/${sessionId}/questions/${questionId}/votes` : null, { throttleMs: adaptiveVoteThrottle });
+  const revealScope = !privileged && access?.type === 'quiz' ? access.revealedAt : undefined;
+  const { value, error, loading } = useRealtimeValue(sessionId && questionId && !resultsHidden ? `sessions/${sessionId}/questions/${questionId}/votes` : null, { scope: revealScope, throttleMs: adaptiveVoteThrottle });
   const votes = value || EMPTY_RECORD;
 
   const voteList = useMemo(
