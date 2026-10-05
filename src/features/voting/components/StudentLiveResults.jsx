@@ -16,7 +16,7 @@ import { Users, Check } from 'lucide-react';
  * @param {string} props.myAnswer - the option this student voted for
  */
 export default memo(function StudentLiveResults({ sessionId, questionId, options, myAnswer }) {
-  const { totalVotes, countByValue } = useVotes(sessionId, questionId);
+  const { totalVotes, countByValue, resultsHidden, loading } = useVotes(sessionId, questionId);
 
   const maxCount = useMemo(() => {
     let max = 0;
@@ -26,6 +26,8 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
     });
     return max;
   }, [options, countByValue]);
+
+  if (resultsHidden || loading) return null;
 
   return (
     <motion.div

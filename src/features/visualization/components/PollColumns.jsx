@@ -3,7 +3,7 @@ import { Check, Smartphone } from 'lucide-react';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
 
 /** 짧은 보기 2~4개는 결과를 서로 비교할 수 있는 발표 차트로 표현한다. */
-export default function PollColumns({ options, counts, total, revealed, correctValue }) {
+export default function PollColumns({ options, counts, total, revealed, correctValue, resultsHidden = false, loading = false }) {
   const max = Math.max(1, ...counts);
   return <div className="poll-columns" data-empty={total === 0}>
     <div className="poll-columns-plot" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}>
@@ -20,6 +20,6 @@ export default function PollColumns({ options, counts, total, revealed, correctV
         </div>;
       })}
     </div>
-    {total === 0 && <div className="poll-waiting-note"><Smartphone size={28} /><p>휴대폰에서 답을 골라주세요<span>응답하면 차트가 함께 자라요</span></p></div>}
+    {total === 0 && <div className="poll-waiting-note"><Smartphone size={28} /><p>{loading ? '응답 집계를 불러오고 있어요' : revealed ? '제출된 응답이 없어요' : '휴대폰에서 답을 골라주세요'}<span>{loading ? '잠시 후 결과가 표시됩니다' : revealed ? '다음 활동에서 함께 참여해주세요' : resultsHidden ? '정답 공개 후 결과가 표시돼요' : '응답하면 차트가 함께 자라요'}</span></p></div>}
   </div>;
 }

@@ -2,8 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { publicQuestions } from './public-questions';
 import { getQuizReward } from './quiz';
 import { participationLeader } from './participation';
+import fields from '../../functions/public-question-fields.json';
+import rules from '../../database.rules.json';
 
 describe('공개 데이터와 계산의 신뢰 경계', () => {
+  it('공개 문항 스키마와 RTDB 허용 필드가 어긋나 동기화를 막지 않는다', () => {
+    const validators = rules.rules.sessions.$sid.publicQuestions.$qId;
+    expect(fields.filter(field => !Object.hasOwn(validators, field))).toEqual([]);
+    expect(validators.$other['.validate']).toBe(false);
+    expect(fields).not.toContain('votes');
+    expect(fields).not.toContain('submissions');
+  });
   it('미공개 정답, 원본 투표와 제출물을 공개 뷰에 전달하지 않는다', () => {
     const input = { q: { type: 'quiz', title: '제목', correctAnswer: 'B', acceptableAnswers: ['b'], votes: { student: { value: 'A' } }, submissions: { student: { code: 'private' } } } };
     expect(publicQuestions(input)).toEqual({ q: { type: 'quiz', title: '제목' } });
