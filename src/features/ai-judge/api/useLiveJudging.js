@@ -11,6 +11,8 @@ import { storage } from '@/lib/firebase-storage';
 import { judgeLiveSubmission } from '@/lib/judging/geminiLive';
 import { calculateLiveTop3 } from '@/lib/judging/awards';
 import { JUDGE_THINKING_SNIPPETS } from '@/lib/judging/judges';
+import { createWorkRun } from '@/lib/work-run';
+import { throwIfAborted } from '@/lib/async-work';
 import { logger } from '@/lib/logger';
 
 function pickThinking(judgeId) {
@@ -146,27 +148,26 @@ export function useLiveJudging(sessionId, questionId) {
   const { available } = useAIAvailability();
   const [isJudging, setIsJudging] = useState(false);
   const [progress, setProgress] = useState(null); // { current, total, currentName }
-  const abortRef = useRef(false);
+  const runRef = useRef(null);
   const judgingRef = useRef(false);
   const mountedRef = useRef(true);
 
-  // Unmount 시 진행 중 심사 자동 중단 — 강사가 세션을 나가거나 로그아웃할 때
-  // aiJudgeState가 'judging'으로 남아 좀비가 되는 것을 방지.
-  // 이후 scheduleNext 순환에서 abortRef를 감지해 'aborted'로 최종 기록.
   useEffect(() => {
     mountedRef.current = true;
-    return () => { abortRef.current = true; mountedRef.current = false; };
-  }, []);
+    return () => { runRef.current?.controller.abort(); mountedRef.current = false; };
+  }, [sessionId, questionId]);
 
   const startJudging = useCallback(async () => {
     if (!available || !sessionId || !questionId || judgingRef.current) return false;
     judgingRef.current = true;
-    abortRef.current = false;
+    const run = createWorkRun();
+    runRef.current = run;
     setIsJudging(true);
     const base = `sessions/${sessionId}/questions/${questionId}`;
 
     try {
       const snap = await get(ref(db, `${base}/submissions`));
+      throwIfAborted(run.signal);
       const data = snap.val() || {};
       const submissions = Object.entries(data).map(([id, v]) => ({ id, ...v }));
 
@@ -178,6 +179,7 @@ export function useLiveJudging(sessionId, questionId) {
       }
 
       const qSnap = await get(ref(db, `${base}/title`));
+      throwIfAborted(run.signal);
       const questionTitle = qSnap.val() || '';
 
       await update(ref(db, base), {
@@ -200,7 +202,7 @@ export function useLiveJudging(sessionId, questionId) {
 
       await new Promise((resolveAll) => {
         const scheduleNext = () => {
-          if (abortRef.current) {
+          if (run.signal.aborted) {
             if (running === 0) resolveAll();
             return;
           }
@@ -210,13 +212,15 @@ export function useLiveJudging(sessionId, questionId) {
             running++;
             (async () => {
               const writeJudgeLog = (id, entry) => runTransaction(ref(db, `${base}/aiJudgeLog`), current =>
-                current?.currentSubmissionId === sub.id ? { ...current, judges: { ...(current.judges || {}), [id]: entry } } : undefined, { applyLocally: false });
+                !run.signal.aborted && current?.currentSubmissionId === sub.id ? { ...current, judges: { ...(current.judges || {}), [id]: entry } } : undefined, { applyLocally: false });
               try {
+                throwIfAborted(run.signal);
                 // 권한/연결 오류도 작업 정리 경로를 거쳐 다음 제출을 진행한다.
                 await update(ref(db, `${base}/aiJudgeState`), {
                   status: 'judging', current: completed + 1,
                   total: submissions.length, currentName: sub.name,
                 });
+                throwIfAborted(run.signal);
                 // 새 제출자 심사 시작 시 이전 판사 로그 초기화 (전자칠판 표시용)
                 await set(ref(db, `${base}/aiJudgeLog`), {
                   currentSubmissionId: sub.id,
@@ -224,6 +228,7 @@ export function useLiveJudging(sessionId, questionId) {
                   startedAt: serverTimestamp(),
                   judges: null,
                 });
+                throwIfAborted(run.signal);
                 const { results, summary } = await judgeLiveSubmission(
                   sub,
                   questionTitle,
@@ -245,8 +250,10 @@ export function useLiveJudging(sessionId, questionId) {
                       hint: pickThinking(judge.id),
                       at: Date.now(),
                     });
-                  }
+                  },
+                  { signal: run.signal }
                 );
+                throwIfAborted(run.signal);
                 await set(ref(db, `${base}/aiResults/${sub.id}`), {
                   judges: results,
                   summary,
@@ -254,12 +261,12 @@ export function useLiveJudging(sessionId, questionId) {
                 });
                 allResults.push({ submissionId: sub.id, name: sub.name, results, summary });
               } catch (err) {
-                logger.error(`제출 ${sub.name} 심사 실패:`, err);
+                if (!run.signal.aborted) logger.error(`제출 ${sub.name} 심사 실패:`, err);
                 // 실패한 제출은 allResults에서 제외 — calculateLiveTop3가 totalJudges===0 필터링
               } finally {
                 completed++;
                 running--;
-                if (mountedRef.current) setProgress({ current: completed, total: submissions.length, currentName: sub.name });
+                if (mountedRef.current && !run.signal.aborted) setProgress({ current: completed, total: submissions.length, currentName: sub.name });
                 scheduleNext();
               }
             })();
@@ -269,7 +276,7 @@ export function useLiveJudging(sessionId, questionId) {
         scheduleNext();
       });
 
-      if (!abortRef.current) {
+      if (!run.signal.aborted) {
         const top3 = calculateLiveTop3(allResults);
         // 원자적 multi-path update — 학생 클라이언트가 "done인데 top3 없음" 또는 "판사 로그 잔존"
         // 같은 찰나의 불일치 상태를 보지 않도록 한 번의 이벤트로 전달.
@@ -282,23 +289,30 @@ export function useLiveJudging(sessionId, questionId) {
           aiJudgeLog: null,
         });
       } else {
-        await update(ref(db, `${base}/aiJudgeState`), { status: 'aborted' });
+        await runTransaction(ref(db, `${base}/aiJudgeState`), current => current?.status === 'judging' ? { ...current, status: 'aborted' } : current === null ? null : undefined, { applyLocally: false });
       }
     } catch (err) {
-      logger.error('라이브 심사 실행 실패:', err);
-      await update(ref(db, `${base}/aiJudgeState`), { status: 'error', message: err.message || '알 수 없는 오류' });
+      if (!run.signal.aborted) logger.error('라이브 심사 실행 실패:', err);
+      await runTransaction(ref(db, `${base}/aiJudgeState`), current => current?.status === 'judging'
+        ? { ...current, status: run.signal.aborted ? 'aborted' : 'error', message: run.signal.aborted ? null : (err.message || '알 수 없는 오류') }
+        : current === null ? null : undefined, { applyLocally: false }).catch(() => {});
     } finally {
-      judgingRef.current = false;
-      if (mountedRef.current) { setIsJudging(false); setProgress(null); }
+      if (runRef.current === run) {
+        runRef.current = null;
+        judgingRef.current = false;
+        if (mountedRef.current) { setIsJudging(false); setProgress(null); }
+      }
+      run.finish();
     }
   }, [sessionId, questionId, available]);
 
-  const abort = useCallback(() => {
-    abortRef.current = true;
-  }, []);
+  const abort = useCallback(() => { runRef.current?.controller.abort(); }, []);
 
   const reset = useCallback(async () => {
     if (!sessionId || !questionId) return;
+    const run = runRef.current;
+    if (run) { run.controller.abort(); await run.done; }
+
     const base = `sessions/${sessionId}/questions/${questionId}`;
     await update(ref(db, base), {
       aiJudgeState: null,

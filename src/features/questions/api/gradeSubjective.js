@@ -50,8 +50,7 @@ ${answerText}
 
 각 답변을 모범답안 기준으로 채점해주세요.`;
 
-  const result = await Promise.race([
-    model.generateContent({
+  const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.2,
@@ -59,9 +58,7 @@ ${answerText}
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('채점 타임아웃')), 30000)),
-  ]);
+    }, { timeoutMs: 30000, timeoutMessage: "채점 타임아웃" });
 
   let text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   let parsed;

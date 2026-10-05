@@ -40,8 +40,7 @@ ${responseText}
 
 위 응답들의 공통 테마와 강사에게 유용한 인사이트를 요약해주세요.`;
 
-  const result = await Promise.race([
-    model.generateContent({
+  const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.4,
@@ -49,9 +48,7 @@ ${responseText}
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('요약 타임아웃')), 30000)),
-  ]);
+    }, { timeoutMs: 30000, timeoutMessage: "요약 타임아웃" });
 
   let text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   try {

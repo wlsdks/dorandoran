@@ -16,20 +16,24 @@ export default function AuthenticationBoundary({ children }) {
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let active = true;
+    let epoch = 0;
     setState({ ready: false, error: null });
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      const current = ++epoch;
       try {
+        if (!active) return;
         if (!user && needsGuest) { await ensureAuthentication(); return; }
         await restoreStaffProfile(user);
+        if (!active || current !== epoch || auth.currentUser?.uid !== user?.uid) return;
         if (user && viewer) await set(ref(db, `sessionViewers/${viewer}/${user.uid}`), true);
         if (active) setState({ ready: true, error: null });
-      } catch (error) { if (active) setState({ ready: false, error }); }
+      } catch (error) { if (active && current === epoch) setState({ ready: false, error }); }
     });
     return () => { active = false; unsubscribe(); };
   }, [needsGuest, viewer, attempt]);
   if (state.error) return (
     <div className="min-h-dvh flex flex-col items-center justify-center gap-4 px-6 text-center bg-slate-50 dark:bg-slate-900">
-      <p role="alert" className="text-sm text-slate-600 dark:text-slate-300">연결을 확인한 뒤 다시 시도해주세요</p>
+      <p role="alert" className="text-sm text-slate-600 dark:text-slate-300">{state.error.code === 'auth/too-many-requests' ? '입장 요청이 잠시 몰렸어요. 잠시 후 다시 시도해주세요.' : '연결을 확인한 뒤 다시 시도해주세요'}</p>
       <Button onClick={() => setAttempt((value) => value + 1)}>다시 시도</Button>
     </div>
   );

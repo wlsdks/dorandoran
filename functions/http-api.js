@@ -1,7 +1,7 @@
 const { createRateLimit } = require('./access');
 
 const DEFAULT_ORIGINS = ['https://jinan-6c884.web.app', 'https://jinan-6c884.firebaseapp.com'];
-function createHttpApi(service, { origins = process.env.APP_ALLOWED_ORIGINS || '', emulator = process.env.FUNCTIONS_EMULATOR === 'true' } = {}) {
+function createHttpApi(service, { origins = process.env.APP_ALLOWED_ORIGINS || '', emulator = process.env.FUNCTIONS_EMULATOR === 'true', maxBodyBytes = 160_000 } = {}) {
   const allowed = new Set([...DEFAULT_ORIGINS, ...origins.split(',').map((value) => value.trim()).filter(Boolean)]);
   const rateLimit = createRateLimit(10_000);
   return async (req, res) => {
@@ -19,6 +19,9 @@ function createHttpApi(service, { origins = process.env.APP_ALLOWED_ORIGINS || '
       return res.status(204).send('');
     }
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST 요청만 가능합니다.' });
+    if ((req.rawBody?.length || 0) > maxBodyBytes || Buffer.byteLength(JSON.stringify(req.body || {}), 'utf8') > maxBodyBytes) {
+      return res.status(413).json({ error: '요청이 너무 큽니다.' });
+    }
     if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ error: '요청이 너무 많습니다.' });
     try { return res.status(200).json(await service(req)); }
     catch (err) {

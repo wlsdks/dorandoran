@@ -68,8 +68,7 @@ ${options.map(o => `- ${o}${o === correctAnswer ? ' (정답)' : ''}`).join('\n')
 
 학생들이 가장 많이 고른 오답의 이유를 분석하고 강사에게 부연 설명 포인트를 제안해주세요. 주제를 잘 모르거나 분석 자신 없으면 canAnalyze:false로 거부하세요.`;
 
-  const result = await Promise.race([
-    model.generateContent({
+  const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.25,
@@ -77,9 +76,7 @@ ${options.map(o => `- ${o}${o === correctAnswer ? ' (정답)' : ''}`).join('\n')
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('분석 타임아웃')), 20000)),
-  ]);
+    }, { timeoutMs: 20000, timeoutMessage: "분석 타임아웃" });
 
   let text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   try {

@@ -82,8 +82,7 @@ ${questionFacts || '(답변 기록 없음)'}
 
 위 사실 데이터만 근거로 학생 개인 리포트를 작성해주세요. 데이터에 없는 성격·동기·의도는 절대 추측 금지. 오답은 "복습 추천"으로만 언급하고 이유 분석은 하지 마세요.`;
 
-  const result = await Promise.race([
-    model.generateContent({
+  const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.25,
@@ -91,9 +90,7 @@ ${questionFacts || '(답변 기록 없음)'}
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('리포트 타임아웃')), 25000)),
-  ]);
+    }, { timeoutMs: 25000, timeoutMessage: "리포트 타임아웃" });
 
   let text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   let parsed;

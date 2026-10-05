@@ -7,6 +7,7 @@
  * 들고 있다. 클라이언트 설정은 프록시 URL뿐. 자세한 배경은 worker/README.md 참조.
  */
 import { getGeminiModel, isGeminiConfigured } from '@/lib/gemini/client';
+import { withDeadline, abortableDelay, throwIfAborted } from '@/lib/async-work';
 import { JUDGES } from './judges';
 import { EVALUATION_GUIDE, PREVIEW_PROMPT } from './prompts';
 
@@ -25,16 +26,12 @@ const MAX_INPUT_CHARS = 120000; // ~30K tokens, leaves room for system+prompt+ou
  * 2s → 4s → 8s → 16s로 벌려 총 30초까지 기다린다. 판사 7명이 동시에 재시도하며 같은 순간
  * 몰리는 것도 피해야 해서 ±25% 지터를 준다.
  */
-export async function withRetry(fn, retries = 4, delayMs = 2000, timeoutMs = 45000) {
+export async function withRetry(fn, retries = 4, delayMs = 2000, timeoutMs = 45000, { signal } = {}) {
   for (let i = 0; i <= retries; i++) {
     try {
-      return await Promise.race([
-        fn(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`API 타임아웃 (${Math.round(timeoutMs / 1000)}초)`)), timeoutMs)
-        ),
-      ]);
+      return await withDeadline(fn, timeoutMs, { signal, message: `API 타임아웃 (${Math.round(timeoutMs / 1000)}초)` });
     } catch (err) {
+      throwIfAborted(signal);
       if (i === retries) throw err;
       const msg = err.message || '';
       const isTransient =
@@ -45,7 +42,7 @@ export async function withRetry(fn, retries = 4, delayMs = 2000, timeoutMs = 450
       if (!isTransient) throw err;
       const backoff = delayMs * 2 ** i;
       const jitter = backoff * (0.75 + Math.random() * 0.5);
-      await new Promise(r => setTimeout(r, jitter));
+      await abortableDelay(jitter, signal);
     }
   }
 }
@@ -54,36 +51,8 @@ export async function withRetry(fn, retries = 4, delayMs = 2000, timeoutMs = 450
  * Fetch URL → base64 data part for Gemini inlineData.
  * Firebase Storage URL도 fetch 가능 (CORS 설정됨).
  */
-export async function urlToInlinePart(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`이미지 다운로드 실패 (${res.status})`);
-  const blob = await res.blob();
-
-  // Gemini inlineData는 base64 인코딩 후 전체 request에 포함되므로 너무 크면 API 호출 실패.
-  // 7MB 원본 → base64 후 ~9.3MB. 여유분 고려해 7MB 상한.
-  const MAX_BYTES = 7 * 1024 * 1024;
-  if (blob.size > MAX_BYTES) {
-    throw new Error(`이미지가 너무 큽니다 (${(blob.size / 1024 / 1024).toFixed(1)}MB) — 7MB 이하 권장`);
-  }
-
-  const mimeType = blob.type || 'image/jpeg';
-
-  // FileReader API로 base64 변환 — 기존 `binary += String.fromCharCode(bytes[i])` 루프는
-  // O(N²) 문자열 concat + 대용량 시 스택 오버플로 위험. readAsDataURL은 네이티브 구현으로 효율적.
-  const base64 = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result;
-      if (typeof dataUrl !== 'string') { reject(new Error('이미지 읽기 실패')); return; }
-      const comma = dataUrl.indexOf(',');
-      resolve(comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl);
-    };
-    reader.onerror = () => reject(reader.error || new Error('이미지 읽기 실패'));
-    reader.readAsDataURL(blob);
-  });
-
-  return { inlineData: { mimeType, data: base64 } };
-}
+export { urlToInlinePart } from '@/lib/bounded-image';
+import { urlToInlinePart } from '@/lib/bounded-image';
 
 export function parseJudgeResponse(text) {
   let cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -134,17 +103,21 @@ function buildContent(submission) {
  * 제출물의 스크린샷(여러 장)을 Gemini inlineData parts로 변환.
  * 한 장이라도 실패해도 다른 자료(PRD/프롬프트)로 평가가 가능하도록 실패는 swallow.
  */
-async function buildScreenshotParts(submission, max = 5) {
+async function buildScreenshotParts(submission, max = 5, signal) {
   const shots = Array.isArray(submission.screenshots) ? submission.screenshots.filter(s => s?.url) : [];
   if (shots.length === 0) return [];
   const subset = shots.slice(0, max);
   const out = [{ text: `\n[결과물 스크린샷 ${subset.length}장 — 순서대로 첨부]` }];
+  let remainingBytes = 3.5 * 1024 * 1024;
   for (let i = 0; i < subset.length; i++) {
     try {
-      const part = await urlToInlinePart(subset[i].url);
+      throwIfAborted(signal);
+      const part = await urlToInlinePart(subset[i].url, { signal, maxBytes: Math.min(2 * 1024 * 1024, remainingBytes) });
+      remainingBytes -= Math.ceil(part.inlineData.data.length * 3 / 4);
       out.push({ text: `\n— 스크린샷 ${i + 1} —` });
       out.push(part);
     } catch {
+      throwIfAborted(signal);
       out.push({ text: `\n— 스크린샷 ${i + 1} (불러오기 실패, 무시) —` });
     }
   }
@@ -158,7 +131,7 @@ async function buildScreenshotParts(submission, max = 5) {
  */
 const MODEL_FALLBACKS = [MODEL_NAME, 'gemini-2.5-flash'];
 
-export async function evaluateSubmission(judge, submission) {
+export async function evaluateSubmission(judge, submission, { signal, screenshotParts: sharedParts } = {}) {
   const systemInstruction = `${judge.systemPrompt}\n\n${EVALUATION_GUIDE}`;
 
   const prompt = `[심사 대상]
@@ -168,15 +141,14 @@ ${buildContent(submission)}
 
 위 제출물을 평가해주세요.`;
 
-  const screenshotParts = await buildScreenshotParts(submission, 5);
+  const screenshotParts = sharedParts || await buildScreenshotParts(submission, 5, signal);
   const parts = [{ text: prompt }, ...screenshotParts];
 
   let lastErr = null;
   for (const modelName of MODEL_FALLBACKS) {
     const model = getGeminiModel({ model: modelName, systemInstruction });
     try {
-      const result = await withRetry(() =>
-        model.generateContent({
+      const result = await withRetry(deadlineSignal => model.generateContent({
           contents: [{ role: 'user', parts }],
           generationConfig: {
             temperature: 0.35,
@@ -184,10 +156,11 @@ ${buildContent(submission)}
             responseMimeType: 'application/json',
             thinkingConfig: { thinkingBudget: 0 },
           },
-        })
+        }, { signal: deadlineSignal, timeoutMs: 45000 }), 4, 2000, 45000, { signal }
       );
       return parseJudgeResponse(result.response.text());
     } catch (err) {
+      throwIfAborted(signal);
       lastErr = err;
       // 과부하/용량 문제일 때만 다음 모델로. 파싱 실패나 잘못된 요청은 모델을 바꿔도 같으므로 즉시 포기.
       const msg = (err?.message || '').toLowerCase();
@@ -203,15 +176,17 @@ ${buildContent(submission)}
  * Full panel of 7 judges evaluates a single submission — in parallel.
  * passThreshold: 통과로 인정할 최소 추천 수 (기본 3, 강사가 과제별로 지정).
  */
-export async function judgeSubmission(submission, onJudgeComplete, passThreshold = 3) {
+export async function judgeSubmission(submission, onJudgeComplete, passThreshold = 3, { signal } = {}) {
   const results = {};
+  const screenshotParts = await buildScreenshotParts(submission, 5, signal);
 
   await Promise.all(
     JUDGES.map(async (judge) => {
       try {
-        const r = await evaluateSubmission(judge, submission);
+        const r = await evaluateSubmission(judge, submission, { signal, screenshotParts });
         results[judge.id] = { ...r, judgeId: judge.id, judgeName: judge.name };
       } catch (error) {
+        throwIfAborted(signal);
         results[judge.id] = {
           judgeId: judge.id,
           judgeName: judge.name,
@@ -223,7 +198,8 @@ export async function judgeSubmission(submission, onJudgeComplete, passThreshold
           error: true,
         };
       }
-      onJudgeComplete?.(judge.id, results[judge.id]);
+      throwIfAborted(signal);
+      await onJudgeComplete?.(judge.id, results[judge.id]);
     })
   );
 
@@ -263,8 +239,7 @@ ${buildContent(submission)}
   const screenshotParts = await buildScreenshotParts(submission, 4);
   const parts = [{ text: prompt }, ...screenshotParts];
 
-  const result = await withRetry(() =>
-    model.generateContent({
+  const result = await withRetry(deadlineSignal => model.generateContent({
       contents: [{ role: 'user', parts }],
       generationConfig: {
         temperature: 0.5,
@@ -272,7 +247,7 @@ ${buildContent(submission)}
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 },
       },
-    })
+    }, { signal: deadlineSignal, timeoutMs: 45000 })
   );
 
   return parseJudgeResponse(result.response.text());

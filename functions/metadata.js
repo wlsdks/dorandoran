@@ -1,4 +1,5 @@
 const { httpError } = require('./access');
+const { mapConcurrent } = require('./concurrency');
 
 /** 계정·제출물·DM·투표 본문을 다운로드하지 않고, 키와 필요한 필드만 읽는다. */
 async function shallowKeys(db, path) {
@@ -27,13 +28,9 @@ async function shallowKeys(db, path) {
 async function metadataList(db, path, fields, ids) {
   const keys = ids || await shallowKeys(db, path);
   if (keys.length > 2000) throw httpError(503, '목록이 많습니다. 강의별로 조회해주세요.');
-  const result = [];
-  for (let i = 0; i < keys.length; i += 12) {
-    result.push(...await Promise.all(keys.slice(i, i + 12).map(async id => {
-      const values = await Promise.all(fields.map(async field => [field, (await db.ref(`${path}/${id}/${field}`).get()).val()]));
-      return { id, ...Object.fromEntries(values) };
-    })));
-  }
-  return result;
+  return mapConcurrent(keys, 4, async id => {
+    const values = await mapConcurrent(fields, 4, async field => [field, (await db.ref(`${path}/${id}/${field}`).get()).val()]);
+    return { id, ...Object.fromEntries(values) };
+  });
 }
 module.exports = { shallowKeys, metadataList };

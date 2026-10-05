@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { ref, set, remove, update, get, query, orderByKey, limitToLast, endBefore } from 'firebase/database';
 import { getServerNow } from '@/features/timer/api/useTimer';
 import { db } from '@/lib/firebase';
@@ -51,6 +51,20 @@ export async function trimEphemeralFeeds(sessionId) {
 export function useQuestionActions(sessionId, questions, currentQuestion, _scores, _participants) {
   const [error, setError] = useState(null);
   const { toast, showToast } = useToast();
+  const resetSweep = useRef(null);
+  const resetScope = useRef(null);
+  useEffect(() => {
+    const scope = Symbol('reset-scope');
+    resetScope.current = scope;
+    return () => {
+      if (resetScope.current === scope) resetScope.current = null;
+      const pending = resetSweep.current;
+      if (!pending) return;
+      clearTimeout(pending.timer);
+      if (resetEpochs.get(pending.sessionId) === pending.epoch) resetEpochs.delete(pending.sessionId);
+      resetSweep.current = null;
+    };
+  }, [sessionId]);
 
   const questionList = useMemo(
     () => Object.entries(questions || {}).sort((a, b) => (a[1].order || 0) - (b[1].order || 0)),
@@ -375,6 +389,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
   }
 
   async function resetAllQuestions(clearParticipants = false) {
+    const scope = resetScope.current;
     try {
       const updates = {
         gameResult: null,
@@ -407,20 +422,25 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
         updates[`questions/${qId}/wallExpanded`] = null;
       });
       await update(ref(db, `sessions/${sessionId}`), updates);
+      if (resetScope.current !== scope || !scope) return;
       showToast('모든 답변과 점수가 초기화되었습니다');
 
       // P1-8: 600ms 후 학생-write 영역만 다시 sweep — 인플라이트 race 잔존 방지.
       // 같은 세션에서 또 다른 reset이 일어나면 본 sweep은 폐기.
-      const epoch = Date.now();
+      if (resetSweep.current) clearTimeout(resetSweep.current.timer);
+      const epoch = Symbol('reset');
       resetEpochs.set(sessionId, epoch);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (resetEpochs.get(sessionId) !== epoch) return;
+        resetEpochs.delete(sessionId);
+        resetSweep.current = null;
         update(ref(db, `sessions/${sessionId}`), {
           handRaises: null,
           urgentQuestions: null,
           chat: null,
         }).catch(() => { /* sweep 실패해도 본 reset은 이미 성공 */ });
       }, 600);
+      resetSweep.current = { timer, sessionId, epoch };
     } catch {
       setError('전체 초기화에 실패했습니다.');
     }

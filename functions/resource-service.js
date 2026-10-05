@@ -1,5 +1,6 @@
 const { httpError, verifiedStaff } = require('./access');
 const { shallowKeys, metadataList } = require('./metadata');
+const { mapConcurrent } = require('./concurrency');
 
 const COURSE_FIELDS = ['name', 'ownerId', 'ownerName', 'createdAt'];
 const SESSION_FIELDS = ['courseId', 'creatorId', 'courseName', 'status', 'createdAt', 'roundNumber', 'currentMode', 'courseTemplateId'];
@@ -35,15 +36,15 @@ function createResourceService({ auth, db }) {
     }
     const metadata = await metadataList(db, 'sessions', SESSION_FIELDS);
     const items = metadata.filter(item => (user.profile.role === 'master' || item.creatorId === user.uid || (user.profile.role === 'staff' && courseIds.has(item.courseId))) && (!courseId || courseId === item.courseId));
-    return { items: await Promise.all(items.map(async item => {
+    return { items: await mapConcurrent(items, 4, async item => {
       const [participants, questions] = await Promise.all([db.ref(`sessions/${item.id}/participants`).get(), shallowKeys(db, `sessions/${item.id}/questions`)]);
       const records = participants.val() || {};
-      const votes = await Promise.all(questions.map(id => shallowKeys(db, `sessions/${item.id}/questions/${id}/votes`)));
+      const votes = await mapConcurrent(questions, 4, id => shallowKeys(db, `sessions/${item.id}/questions/${id}/votes`));
       const voterIds = new Set(votes.flat().filter(id => Object.hasOwn(records, id)));
       const totalParticipants = Object.keys(records).length;
       return { ...item, totalParticipants: Object.keys(records).length, participantCount: Object.values(records).filter(participant => Object.values(participant.connections || {}).some(value => value === true)).length,
         questionCount: questions.length, activityRate: totalParticipants ? Math.round(voterIds.size / totalParticipants * 100) : 0, activeCount: voterIds.size };
-    })) };
+    }) };
   };
 }
 module.exports = { createResourceService };

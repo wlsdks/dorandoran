@@ -60,8 +60,7 @@ export async function generateAnalogies({ questionTitle, options, correctAnswer,
 위 주제를 학생에게 설명할 때 쓸 비유·예시를 제시해주세요.
 주제가 표준 지식이 아니거나 이해 자신 없으면 canGenerate:false로 거부하세요.`;
 
-  const result = await Promise.race([
-    model.generateContent({
+  const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.5,
@@ -69,9 +68,7 @@ export async function generateAnalogies({ questionTitle, options, correctAnswer,
         responseMimeType: 'application/json',
         thinkingConfig: { thinkingBudget: 0 },
       },
-    }),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('비유 생성 타임아웃')), 25000)),
-  ]);
+    }, { timeoutMs: 25000, timeoutMessage: "비유 생성 타임아웃" });
 
   let text = result.response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   try {

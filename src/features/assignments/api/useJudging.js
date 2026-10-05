@@ -1,9 +1,11 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ref, set, update, get, serverTimestamp } from 'firebase/database';
+import { ref, set, update, get, serverTimestamp, runTransaction } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { judgeSubmission } from '@/lib/judging/gemini';
 import { calculateAwards } from '@/lib/judging/awards';
+import { createWorkRun } from '@/lib/work-run';
+import { throwIfAborted } from '@/lib/async-work';
 import { logger } from '@/lib/logger';
 
 /**
@@ -14,22 +16,26 @@ export function useJudging(assignmentId) {
   const { configured } = useAIAvailability();
   const [isJudging, setIsJudging] = useState(false);
   const [progress, setProgress] = useState(null); // { current, total, currentJudge, currentSubmission }
-  const abortRef = useRef(false);
+  const runRef = useRef(null);
+  const mountedRef = useRef(false);
   const judgingRef = useRef(false);
 
-  // 언마운트 시 심사 루프 중단 — 장시간 루프가 언마운트 후 setProgress/setIsJudging 하던 것 방지.
-  // 루프는 매 반복 abortRef.current를 확인(break)하므로 즉시 멎는다.
-  useEffect(() => () => { abortRef.current = true; }, []);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; runRef.current?.controller.abort(); };
+  }, [assignmentId]);
 
   const startJudging = useCallback(async () => {
     if (!configured || !assignmentId || judgingRef.current) return false;
     judgingRef.current = true;
-    abortRef.current = false;
+    const run = createWorkRun();
+    runRef.current = run;
     setIsJudging(true);
 
     try {
       // 심사를 선택하지 않은 과제는 상태를 바꾸거나 AI를 호출하지 않는다.
       const assignSnap = await get(ref(db, `assignments/${assignmentId}`));
+      throwIfAborted(run.signal);
       const assignment = assignSnap.val();
       if (!assignment || assignment.hasJudging === false) return false;
       const passThreshold = assignment.passThreshold ?? 3;
@@ -37,19 +43,20 @@ export function useJudging(assignmentId) {
 
       // Fetch all submissions
       const subsSnap = await get(ref(db, `assignments/${assignmentId}/submissions`));
+      throwIfAborted(run.signal);
       const subsData = subsSnap.val() || {};
       const submissions = Object.entries(subsData).map(([id, v]) => ({ id, ...v }));
 
       if (submissions.length === 0) {
         await update(ref(db, `assignments/${assignmentId}`), { status: 'open' });
-        setIsJudging(false);
+        if (mountedRef.current) setIsJudging(false);
         return;
       }
 
       const allResults = [];
 
       for (let i = 0; i < submissions.length; i++) {
-        if (abortRef.current) break;
+        throwIfAborted(run.signal);
 
         const sub = submissions[i];
         setProgress({
@@ -61,8 +68,9 @@ export function useJudging(assignmentId) {
 
         // Judge this submission
         const { results, summary } = await judgeSubmission(sub, (judgeId) => {
-          setProgress(prev => prev ? { ...prev, currentJudge: judgeId } : prev);
-        }, passThreshold);
+          if (mountedRef.current && !run.signal.aborted) setProgress(prev => prev ? { ...prev, currentJudge: judgeId } : prev);
+        }, passThreshold, { signal: run.signal });
+        throwIfAborted(run.signal);
 
         // Save results to Firebase
         await set(ref(db, `assignments/${assignmentId}/results/${sub.id}`), {
@@ -79,35 +87,35 @@ export function useJudging(assignmentId) {
         });
       }
 
-      if (!abortRef.current) {
+      if (!run.signal.aborted) {
         // Calculate and save awards
         const awards = calculateAwards(allResults);
         await set(ref(db, `assignments/${assignmentId}/awards`), awards);
 
         // Update status to judged
+        throwIfAborted(run.signal);
         await update(ref(db, `assignments/${assignmentId}`), {
           status: 'judged',
           judgedAt: serverTimestamp(),
         });
       }
     } catch (err) {
-      logger.error('심사 실행 실패:', err);
-      // status는 open으로 되돌려 재시도 가능하게 하고, 원인을 judgeError에 남김(조용한 실패 방지).
-      // 이 복구 update 자체가 실패해도 unhandled rejection이 되지 않도록 보호.
-      await update(ref(db, `assignments/${assignmentId}`), {
-        status: 'open',
-        judgeError: err?.message || '심사 중 오류가 발생했습니다',
-      }).catch(() => { /* 복구 write 실패는 무시 */ });
+      if (!run.signal.aborted) logger.error('심사 실행 실패:', err);
+      // 취소/실패 시 실행 중 상태만 되돌린다. 삭제된 과제를 다시 만들지 않는다.
+      await runTransaction(ref(db, `assignments/${assignmentId}`), current => current?.status === 'judging'
+        ? { ...current, status: 'open', judgeError: run.signal.aborted ? null : (err?.message || '심사 중 오류가 발생했습니다') }
+        : current === null ? null : undefined, { applyLocally: false }).catch(error => logger.warn('심사 중단 상태 저장 실패:', error));
     } finally {
-      judgingRef.current = false;
-      setIsJudging(false);
-      setProgress(null);
+      if (runRef.current === run) {
+        runRef.current = null;
+        judgingRef.current = false;
+        if (mountedRef.current) { setIsJudging(false); setProgress(null); }
+      }
+      run.finish();
     }
   }, [assignmentId, configured]);
 
-  const abort = useCallback(() => {
-    abortRef.current = true;
-  }, []);
+  const abort = useCallback(() => { runRef.current?.controller.abort(); }, []);
 
   return { startJudging, isJudging, progress, abort };
 }
