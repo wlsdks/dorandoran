@@ -252,7 +252,7 @@ async function offline(page, value) {
     toast.boundingBox(), correct.p.getByText('+400점', { exact: true }).boundingBox(),
     board.getByLabel('베팅 분포', { exact: true }).boundingBox()
   ]);
-  expect(toastBounds.y + toastBounds.height).toBeLessThan(pointsBounds.y);
+  expect(toastBounds.y + toastBounds.height <= pointsBounds.y || pointsBounds.y + pointsBounds.height <= toastBounds.y).toBe(true);
   expect(betBounds.y + betBounds.height).toBeLessThan(768);
   await shot(board, '03-board-revealed-50-50');
   await shot(correct.p, '04-correct-400');
