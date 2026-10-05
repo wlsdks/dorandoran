@@ -67,7 +67,7 @@ export default function ScreenshotsField({
             <button
               type="button"
               aria-label="스크린샷 캡쳐 방법 안내"
-              className="inline-flex items-center justify-center w-4 h-4 rounded-full text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              className="inline-flex shrink-0 items-center justify-center w-11 h-11 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
             >
               <Info size={13} />
             </button>

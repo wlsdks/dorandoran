@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Hash, Target, Trophy, Flame, Copy, Check, CheckCircle, XCircle, Minus, Award, CheckCheck, Zap, Crown } from 'lucide-react';
@@ -37,12 +37,19 @@ function StatCard({ icon: Icon, label, value, delay = 0 }) {
   );
 }
 
+const ACTIVITY_LABELS = {
+  material: '수업 자료',
+  submission: '개별 제출 활동',
+  mode: '진행 활동',
+  unknown: '활동 유형 확인 필요',
+};
+
 function QuestionRow({ q, index }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.3 + index * 0.04 }}
+      transition={{ duration: 0.18, delay: 0.1 + Math.min(index, 5) * 0.025 }}
       className="flex items-start gap-3 py-3"
     >
       {/* Result icon */}
@@ -54,21 +61,18 @@ function QuestionRow({ q, index }) {
 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">{q.title}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <Badge variant="neutral">{q.typeLabel}</Badge>
-          {q.answered ? (
-            <span className={`text-xs ${q.isCorrect ? 'text-slate-700 dark:text-slate-300 font-semibold' : q.isCorrect === false ? 'text-slate-400 line-through' : 'text-slate-400'}`}>
-              내 답: {q.myAnswer}
-            </span>
-          ) : (
-            <span className="text-xs text-slate-300">미응답</span>
-          )}
-          {q.isCorrect === false && q.correctAnswer && (
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              정답: {q.correctAnswer}
-            </span>
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <Badge variant="neutral" className="shrink-0 whitespace-nowrap">{q.typeLabel === 'modeCard' ? '진행 카드' : q.typeLabel}</Badge>
+          {q.participationKind !== 'response' ? (
+            <span className="text-xs text-slate-500 dark:text-slate-400">{ACTIVITY_LABELS[q.participationKind]}</span>
+          ) : !q.answered && (
+            <span className="shrink-0 whitespace-nowrap text-xs text-slate-500 dark:text-slate-400">미응답</span>
           )}
         </div>
+        {q.answered && <p className={`mt-2 break-words text-sm leading-relaxed ${q.isCorrect === true ? 'text-slate-700 dark:text-slate-300 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>내 답: {q.myAnswer}</p>}
+        {q.correctAnswer && q.isCorrect !== true && (
+          <p className="mt-1.5 break-words text-sm leading-relaxed text-slate-600 dark:text-slate-300">정답: {q.correctAnswer}</p>
+        )}
       </div>
     </motion.div>
   );
@@ -79,6 +83,13 @@ export default function ReportPage() {
   const sessionId = searchParams.get('s');
   const participantId = searchParams.get('p');
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState('');
+  const copyTimer = useRef(null);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; clearTimeout(copyTimer.current); };
+  }, []);
 
   const { stats, achievements, loading, authorized, error } = useReportData(sessionId, participantId);
 
@@ -133,10 +144,14 @@ export default function ReportPage() {
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(reportUrl);
+      if (!mounted.current) return;
+      setCopyError('');
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback: do nothing
+      if (!mounted.current) return;
+      setCopyError('링크를 복사하지 못했어요. 브라우저 주소를 직접 복사해주세요.');
     }
   }
 
@@ -151,13 +166,15 @@ export default function ReportPage() {
           </div>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
+            className="min-h-11 min-w-11 flex items-center justify-center gap-1.5 px-2 text-sm text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-200 transition-colors duration-150"
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}
             {copied ? '복사됨' : '내 링크 복사'}
           </button>
         </div>
       </div>
+
+      {copyError && <p role="alert" className="max-w-xl mx-auto px-5 pt-3 text-sm text-slate-600 dark:text-slate-300">{copyError}</p>}
 
       <div className="max-w-xl mx-auto px-5 py-8 space-y-6">
         {/* Title section */}
@@ -191,7 +208,7 @@ export default function ReportPage() {
           className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden"
         >
           <div className="flex items-start divide-x divide-slate-100 dark:divide-slate-700">
-            <StatCard icon={Hash} label="참여" value={`${stats.answeredCount}/${stats.totalQuestions}`} delay={0.15} />
+            <StatCard icon={Hash} label="응답 참여" value={`${stats.answeredCount}/${stats.totalQuestions}`} delay={0.15} />
             {stats.correctRate !== null && (
               <StatCard icon={Target} label="정답률" value={`${stats.correctRate}%`} delay={0.2} />
             )}
@@ -199,6 +216,7 @@ export default function ReportPage() {
               <StatCard icon={Trophy} label="점수" value={stats.totalScore} delay={0.25} />
             )}
           </div>
+          <p className="px-5 pb-4 text-center text-xs leading-relaxed text-slate-500 dark:text-slate-400">답변할 수 있는 질문을 기준으로 계산해요. 수업 자료와 개별 제출 활동은 제외합니다.</p>
 
           {/* Rank */}
           {stats.rank > 0 && (
@@ -281,7 +299,7 @@ export default function ReportPage() {
         >
           <button
             onClick={handleCopy}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg text-sm font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150"
+            className="min-h-12 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg text-sm font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150"
           >
             {copied ? <Check size={16} /> : <Copy size={16} />}
             {copied ? '링크 복사됨!' : '리포트 링크 복사'}

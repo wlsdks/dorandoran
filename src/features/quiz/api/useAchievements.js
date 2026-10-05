@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { getParticipantId } from '@/lib/participant';
 import { isAnswerCorrect } from '@/lib/quiz';
+import { responseQuestionEntries } from '@/lib/response-questions';
 
 /**
  * Achievement definitions.
@@ -25,7 +26,7 @@ const ACHIEVEMENTS = [
   {
     id: 'full-participation',
     label: '전문항 참여',
-    description: '모든 질문에 참여했습니다',
+    description: '응답할 수 있는 모든 질문에 참여했습니다',
     icon: 'CheckCheck',
     check: (ctx) => ctx.totalQuestions > 0 && ctx.answered >= ctx.totalQuestions,
   },
@@ -48,10 +49,8 @@ const ACHIEVEMENTS = [
 /**
  * Compute achievement context from session questions for a given participant.
  */
-function computeContext(questions, participantId, scores) {
-  const sorted = Object.entries(questions || {})
-    .sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
-
+function computeContext(questions, participantId, scores, sorted = responseQuestionEntries(questions)
+  .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))) {
   let answered = 0;
   let correct = 0;
   let gradable = 0;
@@ -126,17 +125,15 @@ export function useAchievements(session, scores) {
  * Returns array of { id, label, description, icon, count } for earned achievements.
  */
 export function computeAchievementStats(questions, scores, participantIds) {
-  const sorted = Object.entries(questions || {})
+  // A class overview evaluates the same activities for every participant. Filter
+  // and sort once instead of allocating/sorting the list again for each learner.
+  const sorted = responseQuestionEntries(questions)
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
-  const totalQuestions = sorted.length;
-
   const counts = {};
   ACHIEVEMENTS.forEach((a) => { counts[a.id] = 0; });
 
   participantIds.forEach((pid) => {
-    const ctx = computeContext(questions, pid, scores);
-    // Override totalQuestions to use sorted length for consistency
-    ctx.totalQuestions = totalQuestions;
+    const ctx = computeContext(questions, pid, scores, sorted);
     ACHIEVEMENTS.forEach((a) => {
       if (a.check(ctx)) counts[a.id]++;
     });

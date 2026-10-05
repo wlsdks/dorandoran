@@ -5,7 +5,7 @@ import { useSession } from '@/features/session/api/useSession';
 import { useScores } from '@/features/quiz/api/useScores';
 import { computeAchievements } from '@/features/quiz/api/useAchievements';
 import { TYPE_LABELS } from '@/lib/question-types';
-import { isAnswerCorrect } from '@/lib/quiz';
+import { questionResponseState, summarizeParticipantResponses } from '@/lib/response-questions';
 
 /**
  * Loads all data needed for a student's learning report.
@@ -27,28 +27,15 @@ export function useReportData(sessionId, participantId) {
     const questionEntries = Object.entries(questions)
       .sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
 
-    let answered = 0, correct = 0, gradable = 0;
+    const { answeredCount, totalQuestions, correctCount, gradableCount } = summarizeParticipantResponses(questions, participantId);
 
     const questionDetails = questionEntries.map(([qId, q]) => {
-      const myVote = q.votes?.[participantId];
-      const hasAnswer = !!q.correctAnswer;
-      const isCorrect = hasAnswer && isAnswerCorrect(q, myVote?.value); // 텍스트형 공백·대소문자 무시
-
-      if (myVote) answered++;
-      if (hasAnswer && myVote) {
-        gradable++;
-        if (isCorrect) correct++;
-      }
-
       return {
         id: qId,
         title: q.title,
         type: q.type,
         typeLabel: q.type === 'aiJudge' && !aiAvailable ? '과제' : TYPE_LABELS[q.type] || q.type,
-        myAnswer: myVote?.value || null,
-        correctAnswer: q.correctAnswer || null,
-        isCorrect: hasAnswer ? isCorrect : null,
-        answered: !!myVote,
+        ...questionResponseState(q, participantId),
       };
     });
 
@@ -59,9 +46,9 @@ export function useReportData(sessionId, participantId) {
       nickname: myScore?.nickname || null,
       courseName: session.courseName,
       roundNumber: session.roundNumber,
-      answeredCount: answered,
-      totalQuestions: questionEntries.length,
-      correctRate: gradable > 0 ? Math.round((correct / gradable) * 100) : null,
+      answeredCount,
+      totalQuestions,
+      correctRate: gradableCount > 0 ? Math.round((correctCount / gradableCount) * 100) : null,
       totalScore: myScore?.total || 0,
       bestStreak: myScore?.bestStreak || myScore?.streak || 0,
       rank: rankIdx >= 0 ? rankIdx + 1 : 0,
