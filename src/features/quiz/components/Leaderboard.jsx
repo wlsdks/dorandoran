@@ -49,11 +49,13 @@ export default memo(function Leaderboard({
   const offset = paginated ? currentPage * size : 0;
   const visible = ranked.slice(offset, paginated ? offset + size : totalShown);
   const featured = normalizeRankingHighlight(highlight);
+  const featuredRank = featured?.activeRank ?? null;
   const featuredEntry = rankingHighlightEntry(ranked, featured);
   const featuredOnPage = featured && featured.activeRank > offset && featured.activeRank <= offset + visible.length;
   const reducedMotion = useReducedMotion();
   const swipeStart = useRef(null);
   const previousExternalPage = useRef(page);
+  const previousHighlightRank = useRef(null);
   const hadEntries = useRef(false);
   const prevRanksRef = useRef(Object.create(null));
   const [rankDeltas, setRankDeltas] = useState(Object.create(null));
@@ -69,6 +71,19 @@ export default memo(function Leaderboard({
   useEffect(() => {
     setLocalPage(value => clampPage(value, pageCount));
   }, [pageCount]);
+
+  useEffect(() => {
+    // A new teacher highlight is also a navigation command for the board,
+    // including when two ranks share the same external page. Student browsing
+    // stays local, and list-size changes alone never repeat this command.
+    if (featuredRank === null) {
+      previousHighlightRank.current = null;
+      return;
+    }
+    if (!presenter || !paginated || ranked.length === 0 || featuredRank === previousHighlightRank.current) return;
+    previousHighlightRank.current = featuredRank;
+    setLocalPage(clampPage(Math.floor((featuredRank - 1) / size), pageCount));
+  }, [featuredRank, paginated, presenter, ranked.length, size, pageCount]);
 
   useEffect(() => {
     const next = Object.create(null), deltas = Object.create(null);

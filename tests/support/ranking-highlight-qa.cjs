@@ -122,7 +122,33 @@ async function verifyRank(rank, teacher, wall, large, phones, first = false) {
     await dialog.getByRole('button', { name: '강조하기', exact: true }).click();
     await expect(dialog).not.toBeVisible();
     await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/ranks`).get()).val()).toEqual([1, 3, 10]);
-    for (const rank of [1, 3, 10]) await verifyRank(rank, teacher, wall, large, [small, ios], rank === 1);
+    await verifyRank(1, teacher, wall, large, [small, ios], true);
+    for (const page of [wall, large, small, ios]) {
+      await page.getByRole('button', { name: '다음 랭킹 페이지', exact: true }).click();
+      await page.getByRole('button', { name: '다음 랭킹 페이지', exact: true }).click();
+      await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 25');
+    }
+    await db.ref(`sessions/${sid}/scores/h_extra`).set({ nickname: '인원변경 확인', total: -5 });
+    for (const page of [wall, large, small, ios]) await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 26');
+    await db.ref(`sessions/${sid}/scores/h_extra`).remove();
+    for (const page of [wall, large, small, ios]) await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 25');
+    await teacher.getByRole('button', { name: '다음 강조', exact: true }).click();
+    await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/activeRank`).get()).val()).toBe(3);
+    expect((await db.ref(`sessions/${sid}/leaderboardPage`).get()).val()).toBe(0);
+    for (const page of [wall, large]) {
+      await expect(page.locator('[data-ranking-featured="true"][data-rank="3"]')).toBeVisible();
+      await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('1 / 25');
+    }
+    for (const phone of [small, ios]) {
+      await expect(phone.locator('[aria-label="현재 강조 순위"]')).toContainText('강조 순위 3위');
+      await expect(phone.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 25');
+      await expect(phone.locator('[data-ranking-featured="true"]')).toHaveCount(0);
+    }
+    report.checks.push('same-page highlight command restores board focus, preserves student browsing and ignores count-only changes');
+    await shot(wall, 'wall-same-page-highlight3.png');
+    await shot(small, 'mobile320-manual-page-preserved.png');
+    await verifyRank(3, teacher, wall, large, [small, ios], true);
+    await verifyRank(10, teacher, wall, large, [small, ios]);
     report.checks.push('invalid/max10 rejected, duplicate normalized, requested1/3/10 synchronized');
     await shot(wall, 'wall-highlight10.png');
 

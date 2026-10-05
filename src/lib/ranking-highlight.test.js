@@ -11,6 +11,7 @@ describe('displayed ranking selection', () => {
   it('bounds the number of unique ranks and the available displayed list', () => {
     expect(parseHighlightRanks('1 2 3 4 5 6 7 8 9 10 11', 200).error).toBeTruthy();
     expect(parseHighlightRanks('201', 200).error).toBeTruthy();
+    expect(parseHighlightRanks('200001', Infinity).error).toBeTruthy();
     expect(parseHighlightRanks('1 1 1 1 1 1 1 1 1 1 1', 200)).toEqual({ ranks: [1] });
   });
   it('cycles in the instructor specified order and handles a single selection', () => {
@@ -22,6 +23,10 @@ describe('displayed ranking selection', () => {
     expect(normalizeRankingHighlight(null)).toBeNull();
     expect(normalizeRankingHighlight({ ranks: [1], activeRank: 1, enabled: false })).toBeNull();
     expect(normalizeRankingHighlight({ ranks: [1], activeRank: 2, enabled: true })).toBeNull();
+    const sparseRanks = Array(3);
+    sparseRanks[0] = 1; sparseRanks[2] = 3;
+    expect(normalizeRankingHighlight({ ranks: sparseRanks, activeRank: 1, enabled: true })).toBeNull();
+    expect(normalizeRankingHighlight({ ranks: [200001], activeRank: 200001, enabled: true })).toBeNull();
   });
   it('highlights the current occupant of a displayed position without changing score or tie ordering', () => {
     const original = [{ id: 'a', total: 100 }, { id: 'b', total: 100 }, { id: 'c', total: 90 }];
