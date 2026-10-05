@@ -167,7 +167,7 @@ export default function LivePage() {
                   {currentMode === 'comprehension' && <ComprehensionPresenter sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'quickSurvey' && <SurveyPresenter sessionId={sessionId} presenter readOnly />}
                   {currentMode === 'discussion' && <DiscussionPresenter sessionId={sessionId} presenter readOnly />}
-                  {currentMode === 'combinedRanking' && <CombinedRanking session={session} />}
+                  {currentMode === 'combinedRanking' && <CombinedRanking sessionId={sessionId} session={session} />}
                   {currentMode === 'focus' && (
                     <div className="flex flex-col items-center justify-center gap-6 text-center">
                       <DoranDoranMascot size="lg" mood="focus" />
