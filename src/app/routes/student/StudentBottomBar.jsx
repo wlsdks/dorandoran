@@ -10,7 +10,7 @@ import { motion, MotionConfig, useReducedMotion } from 'framer-motion';
 import { Hand, MessageCircle, MessageSquare, HelpCircle, Headset, Send, MoreHorizontal, Smile, X } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
-import ReactionBar from '@/features/reactions/components/ReactionBar';
+import ReactionSheet from './ReactionSheet';
 import ReactionOverlay from '@/features/reactions/components/ReactionOverlay';
 import ChatPanel from '@/features/chat/components/ChatPanel';
 import ClassQAPanel from '@/features/class-questions/components/ClassQAPanel';
@@ -193,15 +193,7 @@ export default memo(function StudentBottomBar({ sessionId }) {
         </div>
       </Modal>
 
-      <Modal open={showReactions} onClose={() => setShowReactions(false)} ariaLabel="반응 보내기">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between"><h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">반응 보내기</h2><button type="button" onClick={() => setShowReactions(false)} aria-label="반응 닫기" className="h-12 w-12 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"><X size={20} /></button></div>
-          <p className="text-sm text-slate-500 dark:text-slate-300">반응을 고르면 함께 보는 칠판에 표시돼요.</p>
-          <div className="pt-12 pb-2 [&>div>div:last-child]:grid [&>div>div:last-child]:grid-cols-3 [&>div>div:last-child]:gap-3 [&_button]:mx-auto [&_button]:min-h-12 [&_button]:min-w-12 [&_input]:text-base">
-            <ReactionBar sessionId={sessionId} bubbleSessionId={sessionId} />
-          </div>
-        </div>
-      </Modal>
+      <ReactionSheet open={showReactions} onClose={() => setShowReactions(false)} sessionId={sessionId} />
 
       <motion.div
         initial={reduced ? false : { opacity: 0 }} animate={{ y: 0, opacity: 1 }}
