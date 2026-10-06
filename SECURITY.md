@@ -44,9 +44,11 @@ npm audit --prefix functions-ai
 3. 아래 **이 프로젝트의 함수만 지정**해 배포합니다. 같은 Firebase 프로젝트의 다른 함수는 변경하지 않습니다. 수업 함수(`functions/`, codebase `default`)는 AI 키 없이 배포됩니다.
 
 ```sh
-firebase deploy --only functions:default:staffApi,functions:default:assignmentApi,functions:default:classroomApi
+firebase deploy --only functions:default:staffApi,functions:default:assignmentApi,functions:default:classroomApi,functions:default:quizTallyFallback
 firebase deploy --only database,storage,hosting
 ```
+
+`quizTallyFallback`은 퀴즈 응답 집계의 예비 경로입니다. 평소에는 강사 화면이 집계를 올리고, 강사 화면 신호가 15초 넘게 끊긴 동안에만 이 함수가 투표 원본으로 다시 세어 같은 모양(`source: 'server'`)으로 올립니다. Realtime Database가 `asia-southeast1`에 있어 트리거도 같은 지역에 배포됩니다. 투표마다 한 번 불리지만 대부분 작은 값 3개만 읽고 끝나며, 재시도는 끕니다(다음 투표가 다시 셉니다).
 
 4. AI 기능은 선택입니다. 쓰기로 했을 때만 키를 등록하고 AI 코드베이스(`functions-ai/`, codebase `ai`)를 따로 배포합니다. 처음 배포하면 기존 `geminiProxy`를 이 코드베이스가 이어받습니다.
 
