@@ -20,10 +20,12 @@ test.describe('학생 플로우', () => {
     await cleanupTestSession(sessionId);
   });
 
-  test('세션 ID 없이 접속하면 랜딩 페이지 표시', async ({ page }) => {
+  test('세션 ID 없이 접속하면 강사 로그인으로 이동', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByText('도란도란')).toBeVisible();
-    await expect(page.getByText('강사가 공유한 링크')).toBeVisible();
+    await expect(page).toHaveURL(/\/admin$/);
+    await expect(page.getByPlaceholder('아이디')).toBeVisible();
+    await expect(page.getByPlaceholder('비밀번호')).toBeVisible();
   });
 
   test('세션 ID로 접속하면 JoinPage 표시 (닉네임 입력)', async ({ page }) => {
