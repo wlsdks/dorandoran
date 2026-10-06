@@ -355,8 +355,8 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .classroom-visualization .scale-histogram { height:160px; }
 .classroom-visualization .scale-histogram span { font-size:18px; }
 /* 순위 맞추기 발표 화면 — 무대 글자 규격(--stage-*)에 맞춘다. 번호 이름표는 글자보다 한 단계 크다. */
-.ranking-board-card { flex:0 0 calc((100% - 1.25rem * (var(--ranking-columns, 2) - 1)) / var(--ranking-columns, 2)); }
-.ranking-board-stage .ranking-item-label { font-size:var(--stage-label);line-height:1.25; }
+.ranking-board-card { flex:0 0 calc((100% - 1rem * (var(--ranking-columns, 2) - 1)) / var(--ranking-columns, 2)); }
+.ranking-board-stage .ranking-item-label { font-size:calc(var(--stage-label) * .9);line-height:1.25; }
 .ranking-board-stage .ranking-ordinal { font-size:calc(var(--stage-count) * .78); }
 .ranking-board-stage .ranking-count,.ranking-board-stage .ranking-note { font-size:var(--stage-count);line-height:1.4; }
 .ranking-board-stage .ranking-count-strong { font-size:calc(var(--stage-count) * 1.35); }

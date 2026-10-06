@@ -3,7 +3,6 @@ import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import NumberBadge from '@/components/ui/NumberBadge';
 import { useVotes } from '@/hooks/useVotes';
-import { boardRankingOrder } from '@/lib/ranking-order';
 import { correctRankingOrder, formatRankingSequence, rankingOrdinal, rankingPositionStats } from '@/lib/ranking-answer';
 import { settle } from '@/lib/motion';
 
@@ -25,7 +24,8 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], c
 
   const correctOrder = useMemo(() => correctRankingOrder(items, correctAnswer), [items, correctAnswer]);
   const stats = useMemo(() => rankingPositionStats(votes, correctOrder), [votes, correctOrder]);
-  const boardOrder = useMemo(() => boardRankingOrder(items, questionId, correctOrder), [items, questionId, correctOrder]);
+  // 공개 전에는 강사가 입력한 번호 순서(1, 2, 3, 4) 그대로 보여준다. 정답은 번호와 따로 정하므로 순서가 드러나지 않는다.
+  const boardOrder = useMemo(() => items.map((_, i) => i), [items]);
 
   // 몇 번째 자리까지 옮겨 놓았는지. 공개 순간에만 한 장씩 옮기고, 이미 공개된 채로 열리면 바로 다 놓는다.
   const [placed, setPlaced] = useState(revealed ? count : 0);
@@ -54,7 +54,7 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], c
 
   return (
     <div data-ranking-board={revealed ? 'answer' : 'shuffled'} data-ranking-placed={placed}
-      className={`w-full mx-auto px-4 ${presenter ? `max-w-4xl ${stageClass} space-y-6` : 'max-w-2xl space-y-4'}`}>
+      className={`w-full mx-auto px-4 ${presenter ? `max-w-3xl ${stageClass} space-y-5` : 'max-w-2xl space-y-4'}`}>
       {revealed && (
         <motion.div layout transition={transition} initial={reducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2" aria-label={`정답 ${formatRankingSequence(correctOrder, { options: items })}`}>
@@ -72,12 +72,12 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], c
 
       <LayoutGroup id={`ranking-${questionId}`}>
         {pool.length > 0 && (
-          <motion.ul layout transition={transition} className={`flex flex-wrap justify-center ${presenter ? 'gap-4 lg:gap-5' : 'gap-3'}`}
+          <motion.ul layout transition={transition} className={`flex flex-wrap justify-center ${presenter ? 'gap-3 lg:gap-4' : 'gap-3'}`}
             style={{ '--ranking-columns': columns }} aria-label="항목">
             {pool.map((index) => (
               <motion.li key={index} layoutId={`ranking-${questionId}-${index}`} layout transition={transition}
                 initial={revealed || reducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className={`ranking-board-card flex items-center rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-600/80 dark:bg-slate-800 ${presenter ? 'gap-4 px-5 py-5 min-h-24' : 'gap-3 px-4 py-3.5'}`}>
+                className={`ranking-board-card flex items-center rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-600/80 dark:bg-slate-800 ${presenter ? 'gap-3 px-4 py-3.5' : 'gap-3 px-4 py-3'}`}>
                 <motion.span layout="position" transition={transition} className="flex"><NumberBadge number={index + 1} size={badgeSize} /></motion.span>
                 <motion.span layout="position" transition={transition} className={`min-w-0 font-semibold leading-snug text-slate-900 dark:text-slate-100 [word-break:keep-all] ${presenter ? 'ranking-item-label' : 'text-base'}`}>{items[index]}</motion.span>
               </motion.li>
@@ -89,7 +89,7 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], c
           <motion.ol layout transition={transition} className={presenter ? 'space-y-3' : 'space-y-2.5'} aria-label="정답 순서">
             {stats.positions.slice(0, placed).map(({ position, itemIndex, correct, pct }) => (
               <motion.li key={itemIndex} layoutId={`ranking-${questionId}-${itemIndex}`} layout transition={transition}
-                className={`grid items-center rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-600/80 dark:bg-slate-800 ${presenter ? 'grid-cols-[auto_auto_minmax(0,1.3fr)_minmax(0,1fr)_auto] gap-x-4 px-5 py-4' : 'grid-cols-[auto_auto_minmax(0,1fr)_auto] gap-x-3 px-4 py-3'}`}>
+                className={`grid items-center rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-600/80 dark:bg-slate-800 ${presenter ? 'grid-cols-[auto_auto_minmax(0,1.3fr)_minmax(0,1fr)_auto] gap-x-4 px-4 py-3' : 'grid-cols-[auto_auto_minmax(0,1fr)_auto] gap-x-3 px-4 py-3'}`}>
                 <motion.span layout="position" transition={transition} className={`whitespace-nowrap font-medium text-slate-500 dark:text-slate-400 ${presenter ? 'ranking-ordinal' : 'text-xs'}`}>{rankingOrdinal(position)}</motion.span>
                 <motion.span layout="position" transition={transition} className="flex"><NumberBadge number={itemIndex + 1} size={badgeSize} /></motion.span>
                 <motion.span layout="position" transition={transition} className={`min-w-0 font-semibold leading-snug text-slate-900 dark:text-slate-100 [word-break:keep-all] ${presenter ? 'ranking-item-label' : 'text-base'}`}>{items[itemIndex]}</motion.span>
