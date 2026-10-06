@@ -31,16 +31,18 @@ export default memo(function WordCloud({ sessionId, questionId, presenter = fals
   const maxCount = Math.max(...words.map(w => w.count), 1);
   const isNarrow = typeof window !== 'undefined' && window.innerWidth < 640;
 
-  function getFontSize(count) {
+  // 긴 단어는 한 줄 폭(한글 한 글자 ≈ 1em)에 들어가도록 상한을 둔다. 읽을 수 있는 최소 크기는 지킨다.
+  function getFontSize(count, text) {
     const min = isNarrow ? 18 : 24;
     const max = isNarrow ? 40 : 68;
-    return min + ((count / maxCount) * (max - min));
+    const size = min + ((count / maxCount) * (max - min));
+    return Math.max(min, Math.min(size, (isNarrow ? 300 : 640) / Math.max(1, text.length)));
   }
 
   return (
     <div className={presenter ? "w-full classroom-results" : "w-full max-w-3xl mx-auto"}>
       <div
-        className={`flex flex-wrap content-center items-center justify-center ${presenter ? 'gap-x-8 gap-y-3 min-h-[40dvh] p-4 max-w-2xl mx-auto' : 'gap-x-4 gap-y-2.5 p-6 min-h-[300px]'}`}
+        className={`flex flex-wrap content-center items-center justify-center ${presenter ? 'gap-x-8 gap-y-3 min-h-[40dvh] p-4 max-w-4xl mx-auto' : 'gap-x-4 gap-y-2.5 p-6 min-h-[300px]'}`}
       >
         <AnimatePresence initial={false}>
           {words.map((word) => (
@@ -51,8 +53,8 @@ export default memo(function WordCloud({ sessionId, questionId, presenter = fals
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
               transition={{ type: 'spring', stiffness: 260, damping: 22, delay: Math.min(word.rank, 12) * 0.008 }}
-              style={{ fontSize: presenter ? `clamp(1.75rem, ${1.6 + 4 * word.count / maxCount}vw, 6.5rem)` : getFontSize(word.count) }}
-              className={`wordcloud-token font-bold cursor-default max-w-full break-keep ${WORD_CLASSES[word.rank % WORD_CLASSES.length]}`}
+              style={{ fontSize: presenter ? `clamp(1.5rem, min(${1.6 + 4 * word.count / maxCount}vw, ${Math.floor(860 / Math.max(1, word.text.length))}px), 6.5rem)` : getFontSize(word.count, word.text) }}
+              className={`wordcloud-token font-bold cursor-default max-w-full break-keep [overflow-wrap:anywhere] ${WORD_CLASSES[word.rank % WORD_CLASSES.length]}`}
               title={`${word.text}: ${word.count}회`}
             >
               {word.text}

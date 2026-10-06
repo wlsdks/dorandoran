@@ -189,7 +189,7 @@ export default memo(function QuizVoter({
                     {letter}
                   </span>
                   {question?.optionImages?.[index] && <img src={question.optionImages[index]} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
-                  <span className={`flex-1 min-w-0 text-sm font-medium leading-snug ${isCorrect ? 'text-white dark:text-slate-900' : 'text-slate-600 dark:text-slate-400'}`}>
+                  <span className={`flex-1 min-w-0 text-[15px] font-medium leading-snug ${isCorrect ? 'text-white dark:text-slate-900' : 'text-slate-600 dark:text-slate-400'}`}>
                     {option}
                   </span>
                   {/* 선택한 보기처럼 보이지 않게 정답임을 글자로 표시한다 */}

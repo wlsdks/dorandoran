@@ -8,7 +8,7 @@ import AnswerDistribution from './AnswerDistribution';
 function SentenceDisplay({ title, correctAnswer, revealed, presenter }) {
   const parts = title.split('___');
   return (
-    <h2 className={`${presenter ? 'classroom-question-title' : 'text-3xl'} fillblank-sentence font-bold text-slate-900 dark:text-slate-100 leading-snug text-center`}>
+    <h2 className={`${presenter ? 'classroom-question-title' : 'preview-question-title'} fillblank-sentence font-bold text-slate-900 dark:text-slate-100 leading-snug text-center`}>
       {parts.map((part, i) => (
         <span key={i}>
           {part}
