@@ -21,6 +21,37 @@ export function imageFormatName(file) {
   return ext && ext !== file?.name ? ext.toUpperCase() : '이';
 }
 
+/**
+ * 파일 앞부분(매직 넘버)으로 실제 형식을 판별한다.
+ * 윈도우는 레지스트리에 따라 file.type이 비어 있거나("") image/pjpeg·image/x-png 같은 옛 이름을 주므로
+ * 브라우저가 알려준 MIME만 믿으면 멀쩡한 JPG도 거절된다.
+ */
+export function sniffImageType(bytes) {
+  const b = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes || []);
+  const ascii = (from, to) => String.fromCharCode(...b.subarray(from, to));
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
+  if (b[0] === 0x89 && ascii(1, 4) === 'PNG') return 'image/png';
+  if (ascii(0, 4) === 'GIF8') return 'image/gif';
+  if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return 'image/webp';
+  if (ascii(4, 8) === 'ftyp' && /^(heic|heix|hevc|hevx|mif1|msf1|heim|heis)$/.test(ascii(8, 12))) return 'image/heic';
+  if (ascii(4, 8) === 'ftyp' && /^avi[fs]$/.test(ascii(8, 12))) return 'image/avif';
+  if (b[0] === 0x42 && b[1] === 0x4d) return 'image/bmp';
+  if ((b[0] === 0x49 && b[1] === 0x49) || (b[0] === 0x4d && b[1] === 0x4d)) return 'image/tiff';
+  return '';
+}
+
+const MIME_ALIASES = { 'image/pjpeg': 'image/jpeg', 'image/jpg': 'image/jpeg', 'image/x-png': 'image/png', 'image/x-citrix-jpeg': 'image/jpeg', 'image/x-citrix-png': 'image/png' };
+
+/** 실제 형식을 확인해, 지원 형식이면 올바른 MIME을 붙인 File로 돌려준다(윈도우 대응). */
+export async function normalizeImageFile(file) {
+  if (!file) return file;
+  let sniffed = '';
+  try { sniffed = sniffImageType(new Uint8Array(await file.slice(0, 16).arrayBuffer())); } catch { /* 읽기 실패 시 MIME으로 판단 */ }
+  const type = sniffed || MIME_ALIASES[file.type] || file.type;
+  if (type === file.type) return file;
+  return new File([file], file.name, { type, lastModified: file.lastModified });
+}
+
 /** 거절 사유 문구. 받을 수 있으면 null. */
 export function imageRejection(file, maxSizeMb) {
   if (!file) return null;

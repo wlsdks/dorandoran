@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, memo } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
 import { compressImage, uploadErrorMessage, MAX_UPLOAD_MB } from '@/lib/image-utils';
-import { imageRejection } from '@/lib/image-file';
+import { imageRejection, normalizeImageFile } from '@/lib/image-file';
 import { AnimatePresence } from 'framer-motion';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -60,7 +60,8 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
   }
 
   async function handleFiles(e) {
-    const files = Array.from(e.target.files || []);
+    // 윈도우는 MIME을 비우거나 옛 이름으로 주므로 파일 내용으로 형식을 다시 확인한다
+    const files = await Promise.all(Array.from(e.target.files || []).map(normalizeImageFile));
     if (inputRef.current) inputRef.current.value = '';
     if (files.length === 0) return;
 
