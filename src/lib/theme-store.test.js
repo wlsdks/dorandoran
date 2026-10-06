@@ -15,7 +15,7 @@ it('two mounted controls receive one shared change and mobile chrome follows the
   const first = vi.fn(), second = vi.fn(), a = store.subscribeTheme(first), b = store.subscribeTheme(second);
   first.mockClear(); second.mockClear(); store.setTheme('light');
   expect(store.themeSnapshot()).toBe('light:light'); expect(first).toHaveBeenCalledOnce(); expect(second).toHaveBeenCalledOnce();
-  expect(dark).toBe(false); expect(meta.setAttribute).toHaveBeenLastCalledWith('content', '#F8FAFC');
+  expect(dark).toBe(false); expect(meta.setAttribute).toHaveBeenLastCalledWith('content', '#F1F1F3');
   expect(media.addEventListener).toHaveBeenCalledOnce(); a(); expect(media.removeEventListener).not.toHaveBeenCalled(); b();
   expect(media.removeEventListener).toHaveBeenCalledOnce(); expect(events.size).toBe(0);
 });
