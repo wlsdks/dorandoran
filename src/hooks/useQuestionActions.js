@@ -11,7 +11,8 @@ import {
 import { buildQuestionData, QUESTION_TYPE_FIELDS } from '@/lib/question';
 import { MODE_CARD_TYPE } from '@/lib/modes';
 import { useToast } from '@/hooks/useToast';
-import { awardQuizRound, quizAwardLocks as revealLocks, waitForQuizAwards as awaitRevealLock } from '@/lib/quiz-awards';
+import { awardQuizRound, quizAwardLocks as revealLocks, quizAwardRollbackUpdates, waitForQuizAwards as awaitRevealLock } from '@/lib/quiz-awards';
+import { buildQuestionEditPatch, validateQuestionEdit } from '@/lib/question-edit';
 
 // 서버 시간 기준 — 강사 기기 시계 오차 없이 activatedAt/revealedAt/awardedAt 등
 // 모든 시간 필드가 일관된 기준으로 저장됨 (timer의 endTime과 동일 기준).
@@ -179,14 +180,11 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
       const existing = questions?.[qId];
       if (!existing) return false;
 
-      // 기존 질문에서 type별 필드(stale)를 모두 제거한 뒤, 새 type 기준으로 재조립.
-      // 답변(votes)·메타(order/activatedAt 등)는 보존. 조립은 생성과 동일한 순수함수 사용.
-      // 문항 전체를 set으로 다시 쓰면 학생 투표(votes)까지 재기록돼, 정답 공개 뒤에는 규칙에 막힌다.
-      // 바뀌는 필드만 update하고, 새 type에 없는 type별 필드는 null로 지운다.
-      const next = buildQuestionData(fields.type, fields);
-      const patch = { type: fields.type, title: fields.title.trim() };
-      QUESTION_TYPE_FIELDS.forEach((k) => { patch[k] = next[k] === undefined ? null : next[k]; });
-      Object.entries(next).forEach(([k, v]) => { if (!(k in patch)) patch[k] = v; });
+      // 응답·점수를 망가뜨리는 수정(공개 후 정답 변경, 응답 받은 보기 변경 등)은 저장 전에 막는다.
+      const lockError = validateQuestionEdit(existing, fields);
+      if (lockError) { setError(lockError); return false; }
+      // 바뀌는 필드만 update한다 — set으로 전체를 쓰면 학생 투표까지 다시 써서 공개 후 규칙에 막힌다.
+      const patch = buildQuestionEditPatch(existing, fields);
 
       await update(ref(db, `sessions/${sessionId}/questions/${qId}`), patch);
       showToast('질문이 수정되었습니다');
@@ -373,7 +371,10 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
 
   async function resetQuestion(qId) {
     try {
+      // 이 문항으로 받은 퀴즈 점수도 함께 되돌린다 — 남겨 두면 다시 풀고 공개할 때 이중 지급된다.
+      const scoreSnap = await get(ref(db, `sessions/${sessionId}/scores`));
       await update(ref(db, `sessions/${sessionId}`), {
+        ...quizAwardRollbackUpdates(scoreSnap.val(), qId),
         [`publicQuizAggregates/${qId}`]: null,
         [`questions/${qId}/votes`]: null,
         [`questions/${qId}/aiGrades`]: null,

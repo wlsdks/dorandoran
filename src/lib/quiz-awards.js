@@ -49,6 +49,24 @@ export function applyQuizScoreAwards(current, question, questionId, round, parti
   return next;
 }
 
+/**
+ * 응답 초기화 시 이 문항으로 받은 점수를 되돌리는 multi-path 업데이트(세션 기준 상대 경로).
+ * 영수증(quizAwards[questionId])이 있는 참여자만 total에서 그 점수를 빼고 영수증을 지운다.
+ * 다시 풀고 공개하면 새 영수증으로 한 번만 지급된다(이중 지급 방지). 연속 정답 기록은 되돌리지 않는다.
+ */
+export function quizAwardRollbackUpdates(scores, questionId) {
+  const updates = {};
+  for (const [participantId, score] of Object.entries(record(scores))) {
+    const receipts = record(score?.quizAwards);
+    if (!Object.hasOwn(receipts, questionId)) continue;
+    const points = number(receipts[questionId]?.points);
+    updates[`scores/${participantId}/total`] = number(score?.total) - points;
+    updates[`scores/${participantId}/quizAwards/${questionId}`] = null;
+    if (score?.lastQuestionId === questionId) updates[`scores/${participantId}/lastPoints`] = 0;
+  }
+  return updates;
+}
+
 function checkRound(question, round) {
   if (!isQuizQuestion(question) || question.revealedAt !== round) throw new Error('QUIZ_ROUND_CHANGED');
 }

@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { applyQuizScoreAwards, hasQuizRoundReceipt, scoreNickname } from './quiz-awards';
+import { applyQuizScoreAwards, hasQuizRoundReceipt, quizAwardRollbackUpdates, scoreNickname } from './quiz-awards';
+
+describe('응답 초기화 시 퀴즈 점수 되돌리기', () => {
+  it('이 문항 영수증이 있는 참여자만 점수를 빼고 영수증을 지운다', () => {
+    const scores = {
+      a: { nickname: 'A', total: 245, lastQuestionId: 'q1', lastPoints: 145, quizAwards: { q0: { round: 1, points: 100 }, q1: { round: 2, points: 145 } } },
+      b: { nickname: 'B', total: 50, quizAwards: { q0: { round: 1, points: 50 } } },
+      c: { nickname: 'C', total: 0, quizAwards: { q1: { round: 2, points: 0 } } },
+    };
+    expect(quizAwardRollbackUpdates(scores, 'q1')).toEqual({
+      'scores/a/total': 100, 'scores/a/quizAwards/q1': null, 'scores/a/lastPoints': 0,
+      'scores/c/total': 0, 'scores/c/quizAwards/q1': null,
+    });
+    expect(quizAwardRollbackUpdates(null, 'q1')).toEqual({});
+  });
+});
 import { getQuizReward } from './quiz';
 
 const question = { type: 'quiz', correctAnswer: 'A', activatedAt: 1000, event: 'double-points', betting: true,
