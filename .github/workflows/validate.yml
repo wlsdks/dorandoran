@@ -16,6 +16,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm ci --prefix functions
+      - run: npm ci --prefix functions-ai
       - run: npm run check
         env:
           VITE_FIREBASE_API_KEY: demo-key
@@ -24,6 +25,7 @@ jobs:
           VITE_GEMINI_API_KEY: ''
       - run: npm audit --audit-level=low
       - run: npm audit --prefix functions --audit-level=low
+      - run: npm audit --prefix functions-ai --audit-level=low
       - uses: actions/setup-java@v6
         with:
           distribution: temurin

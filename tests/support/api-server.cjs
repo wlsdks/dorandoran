@@ -9,7 +9,7 @@ process.env.APP_ALLOWED_ORIGINS='http://127.0.0.1:5175,http://127.0.0.1:5176';
 process.env.GEMINI_API_KEY='test-only-upstream-secret';
 process.env.GEMINI_UPSTREAM='http://127.0.0.1:5002';
 const express=require(root+'/functions/node_modules/express');
-const api=require(root+'/functions');
+const api={...require(root+'/functions'),...require(root+'/functions-ai')};
 const app=express();app.use(express.json({limit:'7mb'}));
 app.use('/api/staff',api.staffApi);app.use('/api/assignments',api.assignmentApi);app.use('/api/classroom',api.classroomApi);app.use('/api/gemini',api.geminiProxy);
 for(const [name,handler] of [['staffApi',api.staffApi],['assignmentApi',api.assignmentApi],['classroomApi',api.classroomApi],['geminiProxy',api.geminiProxy]])app.use('/demo-dorandoran/asia-northeast3/'+name,handler);

@@ -6,6 +6,20 @@ const { metadataList } = require('../../functions/metadata');
 const { ensureQuestionView } = require('../../functions/question-view');
 const { createHttpApi } = require('../../functions/http-api');
 
+test('AI codebase keeps identical copies of shared access modules and stays out of the default codebase', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const root = path.resolve(__dirname, '../..');
+  // Firebase codebases deploy separate folders, so shared permission checks are copied, never forked.
+  for (const file of ['access.js', 'staff-profile.js', 'package.json', 'package-lock.json']) {
+    assert.ok(fs.readFileSync(path.join(root, 'functions', file)).equals(fs.readFileSync(path.join(root, 'functions-ai', file))), `${file} drifted between functions/ and functions-ai/`);
+  }
+  // 수업 함수 코드베이스는 AI 시크릿을 선언하지 않아야 키 없이 배포된다.
+  assert.doesNotMatch(fs.readFileSync(path.join(root, 'functions/index.js'), 'utf8'), /defineSecret|GEMINI_API_KEY|geminiProxy/);
+  const config = JSON.parse(fs.readFileSync(path.join(root, 'firebase.json'), 'utf8'));
+  assert.deepEqual(config.functions.map(({ source, codebase }) => [source, codebase]), [['functions', 'default'], ['functions-ai', 'ai']]);
+});
+
 test('worker pool preserves ordering, bounds concurrency and drains failures', async () => {
   let active = 0, maximum = 0;
   const out = await mapConcurrent(Array.from({ length: 200 }, (_, i) => i), 4, async i => {
@@ -99,7 +113,7 @@ test('oversized raw and parsed API bodies are rejected before calling the servic
 });
 
 const { EventEmitter } = require('node:events');
-const { fetchUpstream } = require('../../functions/upstream');
+const { fetchUpstream } = require('../../functions-ai/upstream');
 test('proxy aborts on disconnect and releases its close listener after completion', async () => {
   const previousFetch = global.fetch;
   const response = new EventEmitter(); let signal;

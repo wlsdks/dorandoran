@@ -1,6 +1,9 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
+import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { Maximize2, X } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
+import Modal from '@/components/ui/Modal';
 import { TYPE_LABELS } from '@/lib/question-types';
 
 /**
@@ -13,6 +16,7 @@ import { TYPE_LABELS } from '@/lib/question-types';
 export default function QuestionCard({ question, questionId, questionProgress }) {
   const reducedMotion = useReducedMotion();
   const { available } = useAIAvailability();
+  const [imageOpen, setImageOpen] = useState(false);
   return (
     <motion.div
       key={`header-${questionId}`}
@@ -58,15 +62,29 @@ export default function QuestionCard({ question, questionId, questionProgress })
       <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] text-xl font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight">
         {question.title}
       </h2>
+      {/* 이미지 퀴즈는 세부를 봐야 할 수 있어 탭하면 앱 안에서 크게 연다(새 창으로 나가면 타이머를 놓친다) */}
       {question.imageUrl && (
-        <motion.img
-          src={question.imageUrl}
-          alt="질문 이미지"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          loading="eager"
-          className="mt-4 w-full max-h-52 object-contain rounded-lg"
-        />
+        <button type="button" onClick={() => setImageOpen(true)} aria-label="질문 이미지 크게 보기" className="group relative mt-4 block w-full rounded-lg">
+          <motion.img
+            src={question.imageUrl}
+            alt="질문 이미지"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            loading="eager"
+            className="w-full max-h-52 object-contain rounded-lg"
+          />
+          <span aria-hidden="true" className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/60 text-white">
+            <Maximize2 size={15} />
+          </span>
+        </button>
+      )}
+      {question.imageUrl && (
+        <Modal open={imageOpen} onClose={() => setImageOpen(false)} centered ariaLabel="질문 이미지" className="rounded-2xl p-3!">
+          <img src={question.imageUrl} alt="질문 이미지" className="max-h-[75dvh] w-full object-contain rounded-lg" />
+          <button type="button" onClick={() => setImageOpen(false)} className="mt-3 min-h-12 w-full rounded-lg font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">
+            <X size={16} className="mr-1 inline" />닫기
+          </button>
+        </Modal>
       )}
     </motion.div>
   );
