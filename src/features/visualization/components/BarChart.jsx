@@ -41,24 +41,24 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
         const percent = visibleTotal ? count / visibleTotal * 100 : 0;
         const correct = revealed && correctValue === option;
         return <motion.div key={`${questionId}:${index}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-          data-correct={correct} className={`classroom-option-card rounded-xl border p-4 ${presenter ? 'lg:p-5' : ''} ${correct ? 'border-indigo-300 bg-indigo-100 text-indigo-950 shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-600/70 dark:bg-slate-800/60 dark:text-slate-100'}`}>
+          data-correct={correct} className={`classroom-option-card rounded-xl border p-4 ${presenter ? 'lg:p-5' : ''} ${correct ? 'border-indigo-300 bg-indigo-50 text-indigo-950 shadow-sm dark:border-indigo-400/70 dark:bg-indigo-500/15 dark:text-slate-50 dark:shadow-none' : 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-600/70 dark:bg-slate-800/60 dark:text-slate-100'}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               {/* 정답 배지는 보기와 같은 줄에 둔다 — 따로 한 줄을 쓰면 긴 보기 4개가 발표 화면을 넘친다 */}
               <p className={`${presenter ? 'classroom-option-label' : 'text-lg'} font-semibold leading-snug break-words flex items-start gap-3`}>
                 <span className="poll-option-letter shrink-0">{String.fromCharCode(65 + index)}</span>
                 <span className="min-w-0">{option}</span>
-                {correct && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-900 text-white px-3 py-1 text-sm lg:text-lg font-bold whitespace-nowrap"><Check size={20} />정답</span>}
+                {correct && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-900 dark:bg-indigo-500 text-white px-3 py-1 text-sm lg:text-lg font-bold whitespace-nowrap"><Check size={20} />정답</span>}
               </p>
             </div>
             {!concealed && !loading && <div className="classroom-option-statistics flex items-baseline gap-3 shrink-0">
               <AnimatedNumber value={count} className={`${presenter ? 'classroom-option-count' : 'text-3xl'} leading-none font-bold tabular-nums`} />
-              <p className={`${presenter ? 'text-lg lg:text-xl' : 'text-sm'} font-medium ${correct ? 'text-indigo-800' : 'text-slate-600 dark:text-slate-300'}`}>{formatPercent(count, visibleTotal)}</p>
+              <p className={`${presenter ? 'text-lg lg:text-xl' : 'text-sm'} font-medium ${correct ? 'text-indigo-800 dark:text-indigo-200' : 'text-slate-600 dark:text-slate-300'}`}>{formatPercent(count, visibleTotal)}</p>
             </div>}
           </div>
-          <div className={`mt-3 ${presenter ? 'h-4 lg:h-5' : 'h-3'} rounded-full overflow-hidden ${correct ? 'bg-indigo-200' : 'bg-slate-200 dark:bg-slate-600'}`}>
+          <div className={`mt-3 ${presenter ? 'h-4 lg:h-5' : 'h-3'} rounded-full overflow-hidden ${correct ? 'bg-indigo-200 dark:bg-indigo-400/20' : 'bg-slate-200 dark:bg-slate-600'}`}>
             <motion.div initial={false} animate={{ scaleX: percent / 100 }} transition={{ type: 'spring', stiffness: 150, damping: 26 }}
-              className={`h-full w-full origin-left ${correct ? 'bg-indigo-700' : 'bg-indigo-500'}`} />
+              className={`h-full w-full origin-left ${correct ? 'bg-indigo-700 dark:bg-indigo-400' : 'bg-indigo-500'}`} />
           </div>
         </motion.div>;
       })}
