@@ -179,6 +179,9 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .viewport-overlay { top:var(--app-visible-top,0px);height:var(--app-visible-height,100dvh);bottom:auto; }
 .viewport-overlay > [role='dialog'] { max-height:calc(var(--app-visible-height,100dvh) - 2rem); }
 .mobile-conversation { max-height:calc(var(--app-visible-height,100dvh) - 2rem);container:conversation / size; }
+/* 대화형 바텀 시트(채팅·질문·1:1 도움): 키보드가 올라와 낮아지면 아래 컨테이너 쿼리가 소개문을 접는다. */
+.sheet-conversation { container:conversation / size; }
+.viewport-overlay > .sheet-conversation[role='dialog'] { max-height:calc(var(--app-visible-height,100dvh) - 1rem); }
 @media (min-width:640px) {
  .mobile-conversation { top:calc(var(--app-visible-top,0px) + var(--app-visible-height,100dvh) / 2);bottom:auto; }
 }

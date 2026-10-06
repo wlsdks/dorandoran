@@ -1,9 +1,8 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
-import { useDialogLayer } from '@/hooks/useDialogLayer';
 import { useState, useEffect, useRef, memo } from 'react';
-import { createPortal } from 'react-dom';
+import BottomSheet from '@/components/ui/BottomSheet';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, ThumbsUp, Check, HelpCircle, MessageSquare, ChevronDown, ChevronUp, ShieldAlert, Lightbulb } from 'lucide-react';
+import { Send, ThumbsUp, Check, MessageSquare, ChevronDown, ChevronUp, ShieldAlert, Lightbulb } from 'lucide-react';
 import { useClassQuestions } from '@/features/class-questions/api/useClassQuestions';
 import { getParticipantId, getNickname, getLastSeen, saveLastSeen } from '@/lib/participant';
 import { timeAgo } from '@/lib/utils';
@@ -199,8 +198,6 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
   const inputRef = useRef(null);
   const prevCountRef = useRef(getLastSeen(sessionId, 'qa'));
 
-  // 패널 열릴 때 배경 스크롤 잠금
-  const { dialogRef, trapFocus } = useDialogLayer(open, onClose);
   const participantId = getParticipantId();
   const nickname = getNickname();
 
@@ -235,173 +232,111 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
     toggleUpvote(questionId, participantId);
   }
 
-  return createPortal(
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-            onClick={onClose}
-          />
+  const mine = questions.filter((q) => q.participantId === participantId).length;
+  const filtered = tab === 'mine' ? questions.filter((q) => q.participantId === participantId) : questions;
+  return (
+    <BottomSheet open={open} onClose={onClose} variant="full" title="수업 질문" description={questions.length > 0 ? `질문 ${questions.length}개` : null} ariaLabel="수업 질문">
+      {/* Tabs */}
+      <div className="px-4 pt-1 pb-3 shrink-0">
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-700/50 rounded-xl p-1 w-full" role="tablist" aria-label="질문 보기">
+          {[
+            { key: 'all', label: `전체 질문${questions.length > 0 ? ` (${questions.length})` : ''}` },
+            { key: 'mine', label: `내 질문${mine > 0 ? ` (${mine})` : ''}` },
+          ].map((t) => (
+            <button key={t.key} role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
+              className={`min-h-11 flex-1 py-2.5 text-sm font-semibold rounded-lg transition-colors duration-150 ${
+                tab === t.key ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'
+              }`}>{t.label}</button>
+          ))}
+        </div>
+      </div>
 
-          <motion.div
-            ref={dialogRef} role="dialog" aria-modal="true" aria-label="수업 질문" tabIndex={-1} onKeyDown={trapFocus}
-            initial={{ opacity: 0, y: '100%' }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="mobile-conversation fixed inset-x-0 bottom-0 top-[10vh] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[420px] sm:h-[600px] bg-slate-50 dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden sm:border sm:border-slate-200 sm:dark:border-slate-700"
-          >
-            {/* Drag handle (mobile only) */}
-            <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-600" />
-            </div>
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 shrink-0">
-              <div className="flex items-center gap-2">
-                <HelpCircle size={16} className="text-slate-400" />
-                <span className="font-bold text-slate-900 dark:text-slate-100">
-                  수업 질문
-                </span>
-                {questions.length > 0 && (
-                  <span className="text-xs text-slate-400">{questions.length}개</span>
-                )}
+      {/* Questions list */}
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-slate-50 dark:bg-slate-900 px-4 py-3 space-y-3 scrollbar-hide">
+        {loading && questions.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-sm text-slate-400 dark:text-slate-500">불러오는 중...</span>
+          </div>
+        )}
+        <AnimatePresence mode="wait">
+          <motion.div key={tab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="space-y-3">
+            {filtered.length === 0 && !loading ? (
+              <div className="flex items-center justify-center py-12">
+                <p className="text-sm text-slate-400 dark:text-slate-500 text-center leading-relaxed">
+                  {tab === 'mine' ? '내가 올린 질문이 없습니다' : '아직 질문이 없습니다'}
+                  <br /><span className="text-xs">수업에 대해 궁금한 점을 질문하세요</span>
+                </p>
               </div>
-              <button
-                onClick={onClose}
-                className="w-12 h-12 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150"
-                aria-label="수업 질문 닫기"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex gap-1 px-4 pt-3 pb-0 shrink-0">
-              <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1 w-full">
-                {[
-                  { key: 'all', label: `전체 질문${questions.length > 0 ? ` (${questions.length})` : ''}` },
-                  { key: 'mine', label: `내 질문${questions.filter((q) => q.participantId === participantId).length > 0 ? ` (${questions.filter((q) => q.participantId === participantId).length})` : ''}` },
-                ].map((t) => (
-                  <button key={t.key} onClick={() => setTab(t.key)}
-                    className={`min-h-11 flex-1 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ${
-                      tab === t.key ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-                    }`}>{t.label}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Questions list */}
-            <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3 scrollbar-hide">
-              {loading && questions.length === 0 && (
-                <div className="flex-1 flex items-center justify-center h-full">
-                  <span className="text-sm text-slate-300 dark:text-slate-500">불러오는 중...</span>
-                </div>
-              )}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={tab}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="space-y-3"
-                >
-                  {(() => {
-                    const filtered = tab === 'mine' ? questions.filter((q) => q.participantId === participantId) : questions;
-                    return filtered.length === 0 && !loading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <p className="text-sm text-slate-400 dark:text-slate-500 text-center leading-relaxed">
-                          {tab === 'mine' ? '내가 올린 질문이 없습니다' : '아직 질문이 없습니다'}
-                          <br /><span className="text-xs">수업에 대해 궁금한 점을 질문하세요</span>
-                        </p>
-                      </div>
-                    ) : (
-                      filtered.map((q, i) => (
-                        <QuestionCard
-                          key={q.id}
-                          q={q}
-                          index={i}
-                          participantId={participantId}
-                          nickname={nickname}
-                          onUpvote={handleUpvote}
-                          onPostAnswer={postAnswer}
-                          canAnswer={canAnswer}
-                        />
-                      ))
-                    );
-                  })()}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* AI toggle */}
-            {studentFeaturesAvailable && (
-              <div className="px-4 pt-2 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setAiAllowed((v) => !v)}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-colors ${
-                    aiAllowed
-                      ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                      : 'bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Lightbulb size={13} />
-                    AI 조교 답변 받기
-                  </span>
-                  <span className={`w-8 h-4 rounded-full relative transition-colors ${aiAllowed ? 'bg-white/30 dark:bg-slate-900/30' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                    <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white dark:bg-slate-100 transition-transform ${aiAllowed ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                  </span>
-                </button>
-                {aiAllowed && (
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 px-1">
-                    확실한 경우에만 AI가 답합니다 · 강사·스태프 답변과 함께 표시됩니다
-                  </p>
-                )}
-              </div>
+            ) : (
+              filtered.map((q, i) => (
+                <QuestionCard key={q.id} q={q} index={i} participantId={participantId} nickname={nickname} onUpvote={handleUpvote} onPostAnswer={postAnswer} canAnswer={canAnswer} />
+              ))
             )}
-
-            {postError && (
-              <p className="px-4 pt-2 text-xs text-red-500 dark:text-red-400 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 shrink-0">{postError}</p>
-            )}
-
-            {/* Input */}
-            <div className="flex items-center gap-2 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:py-3 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 shrink-0">
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.nativeEvent.isComposing && !e.shiftKey) {
-                    e.preventDefault();
-                    handlePost();
-                  }
-                }}
-                placeholder="질문을 입력하세요"
-                aria-label="수업 질문 입력"
-                maxLength={MAX_LENGTH}
-                className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150"
-              />
-              <button
-                onClick={handlePost}
-                disabled={!inputText.trim() || !canPost || posting}
-                className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0"
-                aria-label="질문 보내기"
-              >
-                <Send size={16} />
-              </button>
-            </div>
           </motion.div>
-        </>
+        </AnimatePresence>
+      </div>
+
+      {/* AI toggle */}
+      {studentFeaturesAvailable && (
+        <div className="px-4 pt-2 border-t border-slate-100 dark:border-slate-700 shrink-0">
+          <button
+            type="button"
+            onClick={() => setAiAllowed((v) => !v)}
+            role="switch" aria-checked={aiAllowed}
+            className={`w-full min-h-11 flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${
+              aiAllowed
+                ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                : 'bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <Lightbulb size={13} />
+              AI 조교 답변 받기
+            </span>
+            <span className={`w-8 h-4 rounded-full relative transition-colors ${aiAllowed ? 'bg-white/30 dark:bg-slate-900/30' : 'bg-slate-300 dark:bg-slate-600'}`}>
+              <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white dark:bg-slate-100 transition-transform ${aiAllowed ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </span>
+          </button>
+          {aiAllowed && (
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 px-1">
+              확실한 경우에만 AI가 답합니다 · 강사·스태프 답변과 함께 표시됩니다
+            </p>
+          )}
+        </div>
       )}
-    </AnimatePresence>,
-    document.body,
+
+      {postError && (
+        <p className="px-4 pt-2 text-xs text-red-500 dark:text-red-400 border-t border-slate-100 dark:border-slate-700 shrink-0">{postError}</p>
+      )}
+
+      {/* Input */}
+      <div className="flex items-center gap-2 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3 border-t border-slate-100 dark:border-slate-700 shrink-0">
+        <input
+          ref={inputRef}
+          type="text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.nativeEvent.isComposing && !e.shiftKey) {
+              e.preventDefault();
+              handlePost();
+            }
+          }}
+          placeholder="질문을 입력하세요"
+          aria-label="수업 질문 입력"
+          maxLength={MAX_LENGTH}
+          enterKeyHint="send"
+          className="flex-1 min-w-0 min-h-12 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150"
+        />
+        <button
+          onClick={handlePost}
+          disabled={!inputText.trim() || !canPost || posting}
+          className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-30 hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-150 shrink-0"
+          aria-label="질문 보내기"
+        >
+          <Send size={16} />
+        </button>
+      </div>
+    </BottomSheet>
   );
 });
