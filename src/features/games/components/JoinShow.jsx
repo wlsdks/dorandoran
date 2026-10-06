@@ -22,7 +22,8 @@ function EntryCount({ value }) {
   return <motion.span aria-hidden="true">{rounded}</motion.span>;
 }
 
-export default memo(function JoinShow({ sessionId }) {
+/** eventMode: 기업 행사모드(사번 입장) 수업은 '행사' 문구로 안내한다. 그 외에도 수업·행사 모두 어울리는 문구를 쓴다. */
+export default memo(function JoinShow({ sessionId, eventMode = false }) {
   const { count, onlineList } = useParticipants(sessionId);
   const reduced = useReducedMotion();
   const studentUrl = sessionId ? `${window.location.origin}/?s=${encodeURIComponent(sessionId)}` : '';
@@ -32,11 +33,11 @@ export default memo(function JoinShow({ sessionId }) {
 
   const latest = recent[0];
 
-  return <section className="entry-stage" aria-label="수업 참여 안내">
+  return <section className="entry-stage" aria-label="참여 안내">
     <header className="entry-intro">
       <div className="entry-brand">
         <DoranDoranMascot size={72} mood="happy" animated={false} className="entry-mascot" />
-        <h2>수업에 참여해 주세요</h2>
+        <h2>{eventMode ? '행사에 참여해 주세요' : '함께 참여해 주세요'}</h2>
       </div>
       <p className="entry-description">QR 코드를 스캔한 뒤 닉네임을 입력해 주세요.</p>
     </header>

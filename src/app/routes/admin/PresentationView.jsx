@@ -81,7 +81,7 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
     if (currentMode === 'leaderboard') return <div className="w-full px-2 md:px-0"><Leaderboard presenter={presentMode} paginate entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} onPageChange={onLeaderboardPageChange} highlight={session?.leaderboardHighlight} onHighlightChange={onHighlightChange} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
     if (currentMode === 'qaBoard') return <div className="w-full max-w-4xl" style={{ maxWidth: presentMode ? 1100 : undefined }}><ClassQABoard presenter={presentMode} readOnly={presentMode} sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>;
     if (currentMode === 'qaRanking') return <QARanking sessionId={sessionId} presenter={presentMode} readOnly={presentMode} />;
-    if (currentMode === 'joinShow') return <JoinShow sessionId={sessionId} />;
+    if (currentMode === 'joinShow') return <JoinShow sessionId={sessionId} eventMode={Boolean(session?.requireEmployeeId)} />;
     if (currentMode === 'awards') return <AwardsCeremony presenter={presentMode} sessionId={sessionId} assignmentId={session?.activeAssignmentId} />;
     if (currentMode === 'randomPicker') return (
       <RandomPicker presenter={presentMode} participants={onlineList} onResult={(w) => onGameResult?.(w, 'randomPicker')} sessionId={sessionId} role="control" />

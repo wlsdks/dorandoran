@@ -12,7 +12,8 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
   const visibleTotal = concealed ? 0 : totalVotes;
   const counts = useMemo(() => options.map(option => concealed ? 0 : countByValue(option)), [options, countByValue, concealed]);
   const longest = Math.max(0, ...options.map(option => String(option).length));
-  const pageSize = longest > 24 ? 2 : 6;
+  // 긴 보기여도 일반 퀴즈(최대 4개)는 한 화면에 모두 보여야 한다. 5개 이상일 때만 나눈다.
+  const pageSize = longest > 24 ? 4 : 6;
   const paged = presenter && options.length > pageSize;
   const pages = paged ? Math.ceil(options.length / pageSize) : 1;
   const currentPage = Math.min(Math.max(Number.isInteger(page) ? page : 0, 0), pages - 1);
@@ -32,8 +33,12 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
           data-correct={correct} className={`classroom-option-card rounded-xl border p-4 ${presenter ? 'lg:p-5' : ''} ${correct ? 'border-indigo-300 bg-indigo-100 text-indigo-950 shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-600/70 dark:bg-slate-800/60 dark:text-slate-100'}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              {correct && <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-900 text-white px-3 py-1 mb-2 text-sm lg:text-lg font-bold"><Check size={20} />정답</span>}
-              <p className={`${presenter ? 'classroom-option-label' : 'text-lg'} font-semibold leading-snug break-words flex items-start gap-3`}><span className="poll-option-letter shrink-0">{String.fromCharCode(65 + index)}</span><span>{option}</span></p>
+              {/* 정답 배지는 보기와 같은 줄에 둔다 — 따로 한 줄을 쓰면 긴 보기 4개가 발표 화면을 넘친다 */}
+              <p className={`${presenter ? 'classroom-option-label' : 'text-lg'} font-semibold leading-snug break-words flex items-start gap-3`}>
+                <span className="poll-option-letter shrink-0">{String.fromCharCode(65 + index)}</span>
+                <span className="min-w-0">{option}</span>
+                {correct && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-900 text-white px-3 py-1 text-sm lg:text-lg font-bold whitespace-nowrap"><Check size={20} />정답</span>}
+              </p>
             </div>
             {!concealed && !loading && <div className="classroom-option-statistics flex items-baseline gap-3 shrink-0">
               <AnimatedNumber value={count} className={`${presenter ? 'classroom-option-count' : 'text-3xl'} leading-none font-bold tabular-nums`} />

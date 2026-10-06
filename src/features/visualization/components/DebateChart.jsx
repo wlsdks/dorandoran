@@ -45,8 +45,10 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
     return { forCount: f, againstCount: a, opinions: ops };
   }, [voteList]);
 
-  const forPct = totalVotes > 0 ? Math.round((forCount / totalVotes) * 100) : 50;
-  const againstPct = totalVotes > 0 ? Math.round((againstCount / totalVotes) * 100) : 50;
+  // 찬반으로 읽힌 응답만 분모로 쓰고, 반올림 합이 100%를 넘지 않게 한쪽을 나머지로 계산한다.
+  const sideTotal = forCount + againstCount;
+  const forPct = sideTotal > 0 ? Math.round((forCount / sideTotal) * 100) : 0;
+  const againstPct = sideTotal > 0 ? 100 - forPct : 0;
 
   const filteredOpinions = useMemo(() => {
     if (filter === 'all') return opinions;
@@ -58,7 +60,7 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
   const shownOpinions = presenter ? filteredOpinions.slice(currentPage * 3, currentPage * 3 + 3) : filteredOpinions;
 
   return (
-    <div className="space-y-6 w-full max-w-xl mx-auto px-8">
+    <div className={`${presenter ? 'space-y-4' : 'space-y-6'} w-full max-w-xl mx-auto px-8`}>
       {/* Hero ratio display */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -118,11 +120,12 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
             className="bg-slate-300 h-full rounded-r-full"
           />
         </div>
-        <div className="flex justify-between text-sm font-semibold">
+        {/* 발표 화면은 위 큰 숫자와 겹치므로 생략해 세로 공간을 아낀다 */}
+        {!presenter && <div className="flex justify-between text-sm font-semibold">
           <span className="text-slate-700 dark:text-slate-200">{forPct}%</span>
-          <span className="text-slate-400 text-xs font-normal">총 {totalVotes}명</span>
+          <span className="text-slate-400 text-xs font-normal">총 {sideTotal}명</span>
           <span className="text-slate-500">{againstPct}%</span>
-        </div>
+        </div>}
       </motion.div>
 
       {/* Opinions stream */}
@@ -137,7 +140,7 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <MessageCircle size={14} className="text-slate-400" />
-              <p className="text-xs font-semibold text-slate-400 tracking-wider uppercase">의견</p>
+              <p className="text-xs font-semibold text-slate-400 tracking-wider uppercase">의견{presenter && ` ${opinions.length}개 · ${sideTotal}명 참여`}</p>
             </div>
             {!readOnly && !presenter && <div className="flex gap-1">
               {[
@@ -170,18 +173,18 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                  className={`flex items-start gap-2.5 py-2 px-3 rounded-lg ${
+                  className={`flex ${presenter ? 'items-center gap-3' : 'items-start gap-2.5'} py-2 px-3 rounded-lg ${
                     op.side === 'for' ? 'bg-slate-50 dark:bg-slate-700' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
                   }`}
                 >
                   <span
-                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 mt-0.5 ${
+                    className={`${presenter ? 'text-base px-2.5 py-1' : 'text-[10px] px-1.5 py-0.5 mt-0.5'} font-bold rounded shrink-0 ${
                       op.side === 'for'
                         ? 'bg-slate-800 text-white'
                         : 'bg-slate-200 text-slate-600'
                     }`}
                   >
-                    {op.side === 'for' ? '찬' : '반'}
+                    {presenter ? (op.side === 'for' ? '찬성' : '반대') : (op.side === 'for' ? '찬' : '반')}
                   </span>
                   <p className={`${presenter ? "text-2xl" : "text-sm"} text-slate-700 dark:text-slate-200 leading-relaxed flex-1 [word-break:keep-all]`}>{op.opinion}</p>
                 </motion.div>
@@ -203,15 +206,15 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
         {onPageChange && <button className="presentation-button" aria-label="다음 의견 페이지" disabled={currentPage === pages - 1} onClick={() => onPageChange(currentPage + 1)}><ChevronRight size={20} /></button>}
       </div>}
 
-      {/* Total count */}
-      <div className="text-center text-slate-400 text-sm pt-2 border-t border-slate-100 dark:border-slate-700">
+      {/* Total count — 발표 화면은 의견 제목 옆에 이미 표시한다 */}
+      {!presenter && <div className="text-center text-slate-400 text-sm pt-2 border-t border-slate-100 dark:border-slate-700">
         총 <span className="text-slate-600 dark:text-slate-300 font-semibold">{totalVotes}</span>명 참여
         {opinions.length > 0 && (
           <span className="text-slate-300 ml-2">
             ({opinions.length}개 의견)
           </span>
         )}
-      </div>
+      </div>}
     </div>
   );
 });
