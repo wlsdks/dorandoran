@@ -3,12 +3,12 @@ import { useState, useRef, memo } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
 import { compressImage } from '@/lib/image-utils';
+import { imageRejection } from '@/lib/image-file';
 import { logger } from '@/lib/logger';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
 
 const MAX_SIZE_MB = 20; // 압축 전 원본 허용 (압축 후 1-2MB)
-const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp';
 
 /**
  * ImageUpload — 이미지 업로드 + 미리보기.
@@ -24,12 +24,9 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
     if (!file) return;
     if (inputRef.current) inputRef.current.value = '';
 
-    if (!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)) { setError('JPG, PNG, GIF, WebP 이미지만 가능합니다'); return; }
-    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      setError(`${MAX_SIZE_MB}MB 이하 이미지만 가능합니다`);
-      setTimeout(() => setError(null), 3000);
-      return;
-    }
+    // 형식·용량 문제는 이유를 그대로 보여준다(형식 이름 포함). 사용자가 직접 지울 때까지 남겨 둔다.
+    const rejection = imageRejection(file, MAX_SIZE_MB);
+    if (rejection) { setError(rejection); return; }
 
     setUploading(true);
     setError(null);
@@ -57,7 +54,7 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
 
   const fileInput = (
     // sr-only — display:none이면 일부 브라우저(Safari)에서 click() 트리거가 차단되어 파일 선택기가 안 열리는 사례 존재
-    <input ref={inputRef} type="file" accept={ACCEPTED} onChange={handleFile} className="sr-only" />
+    <input ref={inputRef} type="file" accept="image/*,.heic,.heif" onChange={handleFile} className="sr-only" />
   );
 
   // 보기 한 줄 옆에 붙는 작은 정사각형 — 비어 있으면 첨부 버튼, 있으면 썸네일 + 삭제
@@ -80,6 +77,12 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
           </button>
         )}
         {fileInput}
+        {error && (
+          <p role="alert" className="absolute right-0 top-full z-20 mt-1.5 w-64 rounded-lg bg-slate-900 px-3 py-2 text-xs leading-relaxed text-white shadow-lg dark:bg-slate-100 dark:text-slate-900 [word-break:keep-all]">
+            {error}
+            <button type="button" onClick={() => setError(null)} className="ml-1 font-semibold underline-offset-2 hover:underline">닫기</button>
+          </p>
+        )}
       </div>
     );
   }
@@ -136,7 +139,7 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
       </AnimatePresence>
 
       {error && (
-        <p className="text-xs text-red-500 text-center">{error}</p>
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400 text-center leading-relaxed [word-break:keep-all]">{error}</p>
       )}
 
       {fileInput}
