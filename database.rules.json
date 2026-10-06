@@ -50,6 +50,9 @@
             "type": {
               ".validate": "newData.isString() && newData.val().matches(/^(choice|ox|quiz|wordcloud|qna|scale|debate|ranking|fillinblank|check|mysteryBox|hintQuiz|imageSlide|webEmbed|modeCard|aiJudge|subjective|shortAnswer)$/)"
             },
+            "correctAnswer": {
+              ".validate": "newData.parent().child('type').val() !== 'ranking' || (newData.isString() && newData.val().matches(/^[0-9]+(,[0-9]+)*$/))"
+            },
             "$other": {
               ".validate": true
             }
@@ -199,6 +202,9 @@
             },
             "type": {
               ".validate": "newData.isString() && newData.val().matches(/^(choice|ox|quiz|wordcloud|qna|scale|debate|ranking|fillinblank|check|mysteryBox|hintQuiz|imageSlide|webEmbed|modeCard|aiJudge|subjective|shortAnswer)$/)"
+            },
+            "correctAnswer": {
+              ".validate": "newData.parent().child('type').val() !== 'ranking' || (newData.isString() && newData.val().matches(/^[0-9]+(,[0-9]+)*$/))"
             },
             "modelAnswer": {
               ".validate": "newData.isString() && newData.val().length <= 1000"

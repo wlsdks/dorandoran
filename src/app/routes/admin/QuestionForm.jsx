@@ -24,6 +24,7 @@ import {
 import { questionEditLocks, EDIT_LOCK_MESSAGES } from '@/lib/question-edit';
 import { choiceNames, isAutoPhotoName } from '@/lib/option-images';
 import { normalizeTimeLimit, supportsTimeLimit } from '@/lib/question-timer';
+import { correctRankingOrder, isCompleteRankingOrder } from '@/lib/ranking-answer';
 import TimeLimitSection from './TimeLimitSection';
 import { snap } from '@/lib/motion';
 
@@ -47,6 +48,10 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
       : ['', '']
   );
   const [correctAnswer, setCorrectAnswer] = useState(initialData?.correctAnswer || '');
+  // 순위 맞추기 정답 — 항목 번호(0부터) 순서. 예전 문항(저장 순서 = 정답)은 0,1,2…로 읽힌다.
+  const [rankingAnswer, setRankingAnswer] = useState(() => (
+    initialData?.type === 'ranking' && initialData.options?.length ? correctRankingOrder(initialData.options, initialData.correctAnswer) : []
+  ));
   const [points, setPoints] = useState(initialData?.points || QUIZ_DEFAULTS.points);
   const [event, setEvent] = useState(initialData?.event || null);
   const [betting, setBetting] = useState(initialData?.betting || false);
@@ -85,10 +90,13 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
     const choicePairs = isChoiceLike
       ? optionNames.map((text, i) => ({ text, image: optionImages[i] || '' })).filter(p => p.text)
       : null;
-    const cleanOptions = choicePairs ? choicePairs.map(p => p.text) : options.filter((o) => o.trim());
+    // 순위 맞추기는 번호가 자리(인덱스)라 빈 항목을 걸러내면 번호가 밀린다 — 모두 채워야 한다.
+    const cleanOptions = choicePairs ? choicePairs.map(p => p.text) : isRanking ? options.map((o) => o.trim()) : options.filter((o) => o.trim());
     if (choicePairs && new Set(cleanOptions).size !== cleanOptions.length) { setLocalError('선택지 내용이 서로 달라야 합니다.'); return; }
     if (isChoiceLike && cleanOptions.length < 2) { setLocalError('최소 2개의 선택지가 필요합니다.'); return; }
     if (isRanking && cleanOptions.length < 3) { setLocalError('순위 맞추기는 최소 3개 항목이 필요합니다.'); return; }
+    if (isRanking && cleanOptions.some((o) => !o)) { setLocalError('모든 항목을 입력해주세요. 비울 항목은 지워주세요.'); return; }
+    if (isRanking && !isCompleteRankingOrder(rankingAnswer, cleanOptions.length)) { setLocalError('정답 순서에 모든 번호를 한 번씩 넣어주세요.'); return; }
     if (isFillInBlank && !title.includes('___')) { setLocalError('빈칸 위치를 ___ (밑줄 3개)로 표시해주세요.'); return; }
     if (isFillInBlank && !correctAnswer.trim()) { setLocalError('정답을 입력해주세요.'); return; }
     if (type === 'quiz' && !cleanOptions.includes(correctAnswer)) { setLocalError('정답을 선택해주세요.'); return; }
@@ -108,6 +116,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
     }
     setLocalError(null);
     const submitData = { type, title, options: cleanOptions, correctAnswer, points, event, betting, hideTitle };
+    if (isRanking) submitData.rankingAnswer = rankingAnswer;
     if (imageUrl) submitData.imageUrl = imageUrl;
     if (choicePairs?.some(p => p.image)) submitData.optionImages = choicePairs.map(p => p.image);
     if (hasAnswer && answerImageUrl) submitData.answerImageUrl = answerImageUrl;
@@ -140,7 +149,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
     // 호출부가 오류 문구를 넘기지 않아도 실패는 반드시 보이게 한다(아무 반응 없이 멈춘 것처럼 보이지 않게).
     if (!success && !error) setLocalError(isEdit ? '질문을 수정하지 못했어요. 연결 상태를 확인하고 다시 시도해주세요.' : '질문을 저장하지 못했어요. 연결 상태를 확인하고 다시 시도해주세요.');
     if (success) {
-      setTitle(''); setOptions(['', '']); setOptionImages([]); setCorrectAnswer('');
+      setTitle(''); setOptions(['', '']); setOptionImages([]); setCorrectAnswer(''); setRankingAnswer([]);
       setPoints(QUIZ_DEFAULTS.points); setEvent(null); setBetting(false);
       setModelAnswer('');
       onCancel();
@@ -164,6 +173,8 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
                 onClick={() => {
                   setType(t.value); setLocalError(null);
                   if (t.value === 'ranking' && options.length < 3) setOptions(['', '', '']);
+                  // 다른 유형에서 보기 수가 줄었다면 정답 순서에 남은 번호를 치운다.
+                  if (t.value === 'ranking') setRankingAnswer((previous) => previous.filter((index) => index < Math.max(3, options.length)));
                 }}
                 className={`relative flex flex-col items-center justify-center gap-1 py-3 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150 ${
                   selected ? 'text-white dark:text-slate-900'
@@ -241,7 +252,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
         {isChoiceLike && <ChoiceOptionsSection lockedNames={locks.lockedOptions} options={options} setOptions={setOptions} optionImages={optionImages} setOptionImages={setOptionImages}
           correctAnswer={correctAnswer} setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
         {isRanking && <fieldset disabled={locks.rankingLocked || locks.answerLocked} className="min-w-0 disabled:opacity-70">
-          <RankingOptionsSection options={options} setOptions={setOptions} setLocalError={setLocalError} />
+          <RankingOptionsSection options={options} setOptions={setOptions} answer={rankingAnswer} setAnswer={setRankingAnswer} setLocalError={setLocalError} />
           {(locks.rankingLocked || locks.answerLocked) && <EditLockNote>{EDIT_LOCK_MESSAGES.ranking}</EditLockNote>}
         </fieldset>}
         <fieldset disabled={locks.answerLocked} className="min-w-0 disabled:opacity-70">

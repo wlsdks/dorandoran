@@ -182,7 +182,7 @@ export default memo(function ActivePollView({
                 <DebateVoter sessionId={sessionId} questionId={questionId} disabled={votingLocked} />
               )}
               {question.type === 'ranking' && (
-                <RankingVoter sessionId={sessionId} questionId={questionId} options={question.options || []} disabled={votingLocked} revealed={!!(question.revealedAt && question.correctAnswer)} />
+                <RankingVoter sessionId={sessionId} questionId={questionId} options={question.options || []} correctAnswer={question.correctAnswer} disabled={votingLocked} revealed={!!(question.revealedAt && question.correctAnswer)} />
               )}
               {question.type === 'fillinblank' && (
                 question.revealedAt && question.correctAnswer

@@ -40,6 +40,12 @@ describe('수업에서 쓴 문항 수정 잠금', () => {
     const f = (options) => ({ type: 'ranking', title: 'r', options });
     expect(validateQuestionEdit(ranking, f(['2', '1', '3']))).toBe(EDIT_LOCK_MESSAGES.ranking);
     expect(validateQuestionEdit(ranking, f(['1', '2', '3']))).toBeNull();
+    // 항목은 그대로 두고 정답 순서만 바꿔도 막는다. 같은 순서를 다시 보내는 건 괜찮다.
+    expect(validateQuestionEdit(ranking, { ...f(['1', '2', '3']), rankingAnswer: [2, 0, 1] })).toBe(EDIT_LOCK_MESSAGES.ranking);
+    expect(validateQuestionEdit(ranking, { ...f(['1', '2', '3']), rankingAnswer: [0, 1, 2] })).toBeNull();
+    const numbered = { type: 'ranking', title: 'r', options: ['1', '2', '3'], correctAnswer: '2,0,1', revealedAt: 1 };
+    expect(validateQuestionEdit(numbered, { ...f(['1', '2', '3']), rankingAnswer: [2, 0, 1] })).toBeNull();
+    expect(validateQuestionEdit(numbered, { ...f(['1', '2', '3']), rankingAnswer: [0, 1, 2] })).toBe(EDIT_LOCK_MESSAGES.ranking);
     const revealedNoVotes = { type: 'ranking', title: 'r', options: ['1', '2', '3'], correctAnswer: '0,1,2', revealedAt: 1 };
     expect(validateQuestionEdit(revealedNoVotes, f(['3', '2', '1']))).toBe(EDIT_LOCK_MESSAGES.ranking);
   });

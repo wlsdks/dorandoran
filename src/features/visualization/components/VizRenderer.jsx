@@ -228,7 +228,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           )}
           {question.type === 'scale' && <ScaleChart sessionId={sessionId} questionId={currentQId} minLabel={question.minLabel} maxLabel={question.maxLabel} />}
           {question.type === 'debate' && <DebateChart sessionId={sessionId} questionId={currentQId} presenter={isPresenter} readOnly={isPresenter && !isAdmin} page={question.displayPage || 0} onPageChange={onDisplayPageChange} />}
-          {question.type === 'ranking' && <RankingChart presenter={isPresenter} sessionId={sessionId} questionId={currentQId} items={options} revealed={answerRevealed || !isPresenter} />}
+          {question.type === 'ranking' && <RankingChart presenter={isPresenter} sessionId={sessionId} questionId={currentQId} items={options} correctAnswer={question.correctAnswer} revealed={answerRevealed || !isPresenter} />}
           {question.type === 'fillinblank' && (
             <FillBlankChart presenter={isPresenter}
               sessionId={sessionId}

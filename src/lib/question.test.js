@@ -36,6 +36,15 @@ describe('buildQuestionData', () => {
       options: ['x', 'y', 'z']
     }).correctAnswer).toBe('0,1,2');
   });
+  it('ranking: 항목은 표시 순서 그대로 두고 정답은 번호 순서로 저장한다', () => {
+    const data = buildQuestionData('ranking', { options: ['DNS 조회', '렌더링', '요청 전송', '응답 생성'], rankingAnswer: [0, 2, 3, 1] });
+    expect(data.options).toEqual(['DNS 조회', '렌더링', '요청 전송', '응답 생성']);
+    expect(data.correctAnswer).toBe('0,2,3,1');
+    expect(buildQuestionData('ranking', { options: ['a', 'b', 'c'], correctAnswer: '2,0,1' }).correctAnswer).toBe('2,0,1');
+    // 덜 채웠거나 번호가 겹치면 저장 순서(예전 형식)로 돌아간다.
+    expect(buildQuestionData('ranking', { options: ['a', 'b', 'c'], rankingAnswer: [2, 0] }).correctAnswer).toBe('0,1,2');
+    expect(buildQuestionData('ranking', { options: ['a', 'b', 'c'], correctAnswer: '0,0,1' }).correctAnswer).toBe('0,1,2');
+  });
   it('fillinblank: correctAnswer trim', () => {
     expect(buildQuestionData('fillinblank', {
       correctAnswer: '  답  '
