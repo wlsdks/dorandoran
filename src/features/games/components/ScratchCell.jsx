@@ -138,10 +138,10 @@ export default memo(function ScratchCell({
   const primarySize = presenter ? 'text-[clamp(26px,2.4vw,44px)]' : 'text-base';
   const coinSize = presenter ? 34 : 26;
   return <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, scale: reduced ? 1 : highlight ? 1.025 : 1 }}
-    transition={{ duration: 0.18 }} className={`relative ${size} rounded-2xl overflow-hidden ${highlight ? 'bg-white/10' : 'bg-slate-50 dark:bg-slate-800'}`}>
+    transition={{ duration: 0.18 }} data-secondary={Boolean(secondary)} className={`scratch-cell relative ${size} rounded-2xl overflow-hidden ${highlight ? 'bg-white/10' : 'bg-slate-50 dark:bg-slate-800'}`}>
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-2 text-center">
-      <span className={`font-bold tracking-tight truncate max-w-full tabular-nums ${primarySize} ${highlight ? 'text-white' : 'text-slate-800 dark:text-slate-100'}`}>{primary}</span>
-      {secondary && <span className={`tabular-nums truncate max-w-full ${presenter ? 'text-[clamp(18px,1.5vw,26px)]' : 'text-[10px]'} ${highlight ? 'text-amber-200' : 'text-slate-400'}`}>{secondary}</span>}
+      <span className={`scratch-cell-name font-bold tracking-tight break-words leading-tight max-w-full tabular-nums ${primarySize} ${highlight ? 'text-amber-950 dark:text-white' : 'text-slate-800 dark:text-slate-100'}`}>{primary}</span>
+      {secondary && <span className={`tabular-nums truncate max-w-full ${presenter ? 'text-[clamp(18px,1.5vw,26px)]' : 'text-[10px]'} ${highlight ? 'text-amber-800 dark:text-amber-200' : 'text-slate-600 dark:text-slate-400'}`}>{secondary}</span>}
     </div>
     {!revealed && <motion.div className="absolute inset-0" animate={{ opacity: swept ? 0 : 1 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />

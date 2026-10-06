@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useMemo, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import './LargeDisplayGames.css';
 import { Gift, Trophy, Monitor } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { buildScratchBoard, ROW_LINES, CELL_COUNT } from '@/lib/scratch';
@@ -142,9 +143,9 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
   const cellShell = presenter ? 'w-[clamp(176px,18vw,340px)] h-[clamp(96px,13dvh,176px)]' : 'w-[clamp(64px,20vw,112px)] h-[clamp(64px,18vw,96px)]';
 
   return (
-    <div className={`flex flex-col items-center ${presenter ? 'gap-6' : 'gap-4'}`}>
+    <div data-presenter={presenter} className={`scratch-stage flex flex-col items-center ${presenter ? 'gap-6' : 'gap-4'}`}>
       <div className="text-center space-y-1">
-        <h3 className={`font-black tracking-tight text-slate-900 dark:text-slate-100 ${presenter ? 'text-4xl' : 'text-2xl'}`}>
+        <h3 className={`scratch-title font-black tracking-tight text-slate-900 dark:text-slate-100 ${presenter ? 'text-4xl' : 'text-2xl'}`}>
           즉석복권
         </h3>
         <p role={active !== null || sharing ? 'status' : undefined} className={`text-slate-400 ${presenter ? 'text-lg' : 'text-sm'}`}>
@@ -155,7 +156,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
           {won && winner && (
             <span className="inline-flex items-center gap-2">
               <Trophy size={presenter ? 22 : 15} className="text-amber-500" />
-              <span className={`font-bold text-slate-900 dark:text-slate-100 tabular-nums ${presenter ? "text-[clamp(30px,2.8vw,52px)]" : ""}`}>
+              <span className={`scratch-winner-name font-bold text-slate-900 dark:text-slate-100 tabular-nums ${presenter ? "text-[clamp(30px,2.8vw,52px)]" : ""}`}>
                 {drawPrimary(winner, displayMode)}
               </span>
               {drawSecondary(winner, displayMode) && (
@@ -173,11 +174,11 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
         {cells ? (
           <motion.div
             key={`board-${state.serial}`}
-            initial={{ opacity: 0, scale: 0.94, y: 10 }}
+            initial={{ opacity: 0, scale: reduced ? 1 : 0.94, y: reduced ? 0 : 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96 }}
+            exit={{ opacity: 0, scale: reduced ? 1 : 0.96 }}
             transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-            className={`relative flex flex-col ${presenter ? 'gap-4' : 'gap-3'}`}
+            className={`scratch-board relative flex flex-col ${presenter ? 'gap-4' : 'gap-3'}`}
           >
             {won && !reduced && <Suspense fallback={null}><ConfettiBurst /></Suspense>}
             {/* 줄 단위로 끊어 놓는다 — 당첨 판정이 '가로 한 줄'이라 눈에도 줄로 보여야 한다. */}
@@ -189,7 +190,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
                   opacity: won && rowIndex !== state.winningRow ? 0.5 : 1,
                 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-                className={`grid grid-cols-3 rounded-3xl ring-1 shadow-sm ${boardShell} ${
+                className={`scratch-row grid grid-cols-3 rounded-3xl ring-1 shadow-sm ${boardShell} ${
                   won && rowIndex === state.winningRow
                     ? 'ring-amber-400 bg-amber-50 dark:bg-amber-500/10 shadow-lg shadow-amber-500/10'
                     : 'ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900'
@@ -218,21 +219,21 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
         ) : (
           <motion.div
             key="empty-board"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: reduced ? 0 : 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className={`flex flex-col ${presenter ? 'gap-4' : 'gap-3'}`}
+            className={`scratch-board flex flex-col ${presenter ? 'gap-4' : 'gap-3'}`}
           >
             {ROW_LINES.map((line, rowIndex) => (
               <div
                 key={`placeholder-row-${rowIndex}`}
-                className={`grid grid-cols-3 rounded-3xl bg-slate-50 dark:bg-slate-800/60 ring-1 ring-dashed ring-slate-200 dark:ring-slate-700 ${boardShell}`}
+                className={`scratch-row grid grid-cols-3 rounded-3xl bg-slate-50 dark:bg-slate-800/60 ring-1 ring-dashed ring-slate-200 dark:ring-slate-700 ${boardShell}`}
               >
                 {line.map((i) => (
                   <motion.div
                     key={i}
                     animate={{ opacity: 0.5 }}
-                    className={`rounded-2xl bg-slate-200 dark:bg-slate-700 ${cellShell}`}
+                    className={`scratch-cell rounded-2xl bg-slate-200 dark:bg-slate-700 ${cellShell}`}
                   />
                 ))}
               </div>
@@ -242,7 +243,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
       </AnimatePresence>
 
       {isView ? (
-        <p className="inline-flex items-center gap-1.5 text-slate-400 text-sm">
+        <p className="scratch-meta inline-flex items-center gap-1.5 text-slate-400 text-sm">
           <Monitor size={14} />
           강사 화면을 그대로 보여주는 중입니다
         </p>
@@ -255,7 +256,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
 
       {mirrorError && !isView && <p role="alert" className="text-sm text-red-300">전자칠판 연결을 확인해주세요. 결과 알림은 아직 보내지 않았어요.</p>}
       {(state.past || []).length > 0 && (
-        <p className={`text-slate-400 ${presenter ? 'text-base' : 'text-xs'}`}>
+        <p className={`scratch-past text-slate-400 ${presenter ? 'text-base' : 'text-xs'}`}>
           지난 당첨{' '}
           <span className="text-slate-600 dark:text-slate-300 font-medium tabular-nums">
             {state.past.map((w) => drawPrimary(w, displayMode)).join(' · ')}

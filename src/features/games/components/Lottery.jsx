@@ -41,8 +41,8 @@ function BigSlot({
   const badgeSize = presenter ? 'text-base px-4 py-1.5' : 'text-xs px-3 py-1';
   return <motion.div key={`slot-${slotIdx}`} initial={{
     opacity: 0,
-    scale: 0.85,
-    y: 20
+    scale: reduced ? 1 : 0.85,
+    y: reduced ? 0 : 20
   }} animate={stopped ? {
     opacity: 1,
     scale: reduced ? 1 : [1, 1.045, 1],
@@ -52,7 +52,7 @@ function BigSlot({
     scale: 1,
     y: 0,
     x: reduced ? 0 : [0, -2, 2, 0]
-  }} transition={stopped ? {
+  }} transition={reduced ? { duration: 0.12 } : stopped ? {
     scale: {
       type: 'tween', duration: 0.28, ease: 'easeOut'
     },
@@ -104,7 +104,7 @@ function BigSlot({
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div key={stopped ? `w-${winner.id}` : reduced ? "preparing" : `r-${rollingPerson?.id}-${slotIdx}`} initial={stopped ? {
           opacity: 0,
-          scale: 0.8
+          scale: reduced ? 1 : 0.8
         } : {
           y: reduced ? 0 : '110%',
           opacity: 0.5
@@ -151,10 +151,11 @@ function PastWinner({
   presenter,
   displayMode
 }) {
-  return <motion.div layout initial={{
+  const reduced = useReducedMotion();
+  return <motion.div layout={!reduced} initial={{
     opacity: 0,
-    scale: 0.8,
-    y: -10
+    scale: reduced ? 1 : 0.8,
+    y: reduced ? 0 : -10
   }} animate={{
     opacity: 1,
     scale: 1,
@@ -427,19 +428,19 @@ export default function Lottery({
       <AnimatePresence>
         {isRolling && <motion.div initial={{
         opacity: 0,
-        y: -8
+        y: reduced ? 0 : -8
       }} animate={{
         opacity: 1,
         y: 0
       }} exit={{
         opacity: 0,
-        y: -8
+        y: reduced ? 0 : -8
       }} className="flex items-center gap-2">
             <motion.div animate={{
-          rotate: [0, -8, 8, -8, 8, 0]
+          rotate: reduced ? 0 : [0, -8, 8, -8, 8, 0]
         }} transition={{
           duration: 0.6,
-          repeat: Infinity,
+          repeat: reduced ? 0 : Infinity,
           ease: 'easeInOut'
         }}>
               <Sparkles size={presenter ? 24 : 18} className="text-amber-500" />
@@ -479,7 +480,7 @@ export default function Lottery({
 
           {viewPhase === 'revealed' && <motion.div key="revealed" initial={{
           opacity: 0,
-          y: 12
+          y: reduced ? 0 : 12
         }} animate={{
           opacity: 1,
           y: 0
@@ -496,9 +497,9 @@ export default function Lottery({
                 {mirrorError ? '결과 공유 대기' : `${viewWinners.length}명 당첨!`}
               </h3>
               <div data-presenter={presenter} data-multiple={viewWinners.length > 3} className={`lottery-result-grid flex flex-wrap justify-center ${presenter ? (viewWinners.length > 3 ? 'gap-6 max-w-[1120px]' : 'gap-6 w-full') : 'gap-3'}`}>
-                {visibleWinners.map((w, i) => <motion.div key={`final-${w.id}`} layout initial={{
+                {visibleWinners.map((w, i) => <motion.div key={`final-${w.id}`} layout={!reduced} initial={{
               opacity: 0,
-              scale: 0.85
+              scale: reduced ? 1 : 0.85
             }} animate={{
               opacity: 1,
               scale: 1
@@ -507,10 +508,10 @@ export default function Lottery({
               type: 'spring',
               stiffness: 360,
               damping: 22
-            }} className={`lottery-result-card flex flex-col items-center bg-slate-900 rounded-2xl shadow-lg ${presenter ? (viewWinners.length === 1 ? 'w-[clamp(340px,30vw,680px)] min-h-[clamp(340px,40dvh,540px)] p-8 justify-center' : viewWinners.length <= 3 ? 'w-[clamp(270px,21vw,460px)] min-h-[clamp(340px,38dvh,500px)] p-6 justify-center' : 'w-[clamp(200px,22vw,340px)] min-h-[240px] p-5') : 'w-28 h-36 p-3'}`}>
+            }} className={`lottery-result-card flex flex-col items-center bg-slate-900 rounded-2xl shadow-lg ${presenter ? (viewWinners.length === 1 ? 'w-[clamp(340px,30vw,680px)] min-h-[clamp(340px,40dvh,540px)] p-8 justify-center' : viewWinners.length <= 3 ? 'w-[clamp(270px,21vw,460px)] min-h-[clamp(340px,38dvh,500px)] p-6 justify-center' : 'w-[clamp(200px,22vw,340px)] min-h-[240px] p-5') : 'w-[clamp(140px,18vw,192px)] min-h-36 p-3'}`}>
                     <Avatar name={w.nickname} size={presenter ? "2xl" : "lg"} className={presenter ? (viewWinners.length > 3 ? "lottery-result-avatar shrink-0" : "shrink-0 !w-[clamp(96px,10vw,192px)] !h-[clamp(96px,10vw,192px)] !text-[clamp(32px,3.5vw,64px)]") : ""} />
                     {/* 발표 후 남는 화면 — 강사가 당첨자를 호명하는 곳이라 사번이 여기에도 있어야 한다. */}
-                    <div className={`lottery-result-name text-white font-bold mt-4 tabular-nums max-w-full text-center leading-tight ${presenter ? (viewWinners.length === 1 ? 'text-[clamp(36px,4.5vw,80px)] break-words' : viewWinners.length <= 3 ? 'text-[clamp(32px,3.5vw,64px)] break-words' : 'text-[clamp(26px,2.5vw,40px)] break-words') : 'text-base truncate'}`}>
+                    <div className={`lottery-result-name text-white font-bold mt-4 tabular-nums max-w-full text-center leading-tight ${presenter ? (viewWinners.length === 1 ? 'text-[clamp(36px,4.5vw,80px)] break-words' : viewWinners.length <= 3 ? 'text-[clamp(32px,3.5vw,64px)] break-words' : 'text-[clamp(26px,2.5vw,40px)] break-words') : 'text-base break-words'}`}>
                       {drawPrimary(w, displayMode)}
                     </div>
                     {drawSecondary(w, displayMode) && <div className={`text-white/60 font-medium tabular-nums truncate max-w-full ${presenter ? 'text-[clamp(22px,2vw,32px)] mt-2' : 'text-[11px]'}`}>
@@ -542,10 +543,10 @@ export default function Lottery({
         <Button onClick={draw} disabled={isRolling || eligibleParticipants.length === 0} variant="primary" size={presenter ? 'lg' : 'md'}>
           {isRolling ? <span className="flex items-center gap-2">
               <motion.span animate={{
-            rotate: 360
+            rotate: reduced ? 0 : 360
           }} transition={{
             duration: 1.2,
-            repeat: Infinity,
+            repeat: reduced ? 0 : Infinity,
             ease: 'linear'
           }}>
                 <Sparkles size={presenter ? 24 : 20} />

@@ -189,7 +189,7 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
               animate={{ scale: 1, opacity: 1 }}
               // 퇴장은 짧은 tween으로 고정한다. spring 퇴장이 끝나기를 기다리는 사이
               // 다음 숫자가 통째로 건너뛰어졌다(3 → 1로 보이던 문제).
-              exit={{ scale: 0.6, opacity: 0, transition: { duration: 0.12 } }}
+              exit={{ scale: reduced ? 1 : 0.6, opacity: 0, transition: { duration: 0.12 } }}
               transition={{ type: 'spring', stiffness: 320, damping: 16 }}
               className="text-6xl font-black tabular-nums text-slate-900 dark:text-slate-100 tracking-tighter"
             >
@@ -216,9 +216,9 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
           {viewSelected ? (
             <motion.div
               key="selected-avatar"
-              initial={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: reduced ? 1 : 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+              exit={{ scale: reduced ? 1 : 0.8, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 22 }}
             >
               <Avatar name={viewSelected.nickname} size="2xl" className={presenter ? "!w-[clamp(128px,12vw,256px)] !h-[clamp(128px,12vw,256px)] !text-[clamp(40px,4vw,80px)]" : ""} />
@@ -259,8 +259,8 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
               className="w-32 h-32 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center"
             >
               <motion.div
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                animate={reduced ? { opacity: 1 } : { opacity: [0.5, 1, 0.5] }}
+                transition={reduced ? { duration: 0 } : { duration: 2, repeat: Infinity }}
               >
                 <UserCircle size={48} className="text-slate-300 dark:text-slate-600" />
               </motion.div>
@@ -319,7 +319,7 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
       <AnimatePresence>
         {viewSelected && (
           <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: reduced ? 1 : 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
@@ -348,8 +348,8 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
           {picking ? (
             <span className="flex items-center gap-2">
               <motion.span
-                animate={{ rotate: 360 }}
-                transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                animate={{ rotate: reduced ? 0 : 360 }}
+                transition={reduced ? { duration: 0 } : { duration: 0.8, repeat: Infinity, ease: 'linear' }}
                 className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
               />
               뽑는 중...

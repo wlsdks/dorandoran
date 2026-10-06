@@ -1,14 +1,22 @@
 import { useState, useEffect, memo } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 /** 한 자리 숫자 카드 — 값이 바뀌면 위에서 새 숫자가 슬라이드로 내려오는 split-flap 풍. */
 function FlipDigit({ digit }) {
+  const reduced = useReducedMotion();
   return (
     <div
       className="flip-digit relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] ring-1 ring-white/10"
       style={{ width: 'var(--flip-digit-width, clamp(3.2rem, 12vw, 9rem))', height: 'var(--flip-digit-height, clamp(5rem, 19vw, 14rem))' }}
     >
-      <AnimatePresence initial={false} mode="popLayout">
+      {reduced ? (
+        <span
+          className="absolute inset-0 flex items-center justify-center font-bold tabular-nums text-white leading-none"
+          style={{ fontSize: 'var(--flip-digit-font, clamp(3rem, 13vw, 10rem))' }}
+        >
+          {digit}
+        </span>
+      ) : <AnimatePresence initial={false} mode="popLayout">
         <motion.span
           key={digit}
           initial={{ y: '-105%' }}
@@ -20,7 +28,7 @@ function FlipDigit({ digit }) {
         >
           {digit}
         </motion.span>
-      </AnimatePresence>
+      </AnimatePresence>}
       {/* 중앙 분할선 (플립시계 시그니처) */}
       <div className="pointer-events-none absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2 bg-black/45" />
       {/* 상단 광택 */}
@@ -30,10 +38,11 @@ function FlipDigit({ digit }) {
 }
 
 function Colon() {
+  const reduced = useReducedMotion();
   return (
     <motion.div
-      animate={{ opacity: [1, 0.25, 1] }}
-      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+      animate={reduced ? { opacity: 1 } : { opacity: [1, 0.25, 1] }}
+      transition={reduced ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }}
       className="flex flex-col justify-center gap-[clamp(0.6rem,2.5vw,1.6rem)]"
     >
       <span className="rounded-full bg-slate-500" style={{ width: 'clamp(0.5rem,1.6vw,1rem)', height: 'clamp(0.5rem,1.6vw,1rem)' }} />

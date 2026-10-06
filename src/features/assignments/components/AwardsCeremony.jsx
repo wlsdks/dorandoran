@@ -3,7 +3,7 @@ import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ChevronRight, Trophy } from 'lucide-react';
 import { useAwards } from '@/features/assignments/api/useAwards';
 import { useAssignment } from '@/features/assignments/api/useAssignments';
@@ -20,6 +20,7 @@ const CEREMONY_ORDER = ['planning', 'creative', 'design', 'practical', 'outstand
  * 강사가 "다음 발표" 버튼으로 순서대로 공개.
  */
 export default function AwardsCeremony({ assignmentId, sessionId, readOnly = false, presenter = false }) {
+  const reduced = useReducedMotion();
   const { assignment } = useAssignment(assignmentId);
   const { awards, loading } = useAwards(assignmentId);
   const [localIndex, setLocalIndex] = useState(-1);
@@ -68,8 +69,8 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <DoranDoranMascot size={160} mood="waiting" />
-        <p className="text-slate-100 text-3xl font-semibold">{readOnly ? '마무리를 준비하고 있어요' : '아직 수상 결과가 없습니다'}</p>
-        <p className="text-slate-300 text-2xl">{readOnly ? '잠시 후 함께 축하해요' : '수상 결과를 준비한 뒤 시상식을 시작하세요'}</p>
+        <p className="text-slate-900 dark:text-slate-100 text-3xl font-semibold">{readOnly ? '마무리를 준비하고 있어요' : '아직 수상 결과가 없습니다'}</p>
+        <p className="text-slate-600 dark:text-slate-300 text-2xl">{readOnly ? '잠시 후 함께 축하해요' : '수상 결과를 준비한 뒤 시상식을 시작하세요'}</p>
       </div>
     );
   }
@@ -78,14 +79,14 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
     <div data-presenter={presenter} className="awards-stage flex flex-col items-center gap-8 w-full max-w-2xl mx-auto py-8" onClick={e => e.stopPropagation()}>
       {/* Title */}
       <motion.div
-        initial={{ opacity: 0, y: -12 }}
+        initial={{ opacity: 0, y: reduced ? 0 : -12 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-2"
       >
-        <Trophy size={28} className="mx-auto text-white/60" />
-        <h2 className="awards-stage-title text-3xl md:text-4xl font-bold text-white tracking-tight">시상식</h2>
+        <Trophy size={28} className="mx-auto text-slate-500 dark:text-white/60" />
+        <h2 className="awards-stage-title text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">시상식</h2>
         {assignment && (
-          <p className="awards-stage-subtitle text-white/40 text-sm">{assignment.title}</p>
+          <p className="awards-stage-subtitle text-slate-600 dark:text-slate-400 text-sm">{assignment.title}</p>
         )}
       </motion.div>
 
@@ -101,9 +102,9 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
               exit={{ opacity: 0 }}
               className="text-center space-y-4"
             >
-              <p className="awards-stage-pending text-white/50 text-lg">{orderedAwards.length}개 수상 발표 예정</p>
+              <p className="awards-stage-pending text-slate-600 dark:text-slate-300 text-lg">{orderedAwards.length}개 수상 발표 예정</p>
               {!readOnly && (
-                <Button onClick={handleNext} size="lg" className="bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20">
+                <Button onClick={handleNext} variant="secondary" size="lg">
                   시상 시작 <ChevronRight size={18} />
                 </Button>
               )}
@@ -111,6 +112,7 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
           ) : (
             <motion.div
               key={`award-${revealIndex}`}
+              className="w-full min-w-0"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -121,6 +123,7 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
                 winner={currentAward}
                 revealed={true}
                 presenter={presenter}
+                showJudge={assignment?.hasJudging === true}
               />
             </motion.div>
           )}
@@ -135,11 +138,11 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
           className="flex items-center gap-3"
         >
           {!isComplete ? (
-            <Button onClick={handleNext} size="lg" className="bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20">
+            <Button onClick={handleNext} variant="secondary" size="lg">
               다음 발표 <ChevronRight size={18} />
             </Button>
           ) : (
-            <Button onClick={handleReset} size="lg" className="bg-white/10 text-white/60 hover:bg-white/20 border border-white/10">
+            <Button onClick={handleReset} variant="secondary" size="lg">
               처음부터
             </Button>
           )}
@@ -160,10 +163,10 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
                 <motion.div
                   key={a.id}
                   animate={{
-                    scale: i === revealIndex ? 1.3 : 1,
+                    scale: !reduced && i === revealIndex ? 1.3 : 1,
                     opacity: i <= revealIndex ? 1 : 0.3,
                   }}
-                  className={`w-2.5 h-2.5 rounded-full ${i <= revealIndex ? 'bg-white' : 'bg-white/20'}`}
+                  className={`w-2.5 h-2.5 rounded-full ${i <= revealIndex ? 'bg-slate-900 dark:bg-white' : 'bg-slate-300 dark:bg-white/20'}`}
                 />
               );
             })}
@@ -175,8 +178,8 @@ export default function AwardsCeremony({ assignmentId, sessionId, readOnly = fal
               {orderedAwards.slice(0, revealIndex).map((a) => {
                 const info = getAwardById(a.id);
                 return (
-                  <span key={a.id} className="awards-stage-previous inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full text-xs text-white/50">
-                    {info?.name}: <span className="text-white/80 font-medium">{a.name}</span>
+                  <span key={a.id} className="awards-stage-previous inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full text-xs text-slate-600 dark:text-slate-400">
+                    {info?.name}: <span className="text-slate-900 dark:text-slate-200 font-medium">{a.name}</span>
                   </span>
                 );
               })}

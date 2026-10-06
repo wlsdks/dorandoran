@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ref, onValue, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { getServerNow } from '@/features/timer/api/useTimer';
@@ -28,6 +28,7 @@ function formatTime(s) {
  * 기존 로컬 state 방식은 발표모드에서 눌러도 전자칠판에 안 보였음 — 세션 동기로 교체.
  */
 export default function BreakTimer({ sessionId, readOnly = false, presenter = false }) {
+  const reduced = useReducedMotion();
   const [endsAt, setEndsAt] = useState(null);      // 세션 동기: 종료 시각(ms)
   const [duration, setDuration] = useState(null);  // 세션 동기: 총 길이(s) — 진행바용
   const [nowTick, setNowTick] = useState(() => getServerNow());
@@ -35,7 +36,10 @@ export default function BreakTimer({ sessionId, readOnly = false, presenter = fa
   // 세션 구독 — 어느 화면(발표/전자칠판)에서 시작해도 모두 동일 카운트다운
   useEffect(() => {
     if (!sessionId) return;
-    const u1 = onValue(ref(db, `sessions/${sessionId}/breakEndsAt`), (s) => setEndsAt(s.val()));
+    const u1 = onValue(ref(db, `sessions/${sessionId}/breakEndsAt`), (s) => {
+      setEndsAt(s.val());
+      setNowTick(getServerNow());
+    });
     const u2 = onValue(ref(db, `sessions/${sessionId}/breakDuration`), (s) => setDuration(s.val()));
     return () => { u1(); u2(); };
   }, [sessionId]);
@@ -79,7 +83,7 @@ export default function BreakTimer({ sessionId, readOnly = false, presenter = fa
     <div data-presenter={presenter} className={`break-timer-stage flex flex-col items-center gap-8 md:gap-10 w-full ${presenter ? "max-w-[1200px] mx-auto" : ""}`} onClick={(e) => e.stopPropagation()}>
       {/* 라벨 + 마스코트 */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: reduced ? 0 : -8 }} animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         className="flex items-center gap-3"
       >
@@ -88,7 +92,7 @@ export default function BreakTimer({ sessionId, readOnly = false, presenter = fa
           <p className={`break-timer-title ${presenter ? "text-3xl md:text-4xl" : "text-2xl md:text-3xl"} font-bold tracking-tight text-slate-900 dark:text-slate-100`}>
             {isFinished ? '쉬는 시간 끝!' : '쉬는 시간'}
           </p>
-          <p className={`break-timer-caption ${presenter ? "text-2xl text-slate-300" : "text-sm text-slate-400 dark:text-slate-500"}`}>
+          <p className={`break-timer-caption ${presenter ? "text-2xl text-slate-600 dark:text-slate-300" : "text-sm text-slate-600 dark:text-slate-400"}`}>
             {isFinished ? '이제 수업을 다시 시작할게요'
               : running ? `${formatTime(remaining)} 후 수업을 이어갑니다`
               : '잠시 후 수업을 이어갑니다'}
@@ -98,11 +102,11 @@ export default function BreakTimer({ sessionId, readOnly = false, presenter = fa
 
       {/* 메인 플립시계 — 카운트다운 중엔 남은 시간이 주인공, 평시엔 현재 시각 */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, scale: reduced ? 1 : 0.94 }} animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 26, delay: 0.05 }}
-        className={`break-clock-display ${isFinished ? 'animate-pulse' : ''}`}
+        className={`break-clock-display ${isFinished && !reduced ? 'animate-pulse' : ''}`}
       >
-        <FlipClock showSeconds values={countdownValues} />
+        <FlipClock key={countdownValues ? 'countdown' : 'clock'} showSeconds values={countdownValues} />
       </motion.div>
 
       {/* 컨트롤 영역 */}
@@ -124,9 +128,9 @@ export default function BreakTimer({ sessionId, readOnly = false, presenter = fa
           {PRESETS.map((p, i) => (
             <motion.button
               key={p.seconds}
-              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: reduced ? 0 : 8 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.04 }}
-              whileTap={{ scale: 0.93 }}
+              whileTap={{ scale: reduced ? 1 : 0.93 }}
               onClick={() => start(p.seconds)}
               className="px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-150"
             >
