@@ -181,6 +181,13 @@ async function questionNamed(title) {
         const { goOffline } = await import('/node_modules/.vite/deps/firebase_database.js');
         goOffline(db);
       });
+      // 끊김이 이어지면 가운데 안내가 뜬다. "화면 보기"로 접으면 헤더 칩만 남고 계속 답할 수 있다.
+      const offlineDialog = student.getByRole('dialog', { name: '연결이 끊겼어요', exact: true });
+      await expect(offlineDialog).toBeVisible({ timeout: 8000 });
+      await expect(offlineDialog.getByText(/자동으로 다시 연결하는 중 · \d+초/)).toBeVisible();
+      await offlineDialog.getByRole('button', { name: '화면 보기', exact: true }).click();
+      await expect(offlineDialog).toBeHidden();
+      await expect(student.getByRole('button', { name: '서버 재연결 중. 연결 안내 열기', exact: true })).toBeVisible();
       await expect(student.getByText('마지막 집계 · 연결 복구 대기', { exact: true })).toBeVisible();
       await expect(student.getByText('· 실시간', { exact: true })).toHaveCount(0);
       await expect(student.getByText('A. 실습', { exact: true })).toBeVisible();
@@ -195,6 +202,7 @@ async function questionNamed(title) {
       });
       await expect(student.getByText('B. 토론', { exact: true })).toBeVisible();
       await expect(student.getByText('전체 선택 비율 · 실시간', { exact: true })).toBeVisible();
+      await expect(student.getByRole('button', { name: '서버 재연결 중. 연결 안내 열기', exact: true })).toHaveCount(0, { timeout: 5000 });
       await expect.poll(async () => (await sessionRef.child(`questions/${pollId}/votes/${learnerUid}/value`).get()).val()).toBe('토론');
     });
     for (const page of [teacher, student]) expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
