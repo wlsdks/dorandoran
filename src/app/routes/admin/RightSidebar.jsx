@@ -12,7 +12,8 @@ import Button from '@/components/ui/Button';
 import ResizeHandle from '@/components/ui/ResizeHandle';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
 
-const RIGHT_PANEL = { initial: 380, min: 280, max: 640, side: 'right' };
+// 기본 폭 = 화면의 25% (14인치 1512px → 378, 16인치 1728px → 432, 17인치 1920px → 480, 큰 모니터 최대 560)
+const RIGHT_PANEL = { initial: (viewport) => Math.round(Math.min(560, Math.max(360, viewport * 0.25))), min: 300, max: 760, side: 'right' };
 import { isResponseQuestion, questionParticipationKind } from '@/lib/response-questions';
 
 const SIDEBAR_TABS = [
@@ -59,7 +60,6 @@ function ActiveRightSidebar({ session, sessionId, count, participants, onlineLis
   const id = useId();
   const [activeTab, setActiveTab] = useState('communication');
   const [copied, setCopied] = useState(false);
-  const [liveCopied, setLiveCopied] = useState(false);
   const [rosterOpen, setRosterOpen] = useState(false);
   const drawOnly = !!session?.drawOnly;
 
@@ -71,13 +71,6 @@ function ActiveRightSidebar({ session, sessionId, count, participants, onlineLis
     } catch { setCopied(false); }
   }
 
-  async function copyLiveUrl() {
-    try {
-      await navigator.clipboard.writeText(`${window.location.origin}/live?s=${sessionId}`);
-      setLiveCopied(true);
-      window.setTimeout(() => setLiveCopied(false), 2000);
-    } catch { setLiveCopied(false); }
-  }
 
   const activeQ = session?.currentQuestion ? session?.questions?.[session.currentQuestion] : null;
   const activeKind = questionParticipationKind(activeQ);
@@ -121,7 +114,6 @@ function ActiveRightSidebar({ session, sessionId, count, participants, onlineLis
           : '활동을 시작하면 참여 현황이 표시됩니다.'}</p>}
         {session?.requireEmployeeId && <EventStats participants={onlineList} count={count} variant="sidebar" />}
         {leaderboard.length > 0 && <section className="space-y-3" aria-label="상위 랭킹"><h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">상위 랭킹</h3><Leaderboard entries={leaderboard} maxShow={5} title={null} /></section>}
-        <Button onClick={copyLiveUrl} variant="secondary" size="sm" className="w-full h-12">{liveCopied ? <Check size={20} /> : <Monitor size={20} />}{liveCopied ? '링크 복사됨' : '전자칠판 링크 복사'}</Button>
       </SidebarPanel>
     </div>
   );
@@ -157,7 +149,7 @@ function ReadOnlyRightSidebar({ session, participants, leaderboard, voteCounts }
 }
 
 export default memo(function RightSidebar({ session, sessionId, effectiveReadOnly, participants, onlineList, count, leaderboard, voteCounts, studentUrl, sidebarCollapsed, isDrawer = false, courseId }) {
-  const panel = useResizableWidth('dorandoran:admin-right-width', RIGHT_PANEL);
+  const panel = useResizableWidth('dorandoran:admin-right-width-v2', RIGHT_PANEL);
   const content = effectiveReadOnly
     ? <ReadOnlyRightSidebar key={sessionId} session={session} participants={participants} leaderboard={leaderboard} voteCounts={voteCounts} />
     : <ActiveRightSidebar key={sessionId} session={session} sessionId={sessionId} count={count} participants={participants} onlineList={onlineList} leaderboard={leaderboard} voteCounts={voteCounts} studentUrl={studentUrl} courseId={courseId} />;

@@ -25,12 +25,13 @@ import MobileAdminView from './MobileAdminView';
 import ResizeHandle from '@/components/ui/ResizeHandle';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
 
-const LEFT_PANEL = { initial: 360, min: 280, max: 640, side: 'left' };
+// 기본 폭 = 화면의 25% (14인치 1512px → 378, 16인치 1728px → 432, 17인치 1920px → 480, 큰 모니터 최대 560)
+const LEFT_PANEL = { initial: (viewport) => Math.round(Math.min(560, Math.max(360, viewport * 0.25))), min: 300, max: 760, side: 'left' };
 const StaffPage = lazy(() => import('./StaffPage'));
 const StaffCourseDashboard = lazy(() => import('./StaffCourseDashboard'));
 export default function AdminPage() {
   const s = useAdminSession();
-  const leftPanel = useResizableWidth('dorandoran:admin-left-width', LEFT_PANEL);
+  const leftPanel = useResizableWidth('dorandoran:admin-left-width-v2', LEFT_PANEL);
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isTablet = useMediaQuery('(max-width: 1199px)');
 

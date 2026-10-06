@@ -130,6 +130,7 @@
       }
     },
     "sessions": {
+      ".indexOn": ["status"],
       "$sid": {
         "creatorId": {
           ".read": "auth != null",
