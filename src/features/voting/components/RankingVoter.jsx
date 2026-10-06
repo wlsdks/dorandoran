@@ -134,7 +134,8 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
           {options.map((item, pos) => {
             const ok = mine ? mine[pos] === pos : null;
             return (
-              <li key={pos} className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5">
+              <li key={pos} data-ranking-hit={ok || undefined} style={ok ? { '--hit-delay': `${pos * 110}ms` } : undefined}
+                className={`relative overflow-hidden rounded-xl border px-3 py-2.5 ${ok ? 'ranking-hit border-indigo-300 bg-indigo-50/60 dark:border-indigo-400/60 dark:bg-indigo-500/10' : 'border-slate-200 dark:border-slate-700'}`}>
                 <div className="flex items-center gap-2">
                   <span className="w-10 shrink-0 text-center text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums">{pos + 1}위</span>
                   <span className="flex-1 min-w-0 text-base font-semibold text-slate-900 dark:text-slate-100 [word-break:keep-all]">{item}</span>

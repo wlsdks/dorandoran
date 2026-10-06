@@ -364,3 +364,13 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
  .classroom-visualization .scale-result-histogram { height:100px; }
  .classroom-visualization .scale-result-average { font-size:64px; }
 }
+
+/* 순위 맞추기 결과: 내가 맞힌 자리만 빛이 한 번 스치고 은은한 테두리 빛이 남는다(차례로). */
+.ranking-hit { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); animation: ranking-hit-glow 900ms ease-out var(--hit-delay, 0ms) both; }
+.ranking-hit::after { content: ''; position: absolute; inset: 0; pointer-events: none; transform: translateX(-120%);
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / .55) 50%, transparent 70%);
+  animation: ranking-hit-shine 900ms ease-out calc(var(--hit-delay, 0ms) + 120ms) both; }
+.dark .ranking-hit::after { background: linear-gradient(105deg, transparent 30%, rgb(165 172 240 / .35) 50%, transparent 70%); }
+@keyframes ranking-hit-shine { to { transform: translateX(120%); } }
+@keyframes ranking-hit-glow { 0% { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); } 40% { box-shadow: 0 0 0 4px rgb(94 106 210 / .28), 0 0 18px rgb(94 106 210 / .35); } 100% { box-shadow: 0 0 0 1px rgb(94 106 210 / .18), 0 0 10px rgb(94 106 210 / .14); } }
+@media (prefers-reduced-motion: reduce) { .ranking-hit, .ranking-hit::after { animation: none; } .ranking-hit::after { display: none; } }
