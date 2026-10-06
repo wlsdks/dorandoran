@@ -42,15 +42,18 @@ async function join(page, nickname) {
   await expect(page.getByRole('heading', { name: '현재 리더보드', exact: true })).toBeVisible();
   return rememberAnonymous(page);
 }
+// Planning ranks never shows anything: the plan is stored with enabled:false until the first reveal.
 async function selectRanks(teacher, text) {
-  await teacher.getByRole('button', { name: '강조 순위 설정', exact: true }).click();
-  const dialog = teacher.getByRole('dialog', { name: '강조 순위 설정', exact: true });
-  await dialog.getByLabel('강조할 순위', { exact: true }).fill(text);
-  await dialog.getByRole('button', { name: '강조하기', exact: true }).click();
+  await teacher.getByRole('button', { name: '특별 순위 설정', exact: true }).click();
+  const dialog = teacher.getByRole('dialog', { name: '특별 순위 설정', exact: true });
+  await dialog.getByLabel('특별 순위', { exact: true }).fill(text);
+  await dialog.getByRole('button', { name: '저장', exact: true }).click();
   await expect(dialog).not.toBeVisible();
+  await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/enabled`).get()).val()).toBe(false);
 }
-async function verifyRank(rank, teacher, wall, large, phones, first = false) {
-  if (!first) await teacher.getByRole('button', { name: '다음 강조', exact: true }).click();
+const revealButton = teacher => teacher.getByRole('button', { name: /^특별 순위 공개/ });
+async function verifyRank(rank, teacher, wall, large, phones, click = true) {
+  if (click) await revealButton(teacher).click();
   await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/activeRank`).get()).val()).toBe(rank);
   const row = `[data-ranking-featured="true"][data-rank="${rank}"]`;
   for (const page of [wall, large]) {
@@ -110,19 +113,21 @@ async function verifyRank(rank, teacher, wall, large, phones, first = false) {
     const smallUid = await join(small, '강조폰320'), iosUid = await join(ios, '강조폰390');
     await db.ref(`sessions/${sid}/scores`).update({ h_50: null, [smallUid]: { nickname: '강조폰320', total: 1750 }, h_150: null, [iosUid]: { nickname: '강조폰390', total: 1250 } });
 
-    await teacher.getByRole('button', { name: '강조 순위 설정', exact: true }).click();
-    const dialog = teacher.getByRole('dialog', { name: '강조 순위 설정', exact: true });
+    await teacher.getByRole('button', { name: '특별 순위 설정', exact: true }).click();
+    const dialog = teacher.getByRole('dialog', { name: '특별 순위 설정', exact: true });
     for (const text of ['0, x', '1 2 3 4 5 6 7 8 9 10 11']) {
-      await dialog.getByLabel('강조할 순위', { exact: true }).fill(text);
-      await dialog.getByRole('button', { name: '강조하기', exact: true }).click();
+      await dialog.getByLabel('특별 순위', { exact: true }).fill(text);
+      await dialog.getByRole('button', { name: '저장', exact: true }).click();
       await expect(dialog.getByRole('alert')).toBeVisible();
       expect((await db.ref(`sessions/${sid}/leaderboardHighlight`).get()).val()).toBeNull();
     }
-    await dialog.getByLabel('강조할 순위', { exact: true }).fill('1, 1 3, 10');
-    await dialog.getByRole('button', { name: '강조하기', exact: true }).click();
+    await dialog.getByLabel('특별 순위', { exact: true }).fill('1, 1 3, 10');
+    await dialog.getByRole('button', { name: '저장', exact: true }).click();
     await expect(dialog).not.toBeVisible();
-    await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/ranks`).get()).val()).toEqual([1, 3, 10]);
-    await verifyRank(1, teacher, wall, large, [small, ios], true);
+    await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight`).get()).val()).toEqual({ ranks: [1, 3, 10], enabled: false, revealed: 0 });
+    for (const page of [wall, large, small, ios]) await expect(page.locator('[data-ranking-featured="true"]')).toHaveCount(0);
+    report.checks.push('planned ranks stay hidden on every view until the first reveal');
+    await verifyRank(1, teacher, wall, large, [small, ios]);
     for (const page of [wall, large, small, ios]) {
       await page.getByRole('button', { name: '다음 랭킹 페이지', exact: true }).click();
       await page.getByRole('button', { name: '다음 랭킹 페이지', exact: true }).click();
@@ -132,7 +137,7 @@ async function verifyRank(rank, teacher, wall, large, phones, first = false) {
     for (const page of [wall, large, small, ios]) await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 26');
     await db.ref(`sessions/${sid}/scores/h_extra`).remove();
     for (const page of [wall, large, small, ios]) await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 25');
-    await teacher.getByRole('button', { name: '다음 강조', exact: true }).click();
+    await revealButton(teacher).click();
     await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/activeRank`).get()).val()).toBe(3);
     expect((await db.ref(`sessions/${sid}/leaderboardPage`).get()).val()).toBe(0);
     for (const page of [wall, large]) {
@@ -140,27 +145,29 @@ async function verifyRank(rank, teacher, wall, large, phones, first = false) {
       await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('1 / 25');
     }
     for (const phone of [small, ios]) {
-      await expect(phone.locator('[aria-label="현재 강조 순위"]')).toContainText('강조 순위 3위');
+      await expect(phone.locator('[aria-label="현재 강조 순위"]')).toContainText('특별 순위 3위');
       await expect(phone.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 25');
       await expect(phone.locator('[data-ranking-featured="true"]')).toHaveCount(0);
     }
     report.checks.push('same-page highlight command restores board focus, preserves student browsing and ignores count-only changes');
     await shot(wall, 'wall-same-page-highlight3.png');
     await shot(small, 'mobile320-manual-page-preserved.png');
-    await verifyRank(3, teacher, wall, large, [small, ios], true);
+    await verifyRank(3, teacher, wall, large, [small, ios], false);
     await verifyRank(10, teacher, wall, large, [small, ios]);
     report.checks.push('invalid/max10 rejected, duplicate normalized, requested1/3/10 synchronized');
     await shot(wall, 'wall-highlight10.png');
 
     await selectRanks(teacher, '1 10 50 200');
-    for (const rank of [1, 10, 50, 200]) await verifyRank(rank, teacher, wall, large, [small, ios], rank === 1);
+    for (const rank of [1, 10, 50, 200]) await verifyRank(rank, teacher, wall, large, [small, ios]);
     report.checks.push('positions1/10/50/200 and page synchronization on wall/mobile');
     await shot(large, 'simulated4K-highlight200.png');
     const card = await large.locator('section[aria-label="실시간 리더보드"]').boundingBox();
     expect(card.y + card.height).toBeLessThanOrEqual(2160);
 
+    await teacher.getByRole('button', { name: '특별 순위 처음부터', exact: true }).click();
+    await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/revealed`).get()).val()).toBe(0);
     for (const rank of [1, 10, 50]) {
-      await teacher.getByRole('button', { name: '다음 강조', exact: true }).click();
+      await revealButton(teacher).click();
       await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/activeRank`).get()).val()).toBe(rank);
     }
     await db.ref(`sessions/${sid}/scores/h_0/total`).set(0);
@@ -170,8 +177,8 @@ async function verifyRank(rank, teacher, wall, large, phones, first = false) {
     await expect(small.locator('[data-ranking-featured="true"][data-rank="50"]')).toContainText('강조폰320');
     report.checks.push('highlight tracks displayed rank after live score reordering, not a fixed uid');
     await shot(small, 'mobile320-current-rank-change.png');
-    await teacher.getByRole('button', { name: '강조 해제', exact: true }).click();
-    await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight`).get()).val()).toBeNull();
+    await teacher.getByRole('button', { name: '특별 순위 해제', exact: true }).click();
+    await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/enabled`).get()).val()).toBe(false);
     for (const page of [wall, large, small, ios]) await expect(page.locator('[data-ranking-featured="true"]')).toHaveCount(0);
     expect(await wall.locator('[data-rank]').evaluateAll(rows => rows.every(row => getComputedStyle(row).boxShadow === 'none'))).toBe(true);
     report.checks.push('clear removes active badges and residual accents on every view');

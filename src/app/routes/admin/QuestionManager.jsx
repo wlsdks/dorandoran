@@ -13,6 +13,7 @@ import { useHandRaises } from '@/features/hand-raise/api/useHandRaises';
 import { useUrgentQuestions } from '@/features/questions/api/useUrgentQuestions';
 import QuestionForm from './QuestionForm';
 import StudentRankingToggle from './StudentRankingToggle';
+import SpecialRankPreset from './SpecialRankPreset';
 import QuestionList from './QuestionList';
 import QuickProgressCard from './QuickProgressCard';
 import ImportFromLibraryModal from './ImportFromLibraryModal';
@@ -208,6 +209,7 @@ export default function QuestionManager({
               </div>
               {!available && <p id="question-ai-unavailable" className="text-xs text-slate-500 dark:text-slate-400">{reason}</p>}
               <StudentRankingToggle sessionId={sessionId} />
+              <SpecialRankPreset sessionId={sessionId} />
               {modeSlot}
             </div>
           </details>

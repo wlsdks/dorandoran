@@ -1,5 +1,6 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
-import { normalizeRankingHighlight } from '@/lib/ranking-highlight';
+import { rankingHighlightUpdates } from '@/lib/ranking-highlight';
+import RankingHighlightControls from '@/features/quiz/components/RankingHighlightControls';
 import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
 import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
@@ -403,10 +404,6 @@ export default function PresentationView({ sessionId, session, currentMode, onli
           scores={scores}
           onGameResult={handleGameResult}
           onLeaderboardPageChange={readOnly ? undefined : page => update(ref(db, `sessions/${sessionId}`), { leaderboardPage: page }).catch(() => {})}
-          onHighlightChange={readOnly ? undefined : config => {
-            const selected = normalizeRankingHighlight(config);
-            return update(ref(db, `sessions/${sessionId}`), { leaderboardHighlight: selected, ...(selected ? { leaderboardPage: Math.floor((selected.activeRank - 1) / 8) } : {}) });
-          }}
         />
       </div>
 
@@ -424,7 +421,10 @@ export default function PresentationView({ sessionId, session, currentMode, onli
               {(current.currentSlide || 0) >= (current.slideImages?.length || 1) - 1 ? '다음 활동' : '다음'}<ChevronRight size={20} /></Button>
           </> : <>
             <Button variant="secondary" size="lg" onClick={goPrev} disabled={currentQIdx <= 0}><ChevronLeft size={18} />이전</Button>
-            <PresentRevealControls key={session?.currentQuestion} sessionId={sessionId} session={session} onRevealQuiz={revealQuiz} onRevealAnswer={revealAnswer} />
+            {/* 리더보드 모드에서는 미리 정한 특별 순위를 한 버튼으로 차례로 공개한다 */}
+            {currentMode === 'leaderboard' && !readOnly
+              ? <RankingHighlightControls size="lg" highlight={session?.leaderboardHighlight} maxRank={leaderboard.length} onHighlightChange={config => update(ref(db, `sessions/${sessionId}`), rankingHighlightUpdates(config))} />
+              : <PresentRevealControls key={session?.currentQuestion} sessionId={sessionId} session={session} onRevealQuiz={revealQuiz} onRevealAnswer={revealAnswer} />}
             <Button variant="secondary" size="lg" onClick={goNext} disabled={currentQIdx >= questionList.length - 1}>다음 활동<ChevronRight size={18} /></Button>
           </>}
         </div>

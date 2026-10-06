@@ -95,9 +95,28 @@ test('순위 강조는 수업 소유자만 지정하고 참가자는 읽기만 �
   for (const invalid of [{ ...valid, activeRank: 2 }, { ...valid, ranks: [0] },
     { ...valid, ranks: [1.5] }, { ...valid, ranks: [] }, { ...valid, enabled: false },
     { ...valid, ranks: Array.from({ length: 11 }, (_, i) => i + 1) },
-    { ...valid, studentId: 'student_a' }, { ...valid, total: 999 }]) {
+    { ...valid, studentId: 'student_a' }, { ...valid, total: 999 },
+    { ...valid, revealed: 11 }, { ...valid, revealed: 1.5 }, { ...valid, revealed: -1 }, { ...valid, revealed: '2' }]) {
     await assertFails(set(ref(owner, path), invalid));
   }
+  await assertSucceeds(set(ref(owner, path), { ...valid, revealed: 2 }));
+  await assertSucceeds(set(ref(owner, path), null));
+});
+
+test('특별 순위 계획은 공개 전까지 enabled:false로 저장되고 activeRank 없이만 허용된다', async () => {
+  const path = 'sessions/qa_room/leaderboardHighlight';
+  const owner = staff('legacy_teacher', 'admin');
+  const plan = { ranks: [1, 2, 3, 27], enabled: false, revealed: 0 };
+  await assertSucceeds(set(ref(owner, path), plan));
+  assert.deepEqual((await assertSucceeds(get(ref(student('student_a'), path)))).val(), plan);
+  await assertFails(set(ref(student('student_a'), path), plan));
+  await assertFails(set(ref(staff('other_teacher', 'admin'), path), plan));
+  for (const invalid of [{ ...plan, activeRank: 1 }, { ...plan, ranks: [] }, { ...plan, enabled: 'false' },
+    { ranks: [1, 2], revealed: 0 }, { ...plan, revealed: 11 }, { ...plan, note: 'x' }]) {
+    await assertFails(set(ref(owner, path), invalid));
+  }
+  await assertSucceeds(set(ref(owner, path), { ranks: [1, 2, 3, 27], enabled: false, revealed: 2 }));
+  await assertSucceeds(set(ref(owner, path), { ranks: [1, 2, 3, 27], activeRank: 3, enabled: true, revealed: 3 }));
   await assertSucceeds(set(ref(owner, path), null));
 });
 
