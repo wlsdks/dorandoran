@@ -1,14 +1,12 @@
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { motion as motionTokens } from '@/lib/design-tokens';
 import AIAvailabilityProvider from '@/components/ui/AIAvailabilityProvider';
 import VisualViewportSupport from '@/components/ui/VisualViewportSupport';
 import AuthenticationBoundary from '@/components/ui/AuthenticationBoundary';
 import { onDisconnect, onValue, ref, remove, set } from 'firebase/database';
-import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import EmptyState from '@/components/ui/EmptyState';
-import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import JoinPage from '@/app/routes/student/JoinPage';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { SuspenseFallback } from '@/components/ui/Skeleton';
@@ -75,37 +73,7 @@ function StudentRouter() {
     };
   }, [joined, sessionId]);
 
-  if (!sessionId) {
-    return (
-      <div className="relative min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: motionTokens.duration.normal }}
-          className="text-center space-y-5 max-w-xs"
-        >
-          <div className="flex justify-center">
-            <DoranDoranMascot size="lg" mood="waiting" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-              강사가 공유한 링크 또는 QR코드를<br />통해 접속해주세요
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-xs text-slate-400 dark:text-slate-500">실시간 강의 참여 플랫폼</span>
-          </div>
-        </motion.div>
-        <a
-          href="/admin"
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors underline underline-offset-2"
-        >
-          강사이신가요? 로그인
-        </a>
-      </div>
-    );
-  }
+  if (!sessionId) return <Navigate to="/admin" replace />;
 
   return (
     <AnimatePresence mode="wait">
