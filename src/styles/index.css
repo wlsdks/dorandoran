@@ -301,7 +301,8 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .paper-surface .classroom-results { width:100%; }
 .paper-surface .classroom-result-grid { gap:clamp(12px,1.1vw,22px); }
 .paper-surface .classroom-option-card { border:0;border-radius:12px;background:transparent!important;color:#f1f5f9;padding:16px 8px; }
-.paper-surface .classroom-option-card[data-correct='true'] { background:rgb(94 106 210 / .16)!important;box-shadow:0 0 0 2px var(--color-indigo-400);padding-inline:20px; }
+/* 테두리 빛은 answer-glow가 그린다(아래 정답 공개 빛 규칙) */
+.paper-surface .classroom-option-card[data-correct='true'] { background:rgb(94 106 210 / .16)!important;padding-inline:20px; }
 .paper-surface .classroom-option-label { color:#f1f5f9;font-size:var(--stage-label,clamp(18px,1.55vw,34px));font-weight:600; }
 .paper-surface .classroom-option-statistics { color:#f1f5f9; }
 .paper-surface .classroom-option-statistics p { color:#cbd5e1; }
@@ -413,3 +414,39 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 @keyframes ranking-hit-shine { to { transform: translateX(120%); } }
 @keyframes ranking-hit-glow { 0% { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); } 40% { box-shadow: 0 0 0 4px rgb(94 106 210 / .28), 0 0 18px rgb(94 106 210 / .35); } 100% { box-shadow: 0 0 0 1px rgb(94 106 210 / .18), 0 0 10px rgb(94 106 210 / .14); } }
 @media (prefers-reduced-motion: reduce) { .ranking-hit, .ranking-hit::after { animation: none; } .ranking-hit::after { display: none; } }
+
+/* 정답 공개 빛(answer-glow): 공개 순간 인디고 빛이 한 번 부풀어 가라앉고(700ms) 빛줄기가 한 번 지나간 뒤,
+   차분한 테두리 빛과 옅은 후광이 남아 틀린 보기와 또렷이 구분된다. 틀린 보기는 answer-dim으로 살짝 가라앉힌다(숨기지 않는다).
+   요소 자체의 그림자는 고정이고 ::after(후광)·::before(빛줄기)만 transform/opacity로 움직여 300명이 동시에 봐도 가볍다.
+   빛줄기는 요소 안에서만 이동하므로 overflow:hidden이 필요 없다(바깥 후광이 잘리지 않는다).
+   --glow-pad: 바탕이 없는 항목(세로 막대·분포 행)을 감싸는 판 두께. 감속 모션에서는 정지된 테두리 빛만 남는다. */
+.answer-glow { --glow: 94 106 210; --glow-pad: 0px; --glow-ring: 2px; position: relative; z-index: 1; isolation: isolate;
+  /* 테두리는 outline(반투명 판 그림자 밑으로 비치지 않는다), 판 두께는 spread 그림자 — 둘 다 고정이라 그릴 비용이 없다 */
+  box-shadow: 0 0 0 var(--glow-pad) rgb(var(--glow) / .1);
+  outline: var(--glow-ring) solid rgb(var(--glow) / .85); outline-offset: var(--glow-pad); }
+.dark .answer-glow { --glow: 127 135 216; }
+.answer-glow::after { content: ''; position: absolute; inset: calc(-1 * var(--glow-pad)); border-radius: inherit; pointer-events: none; z-index: -1; opacity: .45;
+  box-shadow: 0 0 0 calc(var(--glow-ring) + 2px) rgb(var(--glow) / .32), 0 0 36px 8px rgb(var(--glow) / .5);
+  animation: answer-glow-bloom 700ms cubic-bezier(.2, .8, .2, 1) both; }
+.answer-glow::before { content: ''; position: absolute; top: calc(-1 * var(--glow-pad)); bottom: calc(-1 * var(--glow-pad)); left: calc(-1 * var(--glow-pad)); width: 38%;
+  pointer-events: none; z-index: var(--glow-sweep-z, -1); opacity: 0;
+  background: linear-gradient(100deg, transparent 15%, rgb(255 255 255 / .3) 50%, transparent 85%), linear-gradient(100deg, transparent 15%, rgb(var(--glow) / .18) 50%, transparent 85%);
+  animation: answer-glow-sweep 800ms cubic-bezier(.3, .7, .3, 1) 140ms both; }
+.answer-dim { opacity: .55; transition: opacity 300ms ease; }
+@keyframes answer-glow-bloom { 0% { opacity: 0; transform: scale(.96); } 40% { opacity: 1; transform: scale(1.02); } 100% { opacity: .45; transform: scale(1); } }
+@keyframes answer-glow-sweep { 0% { transform: translateX(0); opacity: 0; } 20%, 80% { opacity: 1; } 100% { transform: translateX(165%); opacity: 0; } }
+/* 전자칠판: 뒷자리에서도 보이게 테두리를 한 단계 굵게 */
+.paper-surface .answer-glow, .classroom-visualization .answer-glow { --glow-ring: 3px; }
+/* 바탕 없는 항목은 주변을 판으로 감싼다 — 레이아웃은 그대로 두고 그림자 spread로 바깥에 그린다 */
+.poll-column.answer-glow { --glow-pad: 10px; border-radius: 10px; background: rgb(var(--glow) / .1); }
+.poll-column.answer-glow::after { border-radius: 20px; }
+.answer-distribution-row.answer-glow { --glow-pad: 10px; border-radius: 8px; background: rgb(var(--glow) / .08); }
+.answer-distribution-row.answer-glow::after { border-radius: 18px; }
+.student-result-row.answer-glow { --glow-pad: 6px; border-radius: 6px; background: rgb(var(--glow) / .08); }
+.student-result-row.answer-glow::after { border-radius: 12px; }
+/* 사진 보기는 빛줄기가 사진 위로 지나가야 보인다 */
+figure.answer-glow { --glow-sweep-z: 2; }
+@media (prefers-reduced-motion: reduce) {
+  .answer-glow::after { animation: none; opacity: .45; }
+  .answer-glow::before { display: none; }
+}

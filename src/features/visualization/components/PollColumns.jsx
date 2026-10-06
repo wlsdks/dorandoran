@@ -11,9 +11,10 @@ export default function PollColumns({ options, counts, total, revealed, correctV
     <div className="poll-columns-plot" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}>
       {options.map((option, index) => {
         const correct = revealed && correctValue === option;
+        const dimmed = revealed && correctValue != null && !correct;
         const percent = total ? Math.round(counts[index] / total * 100) : 0;
         const proportion = total ? counts[index] / total / scale : 0;
-        return <div key={option} className="poll-column" data-correct={correct}>
+        return <div key={option} className={`poll-column ${correct ? 'answer-glow' : dimmed ? 'answer-dim' : ''}`} data-correct={correct}>
           <div className="poll-column-bar-area">
             {total > 0 && <>
               <motion.div className="poll-column-value" initial={false} animate={{ bottom: `calc(${proportion * 100}% - ${proportion * 64}px + 12px)` }} transition={{ type: 'spring', stiffness: 150, damping: 25 }}><span><AnimatedNumber value={percent} />%</span><span>{counts[index]}명</span></motion.div>
