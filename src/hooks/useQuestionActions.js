@@ -181,11 +181,14 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
 
       // 기존 질문에서 type별 필드(stale)를 모두 제거한 뒤, 새 type 기준으로 재조립.
       // 답변(votes)·메타(order/activatedAt 등)는 보존. 조립은 생성과 동일한 순수함수 사용.
-      const questionData = { ...existing, type: fields.type, title: fields.title.trim() };
-      QUESTION_TYPE_FIELDS.forEach((k) => delete questionData[k]);
-      Object.assign(questionData, buildQuestionData(fields.type, fields));
+      // 문항 전체를 set으로 다시 쓰면 학생 투표(votes)까지 재기록돼, 정답 공개 뒤에는 규칙에 막힌다.
+      // 바뀌는 필드만 update하고, 새 type에 없는 type별 필드는 null로 지운다.
+      const next = buildQuestionData(fields.type, fields);
+      const patch = { type: fields.type, title: fields.title.trim() };
+      QUESTION_TYPE_FIELDS.forEach((k) => { patch[k] = next[k] === undefined ? null : next[k]; });
+      Object.entries(next).forEach(([k, v]) => { if (!(k in patch)) patch[k] = v; });
 
-      await set(ref(db, `sessions/${sessionId}/questions/${qId}`), questionData);
+      await update(ref(db, `sessions/${sessionId}/questions/${qId}`), patch);
       showToast('질문이 수정되었습니다');
       return true;
     } catch {
