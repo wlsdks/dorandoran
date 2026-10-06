@@ -202,19 +202,20 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
  .classroom-result-grid > div { padding:12px; }
 }
 /* 큰 글자와 안정된 프레임을 함께 유지한다. 표시 자료를 화면 끝까지 늘리지 않는다. */
-.classroom-stage { --stage-title:clamp(2rem,3vw,3.5rem);--stage-label:clamp(1.5rem,2.1vw,2.5rem);--stage-count:clamp(1.75rem,2.4vw,3rem); }
+/* 전자칠판 글자 비율: 제목 1 : 보기 0.65 : 숫자 0.72 (1920px 기준 46 / 30 / 33px). 뒷자리 가독성은 지키되 과하지 않게. */
+.classroom-stage { --stage-title:clamp(1.75rem,2.4vw,3.5rem);--stage-label:clamp(1.125rem,1.55vw,2.125rem);--stage-count:clamp(1.25rem,1.7vw,2.375rem); }
 .classroom-results { width:min(80vw,1200px,100%);margin-inline:auto; }
 @media (max-height:850px) and (min-width:768px) {
- .classroom-stage { --stage-title:clamp(2rem,3vw,3rem);--stage-label:clamp(1.5rem,2.1vw,2rem);--stage-count:clamp(1.75rem,2.4vw,2.25rem); }
+ .classroom-stage { --stage-title:clamp(1.75rem,2.4vw,2.75rem);--stage-label:clamp(1.125rem,1.55vw,1.75rem);--stage-count:clamp(1.25rem,1.7vw,2rem); }
 }
 @media (max-width:640px) { .classroom-results { width:100%; } }
 .paper-surface { width:min(84vw,1800px);margin-inline:auto;padding:clamp(24px,3vw,44px)!important;background:#151517;border:1px solid #2a2a2f;border-radius:20px;color:#f1f5f9;box-shadow:0 20px 60px rgb(2 6 23 / .16); }
-.paper-surface .classroom-question-title { color:#f1f5f9;font-size:clamp(28px,2.8vw,64px);font-weight:700;letter-spacing:-.035em; }
+.paper-surface .classroom-question-title { color:#f1f5f9;font-size:var(--stage-title,clamp(28px,2.4vw,56px));font-weight:700;letter-spacing:-.03em; }
 .paper-surface .classroom-results { width:100%; }
-.paper-surface .classroom-result-grid { gap:24px; }
+.paper-surface .classroom-result-grid { gap:clamp(12px,1.1vw,22px); }
 .paper-surface .classroom-option-card { border:0;border-radius:12px;background:transparent!important;color:#f1f5f9;padding:16px 8px; }
 .paper-surface .classroom-option-card[data-correct='true'] { background:rgb(94 106 210 / .16)!important;box-shadow:0 0 0 2px var(--color-indigo-400);padding-inline:20px; }
-.paper-surface .classroom-option-label { color:#f1f5f9;font-size:clamp(22px,2.1vw,42px);font-weight:600; }
+.paper-surface .classroom-option-label { color:#f1f5f9;font-size:var(--stage-label,clamp(18px,1.55vw,34px));font-weight:600; }
 .paper-surface .classroom-option-statistics { color:#f1f5f9; }
 .paper-surface .classroom-option-statistics p { color:#cbd5e1; }
 .paper-surface .classroom-option-card > div:last-child { height:10px;background:#3f3f46; }

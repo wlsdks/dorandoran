@@ -17,10 +17,11 @@ function SentenceDisplay({ title, correctAnswer, revealed, presenter }) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.2 }}
-              className={`inline-block mx-1 px-3 py-1 rounded-lg font-bold tracking-tight border-b-2 ${
+              // 밑줄(border-b) 대신 둥근 칩 하나로 빈칸을 표시한다 — 공개 전은 점선 테두리, 공개 후는 인디고 틴트.
+              className={`inline-block mx-1 px-[0.45em] py-[0.05em] rounded-[0.35em] font-bold tracking-tight align-baseline ${
                 revealed
-                  ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-slate-500'
-                  : 'bg-slate-50 dark:bg-slate-700 text-slate-300 border-dashed border-slate-300 dark:border-slate-500'
+                  ? 'bg-indigo-500/15 text-slate-900 ring-1 ring-indigo-400/60 dark:text-slate-50'
+                  : 'text-slate-400 dark:text-slate-500 outline-dashed outline-2 -outline-offset-2 outline-slate-300 dark:outline-slate-600'
               }`}
             >
               {revealed ? correctAnswer : '빈칸'}
@@ -116,7 +117,8 @@ export default memo(function FillBlankChart({ sessionId, questionId, title, corr
       )}
 
       {/* Total */}
-      {(revealed || !presenter) && <div className="text-center text-slate-400 dark:text-slate-500 text-sm pt-2 border-t border-slate-100 dark:border-slate-700">
+      {/* 구분선 없이 여백만 — 발표 화면은 하단 바가 응답 수를 이미 보여준다 */}
+      {!presenter && <div className="text-center text-slate-400 dark:text-slate-500 text-sm pt-2">
         <span className="text-slate-600 dark:text-slate-300 font-semibold">{totalVotes}</span>명 응답
       </div>}
     </div>

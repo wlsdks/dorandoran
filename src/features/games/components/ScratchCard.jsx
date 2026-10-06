@@ -140,7 +140,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
   }
 
   const boardShell = presenter ? 'gap-3 p-4' : 'gap-2 p-3';
-  const cellShell = presenter ? 'w-[clamp(176px,18vw,340px)] h-[clamp(96px,13dvh,176px)]' : 'w-[clamp(64px,20vw,112px)] h-[clamp(64px,18vw,96px)]';
+  const cellShell = presenter ? 'w-[clamp(160px,13vw,280px)] h-[clamp(88px,12dvh,160px)]' : 'w-[clamp(64px,20vw,112px)] h-[clamp(64px,18vw,96px)]';
 
   return (
     <div data-presenter={presenter} className={`scratch-stage flex flex-col items-center ${presenter ? 'gap-6' : 'gap-4'}`}>
