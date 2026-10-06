@@ -24,8 +24,18 @@ function subscribeServerOffset() {
   };
 }
 
+// 쉬는 시간·토론·복권·스피드 퀴즈처럼 useTimer 없이 getServerNow()만 쓰는 화면도 서버 시각을 따르도록,
+// 처음 호출될 때 오프셋 구독을 영구로 붙잡는다(언마운트로 0으로 돌아가 기기 시계를 쓰는 일이 없게).
+let permanentOffset = false;
+function ensureServerOffset() {
+  if (permanentOffset) return;
+  permanentOffset = true;
+  subscribeServerOffset();
+}
+
 // Consumer가 보정된 now를 직접 쓸 수 있도록 export — remaining 계산 시 Date.now() 대신 사용.
 export function getServerNow() {
+  ensureServerOffset();
   return Date.now() + cachedOffset;
 }
 
