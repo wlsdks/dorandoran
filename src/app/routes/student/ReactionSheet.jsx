@@ -1,14 +1,12 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { X } from 'lucide-react';
-import { useDialogLayer } from '@/hooks/useDialogLayer';
+import BottomSheet from '@/components/ui/BottomSheet';
 import ReactionBar from '@/features/reactions/components/ReactionBar';
 
-/** Naturally sized sheet; only its body scrolls when browser chrome or the keyboard reduces the visible viewport. */
+const BODY_PROPS = { 'data-reaction-scroll': '' };
+
+/** 반응 시트 — 키보드가 올라와 본문이 줄어도 한마디 입력과 보내기 버튼을 함께 보이게 유지한다. */
 export default function ReactionSheet({ open, onClose, sessionId }) {
-  const { dialogRef, trapFocus } = useDialogLayer(open, onClose);
-  const reduced = useReducedMotion();
+  const bodyRef = useRef(null);
   const frameRef = useRef(null);
   const activeRef = useRef(false);
   const keepInputVisible = useCallback(() => {
@@ -16,7 +14,7 @@ export default function ReactionSheet({ open, onClose, sessionId }) {
     if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     frameRef.current = requestAnimationFrame(() => {
       frameRef.current = null;
-      const body = dialogRef.current?.querySelector('[data-reaction-scroll]');
+      const body = bodyRef.current;
       const controls = body?.querySelector('[data-message-controls]');
       if (!body || !controls) return;
       const viewport = body.getBoundingClientRect(), row = controls.getBoundingClientRect();
@@ -25,11 +23,11 @@ export default function ReactionSheet({ open, onClose, sessionId }) {
       if (row.bottom > viewport.bottom - 8) body.scrollTop += row.bottom - viewport.bottom + 8;
       else if (row.top < viewport.top + 8) body.scrollTop -= viewport.top - row.top + 8;
     });
-  }, [dialogRef]);
+  }, []);
   useEffect(() => {
     if (!open) return;
     activeRef.current = true;
-    const body = dialogRef.current?.querySelector('[data-reaction-scroll]');
+    const body = bodyRef.current;
     const observer = body && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(keepInputVisible) : null;
     if (body) observer?.observe(body);
     window.visualViewport?.addEventListener('resize', keepInputVisible);
@@ -40,16 +38,10 @@ export default function ReactionSheet({ open, onClose, sessionId }) {
       frameRef.current = null;
       window.visualViewport?.removeEventListener('resize', keepInputVisible);
     };
-  }, [open, keepInputVisible, dialogRef]);
-  if (typeof document === 'undefined') return null;
-  return createPortal(<AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : 0.14 }}
-    className="viewport-overlay fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/60 sm:items-center sm:p-4" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <motion.section ref={dialogRef} role="dialog" aria-modal="true" aria-label="반응 보내기" tabIndex={-1} onKeyDown={trapFocus}
-      initial={reduced ? false : { y: 8 }} animate={{ y: 0 }} exit={reduced ? { opacity: 0 } : { y: 8, opacity: 0 }} transition={{ duration: reduced ? 0 : 0.16, ease: 'easeOut' }}
-      className="w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-800 shadow-xl flex flex-col min-h-0 overflow-hidden outline-none"
-      style={{ maxHeight: 'min(90dvh, calc(var(--app-visible-height, 100dvh) - 1rem))', paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <header className="flex items-center justify-between gap-3 px-4 py-2 shrink-0"><h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">반응</h2><button type="button" onClick={onClose} aria-label="반응 닫기" className="w-12 h-12 shrink-0 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"><X size={20} /></button></header>
-      <div className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-4" data-reaction-scroll><ReactionBar sessionId={sessionId} bubbleSessionId={sessionId} onInputFocus={keepInputVisible} /></div>
-    </motion.section>
-  </motion.div>}</AnimatePresence>, document.body);
+  }, [open, keepInputVisible]);
+  return (
+    <BottomSheet open={open} onClose={onClose} title="반응" description="앞 화면에 바로 떠올라요" ariaLabel="반응 보내기" bodyRef={bodyRef} bodyProps={BODY_PROPS} bodyClassName="px-4 pb-4">
+      <ReactionBar sessionId={sessionId} bubbleSessionId={sessionId} onInputFocus={keepInputVisible} />
+    </BottomSheet>
+  );
 }

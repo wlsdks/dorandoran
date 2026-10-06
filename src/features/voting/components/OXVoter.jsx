@@ -64,7 +64,7 @@ export default memo(function OXVoter({ sessionId, questionId, disabled = false }
         {!disabled && (
           <button
             onClick={() => { setChanging(true); setVoted(false); setSelected(null); }}
-            className="w-full flex items-center justify-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 ring-1 ring-slate-200/70 dark:ring-slate-700/60 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl py-2.5 transition-colors duration-150 active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 ring-1 ring-slate-200/70 dark:ring-slate-700/60 hover:bg-slate-50 dark:hover:bg-slate-700 min-h-12 rounded-xl py-2.5 transition-colors duration-150 active:scale-[0.98]"
           >
             <RotateCcw size={15} />
             답 바꾸기

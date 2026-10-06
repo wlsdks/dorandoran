@@ -7,9 +7,11 @@ import { getParticipantId, getNickname, getLastSeen, saveLastSeen } from '@/lib/
 import { useMyHandRaise } from '@/features/hand-raise/api/useHandRaises';
 import { useStudentDM } from '@/features/dm/api/useStudentDM';
 import { motion, MotionConfig, useReducedMotion } from 'framer-motion';
-import { Hand, MessageCircle, MessageSquare, HelpCircle, Headset, Send, MoreHorizontal, Smile, X } from 'lucide-react';
-import Modal from '@/components/ui/Modal';
+import { Hand, MessageCircle, MessageSquare, HelpCircle, Headset, Send, MoreHorizontal, Smile } from 'lucide-react';
+import BottomSheet from '@/components/ui/BottomSheet';
+import { SheetList, SheetRow } from '@/components/ui/SheetList';
 import Button from '@/components/ui/Button';
+import { hapticTap } from '@/lib/haptics';
 import ReactionSheet from './ReactionSheet';
 import ReactionOverlay from '@/features/reactions/components/ReactionOverlay';
 import ChatPanel from '@/features/chat/components/ChatPanel';
@@ -132,37 +134,31 @@ export default memo(function StudentBottomBar({ sessionId, ended = false }) {
       <ReactionOverlay sessionId={sessionId} />
       <ChatPanel sessionId={sessionId} senderName={nickname} senderType="student" open={showChat} onClose={() => setShowChat(false)} onNewMessage={handleNewMessage} />
       <ClassQAPanel sessionId={sessionId} open={showQA} onClose={() => setShowQA(false)} onNewQuestion={handleNewQuestion} />
-      {showDMChat && (
-        <DMBubble
-          activeDMs={allActiveDMs}
-          activeDM={activeDM}
-          senderName={nickname}
-          onSendMessage={sendDMMessage}
-          onClose={() => setShowDMChat(false)}
-          onRequestHelp={handleHelpRequest}
-          sessionId={sessionId}
-          participantId={pid}
-        />
-      )}
+      <DMBubble
+        open={showDMChat}
+        activeDMs={allActiveDMs}
+        activeDM={activeDM}
+        senderName={nickname}
+        onSendMessage={sendDMMessage}
+        onClose={() => setShowDMChat(false)}
+        onRequestHelp={handleHelpRequest}
+        sessionId={sessionId}
+        participantId={pid}
+      />
 
-      <Modal open={showQuestionInput} onClose={() => setShowQuestionInput(false)} ariaLabel="긴급 질문">
-        <form onSubmit={submitUrgentQuestion} className="space-y-5">
-          <div className="text-center space-y-1">
-            <MessageCircle size={24} className="text-slate-900 dark:text-slate-100 mx-auto mb-2" />
-            <p className="text-slate-900 dark:text-slate-100 font-bold text-lg tracking-tight">긴급 질문</p>
-          </div>
-          <button type="button" role="switch" aria-checked={isAnonymous} onClick={() => setIsAnonymous(prev => !prev)} className="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-slate-50 dark:bg-slate-700 transition-colors duration-150 active:scale-[0.98]">
-            <span className="text-sm text-slate-600 dark:text-slate-300">익명으로 보내기</span>
-            <span className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${isAnonymous ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-200 dark:bg-slate-600'}`}>
-              <span className={`inline-block h-5 w-5 rounded-full bg-white dark:bg-slate-900 shadow-sm transform transition-transform duration-200 mt-0.5 ${isAnonymous ? 'translate-x-5.5 ml-0.5' : 'translate-x-0.5'}`} />
+      <BottomSheet open={showQuestionInput} onClose={() => setShowQuestionInput(false)} title="긴급 질문" description="강사가 바로 확인해요" ariaLabel="긴급 질문">
+        <form onSubmit={submitUrgentQuestion} className="space-y-4 pt-1">
+          <textarea value={questionText} onChange={(e) => setQuestionText(e.target.value)} placeholder="질문을 입력하세요" aria-label="긴급 질문 내용" maxLength={200} rows={3} enterKeyHint="send"
+            className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-colors duration-150" autoFocus />
+          <button type="button" role="switch" aria-checked={isAnonymous} onClick={() => { hapticTap(); setIsAnonymous(prev => !prev); }} className="w-full min-h-14 flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-700/40 active:bg-slate-200/70 dark:active:bg-slate-600/60 transition-colors duration-100">
+            <span className="min-w-0 text-left"><span className="block text-base font-semibold text-slate-900 dark:text-slate-100">익명으로 보내기</span><span className="block truncate text-sm text-slate-500 dark:text-slate-400">{isAnonymous ? '이름이 표시되지 않아요' : `${nickname}(으)로 표시돼요`}</span></span>
+            <span className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors duration-200 ${isAnonymous ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-300 dark:bg-slate-600'}`}>
+              <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white dark:bg-slate-900 shadow-sm transition-transform duration-200 ${isAnonymous ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
             </span>
           </button>
-          {!isAnonymous && <p className="text-center text-slate-400 text-sm -mt-2">{nickname} (으)로 표시됩니다</p>}
-          {isAnonymous && <p className="text-center text-slate-400 text-sm -mt-2">이름이 표시되지 않습니다</p>}
-          <textarea value={questionText} onChange={(e) => setQuestionText(e.target.value)} placeholder="질문을 입력하세요..." aria-label="긴급 질문 내용" maxLength={200} rows={3} className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-600 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-colors duration-150" autoFocus />
-          <Button type="submit" variant="primary" size="lg" disabled={!questionText.trim()} className="w-full"><Send size={16} />보내기</Button>
+          <Button type="submit" variant="primary" size="lg" disabled={!questionText.trim()} className="w-full rounded-xl"><Send size={16} />보내기</Button>
         </form>
-      </Modal>
+      </BottomSheet>
 
       <StudentToasts
         submitted={submitted}
@@ -173,26 +169,16 @@ export default memo(function StudentBottomBar({ sessionId, ended = false }) {
         onOpenDM={() => { setStaffReplied(null); setShowDMChat(true); }}
       />
 
-      <Modal open={showMore} onClose={() => setShowMore(false)} ariaLabel="참여 도구 더보기">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">참여 도구</h2>
-            <button type="button" onClick={() => setShowMore(false)} aria-label="더보기 닫기" className="h-12 w-12 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"><X size={20} /></button>
-          </div>
-          <button type="button" onClick={() => { setShowMore(false); setShowChat(true); setHasUnread(false); }} className="w-full min-h-16 flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-left">
-            <MessageSquare size={24} className="shrink-0 text-slate-600 dark:text-slate-300" />
-            <span className="flex-1"><span className="block font-semibold text-slate-900 dark:text-slate-100">채팅 {hasUnread && <span className="text-indigo-500 text-sm">새 메시지</span>}</span><span className="block text-sm text-slate-500 dark:text-slate-300">강사와 학습자 모두에게 보내요</span></span>
-          </button>
-          <button type="button" onClick={() => { setShowMore(false); setShowDMChat(true); setDmLastSeen(totalDMMessages); saveLastSeen(sessionId, 'dm', totalDMMessages); }} className="w-full min-h-16 flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-left">
-            <Headset size={24} className="shrink-0 text-slate-600 dark:text-slate-300" />
-            <span className="flex-1"><span className="block font-semibold text-slate-900 dark:text-slate-100">1:1 도움 {dmUnread > 0 && <span className="text-indigo-500 text-sm">새 답변</span>}</span><span className="block text-sm text-slate-500 dark:text-slate-300">스태프에게 개인적으로 도움을 받아요</span></span>
-          </button>
-          <button type="button" onClick={() => { setShowMore(false); setShowQuestionInput(true); }} className="w-full min-h-16 flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-left">
-            <MessageCircle size={24} className="shrink-0 text-slate-600 dark:text-slate-300" />
-            <span className="flex-1"><span className="block font-semibold text-slate-900 dark:text-slate-100">긴급 질문</span><span className="block text-sm text-slate-500 dark:text-slate-300">수업 중 바로 확인이 필요할 때 보내요</span></span>
-          </button>
-        </div>
-      </Modal>
+      <BottomSheet open={showMore} onClose={() => setShowMore(false)} title="참여 도구" ariaLabel="참여 도구 더보기" closeLabel="더보기 닫기">
+        <SheetList label="참여 도구 목록" className="pt-1">
+          <SheetRow icon={MessageSquare} title="채팅" subtitle="강사와 학습자 모두에게 보내요" badge={hasUnread ? '새 메시지' : null}
+            onClick={() => { hapticTap(); setShowMore(false); setShowChat(true); setHasUnread(false); }} />
+          <SheetRow icon={Headset} title="1:1 도움" subtitle="스태프에게 개인적으로 도움을 받아요" badge={dmUnread > 0 ? '새 답변' : null}
+            onClick={() => { hapticTap(); setShowMore(false); setShowDMChat(true); setDmLastSeen(totalDMMessages); saveLastSeen(sessionId, 'dm', totalDMMessages); }} />
+          <SheetRow icon={MessageCircle} title="긴급 질문" subtitle="수업 중 바로 확인이 필요할 때 보내요"
+            onClick={() => { hapticTap(); setShowMore(false); setShowQuestionInput(true); }} />
+        </SheetList>
+      </BottomSheet>
 
       <ReactionSheet open={showReactions} onClose={() => setShowReactions(false)} sessionId={sessionId} />
 

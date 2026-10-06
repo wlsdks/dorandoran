@@ -2,6 +2,7 @@ import { participantIsOnline } from '@/lib/participants';
 import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { EMPTY_RECORD } from '@/lib/realtime';
 import { summarizeParticipants } from '@/lib/classroom-data';
+import { parseWaitingRoom, selectWaitingRoom } from '@/lib/waiting-room';
 import { useMemo } from 'react';
 
 export function useParticipants(sessionId) {
@@ -25,6 +26,16 @@ export function useParticipantCount(sessionId) {
   const { value } = useRealtimeValue(sessionId ? `sessions/${sessionId}/participants` : null, { select: countOnline, throttleMs: 300 });
   const count = value || 0;
   return count;
+}
+
+/**
+ * 대기 화면용 — 접속 인원 + 최근 입장한 사람 이름 몇 명.
+ * select가 직렬화 문자열을 돌려주므로 내용이 같으면 리렌더되지 않는다(300명 입장 폭주 보호는 useParticipantCount와 동일).
+ * @returns {{ count: number, recent: Array<{ id: string, nickname: string, joinedAt: number }> }}
+ */
+export function useWaitingRoom(sessionId) {
+  const { value } = useRealtimeValue(sessionId ? `sessions/${sessionId}/participants` : null, { select: selectWaitingRoom, throttleMs: 300 });
+  return useMemo(() => parseWaitingRoom(value), [value]);
 }
 
 function countOnline(value) {
