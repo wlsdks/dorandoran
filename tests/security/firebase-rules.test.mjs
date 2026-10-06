@@ -167,6 +167,17 @@ test('응답 초기화는 그 문항으로 받은 퀴즈 점수를 되돌리고,
   });
 });
 
+test('문항 시간 제한은 5~3600초 정수만 저장된다', async () => {
+  const owner = staff('legacy_teacher', 'admin');
+  const path = 'sessions/qa_room/questions/timer_probe';
+  await assertSucceeds(set(ref(owner, path), { title: '시간 제한', type: 'choice', options: ['A', 'B'], timerDuration: 30 }));
+  await assertFails(update(ref(owner, path), { timerDuration: 2 }));
+  await assertFails(update(ref(owner, path), { timerDuration: 4000 }));
+  await assertFails(update(ref(owner, path), { timerDuration: 12.5 }));
+  await assertFails(update(ref(owner, path), { timerDuration: '30' }));
+  await assertSucceeds(update(ref(owner, path), { timerDuration: null }));
+});
+
 test('정답 공개된 문항도 강사는 필드 단위로 수정할 수 있고 학생 투표는 보존된다', async () => {
   const path = 'sessions/qa_room/questions/edit_probe';
   await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), path), {

@@ -23,6 +23,8 @@ import {
 } from './QuestionFormSections';
 import { questionEditLocks, EDIT_LOCK_MESSAGES } from '@/lib/question-edit';
 import { choiceNames, isAutoPhotoName } from '@/lib/option-images';
+import { normalizeTimeLimit, supportsTimeLimit } from '@/lib/question-timer';
+import TimeLimitSection from './TimeLimitSection';
 
 const COMMON_TYPES = ['choice', 'quiz', 'ox', 'wordcloud', 'subjective', 'check'];
 // 공개할 정답이 있는 유형. 객관식(choice)은 정답을 지정했을 때만 해당한다.
@@ -60,6 +62,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
   const [slideImages, setSlideImages] = useState(initialData?.slideImages || []);
   const [modelAnswer, setModelAnswer] = useState(initialData?.modelAnswer || '');
   const [embedUrl, setEmbedUrl] = useState(initialData?.embedUrl || '');
+  const [timerDuration, setTimerDuration] = useState(normalizeTimeLimit(initialData?.timerDuration));
   const [localError, setLocalError] = useState(null);
   // 수업에서 이미 쓴 문항: 응답·점수를 망가뜨리는 부분은 잠근다(보관함 문항처럼 응답이 없으면 잠금 없음).
   const locks = isEdit ? questionEditLocks(initialData) : questionEditLocks(null);
@@ -110,6 +113,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
     if (hasAnswer && answerExplanation.trim()) submitData.answerExplanation = answerExplanation.trim();
     if (isWebEmbed) submitData.embedUrl = safeEmbed;
     if (isSubjective) submitData.modelAnswer = modelAnswer.trim();
+    if (supportsTimeLimit(type) && timerDuration) submitData.timerDuration = timerDuration;
     if (isMysteryBox) {
       submitData.mysteryItems = mysteryItems.split('\n').map(s => s.trim()).filter(Boolean);
       const validReasons = answerReasons.filter(r => r.trim());
@@ -260,6 +264,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
           setWinners={setWinners} setLocalError={setLocalError} />}
         {locks.answerLocked && !isRanking && <EditLockNote>{EDIT_LOCK_MESSAGES.answer}</EditLockNote>}
         </fieldset>
+        {supportsTimeLimit(type) && <TimeLimitSection value={timerDuration} onChange={setTimerDuration} />}
         {hasAnswer && <AnswerExplanationSection answerExplanation={answerExplanation} setAnswerExplanation={setAnswerExplanation}
           answerImageUrl={answerImageUrl} setAnswerImageUrl={setAnswerImageUrl} />}
         {isSubjective && available && (

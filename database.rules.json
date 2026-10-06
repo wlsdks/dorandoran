@@ -130,7 +130,9 @@
       }
     },
     "sessions": {
-      ".indexOn": ["status"],
+      ".indexOn": [
+        "status"
+      ],
       "$sid": {
         "creatorId": {
           ".read": "auth != null",
@@ -322,6 +324,9 @@
             },
             "speedQuizRound": {
               ".validate": "newData.isNumber() && newData.val() === newData.parent().child('activatedAt').val()"
+            },
+            "timerDuration": {
+              ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 3600 && newData.val() % 1 === 0"
             }
           },
           ".read": "(((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid)) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'staff') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'staff'))) && root.child('staffCourses').child(auth.uid).child(root.child('sessions').child($sid).child('courseId').val()).val() === true))",
@@ -776,7 +781,7 @@
               ".validate": true
             },
             "timerDuration": {
-              ".validate": true
+              ".validate": "newData.isNumber() && newData.val() >= 5 && newData.val() <= 3600 && newData.val() % 1 === 0"
             },
             "maxLength": {
               ".validate": true

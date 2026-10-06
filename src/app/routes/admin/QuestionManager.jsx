@@ -12,6 +12,7 @@ import { usePersistentAssignment } from '@/features/ai-judge/api/useLiveJudging'
 import { useHandRaises } from '@/features/hand-raise/api/useHandRaises';
 import { useUrgentQuestions } from '@/features/questions/api/useUrgentQuestions';
 import QuestionForm from './QuestionForm';
+import StudentRankingToggle from './StudentRankingToggle';
 import QuestionList from './QuestionList';
 import QuickProgressCard from './QuickProgressCard';
 import ImportFromLibraryModal from './ImportFromLibraryModal';
@@ -206,6 +207,7 @@ export default function QuestionManager({
                 {questionList.length > 0 && <Button onClick={() => setResetConfirmOpen(true)} variant="secondary" size="sm" className="min-h-11"><RotateCcw size={18} /> 답변 초기화</Button>}
               </div>
               {!available && <p id="question-ai-unavailable" className="text-xs text-slate-500 dark:text-slate-400">{reason}</p>}
+              <StudentRankingToggle sessionId={sessionId} />
               {modeSlot}
             </div>
           </details>

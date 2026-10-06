@@ -2,10 +2,11 @@ import { memo, useState, useEffect, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Tooltip from '@/components/ui/Tooltip';
-import { GripVertical, BookmarkPlus, Check, Copy, MessageSquare, Pencil, Play, Square, Trash2, Trophy, Loader2, Pin, PinOff, RotateCcw, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
+import { GripVertical, BookmarkPlus, Check, Copy, MessageSquare, Pencil, Play, Square, Trash2, Trophy, Loader2, Pin, PinOff, RotateCcw, MoreHorizontal, ArrowUp, ArrowDown, Timer } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import { isQuizQuestion } from '@/lib/quiz';
 import { QUESTION_TYPES } from '@/lib/question-types';
+import { formatTimeLimit } from '@/lib/question-timer';
 import { MODE_CARD_TYPE, SPECIAL_MODES } from '@/lib/modes';
 
 const primaryBtnClass = 'min-h-11 min-w-11 flex items-center justify-center p-2 rounded-lg sm:rounded-md bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 text-white transition-colors duration-150 active:scale-90';
@@ -76,6 +77,7 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
               {qType?.label}
             </span>
             {!readOnly && isActive && <Badge variant="primary">LIVE</Badge>}
+            {q.timerDuration > 0 && <span className="inline-flex items-center gap-0.5 text-[11px] font-medium tabular-nums text-slate-500 dark:text-slate-400" title="시간 제한"><Timer size={11} aria-hidden="true" />{formatTimeLimit(q.timerDuration)}</span>}
             {!readOnly && isPersistent && (
               <Badge variant="neutral">
                 <Pin size={10} className="mr-0.5" /> 상시 과제
