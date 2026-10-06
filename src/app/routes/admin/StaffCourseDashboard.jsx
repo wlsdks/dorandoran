@@ -156,7 +156,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
                     className="w-full flex items-center justify-between p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 text-left group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                      <div className="w-6 flex items-center justify-center shrink-0">
                         <BookOpen size={20} className="text-slate-500 dark:text-slate-400" />
                       </div>
                       <div>

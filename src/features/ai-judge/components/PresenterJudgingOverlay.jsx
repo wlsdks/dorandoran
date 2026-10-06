@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, CheckCircle2, Loader2, Crown, Trophy, Medal, Award, Clock } from 'lucide-react';
+import { CheckCircle2, Loader2, Crown, Trophy, Medal, Award, Clock, Lightbulb } from 'lucide-react';
 import { JUDGES } from '@/lib/judging/judges';
 
 /**
@@ -53,7 +53,7 @@ export default function PresenterJudgingOverlay({ judgeState, judgeLog, submissi
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="w-12 h-12 rounded-full bg-slate-900 dark:bg-slate-100 flex items-center justify-center shrink-0"
           >
-            <Sparkles size={22} className="text-white dark:text-slate-900" />
+            <Lightbulb size={22} className="text-white dark:text-slate-900" />
           </motion.div>
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">AI 심사 진행 중</h2>
@@ -123,7 +123,7 @@ export default function PresenterJudgingOverlay({ judgeState, judgeLog, submissi
         {/* 7명 심사위원 라이브 패널 */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 px-1">
-            <Sparkles size={14} className="text-slate-400" />
+            <Lightbulb size={14} className="text-slate-400" />
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">AI 심사위원 7명</p>
             <span className="text-[11px] text-slate-400">동시에 평가 중</span>
           </div>

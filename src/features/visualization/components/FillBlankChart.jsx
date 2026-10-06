@@ -95,8 +95,16 @@ export default memo(function FillBlankChart({ sessionId, questionId, title, corr
         </motion.div>
       )}
 
+      {/* 발표 화면은 공개 전 학생 답을 보여주지 않는다 — 아직 답하지 않은 학생이 따라 쓸 수 있다(단답식과 같은 규칙) */}
+      {presenter && !revealed && (
+        <div className="text-center">
+          <p className="text-6xl font-black text-slate-900 dark:text-slate-100 tabular-nums">{totalVotes}명</p>
+          <p className="text-xl text-slate-500 dark:text-slate-300 mt-2">응답 완료 · 정답은 잠시 후 공개합니다</p>
+        </div>
+      )}
+
       {/* Answer frequency bars */}
-      {topAnswers.length > 0 && (
+      {topAnswers.length > 0 && (revealed || !presenter) && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -108,9 +116,9 @@ export default memo(function FillBlankChart({ sessionId, questionId, title, corr
       )}
 
       {/* Total */}
-      <div className="text-center text-slate-400 dark:text-slate-500 text-sm pt-2 border-t border-slate-100 dark:border-slate-700">
+      {(revealed || !presenter) && <div className="text-center text-slate-400 dark:text-slate-500 text-sm pt-2 border-t border-slate-100 dark:border-slate-700">
         <span className="text-slate-600 dark:text-slate-300 font-semibold">{totalVotes}</span>명 응답
-      </div>
+      </div>}
     </div>
   );
 });

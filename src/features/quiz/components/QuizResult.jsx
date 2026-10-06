@@ -12,7 +12,7 @@ export default function QuizResult({ isCorrect, points, correctAnswer, bet = 1, 
     {isCorrect && scoreApplied && !reduced && <Suspense fallback={null}><ConfettiBurst /></Suspense>}
     <div className="relative z-[1] space-y-4">
       <div className="flex items-center gap-3">
-        <div className={`w-11 h-11 rounded-full shrink-0 flex items-center justify-center ${isCorrect ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>{isCorrect ? <Check size={24} /> : <X size={24} />}</div>
+        <span className={`shrink-0 ${isCorrect ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true">{isCorrect ? <Check size={36} strokeWidth={2.5} /> : <X size={36} strokeWidth={2.5} />}</span>
         <div><p className="text-xl font-bold text-slate-900 dark:text-slate-100">{isCorrect ? '정답!' : '오답'}</p><p className="text-sm text-slate-500 dark:text-slate-300">{isCorrect ? '잘 하셨어요!' : '다음 문제에 다시 도전해보세요'}</p></div>
       </div>
       {correctAnswer && <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-4 py-3 [word-break:keep-all] [overflow-wrap:anywhere]"><p className="text-xs text-slate-500 dark:text-slate-300 mb-1">정답</p><p className="text-base font-semibold text-slate-900 dark:text-slate-100">{correctAnswer}</p></div>}

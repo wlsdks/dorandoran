@@ -250,7 +250,7 @@ export default function ReportPage() {
                     transition={{ delay: 0.3 + i * 0.06 }}
                     className="flex items-center gap-3"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                    <div className="w-6 flex items-center justify-center shrink-0">
                       <Icon size={15} className="text-slate-600 dark:text-slate-300" />
                     </div>
                     <div>

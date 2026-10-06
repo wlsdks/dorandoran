@@ -1,7 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useEffect, useRef, useId, memo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Check, Send, Sparkles, Trophy, Trash2, Edit3, AlertCircle, Image as ImageIcon, Code2, Upload } from 'lucide-react';
+import { Check, Send, Trophy, Trash2, Edit3, AlertCircle, Image as ImageIcon, Code2, Upload, Lightbulb } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ImageUpload from '@/components/ui/ImageUpload';
 import ConfirmModal from '@/components/ui/ConfirmModal';
@@ -187,12 +187,12 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
               isMyTurn ? 'bg-indigo-500 ring-4 ring-indigo-200 dark:ring-indigo-500/30' : 'bg-slate-900 dark:bg-slate-100'
             }`}
           >
-            <Sparkles size={24} className="text-white dark:text-slate-900" />
+            <Lightbulb size={24} className="text-white dark:text-slate-900" />
           </motion.div>
 
           <div>
             <p className="text-slate-900 dark:text-slate-100 text-lg font-bold">
-              {isMyTurn ? '✨ 지금 내 작품 심사 중!' : 'AI 심사 진행 중'}
+              {isMyTurn ? '지금 내 작품 심사 중!' : 'AI 심사 진행 중'}
             </p>
             <p className="text-slate-400 text-sm mt-1">
               {total > 0 ? (

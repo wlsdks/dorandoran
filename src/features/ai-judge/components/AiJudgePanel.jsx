@@ -1,6 +1,6 @@
 import { useState, memo } from 'react';
 import { motion } from 'framer-motion';
-import { Play, AlertCircle, Sparkles, Users, RotateCcw, Square, Trophy, Medal, Award } from 'lucide-react';
+import { Play, AlertCircle, Users, RotateCcw, Square, Trophy, Medal, Award, Lightbulb } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { useAIAvailability } from '@/hooks/useAIAvailability';
@@ -49,7 +49,7 @@ export default memo(function AiJudgePanel({ sessionId, questionId }) {
       <div className="rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-            <Sparkles size={14} className="text-slate-500" />
+            <Lightbulb size={14} className="text-slate-500" />
             AI 심사 진행 중
           </p>
           <button
@@ -97,7 +97,7 @@ export default memo(function AiJudgePanel({ sessionId, questionId }) {
     return (
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4 space-y-3">
         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-          <Sparkles size={14} className="text-slate-500" /> 심사 완료 — TOP 3 집계됨
+          <Lightbulb size={14} className="text-slate-500" /> 심사 완료 — TOP 3 집계됨
         </p>
         <div className="flex flex-wrap gap-1.5">
           {DONE_RANK_META.map(({ key, Icon, cls }) => {
@@ -123,7 +123,7 @@ export default memo(function AiJudgePanel({ sessionId, questionId }) {
     <div className="rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-          <Sparkles size={14} className="text-slate-400" />
+          <Lightbulb size={14} className="text-slate-400" />
           AI 심사
         </p>
         <span className="inline-flex items-center gap-1 text-xs text-slate-400">

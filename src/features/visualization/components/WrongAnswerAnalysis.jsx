@@ -1,7 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2, TrendingDown, Lightbulb, AlertCircle } from 'lucide-react';
+import { Loader2, TrendingDown, Lightbulb, AlertCircle } from 'lucide-react';
 import { useVotes } from '@/hooks/useVotes';
 import { analyzeWrongAnswers } from '@/features/questions/api/analyzeWrongAnswers';
 
@@ -52,7 +52,7 @@ export default function WrongAnswerAnalysis({ sessionId, questionId, questionTit
     <div className="w-full max-w-xl mx-auto mt-4">
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+          <div className="w-6 flex items-center justify-center shrink-0">
             <TrendingDown size={15} className="text-slate-500 dark:text-slate-400" />
           </div>
           <div className="flex-1 min-w-0">
@@ -70,7 +70,7 @@ export default function WrongAnswerAnalysis({ sessionId, questionId, questionTit
                 : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200'
             }`}
           >
-            {loading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+            {loading ? <Loader2 size={12} className="animate-spin" /> : <Lightbulb size={12} />}
             {loading ? '분석 중' : result ? '다시 분석' : '분석하기'}
           </button>
         </div>

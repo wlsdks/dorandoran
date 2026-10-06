@@ -200,7 +200,7 @@ export default memo(function WaitingPage({
   return <MotionConfig reducedMotion="user"><div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[calc(5rem+env(safe-area-inset-top))]">
       <StudentHeader sessionId={sessionId} />
 
-      {/* 🎉 당첨 풀스크린 블라스트 */}
+      {/* 당첨 풀스크린 블라스트 */}
       <AnimatePresence>
         {winBlast && <motion.div initial={{
         opacity: 0
@@ -220,8 +220,8 @@ export default memo(function WaitingPage({
           type: 'spring',
           stiffness: 320,
           damping: 18
-        }} className="w-28 h-28 rounded-full bg-amber-400 flex items-center justify-center shadow-[0_0_80px_rgba(251,191,36,0.55)]">
-              {winBlast === 'randomPicker' ? <Mic size={56} className="text-slate-900" /> : <Trophy size={56} className="text-slate-900" />}
+        }} className="flex items-center justify-center text-amber-400">
+              {winBlast === 'randomPicker' ? <Mic size={96} strokeWidth={1.75} /> : <Trophy size={96} strokeWidth={1.75} />}
             </motion.div>
             <motion.p initial={{
           opacity: 0,
@@ -232,7 +232,7 @@ export default memo(function WaitingPage({
         }} transition={{
           delay: 0.25
         }} className="mt-6 text-4xl font-black tracking-tight text-white">
-              {winBlast === 'randomPicker' ? '🎤 발표 차례!' : '🎉 당첨!'}
+              {winBlast === 'randomPicker' ? '발표 차례예요!' : '당첨!'}
             </motion.p>
             <motion.p initial={{
           opacity: 0

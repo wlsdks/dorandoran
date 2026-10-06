@@ -6,7 +6,8 @@ import { formatPercent } from '@/lib/utils';
 import PollColumns from './PollColumns';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
 
-export default memo(function BarChart({ sessionId, questionId, options, correctValue = null, revealed = false, presenter = false, hideResults = false, page = 0, onPageChange }) {
+// columns=false: 옆에 정답 해설이 붙어 폭이 좁을 때. 세로 막대는 좁으면 보기 글자가 한 음절씩 끊기므로 가로 막대로 그린다.
+export default memo(function BarChart({ sessionId, questionId, options, correctValue = null, revealed = false, presenter = false, hideResults = false, page = 0, onPageChange, columns = true }) {
   const { totalVotes, countByValue, resultsHidden, loading } = useVotes(sessionId, questionId);
   const concealed = resultsHidden || hideResults;
   const visibleTotal = concealed ? 0 : totalVotes;
@@ -18,8 +19,8 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
   const pages = paged ? Math.ceil(options.length / pageSize) : 1;
   const currentPage = Math.min(Math.max(Number.isInteger(page) ? page : 0, 0), pages - 1);
   const shown = paged ? options.slice(currentPage * pageSize, currentPage * pageSize + pageSize) : options;
-  const twoColumns = presenter && shown.length > 2 && longest <= 24;
-  if (presenter && options.length >= 2 && options.length <= 4 && options.every(option => String(option).length <= 12)) {
+  const twoColumns = columns && presenter && shown.length > 2 && longest <= 24;
+  if (columns && presenter && options.length >= 2 && options.length <= 4 && options.every(option => String(option).length <= 12)) {
     return <PollColumns options={options} counts={counts} total={visibleTotal} revealed={revealed} correctValue={correctValue} resultsHidden={concealed} loading={loading} />;
   }
   return <div className={presenter ? 'classroom-results classroom-bar-chart' : 'w-full max-w-xl mx-auto px-4'}>

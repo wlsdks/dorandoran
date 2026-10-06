@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookmarkPlus, PanelLeftClose, Plus, Eye, RotateCcw, Sparkles, Check, ChevronDown } from 'lucide-react';
+import { BookmarkPlus, PanelLeftClose, Plus, Eye, RotateCcw, Lightbulb, Check, ChevronDown } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import Toast from '@/components/ui/Toast';
@@ -202,7 +202,7 @@ export default function QuestionManager({
             <div className="space-y-3 pb-1">
               <div className="flex items-center gap-2 flex-wrap [&>button]:min-h-11 [&>div>button]:min-h-11">
                 {modeButton}
-                <Button onClick={() => setAiGenOpen(true)} disabled={!available} title={!available ? reason : undefined} variant="secondary" size="sm" className="min-h-11" aria-describedby={!available ? 'question-ai-unavailable' : undefined}><Sparkles size={18} /> AI 생성</Button>
+                <Button onClick={() => setAiGenOpen(true)} disabled={!available} title={!available ? reason : undefined} variant="secondary" size="sm" className="min-h-11" aria-describedby={!available ? 'question-ai-unavailable' : undefined}><Lightbulb size={18} /> AI 생성</Button>
                 {questionList.length > 0 && <Button onClick={() => setResetConfirmOpen(true)} variant="secondary" size="sm" className="min-h-11"><RotateCcw size={18} /> 답변 초기화</Button>}
               </div>
               {!available && <p id="question-ai-unavailable" className="text-xs text-slate-500 dark:text-slate-400">{reason}</p>}

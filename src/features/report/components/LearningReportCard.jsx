@@ -1,7 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2, BookOpen, Target, RefreshCw, AlertCircle } from 'lucide-react';
+import { Loader2, BookOpen, Target, RefreshCw, AlertCircle, Lightbulb } from 'lucide-react';
 import { generateLearningReport } from '@/features/report/api/generateLearningReport';
 
 export default function LearningReportCard({ stats }) {
@@ -30,8 +30,8 @@ export default function LearningReportCard({ stats }) {
   return (
     <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4">
-        <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
-          <Sparkles size={16} className="text-slate-500 dark:text-slate-400" />
+        <div className="w-6 flex items-center justify-center shrink-0">
+          <Lightbulb size={16} className="text-slate-500 dark:text-slate-400" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[14px] font-bold text-slate-900 dark:text-slate-100">AI 개인 리포트</p>
@@ -47,7 +47,7 @@ export default function LearningReportCard({ stats }) {
                 : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200'
             }`}
           >
-            {loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <Lightbulb size={13} />}
             {loading ? '작성 중' : '리포트 받기'}
           </button>
         )}

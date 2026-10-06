@@ -1,7 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Check, TrendingUp, Zap, Loader2 } from 'lucide-react';
+import { Check, TrendingUp, Zap, Loader2, Lightbulb } from 'lucide-react';
 import { previewSubmission } from '@/lib/judging/gemini';
 
 const COOLDOWN_MS = 2 * 60 * 1000; // 2분
@@ -69,8 +69,8 @@ export default function SubmissionPreview({ submission, disabled }) {
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
-          <Sparkles size={16} className="text-slate-500 dark:text-slate-400" />
+        <div className="w-6 flex items-center justify-center shrink-0">
+          <Lightbulb size={16} className="text-slate-500 dark:text-slate-400" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">제출 전 AI 예심</p>
@@ -91,7 +91,7 @@ export default function SubmissionPreview({ submission, disabled }) {
         }`}
       >
         {loading && <Loader2 size={14} className="animate-spin" />}
-        {showSparklesIcon && <Sparkles size={14} />}
+        {showSparklesIcon && <Lightbulb size={14} />}
         {label}
       </button>
 

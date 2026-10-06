@@ -3,7 +3,7 @@ import { useDialogLayer } from '@/hooks/useDialogLayer';
 import { useState, useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, ThumbsUp, Check, HelpCircle, MessageSquare, ChevronDown, ChevronUp, ShieldAlert, Sparkles } from 'lucide-react';
+import { Send, X, ThumbsUp, Check, HelpCircle, MessageSquare, ChevronDown, ChevronUp, ShieldAlert, Lightbulb } from 'lucide-react';
 import { useClassQuestions } from '@/features/class-questions/api/useClassQuestions';
 import { getParticipantId, getNickname, getLastSeen, saveLastSeen } from '@/lib/participant';
 import { timeAgo } from '@/lib/utils';
@@ -26,7 +26,7 @@ const AnswerItem = memo(function AnswerItem({ a, participantId }) {
                 ? 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                 : 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
             }`}>
-              {isAi && <Sparkles size={8} className="text-indigo-500" />}{roleLabel}
+              {isAi && <Lightbulb size={8} className="text-indigo-500" />}{roleLabel}
             </span>
           )}
           {isOwn && <span className="text-xs text-slate-400">나</span>}
@@ -106,7 +106,7 @@ const QuestionCard = memo(function QuestionCard({ q: originalQuestion, participa
             )}
             {q.aiAllowed && !q.aiSkipped && !q.answeredByRole && (q.answerCount || 0) === 0 && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
-                <Sparkles size={9} className="animate-pulse text-indigo-500" />
+                <Lightbulb size={9} className="animate-pulse text-indigo-500" />
                 AI 확인 중
               </span>
             )}
@@ -350,7 +350,7 @@ export default memo(function ClassQAPanel({ sessionId, open, onClose, onNewQuest
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
-                    <Sparkles size={13} />
+                    <Lightbulb size={13} />
                     AI 조교 답변 받기
                   </span>
                   <span className={`w-8 h-4 rounded-full relative transition-colors ${aiAllowed ? 'bg-white/30 dark:bg-slate-900/30' : 'bg-slate-300 dark:bg-slate-600'}`}>

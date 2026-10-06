@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Sparkles, Users } from 'lucide-react';
+import { Users, Lightbulb } from 'lucide-react';
 import { useLiveSubmissions, useLiveJudgeResults } from '../api/useLiveJudging';
 import AiJudgePanel from './AiJudgePanel';
 import PresenterJudgingOverlay from './PresenterJudgingOverlay';
@@ -48,7 +48,7 @@ export default memo(function AiJudgeViz({ sessionId, questionId, isAdmin, isPres
     <div className={`w-full ${isPresenter ? 'max-w-[92rem] space-y-3' : 'max-w-3xl space-y-5'} mx-auto px-2`}>
       <div className={`${headerInnerMax} mx-auto flex items-center justify-between px-1`}>
         <h3 className={`font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2 ${isPresenter ? 'text-base' : 'text-lg'}`}>
-          <Sparkles size={isPresenter ? 15 : 18} className="text-slate-400" />
+          <Lightbulb size={isPresenter ? 15 : 18} className="text-slate-400" />
           실시간 제출
         </h3>
         <span className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">

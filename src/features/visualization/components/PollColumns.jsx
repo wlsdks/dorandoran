@@ -19,7 +19,7 @@ export default function PollColumns({ options, counts, total, revealed, correctV
               <motion.div className="poll-column-value" initial={false} animate={{ bottom: `calc(${proportion * 100}% - ${proportion * 64}px + 12px)` }} transition={{ type: 'spring', stiffness: 150, damping: 25 }}><span><AnimatedNumber value={percent} />%</span><span>{counts[index]}명</span></motion.div>
             </>}
             <motion.div initial={false} animate={{ scaleY: proportion }} transition={{ type: 'spring', stiffness: 150, damping: 25 }}
-              className="poll-column-bar" style={{ background: correct ? '#4338ca' : ['#818cf8','#a5b4fc','#c4b5fd','#64748b'][index] }} />
+              className="poll-column-bar" style={{ background: correct ? '#6366f1' : revealed && correctValue ? '#475569' : '#818cf8' }} />
           </div>
           <p className="poll-column-label"><span className="poll-option-heading"><span className="poll-option-letter">{String.fromCharCode(65 + index)}</span><span>{option}</span></span>{correct && <span className="poll-correct-chip"><Check size={18} />정답</span>}</p>
         </div>;

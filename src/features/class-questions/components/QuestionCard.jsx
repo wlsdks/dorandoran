@@ -1,7 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ThumbsUp, MessageSquare, Send, ChevronDown, ChevronUp, Check, EyeOff, Eye, ShieldAlert, Sparkles } from 'lucide-react';
+import { ThumbsUp, MessageSquare, Send, ChevronDown, ChevronUp, Check, EyeOff, Eye, ShieldAlert, Lightbulb } from 'lucide-react';
 import { timeAgo } from '@/lib/utils';
 import AnswerItem from './AnswerItem';
 
@@ -83,7 +83,7 @@ export default function QuestionCard({ question: originalQuestion, index, pid, n
             )}
             {q.aiAllowed && !q.aiSkipped && !q.answeredByRole && (q.answerCount || 0) === 0 && (
               <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
-                <Sparkles size={9} className="animate-pulse text-indigo-500" />
+                <Lightbulb size={9} className="animate-pulse text-indigo-500" />
                 AI 확인 중
               </span>
             )}

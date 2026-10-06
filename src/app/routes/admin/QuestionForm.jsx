@@ -1,7 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Check } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { QUIZ_DEFAULTS } from '@/lib/quiz';
 import { safeEmbedUrl, embedRejectMessage } from '@/lib/embed';
@@ -116,6 +116,8 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
       submitData.slideImages = slideImages;
     }
     const success = await onSubmit(submitData);
+    // 호출부가 오류 문구를 넘기지 않아도 실패는 반드시 보이게 한다(아무 반응 없이 멈춘 것처럼 보이지 않게).
+    if (!success && !error) setLocalError(isEdit ? '질문을 수정하지 못했어요. 연결 상태를 확인하고 다시 시도해주세요.' : '질문을 저장하지 못했어요. 연결 상태를 확인하고 다시 시도해주세요.');
     if (success) {
       setTitle(''); setOptions(['', '']); setCorrectAnswer('');
       setPoints(QUIZ_DEFAULTS.points); setEvent(null); setBetting(false);
@@ -171,7 +173,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
         <button type="button" onClick={() => setHideTitle(!hideTitle)} aria-pressed={hideTitle}
           className="flex max-sm:min-h-11 items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
           <span aria-hidden="true" className={`w-4 h-4 rounded border flex items-center justify-center text-xs ${hideTitle ? 'bg-slate-900 dark:bg-slate-100 border-slate-900 dark:border-slate-100 text-white dark:text-slate-900' : 'border-slate-300 dark:border-slate-600'}`}>
-            {hideTitle && '✓'}
+            {hideTitle && <Check size={12} strokeWidth={3} />}
           </span>
           프레젠터/전자칠판에서 제목 숨기기
         </button>
@@ -200,7 +202,11 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
         ) : type === 'imageSlide' ? (
           <MultiImageUpload images={slideImages} onChange={setSlideImages} />
         ) : (
-          <ImageUpload value={imageUrl} onChange={setImageUrl} />
+          <div>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">질문 이미지 <span className="normal-case font-normal">(선택)</span></p>
+            <ImageUpload value={imageUrl} onChange={setImageUrl} uploadLabel="질문 이미지 첨부" />
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">이미지 퀴즈는 여기에 문제 사진을 넣으세요. 학생 화면과 발표 화면에 질문과 함께 나와요.</p>
+          </div>
         )}
       </div>
 

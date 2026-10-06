@@ -23,3 +23,17 @@ export function boardRankingOrder(items, questionId) {
   const solved = order.every((value, index) => value === index);
   return solved && order.length > 1 ? [...order.slice(1), order[0]] : order;
 }
+
+const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
+
+/**
+ * 항목 번호(①②③…) — 발표 화면에 보이는 순서대로 붙여, 학생 화면과 정답 공개가 같은 번호를 쓴다.
+ * 돌려주는 배열은 저장 순서(= 정답 순서) 기준이다: labels[k]는 k번째 정답 항목의 번호.
+ */
+export function rankingItemLabels(items, questionId) {
+  const labels = new Array(items.length);
+  boardRankingOrder(items, questionId).forEach((itemIndex, position) => {
+    labels[itemIndex] = CIRCLED[position] || String(position + 1);
+  });
+  return labels;
+}

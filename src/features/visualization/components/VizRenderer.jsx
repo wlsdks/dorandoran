@@ -131,8 +131,8 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
         </div>
       )}
 
-      {/* AnalogyHelper — 발표 모드(전자칠판)에선 강사 보조 UI라 숨김. 그리드 공간 확보. */}
-      {isAdmin && !isFeed && !isPresenter && (
+      {/* AnalogyHelper — 발표 모드(전자칠판)에선 강사 보조 UI라 숨김. AI가 연결되지 않으면 쓸 수 없는 안내만 남으므로 숨긴다. */}
+      {isAdmin && available && !isFeed && !isPresenter && (
         <AnalogyHelper
           questionTitle={question.title}
           options={options}
@@ -147,6 +147,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           {question.type === 'choice' && (
             <>
               <BarChart
+                columns={!sideImage}
                 sessionId={sessionId}
                 questionId={currentQId}
                 options={options}
@@ -171,6 +172,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
           {question.type === 'quiz' && (
             <>
               <BarChart
+                columns={!sideImage}
                 sessionId={sessionId}
                 questionId={currentQId}
                 options={options}

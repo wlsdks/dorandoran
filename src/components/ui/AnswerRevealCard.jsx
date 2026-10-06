@@ -28,15 +28,9 @@ export default memo(function AnswerRevealCard({ correctAnswer, myAnswer }) {
             transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.1 }}
             className="mx-auto mb-3"
           >
-            {isCorrect ? (
-              <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mx-auto">
-                <Check size={24} className="text-white" />
-              </div>
-            ) : (
-              <div className="w-12 h-12 bg-slate-300 dark:bg-slate-500 rounded-full flex items-center justify-center mx-auto">
-                <X size={24} className="text-white" />
-              </div>
-            )}
+            {isCorrect
+              ? <Check size={44} strokeWidth={2.5} className="mx-auto text-emerald-500 dark:text-emerald-400" aria-hidden="true" />
+              : <X size={44} strokeWidth={2.5} className="mx-auto text-slate-400 dark:text-slate-500" aria-hidden="true" />}
           </motion.div>
         )}
 

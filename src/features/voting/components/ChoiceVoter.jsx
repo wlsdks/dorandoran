@@ -13,12 +13,13 @@ import VoteConfirm from './VoteConfirm';
 import StudentLiveResults from './StudentLiveResults';
 import VoteErrorToast from './VoteErrorToast';
 
+// 보기 배지는 한 가지 색으로 통일한다 — 순서마다 진하기가 달라지면 의미 없는 위계가 생긴다.
 const OPTION_STYLES = [
-  { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-800 dark:bg-slate-200 dark:text-slate-900', letter: 'A' },
+  { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900', letter: 'A' },
   { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900', letter: 'B' },
-  { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-600 dark:bg-slate-400 dark:text-slate-900', letter: 'C' },
-  { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-500 dark:bg-slate-500', letter: 'D' },
-  { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-500 dark:bg-slate-500', letter: 'E' },
+  { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900', letter: 'C' },
+  { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900', letter: 'D' },
+  { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900', letter: 'E' },
 ];
 
 export default memo(function ChoiceVoter({ sessionId, questionId, options, disabled = false }) {
