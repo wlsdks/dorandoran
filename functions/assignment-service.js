@@ -1,5 +1,5 @@
 const { hashCredential, verifyCredential, nameKey, equalLegacyPin } = require('./credentials');
-const { httpError, verifiedUser, createRateLimit } = require('./access');
+const { httpError, verifiedUser, createRateLimit, releaseIndex } = require('./access');
 
 function createAssignmentService({ auth, db }) {
   const rateLimit = createRateLimit(10);
@@ -39,7 +39,7 @@ function createAssignmentService({ auth, db }) {
       if (!submission || (submission.ownerId !== user.uid && !(typeof grant === 'number' && grant > Date.now()))) throw httpError(403, '본인 제출물만 취소할 수 있습니다.');
       if (assignment.status !== 'open') throw httpError(409, '마감된 과제는 수정할 수 없습니다.');
       await target.remove();
-      await db.ref(`assignmentNames/${assignmentId}/${nameKey(submission.name)}`).transaction((current) => current === submissionId ? null : undefined);
+      await releaseIndex(db.ref(`assignmentNames/${assignmentId}/${nameKey(submission.name)}`), submissionId);
       return { ok: true };
     }
     if (!['lookup', 'submit'].includes(action) || typeof name !== 'string' || !name.trim() || name.length > 30 || (pin != null && (typeof pin !== 'string' || pin.length > 128))) {
@@ -89,7 +89,7 @@ function createAssignmentService({ auth, db }) {
       if (existing) await db.ref(`assignments/${assignmentId}/submissions/${id}`).update(data);
       else await db.ref(`assignments/${assignmentId}/submissions/${id}`).set({ ...data, ownerId: user.uid, pinCredential: pin ? await hashCredential(pin) : null });
       return { id };
-    } catch (err) { if (index) await index.transaction((current) => current === id ? null : undefined); throw err; }
+    } catch (err) { if (index) await releaseIndex(index, id); throw err; }
   };
 }
 module.exports = { createAssignmentService };

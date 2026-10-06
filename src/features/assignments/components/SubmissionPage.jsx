@@ -5,7 +5,7 @@ import { ArrowLeft, Sun, Moon, Search } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAssignment } from '@/features/assignments/api/useAssignments';
 import { ASSIGNMENT_STATUS } from '@/features/assignments/api/useAssignments';
-import { submitWork, lookupSubmission, useSubmissionResults } from '@/features/assignments/api/useSubmissions';
+import { submitWork, lookupSubmission, lookupErrorMessage, useSubmissionResults } from '@/features/assignments/api/useSubmissions';
 import { useAwards } from '@/features/assignments/api/useAwards';
 import SubmissionForm from './SubmissionForm';
 import SubmissionResult from './SubmissionResult';
@@ -53,8 +53,8 @@ export default function SubmissionPage({ assignmentId }) {
         setFoundSubmission(result.submission);
         setView('result');
       }
-    } catch {
-      setResultLookupError('조회하지 못했어요. 연결을 확인하고 다시 시도해주세요.');
+    } catch (err) {
+      setResultLookupError(lookupErrorMessage(err));
     } finally {
       setResultLookupLoading(false);
     }

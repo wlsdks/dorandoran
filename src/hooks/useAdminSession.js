@@ -1,5 +1,5 @@
 import { participationLeader } from '@/lib/participation';
-import { getStaffSession, logoutStaff } from '@/lib/auth-session';
+import { getStaffSession, logoutStaff, STAFF_PROFILE_EVENT } from '@/lib/auth-session';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ref, set, update, serverTimestamp } from 'firebase/database';
@@ -118,6 +118,12 @@ export function useAdminSession() {
 
   // Navigation
   const handleLogin = useCallback(() => { setAdminUser(getAdminUser()); }, []);
+  // 프로필에서 이름을 바꾸면 헤더 등 열린 화면이 새로고침 없이 새 이름을 쓴다.
+  useEffect(() => {
+    const onProfile = () => setAdminUser(getAdminUser());
+    window.addEventListener(STAFF_PROFILE_EVENT, onProfile);
+    return () => window.removeEventListener(STAFF_PROFILE_EVENT, onProfile);
+  }, []);
   const handleSelectSession = useCallback((id, isReadOnly) => { setReadOnly(isReadOnly); selectSessionUrl(id); }, [selectSessionUrl]);
   const handleBack = useCallback(() => { setReadOnly(false); setPresentMode(false); selectSessionUrl(''); }, [selectSessionUrl]);
   const handleLogout = useCallback(() => { setAdminUser(null); selectSessionUrl(''); logoutStaff().catch(() => {}); }, [selectSessionUrl]);

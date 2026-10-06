@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import SubmissionsView from './SubmissionsView';
 import JudgeView from './JudgeView';
 import AwardsView from './AwardsView';
+import AssignmentEditForm from './AssignmentEditForm';
 
 const TABS_WITH_JUDGING = [
   { key: 'submissions', label: '제출물' },
@@ -25,7 +26,8 @@ export default function AssignmentDetail({ assignmentId, onBack }) {
   const { submissions } = useSubmissionList(assignmentId);
   const { results } = useAllResults(assignmentId);
   const { awards, loading: awardsLoading } = useAwards(assignmentId);
-  const { closeAssignment } = useAssignmentActions();
+  const { closeAssignment, reopenAssignment, updateAssignment } = useAssignmentActions();
+  const [editing, setEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('submissions');
   const [confirmClose, setConfirmClose] = useState(false);
 
@@ -78,18 +80,23 @@ export default function AssignmentDetail({ assignmentId, onBack }) {
             </p>
           </div>
 
-          {assignment.status === 'open' && !confirmClose && (
-            <Button
-              onClick={() => setConfirmClose(true)}
-              variant="secondary"
-              size="sm"
-              className="shrink-0"
-            >
-              마감
-            </Button>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {!editing && <Button onClick={() => setEditing(true)} variant="ghost" size="sm">수정</Button>}
+            {assignment.status === 'open' && !confirmClose && (
+              <Button onClick={() => setConfirmClose(true)} variant="secondary" size="sm">마감</Button>
+            )}
+            {/* 마감만 된 과제는 다시 열 수 있다. 심사가 시작된 뒤에는 결과가 어긋나지 않게 막는다. */}
+            {assignment.status === 'closed' && (
+              <Button onClick={() => reopenAssignment(assignmentId)} variant="secondary" size="sm">다시 열기</Button>
+            )}
+          </div>
         </div>
       </div>
+
+      {editing && (
+        <AssignmentEditForm assignment={assignment} onCancel={() => setEditing(false)}
+          onSave={async (data) => { await updateAssignment(assignmentId, data); setEditing(false); }} />
+      )}
 
       {confirmClose && (
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 mb-6">

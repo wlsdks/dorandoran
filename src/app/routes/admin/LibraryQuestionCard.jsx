@@ -70,7 +70,7 @@ export default function LibraryQuestionCard({ question, onDelete, onEdit, index 
               onClick={() => onEdit(question)}
               className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90"
               title="수정"
-              aria-label="질문 수정"
+              aria-label={`${question.title || "질문"} 수정`}
             >
               <Pencil size={15} />
             </button>
@@ -79,7 +79,7 @@ export default function LibraryQuestionCard({ question, onDelete, onEdit, index 
             onClick={() => onDelete(question.id)}
             className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors duration-150 active:scale-90"
             title="삭제"
-            aria-label="질문 삭제"
+            aria-label={`${question.title || "질문"} 삭제`}
           >
             <Trash2 size={15} />
           </button>

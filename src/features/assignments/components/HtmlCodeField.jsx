@@ -17,7 +17,7 @@ export default function HtmlCodeField({
 }) {
   return (
     <div>
-      <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+      <div className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
         <Code2 size={13} className="text-slate-400" />
         결과물 HTML 코드
         <span className="text-red-500 ml-1 font-normal">필수</span>
@@ -33,7 +33,7 @@ export default function HtmlCodeField({
             <Info size={13} />
           </button>
         </Tooltip>
-      </p>
+      </div>
       <div className="flex items-center gap-2 mb-2">
         <button
           type="button"

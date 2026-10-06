@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { lookupSubmission } from '@/features/assignments/api/useSubmissions';
+import { lookupSubmission, lookupErrorMessage } from '@/features/assignments/api/useSubmissions';
 import Button from '@/components/ui/Button';
 
 // ─── LookupForm ────────────────────────────────────
@@ -18,8 +18,8 @@ export default function LookupForm({ assignmentId, onFound }) {
       if (result.error === 'NOT_FOUND') setError('해당 이름의 제출물을 찾을 수 없습니다. 제출 시 입력한 이름을 정확히 입력해주세요.');
       else if (result.error === 'PIN_MISMATCH') setError('이름 또는 조회용 비밀번호가 일치하지 않습니다. 다시 확인해주세요.');
       else onFound(result.submission);
-    } catch {
-      setError('조회하지 못했어요. 연결을 확인하고 다시 시도해주세요.');
+    } catch (err) {
+      setError(lookupErrorMessage(err));
     } finally {
       setLoading(false);
     }

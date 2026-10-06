@@ -18,7 +18,7 @@ export async function authenticatedRequest(path, body, options = {}) {
   const user = await ensureAuthentication();
   const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await user.getIdToken()}` }, body: JSON.stringify(body), signal: options.signal });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || '요청에 실패했습니다.');
+  if (!response.ok) { const error = new Error(data.error || '요청에 실패했습니다.'); error.status = response.status; error.retryAfter = Number(response.headers.get('Retry-After')) || null; throw error; }
   return data;
 }
 
@@ -37,6 +37,12 @@ export async function loginStaff(username, password) {
   verifiedProfile = result.profile;
   sessionStorage.setItem('dorandoran_admin', JSON.stringify(result.profile));
   return result.profile;
+}
+
+/** 프로필(표시 이름 등)이 바뀌면 열린 화면이 바로 새 값을 쓰도록 알린다. */
+export const STAFF_PROFILE_EVENT = 'dorandoran:staff-profile';
+export function notifyStaffProfileChange() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(STAFF_PROFILE_EVENT));
 }
 
 export function getStaffSession() {

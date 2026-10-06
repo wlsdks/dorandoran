@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ref, get, update, onValue } from 'firebase/database';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { ref, update, onValue } from 'firebase/database';
+import { authenticatedRequest } from '@/lib/auth-session';
 import { db } from '@/lib/firebase';
 
 /**
@@ -35,30 +36,33 @@ export function useStaffAssignment(courseId) {
     return () => unsub();
   }, [courseId]);
 
-  // Search for staff users (reads admins node, filters role=staff + query match)
-  const searchStaff = useCallback(async (query) => {
-    const q = (query || '').trim().toLowerCase();
-    if (!q) { setSearchResults([]); return; }
+  // 스태프 검색은 서버 API로 한다 — 계정 정보(admins/staffProfiles)는 클라이언트가 읽을 수 없다.
+  // 입력마다 요청하지 않도록 250ms 뒤 마지막 검색어만 보낸다.
+  const [searchError, setSearchError] = useState(null);
+  const searchSeq = useRef(0);
+  const searchTimer = useRef(null);
+  useEffect(() => () => clearTimeout(searchTimer.current), []);
+  const searchStaff = useCallback((query) => {
+    const q = (query || '').trim();
+    clearTimeout(searchTimer.current);
+    const seq = ++searchSeq.current;
+    setSearchError(null);
+    if (!q) { setSearchResults([]); setSearchLoading(false); return; }
     setSearchLoading(true);
-    try {
-      const snap = await get(ref(db, 'admins'));
-      const admins = snap.val() || {};
-      const assignedUids = new Set(staffList.map((s) => s.uid));
-      const results = Object.entries(admins)
-        .filter(([uid, a]) =>
-          a.role === 'staff' &&
-          a.approved !== false &&
-          !assignedUids.has(uid) &&
-          (a.displayName?.toLowerCase().includes(q) || a.username?.toLowerCase().includes(q))
-        )
-        .map(([uid, a]) => ({ uid, displayName: a.displayName, username: a.username }))
-        .slice(0, 20);
-      setSearchResults(results);
-    } catch {
-      setSearchResults([]);
-    } finally {
-      setSearchLoading(false);
-    }
+    searchTimer.current = setTimeout(async () => {
+      try {
+        const { results = [] } = await authenticatedRequest('/api/staff/search', { query: q });
+        if (seq !== searchSeq.current) return;
+        const assignedUids = new Set(staffList.map((s) => s.uid));
+        setSearchResults(results.filter((r) => !assignedUids.has(r.uid)));
+      } catch (err) {
+        if (seq !== searchSeq.current) return;
+        setSearchResults([]);
+        setSearchError(err.status === 429 ? '잠시 후 다시 검색해주세요.' : err.message || '스태프를 검색하지 못했어요.');
+      } finally {
+        if (seq === searchSeq.current) setSearchLoading(false);
+      }
+    }, 250);
   }, [staffList]);
 
   // Assign staff: atomic multi-path update
@@ -82,5 +86,5 @@ export function useStaffAssignment(courseId) {
     await update(ref(db), updates);
   }, [courseId]);
 
-  return { staffList, loading, searchStaff, searchResults, searchLoading, assignStaff, removeStaff };
+  return { staffList, loading, searchStaff, searchResults, searchLoading, searchError, assignStaff, removeStaff };
 }

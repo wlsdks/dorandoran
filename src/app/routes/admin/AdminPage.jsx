@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -42,6 +42,10 @@ export default function AdminPage() {
   const {
     handleGameResult
   } = useGameResultPublisher(s.sessionId, s.onlineList, s.drawParticipants);
+  // 열 수 없는 세션(삭제됨·권한 없음)이면 목록으로 돌아간다. 렌더 중 상태를 바꾸지 않도록 effect에서 처리.
+  const { adminUser, sessionId, loading: sessionLoading, session, handleBack } = s;
+  const missingSession = Boolean(adminUser && sessionId && !sessionLoading && !session);
+  useEffect(() => { if (missingSession) handleBack(); }, [missingSession, handleBack]);
   if (!s.adminUser) return <AdminLogin onLogin={s.handleLogin} />;
   if (!s.sessionId) {
     if (s.adminUser?.role === 'staff') {
@@ -52,10 +56,7 @@ export default function AdminPage() {
     return <SessionDashboard onSelectSession={s.handleSelectSession} onLogout={s.handleLogout} adminUser={s.adminUser} isMaster={s.isMaster} pendingAdmins={s.pendingAdmins} pendingCount={s.pendingCount} approveAdmin={s.approveAdmin} rejectAdmin={s.rejectAdmin} />;
   }
   if (s.loading) return <SuspenseFallback />;
-  if (!s.session) {
-    s.handleBack();
-    return null;
-  }
+  if (!s.session) return null;
   if (s.adminUser?.role === 'staff') {
     return <Suspense fallback={<SuspenseFallback />}>
         <StaffPage sessionId={s.sessionId} session={s.session} adminUser={s.adminUser} onBack={s.handleBack} onLogout={s.handleLogout} />

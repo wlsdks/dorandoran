@@ -31,5 +31,13 @@ function createRateLimit(limit, windowMs = 60_000, capacity = 10_000) {
     return ++existing.count <= limit;
   };
 }
-module.exports = { httpError, verifiedUser, verifiedStaff, createRateLimit };
+/**
+ * 이름·아이디 색인을 주인일 때만 비운다. 트랜잭션은 먼저 캐시값(null)으로 호출되므로
+ * 주인이 아니면 undefined(중단) 대신 현재 값을 그대로 돌려줘야 서버 값으로 다시 시도된다.
+ */
+function releaseIndex(ref, owner) {
+  return ref.transaction((current) => (current === owner ? null : current));
+}
+
+module.exports = { releaseIndex, httpError, verifiedUser, verifiedStaff, createRateLimit };
 const { readStaffProfile } = require('./staff-profile');

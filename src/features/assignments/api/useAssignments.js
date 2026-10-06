@@ -1,4 +1,4 @@
-import { useResourceList } from '@/hooks/useResourceList';
+import { useResourceList, notifyResourceChange } from '@/hooks/useResourceList';
 import { useRealtimeRecord } from '@/hooks/useRealtimeRecord';
 import { auth } from '@/lib/auth-session';
 import { useCallback } from 'react';
@@ -52,15 +52,18 @@ export function useAssignmentActions() {
       closedAt: null,
       judgedAt: null,
     });
+    notifyResourceChange('assignments');
     return newRef.key;
   }, []);
 
   const updateAssignment = useCallback(async (assignmentId, data) => {
     await update(ref(db, `assignments/${assignmentId}`), data);
+    notifyResourceChange('assignments');
   }, []);
 
   const deleteAssignment = useCallback(async (assignmentId) => {
     await remove(ref(db, `assignments/${assignmentId}`));
+    notifyResourceChange('assignments');
   }, []);
 
   const closeAssignment = useCallback(async (assignmentId) => {
@@ -68,7 +71,14 @@ export function useAssignmentActions() {
       status: 'closed',
       closedAt: serverTimestamp(),
     });
+    notifyResourceChange('assignments');
   }, []);
 
-  return { createAssignment, updateAssignment, deleteAssignment, closeAssignment };
+  // 마감한 과제를 다시 연다 — 제출·수정이 다시 가능해진다.
+  const reopenAssignment = useCallback(async (assignmentId) => {
+    await update(ref(db, `assignments/${assignmentId}`), { status: 'open', closedAt: null });
+    notifyResourceChange('assignments');
+  }, []);
+
+  return { createAssignment, updateAssignment, deleteAssignment, closeAssignment, reopenAssignment };
 }

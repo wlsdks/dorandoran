@@ -57,7 +57,7 @@ export default function ScreenshotsField({
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+        <div className="text-[13px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
           결과물 스크린샷
           <span className="text-slate-300 dark:text-slate-500 ml-0.5 font-normal">선택</span>
           <Tooltip
@@ -72,7 +72,7 @@ export default function ScreenshotsField({
               <Info size={13} />
             </button>
           </Tooltip>
-        </p>
+        </div>
         <p className="text-[11px] text-slate-300 dark:text-slate-500">
           {validShotCount}/{maxScreenshots}장
         </p>

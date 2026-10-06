@@ -51,6 +51,15 @@ export async function submitWork(assignmentId, { name, pin, prdContent, screensh
 /**
  * lookupSubmission — 이름 + 비밀번호로 제출물 조회 (비회원 주문 조회 방식).
  */
+/** 조회 실패 문구 — 요청이 너무 잦아 막힌 것(429)과 연결 문제를 구분한다. */
+export function lookupErrorMessage(err) {
+  if (err?.status === 429) {
+    const seconds = err.retryAfter;
+    return seconds ? `조회 시도가 많아요. ${seconds}초 후 다시 시도해주세요.` : '조회 시도가 많아요. 잠시 후 다시 시도해주세요.';
+  }
+  return '조회하지 못했어요. 연결을 확인하고 다시 시도해주세요.';
+}
+
 export async function lookupSubmission(assignmentId, name, pin) {
   return authenticatedRequest('/api/assignments/lookup', { assignmentId, name, pin });
 }

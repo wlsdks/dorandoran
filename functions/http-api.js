@@ -22,10 +22,12 @@ function createHttpApi(service, { origins = process.env.APP_ALLOWED_ORIGINS || '
     if ((req.rawBody?.length || 0) > maxBodyBytes || Buffer.byteLength(JSON.stringify(req.body || {}), 'utf8') > maxBodyBytes) {
       return res.status(413).json({ error: '요청이 너무 큽니다.' });
     }
-    if (!rateLimit(req.ip || 'unknown')) return res.status(429).json({ error: '요청이 너무 많습니다.' });
+    // 제한 창은 1분 — 클라이언트가 "N초 후 다시"를 안내할 수 있게 알려준다.
+    if (!rateLimit(req.ip || 'unknown')) { res.set('Retry-After', '60'); return res.status(429).json({ error: '요청이 너무 많습니다.' }); }
     try { return res.status(200).json(await service(req)); }
     catch (err) {
       if (!err.status) console.error('API 요청 처리 실패', { name: err.name, code: err.code });
+      if (err.status === 429) res.set('Retry-After', '60');
       return res.status(err.status || 500).json({ error: err.status ? err.message : '요청 처리에 실패했습니다.' });
     }
   };

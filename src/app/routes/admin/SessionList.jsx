@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Copy, Trash2, Users } from 'lucide-react';
 
 const CourseStaffModal = lazy(() => import('./CourseStaffModal'));
+const CourseActions = lazy(() => import('./CourseActions'));
 
 function formatDate(timestamp) {
   if (!timestamp) return '';
@@ -36,7 +37,11 @@ const SessionRow = memo(function SessionRow({ session, onClick, onDelete, onDupl
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2, delay: index * 0.02 }}
-      className="w-full flex items-center gap-4 max-sm:gap-3 px-5 max-sm:px-3.5 py-4.5 text-left transition-colors duration-150 hover:bg-slate-50 dark:hover:bg-slate-700/50 active:bg-slate-100 dark:active:bg-slate-700 group cursor-pointer"
+      role="button"
+      tabIndex={0}
+      aria-label={`${session.roundNumber ? `${session.roundNumber}차` : '세션'} ${formatDate(session.createdAt)} 열기`}
+      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onClick?.(); } }}
+      className="w-full flex items-center gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 max-sm:gap-3 px-5 max-sm:px-3.5 py-4.5 text-left transition-colors duration-150 hover:bg-slate-50 dark:hover:bg-slate-700/50 active:bg-slate-100 dark:active:bg-slate-700 group cursor-pointer"
       onClick={onClick}
     >
       <span className={`text-sm font-bold w-8 shrink-0 ${isSetting ? 'text-slate-500' : isActive || isReviewing ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>
@@ -67,11 +72,11 @@ const SessionRow = memo(function SessionRow({ session, onClick, onDelete, onDupl
         <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">완료</span>
       )}
       {!hideActions && (
-        <div className="flex items-center gap-0.5 shrink-0 max-sm:hidden">
+        <div className="flex items-center gap-0.5 shrink-0">
           {session.questionCount > 0 && (
             <button
               onClick={handleDuplicate}
-              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-300 opacity-0 group-hover:opacity-100 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90 max-sm:opacity-60"
+              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-300 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 max-sm:min-w-11 max-sm:min-h-11 flex items-center justify-center hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90 max-sm:opacity-60"
               aria-label="세션 복제"
             >
               <Copy size={14} />
@@ -80,7 +85,7 @@ const SessionRow = memo(function SessionRow({ session, onClick, onDelete, onDupl
           {!isActive && (
             <button
               onClick={handleDelete}
-              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-300 opacity-0 group-hover:opacity-100 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150 active:scale-90 max-sm:opacity-60"
+              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-300 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 max-sm:min-w-11 max-sm:min-h-11 flex items-center justify-center hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150 active:scale-90 max-sm:opacity-60"
               aria-label="세션 삭제"
             >
               <Trash2 size={14} />
@@ -123,6 +128,9 @@ export function CourseGroup({ name, sessions, onSelect, onDelete, onDuplicate, s
               >
                 <Users size={16} />
               </button>
+            )}
+            {canManageStaff && courseId && (
+              <Suspense fallback={null}><CourseActions courseId={courseId} name={name} sessions={sessions} /></Suspense>
             )}
           </div>
           <button

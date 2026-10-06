@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import EmptyState from '@/components/ui/EmptyState';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Toast from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import QuestionForm from './QuestionForm';
 import TemplatePacks from './TemplatePacks';
 import LibraryQuestionCard from './LibraryQuestionCard';
@@ -88,8 +89,16 @@ export default memo(function QuestionLibraryView({
     }
     if (count > 0) showToast(`${count}개 질문이 보관함에 추가되었습니다`);
   }
-  async function handleDelete(qId) {
-    const ok = await deleteQuestion(qId);
+  // 보관함 삭제는 되돌릴 수 없어 한 번 확인한다.
+  const [pendingDelete, setPendingDelete] = useState(null);
+  function handleDelete(qId) {
+    setPendingDelete(questions.find((q) => q.id === qId) || { id: qId });
+  }
+  async function confirmDelete() {
+    const target = pendingDelete;
+    setPendingDelete(null);
+    if (!target) return;
+    const ok = await deleteQuestion(target.id);
     if (ok) showToast('질문이 삭제되었습니다');
   }
   if (loading) {
@@ -99,6 +108,9 @@ export default memo(function QuestionLibraryView({
       </div>;
   }
   return <div className="space-y-5">
+      <ConfirmModal open={!!pendingDelete} onCancel={() => setPendingDelete(null)} onConfirm={confirmDelete}
+        title="보관함에서 삭제할까요?" description={pendingDelete?.title ? `"${pendingDelete.title}" 질문이 보관함에서 삭제돼요. 되돌릴 수 없어요.` : '이 질문이 보관함에서 삭제돼요. 되돌릴 수 없어요.'}
+        confirmLabel="삭제" variant="danger" />
       {/* Header actions */}
       <div className="flex items-center justify-between">
         <div>
