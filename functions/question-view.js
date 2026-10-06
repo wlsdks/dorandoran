@@ -2,7 +2,7 @@ const fields = require('./public-question-fields.json');
 const { metadataList } = require('./metadata');
 const pendingByDatabase = new WeakMap();
 // 정답 공개 뒤에만 공개 뷰에 싣는 필드. 클라이언트(src/lib/public-questions.js)·RTDB 규칙과 같아야 한다.
-const REVEALED_FIELDS = ['correctAnswer', 'acceptableAnswers', 'answerImageUrl'];
+const REVEALED_FIELDS = ['correctAnswer', 'acceptableAnswers', 'answerImageUrl', 'answerExplanation'];
 
 async function createQuestionView(db, sessionId) {
   const target = db.ref(`sessions/${sessionId}/publicQuestions`);

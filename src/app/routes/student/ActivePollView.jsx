@@ -21,7 +21,7 @@ import ImageSlidePresenter from '@/features/visualization/components/ImageSlideP
 import AiJudgeSubmitter from '@/features/ai-judge/components/AiJudgeSubmitter';
 import PersistentAssignmentCard from '@/features/ai-judge/components/PersistentAssignmentCard';
 import AnswerRevealCard from '@/components/ui/AnswerRevealCard';
-import AnswerReferenceImage from '@/components/ui/AnswerReferenceImage';
+import AnswerExplanation from '@/components/ui/AnswerExplanation';
 import { getParticipantId } from '@/lib/participant';
 import StudentHeader from './StudentHeader';
 import StudentBottomBar from './StudentBottomBar';
@@ -271,9 +271,9 @@ export default memo(function ActivePollView({
           </AnimatePresence>
         </ErrorBoundary>
 
-        {/* 정답 참고 이미지 — 공개 뷰에는 정답 공개 뒤에만 실린다 */}
-        {question.revealedAt && question.answerImageUrl && (
-          <AnswerReferenceImage key={`answer-image-${questionId}`} src={question.answerImageUrl} />
+        {/* 정답 해설 — 공개 뷰에는 정답 공개 뒤에만 실린다 */}
+        {question.revealedAt && (question.answerExplanation || question.answerImageUrl) && (
+          <AnswerExplanation key={`answer-explanation-${questionId}`} text={question.answerExplanation} imageSrc={question.answerImageUrl} />
         )}
       </div>
 

@@ -28,7 +28,7 @@ import Badge from '@/components/ui/Badge';
 import EmptyState from '@/components/ui/EmptyState';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import QuizEventBanner from '@/components/ui/QuizEventBanner';
-import AnswerReferenceImage from '@/components/ui/AnswerReferenceImage';
+import AnswerExplanation from '@/components/ui/AnswerExplanation';
 import { isQuizQuestion } from '@/lib/quiz';
 import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
@@ -92,9 +92,9 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
   const isEnded = session?.status === 'ended' || session?.status === 'reviewing';
   const hasCorrectAnswer = Boolean(question.correctAnswer);
   const answerRevealed = Boolean(question.revealedAt) || isEnded;
-  // 강사 원본에는 공개 전부터 이미지가 있으므로 공개 여부를 여기서 확인한다
-  const showAnswerImage = hasCorrectAnswer && answerRevealed && Boolean(question.answerImageUrl);
-  const sideImage = isPresenter && showAnswerImage;
+  // 강사 원본에는 공개 전부터 해설이 있으므로 공개 여부를 여기서 확인한다
+  const showExplanation = hasCorrectAnswer && answerRevealed && Boolean(question.answerExplanation || question.answerImageUrl);
+  const sideImage = isPresenter && showExplanation;
   const onDisplayPageChange = isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined;
   const framed = isPresenter && !['imageSlide', 'webEmbed', 'aiJudge'].includes(question.type);
 
@@ -139,7 +139,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
         />
       )}
 
-      {/* Visualization — 발표 화면에서 정답 참고 이미지가 있으면 차트 옆에 나란히 둔다(세로로 쌓으면 화면을 넘친다) */}
+      {/* Visualization — 발표 화면에서 정답 해설이 있으면 차트 옆에 나란히 둔다(세로로 쌓으면 화면을 넘친다) */}
       <div className={sideImage ? 'w-full flex flex-col lg:flex-row items-center gap-6 lg:gap-10 px-8' : 'contents'}>
       <ErrorBoundary scope="visualization" fullPage={false}>
         <div data-kind={question.type} className={`${isFeed ? 'flex-1 overflow-y-auto px-4 py-3' : 'w-full'} ${sideImage ? 'lg:flex-[3] min-w-0' : ''} ${isPresenter ? 'classroom-visualization' : ''}`}>
@@ -296,7 +296,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
         </div>
       </ErrorBoundary>
 
-      {showAnswerImage && <AnswerReferenceImage src={question.answerImageUrl} presenter={isPresenter} />}
+      {showExplanation && <AnswerExplanation text={question.answerExplanation} imageSrc={question.answerImageUrl} presenter={isPresenter} />}
       </div>
     </div>
   );

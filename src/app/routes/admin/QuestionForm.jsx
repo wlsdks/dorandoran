@@ -18,7 +18,7 @@ import {
   MysteryBoxSection,
   HintQuizSection,
   ShortAnswerSection,
-  AnswerImageSection,
+  AnswerExplanationSection,
 } from './QuestionFormSections';
 
 const COMMON_TYPES = ['choice', 'quiz', 'ox', 'wordcloud', 'subjective', 'check'];
@@ -48,6 +48,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
   const [winners, setWinners] = useState(initialData?.winners?.length ? [...initialData.winners] : []);
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
   const [answerImageUrl, setAnswerImageUrl] = useState(initialData?.answerImageUrl || '');
+  const [answerExplanation, setAnswerExplanation] = useState(initialData?.answerExplanation || '');
   const [hideTitle, setHideTitle] = useState(initialData?.hideTitle || false);
   const [slideImages, setSlideImages] = useState(initialData?.slideImages || []);
   const [modelAnswer, setModelAnswer] = useState(initialData?.modelAnswer || '');
@@ -90,6 +91,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
     const submitData = { type, title, options: cleanOptions, correctAnswer, points, event, betting, hideTitle };
     if (imageUrl) submitData.imageUrl = imageUrl;
     if (hasAnswer && answerImageUrl) submitData.answerImageUrl = answerImageUrl;
+    if (hasAnswer && answerExplanation.trim()) submitData.answerExplanation = answerExplanation.trim();
     if (isWebEmbed) submitData.embedUrl = safeEmbed;
     if (isSubjective) submitData.modelAnswer = modelAnswer.trim();
     if (isMysteryBox) {
@@ -228,7 +230,8 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
           setHints={setHints} acceptableAnswers={acceptableAnswers}
           setAcceptableAnswers={setAcceptableAnswers} winners={winners}
           setWinners={setWinners} setLocalError={setLocalError} />}
-        {hasAnswer && <AnswerImageSection answerImageUrl={answerImageUrl} setAnswerImageUrl={setAnswerImageUrl} />}
+        {hasAnswer && <AnswerExplanationSection answerExplanation={answerExplanation} setAnswerExplanation={setAnswerExplanation}
+          answerImageUrl={answerImageUrl} setAnswerImageUrl={setAnswerImageUrl} />}
         {isSubjective && available && (
           <div className="overflow-hidden">
             <div className="pt-4">

@@ -73,12 +73,12 @@ test('question-view keeps the answer image out of the public view until the answ
   process.env.FIREBASE_DATABASE_EMULATOR_HOST = '127.0.0.1:9000';
   global.fetch = async () => ({ ok: true, json: async () => ({ q: true }) });
   try {
-    const original = { type: 'ox', title: 'earth', correctAnswer: 'O', answerImageUrl: 'https://img.example/earth.jpg' };
+    const original = { type: 'ox', title: 'earth', correctAnswer: 'O', answerImageUrl: 'https://img.example/earth.jpg', answerExplanation: 'seen from orbit' };
     const hidden = await project(original);
     assert.equal(hidden.title, 'earth');
-    assert.equal(hidden.answerImageUrl, undefined); assert.equal(hidden.correctAnswer, undefined);
+    assert.equal(hidden.answerImageUrl, undefined); assert.equal(hidden.correctAnswer, undefined); assert.equal(hidden.answerExplanation, undefined);
     const shown = await project({ ...original, revealedAt: 1 });
-    assert.equal(shown.answerImageUrl, 'https://img.example/earth.jpg'); assert.equal(shown.correctAnswer, 'O');
+    assert.equal(shown.answerImageUrl, 'https://img.example/earth.jpg'); assert.equal(shown.correctAnswer, 'O'); assert.equal(shown.answerExplanation, 'seen from orbit');
   } finally {
     global.fetch = previousFetch;
     if (previousHost == null) delete process.env.FIREBASE_DATABASE_EMULATOR_HOST;

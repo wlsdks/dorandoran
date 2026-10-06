@@ -2,7 +2,7 @@ import fields from '../../functions/public-question-fields.json';
 import { EMPTY_RECORD } from './realtime';
 
 /** 정답 공개 뒤에만 공개 뷰에 싣는 필드. 서버(functions/question-view.js)·RTDB 규칙과 같아야 한다. */
-export const REVEALED_FIELDS = ['correctAnswer', 'acceptableAnswers', 'answerImageUrl'];
+export const REVEALED_FIELDS = ['correctAnswer', 'acceptableAnswers', 'answerImageUrl', 'answerExplanation'];
 
 /** 공개 질문에서 원본 투표·제출물·미공개 정답을 제외한다. 원본 노드는 그대로 유지한다. */
 export function publicQuestions(questions) {

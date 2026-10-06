@@ -200,6 +200,9 @@
             "modelAnswer": {
               ".validate": "newData.isString() && newData.val().length <= 1000"
             },
+            "answerExplanation": {
+              ".validate": "newData.isString() && newData.val().length <= 500"
+            },
             "votes": {
               "$participantId": {
                 ".validate": "newData.hasChild('value') && root.child('sessions').child($sid).child('participants').child($participantId).exists() && !root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists() && (!root.child('sessions').child($sid).child('timer').child('endTime').exists() || now < root.child('sessions').child($sid).child('timer').child('endTime').val() + 2000)",
@@ -699,6 +702,9 @@
             },
             "acceptableAnswers": {
               ".validate": "root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists() || root.child('sessions').child($sid).child('questions').child($qId).child('answerRevealed').val() === true"
+            },
+            "answerExplanation": {
+              ".validate": "newData.isString() && newData.val().length <= 500 && (root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists() || root.child('sessions').child($sid).child('questions').child($qId).child('answerRevealed').val() === true)"
             },
             "answerImageUrl": {
               ".validate": "newData.isString() && newData.val().length <= 2000 && newData.val().matches(/^https?:\\/\\//) && (root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists() || root.child('sessions').child($sid).child('questions').child($qId).child('answerRevealed').val() === true)"

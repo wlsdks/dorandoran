@@ -490,13 +490,20 @@ export function QuizSettingsSection({ points, setPoints, event, setEvent, bettin
   );
 }
 
-export function AnswerImageSection({ answerImageUrl, setAnswerImageUrl }) {
+export const ANSWER_EXPLANATION_MAX = 300;
+
+export function AnswerExplanationSection({ answerExplanation, setAnswerExplanation, answerImageUrl, setAnswerImageUrl }) {
   return (
-    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }} className={GAP}>
-      <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">정답 참고 이미지 <span className="normal-case font-normal">(선택)</span></p>
-      <ImageUpload value={answerImageUrl} onChange={setAnswerImageUrl} uploadLabel="정답 공개 때 보여줄 이미지 첨부" />
-      <p className="text-[11px] text-slate-400 mt-1.5">정답을 공개하면 발표 화면과 학생 화면에 함께 나타납니다. 공개 전에는 학생에게 전송되지 않아요.</p>
-    </motion.div>
+    <div className={GAP}>
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">정답 해설 <span className="normal-case font-normal">(선택)</span></p>
+      <textarea value={answerExplanation} onChange={(e) => setAnswerExplanation(e.target.value)}
+        maxLength={ANSWER_EXPLANATION_MAX} rows={2} aria-label="정답 해설"
+        placeholder="정답인 이유를 짧게 적어주세요"
+        className={`${INPUT} resize-none leading-relaxed`} />
+      <div className="mt-2">
+        <ImageUpload value={answerImageUrl} onChange={setAnswerImageUrl} uploadLabel="참고 이미지 첨부" />
+      </div>
+      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">정답을 공개하면 발표 화면과 학생 화면에 함께 나타납니다. 공개 전에는 학생에게 전송되지 않아요.</p>
+    </div>
   );
 }
