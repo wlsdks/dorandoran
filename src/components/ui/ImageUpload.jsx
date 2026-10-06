@@ -2,13 +2,13 @@ import { auth, ensureAuthentication } from '@/lib/auth-session';
 import { useState, useRef, memo } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
-import { compressImage } from '@/lib/image-utils';
+import { compressImage, uploadErrorMessage, MAX_UPLOAD_MB } from '@/lib/image-utils';
 import { imageRejection } from '@/lib/image-file';
 import { logger } from '@/lib/logger';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
 
-const MAX_SIZE_MB = 20; // 압축 전 원본 허용 (압축 후 1-2MB)
+const MAX_SIZE_MB = MAX_UPLOAD_MB; // 원본 허용 크기 — 업로드 전에 발표용 해상도로 줄인다
 
 /**
  * ImageUpload — 이미지 업로드 + 미리보기.
@@ -42,8 +42,7 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
       onChange(url);
     } catch (err) {
       logger.error('Image upload failed:', err);
-      setError('업로드 실패. 다시 시도해주세요.');
-      setTimeout(() => setError(null), 3000);
+      setError(uploadErrorMessage(err));
     }
     setUploading(false);
   }
