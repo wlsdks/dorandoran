@@ -78,6 +78,10 @@ input, textarea, select {
 .dark :focus-visible {
   outline-color: #818CF8;
 }
+/* 대화상자 컨테이너는 Tab으로 이동하지 않는 포커스 보관용(tabindex=-1)이라 윤곽선을 그리지 않는다 */
+[role="dialog"][tabindex="-1"]:focus-visible {
+  outline: none;
+}
 
 /* Skeleton shimmer — directional gradient (토스/당근 premium feel) */
 @keyframes shimmer {

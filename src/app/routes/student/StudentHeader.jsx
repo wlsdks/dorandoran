@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { motion, MotionConfig, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
 import { Trophy, Sun, Moon, Users, Settings, X, UserRound } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
 import Modal from '@/components/ui/Modal';
-import ConnectionBanner from '@/components/ui/ConnectionBanner';
+import ConnectionBanner, { CONNECTION_DETAILS_EVENT } from '@/components/ui/ConnectionBanner';
+import ConnectionStatusIcon from '@/components/ui/ConnectionStatusIcon';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useMyScore } from '@/features/quiz/api/useScores';
 import { useParticipantCount } from '@/features/participants/api/useParticipants';
@@ -15,7 +16,7 @@ import QuizScoreGuide from './QuizScoreGuide';
 export default function StudentHeader({ sessionId, question, isSpeedQuiz = false }) {
   const liveCount = useParticipantCount(sessionId);
   const { myScore } = useMyScore(sessionId);
-  const { connected } = useConnectionStatus();
+  const { connected, showBanner } = useConnectionStatus();
   const { isDark, setTheme } = useTheme();
   const reduced = useReducedMotion();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -34,7 +35,21 @@ export default function StudentHeader({ sessionId, question, isSpeedQuiz = false
         <div className="flex flex-1 items-center gap-1.5 min-w-0 overflow-hidden">
           <span className="shrink-0"><DoranDoranMascot size={30} animated={false} /></span>
           <span className="inline-flex min-w-0 items-center gap-1.5 font-bold text-[15px] text-slate-900 dark:text-slate-100 tracking-tight whitespace-nowrap"><span className="truncate">도란도란</span>
-            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${connected ? 'bg-emerald-400' : 'bg-amber-400'}`} role="img" aria-label={connected ? '서버 연결됨' : '서버 재연결 중'} />
+            {/* 연결 상태 — 평소엔 점, 끊김/복구 안내 중에는 칩. 칩을 누르면 가운데 안내를 다시 연다. */}
+            <AnimatePresence mode="popLayout" initial={false}>
+              {showBanner ? (
+                <motion.button key={showBanner} type="button" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                  onClick={() => showBanner === 'offline' && window.dispatchEvent(new CustomEvent(CONNECTION_DETAILS_EVENT))}
+                  aria-label={showBanner === 'offline' ? '서버 재연결 중. 연결 안내 열기' : '다시 연결됨'}
+                  className={`-my-2 ml-0.5 inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full py-2 pl-1 pr-2.5 text-xs font-semibold ${showBanner === 'offline' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                  <ConnectionStatusIcon key={showBanner} state={showBanner === 'offline' ? 'retrying' : 'restored'} size={18} />
+                  {showBanner === 'offline' ? '재연결 중' : '연결됨'}
+                </motion.button>
+              ) : (
+                <motion.span key="dot" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className={`h-1.5 w-1.5 rounded-full shrink-0 ${connected ? 'bg-emerald-400' : 'bg-amber-400'}`} role="img" aria-label={connected ? '서버 연결됨' : '서버 재연결 중'} />
+              )}
+            </AnimatePresence>
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -62,6 +77,6 @@ export default function StudentHeader({ sessionId, question, isSpeedQuiz = false
         <button type="button" onClick={handleChangeNickname} aria-label="닉네임 변경" className={rowClass}><UserRound size={22} /><span className="min-w-0 flex-1 truncate">{nickname || '학습자'}</span><span className="shrink-0">닉네임 변경</span></button>
       </div>
     </Modal>
-    <ConnectionBanner />
+    <ConnectionBanner inlineStatus />
   </MotionConfig>;
 }
