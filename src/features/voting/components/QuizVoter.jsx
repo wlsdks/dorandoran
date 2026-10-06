@@ -156,11 +156,11 @@ export default memo(function QuizVoter({
           damping: 22,
           delay: 0.1
         }} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
-            <Lock size={18} className="text-slate-400 dark:text-slate-500" />
+            <Lock size={18} className="text-slate-600 dark:text-slate-400" />
           </motion.div>
           <div>
             <p className="text-slate-900 dark:text-slate-100 font-bold text-base">정답이 공개되었습니다</p>
-            <p className="text-slate-400 dark:text-slate-500 text-sm">이번 라운드에 참여하지 않았습니다</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm">이번 라운드에 참여하지 않았습니다</p>
           </div>
         </div>
 

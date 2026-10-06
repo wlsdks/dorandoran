@@ -41,7 +41,7 @@ export default function AnalogyHelper({ questionTitle, options, correctAnswer })
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">AI 설명 비유</p>
-            <p className="text-[11px] text-slate-400">{available ? '어려운 개념을 설명할 때 참고할 비유·예시' : reason}</p>
+            <p className="text-[11px] text-slate-600 dark:text-slate-300">{available ? '어려운 개념을 설명할 때 참고할 비유·예시' : reason}</p>
           </div>
           <button
             onClick={handleGenerate}
@@ -82,7 +82,7 @@ export default function AnalogyHelper({ questionTitle, options, correctAnswer })
                 ) : (
                   <div className="mt-3 space-y-3">
                     {result.topic && (
-                      <p className="text-[11px] text-slate-400 italic">이해한 주제: {result.topic}</p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300 italic">이해한 주제: {result.topic}</p>
                     )}
                     {result.analogies.map((a, i) => {
                       const open = !!expanded[i];
@@ -111,7 +111,7 @@ export default function AnalogyHelper({ questionTitle, options, correctAnswer })
                                 <div className="px-3 pb-3 pt-0 space-y-1.5">
                                   <p className="text-[13px] text-slate-700 dark:text-slate-200 leading-relaxed">{a.body}</p>
                                   {a.limitation && (
-                                    <p className="text-[11px] text-slate-400 italic">⚠ {a.limitation}</p>
+                                    <p className="text-[11px] text-slate-600 dark:text-slate-300 italic">⚠ {a.limitation}</p>
                                   )}
                                 </div>
                               </motion.div>
@@ -120,7 +120,7 @@ export default function AnalogyHelper({ questionTitle, options, correctAnswer })
                         </div>
                       );
                     })}
-                    <p className="text-[10px] text-slate-400 italic">{result.disclaimer || 'AI 생성이므로 강사님이 정확성 확인 후 사용하세요'}</p>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-300 italic">{result.disclaimer || 'AI 생성이므로 강사님이 정확성 확인 후 사용하세요'}</p>
                   </div>
                 )}
               </div>

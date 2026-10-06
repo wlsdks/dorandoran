@@ -165,7 +165,7 @@ export default memo(function DebateVoter({ sessionId, questionId, disabled = fal
           } ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
         >
           <span className="text-3xl font-black tracking-tight">찬성</span>
-          <span className={`text-xs font-medium ${side === 'for' ? 'text-indigo-200' : 'text-slate-400'}`}>동의합니다</span>
+          <span className={`text-xs font-medium ${side === 'for' ? 'text-indigo-200 dark:text-indigo-700' : 'text-slate-600 dark:text-slate-300'}`}>동의합니다</span>
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.95 }}
@@ -178,7 +178,7 @@ export default memo(function DebateVoter({ sessionId, questionId, disabled = fal
           } ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
         >
           <span className="text-3xl font-black tracking-tight">반대</span>
-          <span className={`text-xs font-medium ${side === 'against' ? 'text-slate-300 dark:text-slate-600' : 'text-slate-400'}`}>동의하지 않습니다</span>
+          <span className={`text-xs font-medium ${side === 'against' ? 'text-slate-300 dark:text-slate-600' : 'text-slate-600 dark:text-slate-300'}`}>동의하지 않습니다</span>
         </motion.button>
       </div>
 
@@ -186,16 +186,16 @@ export default memo(function DebateVoter({ sessionId, questionId, disabled = fal
       <AnimatePresence>
         {side && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16, ease: 'easeOut' }}
             className="overflow-hidden space-y-3"
           >
             <div className="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-slate-400">한 줄 의견 <span className="font-normal">(선택)</span></p>
-                <span className="text-[11px] text-slate-300 dark:text-slate-600 tabular-nums">{opinion.length}/50</span>
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">한 줄 의견 <span className="font-normal">(선택)</span></p>
+                <span className="text-[11px] text-slate-600 dark:text-slate-300 tabular-nums">{opinion.length}/50</span>
               </div>
               <input
                 type="text"
@@ -204,7 +204,7 @@ export default memo(function DebateVoter({ sessionId, questionId, disabled = fal
                 placeholder="이유를 한 줄로 적어주세요"
                 aria-label="한 줄 의견"
                 enterKeyHint="done"
-                className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-500 rounded-lg px-4 py-3 text-base placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-colors duration-150"
+                className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-300 rounded-lg px-4 py-3 text-base placeholder:text-slate-600 focus:outline-none focus:bg-white focus:border-slate-400 transition-colors duration-150"
               />
             </div>
 

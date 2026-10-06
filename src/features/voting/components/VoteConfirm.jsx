@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useState, useEffect, useMemo, memo } from 'react';
 import { hapticSuccess } from '@/lib/haptics';
 
@@ -66,27 +66,27 @@ function ParticleBurst() {
   );
 }
 
-function AnimatedCheck() {
+function AnimatedCheck({ reduced }) {
   return (
     <div className="relative w-16 h-16 flex items-center justify-center">
       {/* Ring pulse — expands outward and fades after check */}
-      <motion.div
+      {!reduced && <motion.div
         className="absolute inset-0 rounded-full border-2 border-slate-900 dark:border-slate-100"
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: [0.6, 1.6, 1.6], opacity: [0, 0.5, 0] }}
         transition={{ delay: 0.28, duration: 0.55, ease: [0, 0.55, 0.45, 1] }}
-      />
+      />}
 
-      {/* Dark circle — dramatic spring overshoot */}
+      {/* Confirmation circle settles once */}
       <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: [0, 1.22, 0.92, 1.06, 1] }}
-        transition={{ type: 'spring', stiffness: 420, damping: 20, duration: 0.5 }}
+        initial={reduced ? false : { scale: 0.9 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
         className="absolute inset-0 bg-slate-900 dark:bg-slate-100 rounded-full"
       />
 
       {/* Particle burst centered on circle */}
-      <ParticleBurst />
+      {!reduced && <ParticleBurst />}
 
       {/* White checkmark draws in */}
       <motion.svg
@@ -100,9 +100,9 @@ function AnimatedCheck() {
           strokeWidth={3}
           strokeLinecap="round"
           strokeLinejoin="round"
-          initial={{ pathLength: 0, opacity: 0 }}
+          initial={reduced ? false : { pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ delay: 0.22, duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
+          transition={{ delay: reduced ? 0 : 0.1, duration: reduced ? 0 : 0.24, ease: [0.25, 0.1, 0.25, 1] }}
         />
       </motion.svg>
     </div>
@@ -118,6 +118,7 @@ export default memo(function VoteConfirm({
   selectedAnswerLabel = '내 응답',
 }) {
   const [waiting, setWaiting] = useState(false);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     hapticSuccess();
@@ -127,7 +128,7 @@ export default memo(function VoteConfirm({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={reduced ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       role="status"
@@ -135,23 +136,21 @@ export default memo(function VoteConfirm({
       className="w-full rounded-xl bg-white dark:bg-slate-800 px-5 py-8 shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700/60"
     >
       <div className="flex flex-col items-center gap-5">
-        {/* Check with particles — breathe when waiting */}
+        {/* One-time confirmation feedback */}
         <motion.div
-          animate={waiting ? { scale: [1, 1.06, 1] } : {}}
-          transition={waiting ? { duration: 2.5, repeat: Infinity, ease: 'easeInOut' } : {}}
+          animate={{ scale: 1 }}
         >
-          <AnimatedCheck />
+          <AnimatedCheck reduced={reduced} />
         </motion.div>
 
         {/* Label + description */}
         <div className="space-y-1 text-center">
           <motion.p
             key={waiting ? 'w' : 'd'}
-            initial={{ opacity: 0, scale: 0.85, y: 4 }}
-            animate={{ opacity: 1, scale: [0.85, 1.08, 0.97, 1], y: 0 }}
+            initial={reduced ? false : { opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{
               opacity: { duration: 0.2 },
-              scale: { type: 'spring', stiffness: 380, damping: 22 },
               y: { duration: 0.2 },
             }}
             className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100"
@@ -163,7 +162,7 @@ export default memo(function VoteConfirm({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.25 }}
-            className="text-sm text-slate-400 dark:text-slate-500"
+            className="text-sm text-slate-600 dark:text-slate-400"
           >
             {waiting ? waitingDescription : submittedDescription}
           </motion.p>
@@ -179,8 +178,8 @@ export default memo(function VoteConfirm({
                   <motion.span
                     key={i}
                     className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"
-                    animate={{ opacity: [0.3, 1, 0.3] }}
-                    transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+                    animate={{ opacity: 0.7 }}
+                    transition={{ duration: 0.16 }}
                   />
                 ))}
             </motion.span>
@@ -190,12 +189,12 @@ export default memo(function VoteConfirm({
         {/* Selected answer pill */}
         {selectedAnswer && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={reduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, type: 'spring', stiffness: 300, damping: 25 }}
             className="rounded-xl ring-1 ring-slate-200 dark:ring-slate-600 bg-slate-50 dark:bg-slate-700/80 px-4 py-3 text-center w-full"
           >
-            <p className="text-xs font-medium text-slate-400 mb-1">{selectedAnswerLabel}</p>
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">{selectedAnswerLabel}</p>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 line-clamp-3">{selectedAnswer}</p>
           </motion.div>
         )}

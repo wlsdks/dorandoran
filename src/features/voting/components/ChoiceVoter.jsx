@@ -134,7 +134,7 @@ export default memo(function ChoiceVoter({ sessionId, questionId, options, disab
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-xs text-slate-400 dark:text-slate-500 shrink-0"
+                className="text-xs text-slate-600 dark:text-slate-400 shrink-0"
               >
                 전송 중...
               </motion.span>

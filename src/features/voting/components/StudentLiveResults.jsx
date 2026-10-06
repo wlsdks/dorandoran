@@ -31,9 +31,9 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
     >
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 tracking-tight">
-          {connected ? '전체 선택 비율' : '마지막 집계 · 연결 복구 대기'} {connected && !revealed && <span className="font-normal text-slate-400 dark:text-slate-500">· 실시간</span>}
+          {connected ? '전체 선택 비율' : '마지막 집계 · 연결 복구 대기'} {connected && !revealed && <span className="font-normal text-slate-600 dark:text-slate-400">· 실시간</span>}
         </p>
-        <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
+        <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
           <Users size={12} />
           <span className="text-xs font-semibold tabular-nums">{totalVotes}</span>
         </div>
@@ -62,7 +62,7 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
                 </span>
                 <span
                   className={`text-xs tabular-nums shrink-0 ${
-                    isMine ? 'font-bold text-slate-900 dark:text-slate-100' : 'font-medium text-slate-400 dark:text-slate-500'
+                    isMine ? 'font-bold text-slate-900 dark:text-slate-100' : 'font-medium text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   {formatPercent(count, totalVotes)}

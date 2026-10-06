@@ -8,7 +8,7 @@ import TextInput from './TextInput';
 export default memo(function MysteryBoxVoter({ sessionId, questionId, disabled = false }) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
+      <div className="flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400">
         <HelpCircle size={18} />
         <span className="text-sm font-medium">정답을 추측해보세요</span>
       </div>

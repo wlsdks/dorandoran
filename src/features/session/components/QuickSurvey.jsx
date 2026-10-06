@@ -59,7 +59,7 @@ function StudentSurvey({ sessionId, embedded = false }) {
       >
         <div className="space-y-2">
           <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">빠른 설문</p>
-          <p className="text-slate-400 text-[15px]">오늘 수업은 어떠셨나요?</p>
+          <p className="text-slate-600 dark:text-slate-300 text-[15px]">오늘 수업은 어떠셨나요?</p>
         </div>
 
         <div className="flex gap-2 justify-center w-full">
@@ -91,7 +91,7 @@ function StudentSurvey({ sessionId, embedded = false }) {
         </div>
 
         {/* Labels */}
-        <div className="flex justify-between px-1 text-sm text-slate-400">
+        <div className="flex justify-between px-1 text-sm text-slate-600 dark:text-slate-300">
           <span>매우 아쉬움</span>
           <span>매우 좋음</span>
         </div>
@@ -105,7 +105,7 @@ function StudentSurvey({ sessionId, embedded = false }) {
             transition={{ delay: 0.2 }}
             className="space-y-1"
           >
-            <p className="text-slate-400 text-sm">응답이 기록되었습니다</p>
+            <p className="text-slate-600 dark:text-slate-300 text-sm">응답이 기록되었습니다</p>
             <p className="text-slate-300 text-xs">{RATING_LABELS[voted - 1]}</p>
           </motion.div>
         )}
@@ -177,7 +177,7 @@ export function SurveyPresenter({ sessionId, onReset, presenter = false, readOnl
         >
           {avg}
         </motion.p>
-        <p className={presenter ? "text-2xl text-slate-300" : "text-slate-400 text-sm"}>평균 (5점 만점) · {total}명 응답</p>
+        <p className={presenter ? "text-2xl text-slate-300" : "text-slate-600 dark:text-slate-300 text-sm"}>평균 (5점 만점) · {total}명 응답</p>
       </div>
 
       <SurveyBarChart counts={counts} total={total} presenter={presenter} />

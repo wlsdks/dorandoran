@@ -123,7 +123,7 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
       )}
 
       {images.length > 0 && images.length > 1 && (
-        <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center">드래그하여 순서 변경</p>
+        <p className="text-[11px] text-slate-600 dark:text-slate-300 text-center">드래그하여 순서 변경</p>
       )}
 
       {images.length < MAX_IMAGES && (
@@ -131,7 +131,7 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="w-full py-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500 hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 transition-colors flex items-center justify-center gap-2 text-sm active:scale-[0.98]"
+          className="w-full py-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 transition-colors flex items-center justify-center gap-2 text-sm active:scale-[0.98]"
         >
           {uploading ? (
             <><Loader2 size={16} className="animate-spin" /> 업로드 중...</>

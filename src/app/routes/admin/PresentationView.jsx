@@ -121,7 +121,8 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
       <motion.div
         key={contentKey}
         {...variants}
-        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        exit={{ ...variants.exit, transition: { type: 'tween', duration: 0.12, ease: 'easeIn' } }}
+        transition={{ type: 'tween', duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
         className={`flex-1 flex justify-center w-full ${contentKey === 'game-qaBoard' ? 'items-start overflow-y-auto' : 'items-center'}`}
       >
         {content}

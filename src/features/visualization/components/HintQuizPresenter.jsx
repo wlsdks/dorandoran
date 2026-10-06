@@ -50,7 +50,7 @@ export default memo(function HintQuizPresenter({ sessionId, questionId, question
                     transition={{ ...SPRING, delay: 0.05 }}
                     className="flex items-start gap-3 p-4 md:p-5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm"
                   >
-                    <span className="w-7 h-7 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-100 flex items-center justify-center text-sm font-bold shrink-0">
+                    <span className="w-7 h-7 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 flex items-center justify-center text-sm font-bold shrink-0">
                       {i + 1}
                     </span>
                     <p className="text-base md:text-lg font-medium text-slate-700 dark:text-slate-200 leading-relaxed pt-0.5">
@@ -136,7 +136,7 @@ export default memo(function HintQuizPresenter({ sessionId, questionId, question
                         transition={{ ...SPRING_BOUNCY, delay: 0.1 }}
                         className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white/15 dark:bg-slate-900/10"
                       >
-                        <span className="w-6 h-6 rounded-full bg-amber-400 dark:bg-amber-500 text-white dark:text-slate-100 flex items-center justify-center text-xs font-bold">
+                        <span className="w-6 h-6 rounded-full bg-amber-400 dark:bg-amber-500 text-amber-950 flex items-center justify-center text-xs font-bold">
                           {i + 1}
                         </span>
                         <Avatar name={name} size="sm" />

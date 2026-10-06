@@ -25,7 +25,7 @@ export default function QuestionCard({ question, questionId, questionProgress })
       <div className="flex items-center gap-3 mb-4">
         {questionProgress && (
           <>
-            <span className="shrink-0 text-xs font-medium text-slate-400 dark:text-slate-500 tabular-nums">
+            <span className="shrink-0 text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums">
               질문{' '}
               <motion.span
                 key={questionProgress.current}

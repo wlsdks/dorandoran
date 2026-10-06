@@ -199,7 +199,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
               type="button"
               onClick={() => setValue(l.value)}
               className={`min-h-12 min-w-12 px-1 text-sm font-medium transition-colors duration-150 ${
-                value === l.value ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-400'
+                value === l.value ? 'text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-400 hover:text-slate-500 dark:hover:text-slate-400'
               }`}
             >
               {l.label}

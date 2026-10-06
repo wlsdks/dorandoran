@@ -84,7 +84,7 @@ export default memo(function CheckVoter({ sessionId, questionId, disabled = fals
         <Check size={40} className="text-white dark:text-slate-900" strokeWidth={3} />
       </div>
       <span className="text-lg font-bold text-slate-900 dark:text-slate-100">완료했어요</span>
-      <span className="text-sm text-slate-400 dark:text-slate-500">탭하여 완료를 알려주세요</span>
+      <span className="text-sm text-slate-600 dark:text-slate-400">탭하여 완료를 알려주세요</span>
     </motion.button>
     </div>
   );

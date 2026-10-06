@@ -36,10 +36,10 @@ export default function StudentResultCard({ session }) {
         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">합산 랭킹 발표 중</h2>
       </div>
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700 px-10 py-7">
-        <p className="text-sm text-slate-400 dark:text-slate-500 mb-1.5">나의 결과</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-1.5">나의 결과</p>
         <p className="text-slate-900 dark:text-slate-100 tabular-nums">
           <span className="text-5xl font-bold">{correct}</span>
-          <span className="text-2xl font-semibold text-slate-400 dark:text-slate-500"> / {total} 정답</span>
+          <span className="text-2xl font-semibold text-slate-600 dark:text-slate-400"> / {total} 정답</span>
         </p>
       </div>
       <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-medium">
