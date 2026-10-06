@@ -23,7 +23,7 @@ function publish() {
   const dark = themeSnapshot().endsWith(':dark');
   document.documentElement.classList.toggle('dark', dark);
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0F172A' : '#F8FAFC');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#09090B' : '#F8FAFC');
   for (const notify of listeners) notify();
 }
 
