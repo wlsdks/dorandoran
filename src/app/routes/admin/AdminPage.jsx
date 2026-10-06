@@ -73,7 +73,7 @@ export default function AdminPage() {
   const leftSidebarContent = <>
       <QuestionManager onCollapse={isTablet ? undefined : s.effectiveReadOnly ? undefined : s.handleCollapseClose} sessionId={s.sessionId} questions={s.session?.questions || {}} currentQuestion={s.session?.currentQuestion} scores={s.scores} participants={s.participants} pendingEvent={s.session?.pendingEvent || null} readOnly={s.effectiveReadOnly} formOpen={s.showCenterForm} onAddClick={s.effectiveReadOnly ? undefined : s.handleShowCenterForm} onEditClick={s.effectiveReadOnly ? undefined : s.handleEditQuestion} onViewQuestion={s.handleViewQuestion} adminUid={s.adminUser?.uid} speedQuizActive={s.speedQuizActive} onStartSpeedQuiz={s.startSpeedQuiz} onEndSpeedQuiz={s.endSpeedQuiz} speedQuizCount={s.speedQuizCount} modeButton={!s.effectiveReadOnly ? <ModeSwitcher currentMode={currentMode} isSpecialMode={isSpecialMode} onAddModeCard={s.addModeCard} leaderboard={s.leaderboard} modeOpen={s.modeOpen} onToggle={s.handleModeToggle} onSwitchMode={s.switchMode} /> : null} />
     </>;
-  return <div className="h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col overflow-hidden">
+  return <div className="h-dvh bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden">
       <JoinToast sessionId={s.sessionId} />
       <ReactionOverlay sessionId={s.sessionId} />
       <AnswerBubbleOverlay sessionId={s.sessionId} questionId={s.session?.currentQuestion} />
@@ -122,7 +122,7 @@ export default function AdminPage() {
       }} transition={{
         duration: leftPanel.dragging ? 0 : 0.3,
         ease: [0.4, 0, 0.2, 1]
-      }} className="relative border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shrink-0 min-w-0 h-full">
+      }} className="relative border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 min-w-0 h-full">
             <div className="h-full overflow-hidden"><div className="p-6 overflow-y-auto h-full scrollbar-hide" style={{ minWidth: LEFT_PANEL.min }}>{leftSidebarContent}</div></div>
             {!s.sidebarCollapsed && <ResizeHandle side="left" label="수업 진행 패널 폭 조절" width={leftPanel.width} min={LEFT_PANEL.min} max={LEFT_PANEL.max} dragging={leftPanel.dragging} {...leftPanel.handleProps} />}
           </motion.div>}

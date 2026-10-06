@@ -37,10 +37,10 @@ function SidebarTabs({ activeTab, onChange, id }) {
   }
 
   return (
-    <div role="tablist" aria-label="수업 관리 패널" onKeyDown={handleKeyDown} className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 dark:bg-slate-900/50 p-1">
+    <div role="tablist" aria-label="수업 관리 패널" onKeyDown={handleKeyDown} className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
       {SIDEBAR_TABS.map(({ id: tabId, label, icon: Icon }) => (
         <button key={tabId} type="button" role="tab" id={`${id}-tab-${tabId}`} aria-controls={`${id}-panel-${tabId}`} aria-selected={activeTab === tabId} tabIndex={activeTab === tabId ? 0 : -1} onClick={() => onChange(tabId)}
-          className={`min-h-11 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-colors ${activeTab === tabId ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+          className={`min-h-11 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-colors ${activeTab === tabId ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
           <Icon size={16} />{label}
         </button>
       ))}
@@ -155,7 +155,7 @@ export default memo(function RightSidebar({ session, sessionId, effectiveReadOnl
     : <ActiveRightSidebar key={sessionId} session={session} sessionId={sessionId} count={count} participants={participants} onlineList={onlineList} leaderboard={leaderboard} voteCounts={voteCounts} studentUrl={studentUrl} courseId={courseId} />;
   if (isDrawer) return content;
   return (
-    <motion.div animate={{ width: sidebarCollapsed ? 0 : panel.width, minWidth: 0 }} transition={{ duration: panel.dragging ? 0 : 0.3, ease: [0.4, 0, 0.2, 1] }} className="relative border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shrink-0 min-w-0 h-full">
+    <motion.div animate={{ width: sidebarCollapsed ? 0 : panel.width, minWidth: 0 }} transition={{ duration: panel.dragging ? 0 : 0.3, ease: [0.4, 0, 0.2, 1] }} className="relative border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 min-w-0 h-full">
       <div className="h-full overflow-hidden"><div className="p-5 overflow-y-auto h-full scrollbar-hide" style={{ minWidth: RIGHT_PANEL.min }}>{content}</div></div>
       {!sidebarCollapsed && <ResizeHandle side="right" label="소통 패널 폭 조절" width={panel.width} min={RIGHT_PANEL.min} max={RIGHT_PANEL.max} dragging={panel.dragging} {...panel.handleProps} />}
     </motion.div>
