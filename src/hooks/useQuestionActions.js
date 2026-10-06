@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { ref, set, remove, update, get, query, orderByKey, limitToLast, endBefore } from 'firebase/database';
+import { ref, set, remove, update, get, query, orderByKey, limitToLast, endBefore, serverTimestamp } from 'firebase/database';
+import { timerForQuestion } from '@/lib/question-timer';
 import { getServerNow } from '@/features/timer/api/useTimer';
 import { db } from '@/lib/firebase';
 import { generateQuestionId } from '@/lib/utils';
@@ -132,7 +133,9 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
       updates[`questions/${qId}/activatedAt`] = getNow();
       updates[`questions/${qId}/revealedAt`] = null;
       // 이전 질문의 타이머 잔존 시 다음 질문까지 "시간 종료" 잠금이 전파되던 버그 — 전환 시 정리
-      updates.timer = null;
+      // 문항에 시간 제한이 있으면 같은 쓰기에서 서버 시간 기준 타이머를 바로 시작한다(없으면 끈다).
+      const timer = timerForQuestion(question, getServerNow());
+      updates.timer = timer ? { ...timer, startedAt: serverTimestamp() } : null;
       if (isQuizQuestion(question)) updates[`publicQuizAggregates/${qId}`] = null;
 
       if (isQuizQuestion(question)) {

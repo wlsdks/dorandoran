@@ -1,4 +1,5 @@
 import { QUIZ_DEFAULTS } from './quiz';
+import { normalizeTimeLimit, supportsTimeLimit } from './question-timer';
 
 /**
  * 질문 폼 입력에서 type별 questionData 필드를 순수 계산한다.
@@ -13,7 +14,7 @@ export function buildQuestionData(type, fields = {}) {
   const {
     options: cleanOptions = [], correctAnswer, points, event, betting,
     hints, mysteryItems, answerReasons, acceptableAnswers, winners,
-    imageUrl, answerImageUrl, answerExplanation, slideImages, hideTitle, modelAnswer, embedUrl, optionImages,
+    imageUrl, answerImageUrl, answerExplanation, slideImages, hideTitle, modelAnswer, embedUrl, optionImages, timerDuration,
   } = fields;
   const data = {};
 
@@ -71,6 +72,9 @@ export function buildQuestionData(type, fields = {}) {
   if (hideTitle) data.hideTitle = true;
   if (type === 'imageSlide' && slideImages?.length > 0) data.slideImages = slideImages;
   if (type === 'webEmbed' && embedUrl) data.embedUrl = embedUrl;
+  // 시간 제한: 활성화하면 세션 타이머가 이 길이로 자동 시작한다.
+  const timeLimit = supportsTimeLimit(type) ? normalizeTimeLimit(timerDuration) : null;
+  if (timeLimit) data.timerDuration = timeLimit;
 
   return data;
 }
@@ -82,5 +86,5 @@ export function buildQuestionData(type, fields = {}) {
 export const QUESTION_TYPE_FIELDS = [
   'speedWindowMs', 'maxSpeedBonus', 'event', 'betting', 'options', 'correctAnswer', 'points', 'hints', 'revealedHints',
   'mysteryItems', 'answerReasons', 'acceptableAnswers', 'winners', 'slideImages',
-  'imageUrl', 'optionImages', 'answerImageUrl', 'answerExplanation', 'hideTitle', 'modelAnswer', 'embedUrl',
+  'imageUrl', 'optionImages', 'answerImageUrl', 'answerExplanation', 'hideTitle', 'modelAnswer', 'embedUrl', 'timerDuration',
 ];

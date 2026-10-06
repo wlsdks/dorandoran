@@ -12,6 +12,8 @@ import { useMyScore } from '@/features/quiz/api/useScores';
 import { useParticipantCount } from '@/features/participants/api/useParticipants';
 import { getNickname, clearSessionJoined } from '@/lib/participant';
 import QuizScoreGuide from './QuizScoreGuide';
+import StudentRankingSheet from './StudentRankingSheet';
+import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 
 export default function StudentHeader({ sessionId, question, isSpeedQuiz = false }) {
   const liveCount = useParticipantCount(sessionId);
@@ -21,6 +23,9 @@ export default function StudentHeader({ sessionId, question, isSpeedQuiz = false
   const reduced = useReducedMotion();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
+  const [scoreTab, setScoreTab] = useState('ranking');
+  // 강사가 '학생 랭킹 숨김'을 켜면 랭킹 탭은 안내만 보여준다(기본은 공개).
+  const { value: rankingHidden } = useRealtimeValue(sessionId ? `sessions/${sessionId}/studentRankingHidden` : null);
   const nickname = getNickname();
   const totalScore = Number.isFinite(myScore?.total) ? myScore.total : 0;
   const handleChangeNickname = useCallback(() => {
@@ -53,7 +58,7 @@ export default function StudentHeader({ sessionId, question, isSpeedQuiz = false
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <button type="button" onClick={() => setScoreOpen(true)} aria-label={`내 총점 ${totalScore}점, 점수 기준 보기`} aria-haspopup="dialog" className="h-11 min-w-11 px-3 flex items-center justify-center gap-1.5 rounded-full bg-slate-100/80 dark:bg-slate-700/40 text-slate-800 dark:text-slate-100 hover:bg-slate-200/70 dark:hover:bg-slate-700">
+          <button type="button" onClick={() => { setScoreTab('ranking'); setScoreOpen(true); }} aria-label={`내 총점 ${totalScore}점, 실시간 랭킹 보기`} aria-haspopup="dialog" className="h-11 min-w-11 px-3 flex items-center justify-center gap-1.5 rounded-full bg-slate-100/80 dark:bg-slate-700/40 text-slate-800 dark:text-slate-100 hover:bg-slate-200/70 dark:hover:bg-slate-700">
             <Trophy size={18} className="text-indigo-500 dark:text-indigo-300 shrink-0" />
             <span className="whitespace-nowrap text-sm font-semibold tabular-nums"><AnimatedNumber value={totalScore} />점</span>
           </button>
@@ -61,12 +66,22 @@ export default function StudentHeader({ sessionId, question, isSpeedQuiz = false
         </div>
       </div>
     </motion.header>
-    <Modal open={scoreOpen} onClose={() => setScoreOpen(false)} ariaLabel="내 점수와 퀴즈 기준">
-      <div className="space-y-5">
-        <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">내 점수</h2><button type="button" onClick={() => setScoreOpen(false)} aria-label="점수 안내 닫기" className="w-12 h-12 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"><X size={20} /></button></div>
-        <div className="rounded-2xl bg-slate-50 dark:bg-slate-700/50 p-4"><p className="text-sm text-slate-500 dark:text-slate-300">수업 전체 총점</p><p className="mt-1 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{totalScore}점</p><p className="mt-2 text-sm text-slate-500 dark:text-slate-300">지금까지 반영된 퀴즈 점수의 합계예요.</p></div>
-        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{question?.type === 'quiz' ? '이번 퀴즈의 점수 기준' : '퀴즈 점수 기준'}</h3>
-        <QuizScoreGuide question={question} isSpeedQuiz={isSpeedQuiz} />
+    <Modal open={scoreOpen} onClose={() => setScoreOpen(false)} ariaLabel="실시간 랭킹과 점수 기준">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{scoreTab === 'ranking' ? '실시간 랭킹' : '점수 기준'}</h2><button type="button" onClick={() => setScoreOpen(false)} aria-label="랭킹 닫기" className="w-12 h-12 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"><X size={20} /></button></div>
+        <div role="tablist" aria-label="랭킹 보기" className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 dark:bg-slate-700/50 p-1">
+          {[['ranking', '전체 랭킹'], ['guide', '점수 기준']].map(([id, label]) => (
+            <button key={id} type="button" role="tab" aria-selected={scoreTab === id} onClick={() => setScoreTab(id)}
+              className={`min-h-11 rounded-lg text-sm font-semibold transition-colors ${scoreTab === id ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>{label}</button>
+          ))}
+        </div>
+        {scoreTab === 'ranking'
+          ? <StudentRankingSheet sessionId={sessionId} hidden={rankingHidden === true} />
+          : <>
+            <div className="rounded-2xl bg-slate-50 dark:bg-slate-700/50 p-4"><p className="text-sm text-slate-500 dark:text-slate-300">수업 전체 총점</p><p className="mt-1 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{totalScore}점</p><p className="mt-2 text-sm text-slate-500 dark:text-slate-300">지금까지 반영된 퀴즈 점수의 합계예요.</p></div>
+            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{question?.type === 'quiz' ? '이번 퀴즈의 점수 기준' : '퀴즈 점수 기준'}</h3>
+            <QuizScoreGuide question={question} isSpeedQuiz={isSpeedQuiz} />
+          </>}
       </div>
     </Modal>
     <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} ariaLabel="학습자 설정">
