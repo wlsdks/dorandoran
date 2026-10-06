@@ -11,8 +11,8 @@ export default function AnswerDistribution({ answers, revealed = false, presente
         <span className="min-w-0 break-words">{answer.answer}{revealed && answer.isCorrect && <span className="answer-distribution-correct"><Check size={18} />정답</span>}</span>
         <span className="shrink-0 tabular-nums text-slate-500 dark:text-slate-300">{answer.count}명</span>
       </div>
-      <div className="h-2.5 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
-        <motion.div initial={false} animate={{ scaleX: answer.count / max }} transition={{ type: 'spring', stiffness: 150, damping: 26 }} className={`h-full w-full origin-left rounded-full ${revealed && answer.isCorrect ? 'bg-indigo-500' : 'bg-indigo-300'}`} />
+      <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <motion.div initial={false} animate={{ scaleX: answer.count / max }} transition={{ type: 'spring', stiffness: 150, damping: 26 }} className={`h-full w-full origin-left rounded-full ${revealed && answer.isCorrect ? 'bg-indigo-500' : revealed ? 'bg-slate-400 dark:bg-slate-500' : 'bg-indigo-400'}`} />
       </div>
     </div>)}
     {answers.length > limit && <p className="text-sm text-slate-500 dark:text-slate-300">응답이 많은 {limit}개 표시 · 그 외 {answers.length - limit}개</p>}

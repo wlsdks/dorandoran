@@ -29,37 +29,36 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
   if (hasImages) return <div className={presenter ? 'classroom-results' : 'w-full'}>
     <ImageOptionBoard options={options} optionImages={optionImages} counts={counts} total={visibleTotal} revealed={revealed}
       correctValue={correctValue} concealed={concealed} loading={loading} presenter={presenter} />
-    <p className={`mt-4 text-center ${presenter ? 'text-lg lg:text-2xl' : 'text-sm'} text-slate-600 dark:text-slate-300`}>
+    {!presenter && <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-300">
       {resultsHidden ? '정답 공개 후 집계됩니다' : loading ? '응답 집계를 불러오는 중' : <>총 <AnimatedNumber value={totalVotes} className="font-bold tabular-nums" />명 응답</>}
-    </p>
+    </p>}
   </div>;
   return <div className={presenter ? 'classroom-results classroom-bar-chart' : 'w-full max-w-xl mx-auto px-4'}>
-    <div className={`classroom-result-grid grid ${twoColumns ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} ${presenter ? 'gap-4 lg:gap-5' : 'gap-4'}`}>
+    <div className={`classroom-result-grid grid ${twoColumns ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} ${presenter ? 'gap-3 lg:gap-4' : 'gap-4'}`}>
       {shown.map((option, offset) => {
         const index = (paged ? currentPage * pageSize : 0) + offset;
         const count = counts[index];
         const percent = visibleTotal ? count / visibleTotal * 100 : 0;
         const correct = revealed && correctValue === option;
         return <motion.div key={`${questionId}:${index}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-          data-correct={correct} className={`classroom-option-card rounded-xl border p-4 ${presenter ? 'lg:p-5' : ''} ${correct ? 'border-indigo-300 bg-indigo-50 text-indigo-950 shadow-sm dark:border-indigo-400/70 dark:bg-indigo-500/15 dark:text-slate-50 dark:shadow-none' : 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-600/70 dark:bg-slate-800/60 dark:text-slate-100'}`}>
+          data-correct={correct} className={`classroom-option-card rounded-xl border ${presenter ? 'px-4 py-3 lg:px-5 lg:py-3.5' : 'p-4'} ${correct ? 'border-indigo-300 bg-indigo-50 text-indigo-950 shadow-sm dark:border-indigo-400/70 dark:bg-indigo-500/15 dark:text-slate-50 dark:shadow-none' : 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-600/70 dark:bg-slate-800/60 dark:text-slate-100'}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               {/* 정답 배지는 보기와 같은 줄에 둔다 — 따로 한 줄을 쓰면 긴 보기 4개가 발표 화면을 넘친다 */}
               <p className={`${presenter ? 'classroom-option-label' : 'text-lg'} font-semibold leading-snug break-words flex items-start gap-3`}>
                 <span className="poll-option-letter shrink-0">{String.fromCharCode(65 + index)}</span>
                 <span className="min-w-0">{option}</span>
-                {correct && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-900 dark:bg-indigo-500 text-white px-3 py-1 text-sm lg:text-lg font-bold whitespace-nowrap"><Check size={20} />정답</span>}
+                {correct && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-indigo-600 dark:bg-indigo-500 text-white px-2 py-0.5 text-sm lg:text-base font-semibold whitespace-nowrap self-center"><Check size={16} />정답</span>}
               </p>
             </div>
-            {!concealed && !loading && <div className="classroom-option-statistics flex items-baseline gap-3 shrink-0">
-              <AnimatedNumber value={count} className={`${presenter ? 'classroom-option-count' : 'text-3xl'} leading-none font-bold tabular-nums`} />
-              <p className={`${presenter ? 'text-lg lg:text-xl' : 'text-sm'} font-medium ${correct ? 'text-indigo-800 dark:text-indigo-200' : 'text-slate-600 dark:text-slate-300'}`}>{formatPercent(count, visibleTotal)}</p>
-            </div>}
+            {/* 숫자는 비율 하나만 크게. 인원은 막대 아래 작게 둬 "1 20%"처럼 숫자 두 개가 붙지 않게 한다. */}
+            {!concealed && !loading && <p className={`classroom-option-statistics shrink-0 ${presenter ? 'classroom-option-count' : 'text-2xl'} leading-none font-bold tabular-nums ${correct ? 'text-indigo-700 dark:text-indigo-200' : ''}`}>{formatPercent(count, visibleTotal)}</p>}
           </div>
-          <div className={`mt-3 ${presenter ? 'h-4 lg:h-5' : 'h-3'} rounded-full overflow-hidden ${correct ? 'bg-indigo-200 dark:bg-indigo-400/20' : 'bg-slate-200 dark:bg-slate-600'}`}>
+          <div className={`mt-3 ${presenter ? 'h-2.5 lg:h-3' : 'h-2'} rounded-full overflow-hidden ${correct ? 'bg-indigo-200 dark:bg-indigo-400/20' : 'bg-slate-200 dark:bg-slate-700'}`}>
             <motion.div initial={false} animate={{ scaleX: percent / 100 }} transition={{ type: 'spring', stiffness: 150, damping: 26 }}
-              className={`h-full w-full origin-left ${correct ? 'bg-indigo-700 dark:bg-indigo-400' : 'bg-indigo-500'}`} />
+              className={`h-full w-full origin-left ${correct ? 'bg-indigo-600 dark:bg-indigo-400' : revealed && correctValue ? 'bg-slate-400 dark:bg-slate-500' : 'bg-indigo-500'}`} />
           </div>
+          {!concealed && !loading && <p className={`mt-1.5 text-right tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'text-sm lg:text-base' : 'text-xs'}`}><AnimatedNumber value={count} className="font-semibold text-slate-700 dark:text-slate-300" />명</p>}
         </motion.div>;
       })}
     </div>

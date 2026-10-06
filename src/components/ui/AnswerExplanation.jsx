@@ -13,7 +13,7 @@ export default memo(function AnswerExplanation({ text, imageSrc, presenter = fal
       alt="정답 참고 이미지"
       decoding="async"
       className={presenter
-        ? `mx-auto max-w-full rounded-xl object-contain ${text ? 'max-h-[20dvh] lg:max-h-[40dvh]' : 'max-h-[24dvh] lg:max-h-[52dvh]'}`
+        ? `mx-auto max-w-full rounded-xl object-contain ${text ? 'max-h-[20dvh] lg:max-h-[30dvh]' : 'max-h-[24dvh] lg:max-h-[46dvh]'}`
         : 'mx-auto max-h-[45dvh] w-auto max-w-full rounded-lg object-contain'}
     />
   );
@@ -24,17 +24,17 @@ export default memo(function AnswerExplanation({ text, imageSrc, presenter = fal
       transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
       data-answer-explanation
       className={presenter
-        ? 'w-full min-w-0 lg:flex-[2] space-y-3'
+        ? 'w-full min-w-0 lg:flex-[2] space-y-4 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 p-5 lg:p-6'
         : 'bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 p-4 space-y-3'}
     >
       <figcaption className={presenter
-        ? 'text-lg font-medium text-slate-500 dark:text-slate-400 text-center'
+        ? 'text-base font-semibold text-slate-500 dark:text-slate-400'
         : 'text-xs font-medium text-slate-500 dark:text-slate-400'}>
         정답 해설
       </figcaption>
       {text && (
         <p className={presenter
-          ? 'text-2xl lg:text-[28px] leading-snug font-medium text-slate-900 dark:text-slate-100 text-center whitespace-pre-line break-keep'
+          ? 'text-[clamp(1.125rem,1.35vw,1.75rem)] leading-relaxed font-medium text-slate-900 dark:text-slate-100 whitespace-pre-line break-keep'
           : 'text-[15px] leading-relaxed text-slate-800 dark:text-slate-100 whitespace-pre-line break-keep'}>
           {text}
         </p>

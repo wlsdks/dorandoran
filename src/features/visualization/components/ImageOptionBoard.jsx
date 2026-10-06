@@ -39,18 +39,19 @@ export default memo(function ImageOptionBoard({ options, optionImages, counts, t
               <span className={`absolute left-3 top-3 flex items-center justify-center rounded-xl bg-slate-900/85 text-white font-bold shadow ${presenter ? 'h-12 w-12 text-2xl lg:h-14 lg:w-14 lg:text-3xl' : 'h-8 w-8 text-base'}`}>{letter}</span>
               {correct && <span className={`absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 text-white font-bold shadow ${presenter ? 'px-4 py-2 text-xl lg:text-2xl' : 'px-2.5 py-1 text-sm'}`}><Check size={presenter ? 24 : 16} />정답</span>}
             </div>
-            <figcaption className={presenter ? 'p-4 lg:p-5 space-y-3' : 'p-3 space-y-2'}>
-              <div className="flex items-baseline justify-between gap-3">
-                <span className={`min-w-0 font-semibold leading-snug text-slate-900 dark:text-slate-100 [word-break:keep-all] ${presenter ? 'text-xl lg:text-2xl' : 'text-sm'}`}>{isAutoPhotoName(option) ? '' : option}</span>
-                {showStats && <span className="flex shrink-0 items-baseline gap-2">
-                  <AnimatedNumber value={count} className={`font-bold tabular-nums text-slate-900 dark:text-slate-100 leading-none ${presenter ? 'text-3xl lg:text-4xl' : 'text-xl'}`} />
-                  <span className={`tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'text-lg' : 'text-xs'}`}>{formatPercent(count, total)}</span>
-                </span>}
+            {/* 숫자는 하나만 크게(비율), 인원은 막대 아래 작게 — "0 0%"처럼 숫자 두 개가 붙지 않게 */}
+            <figcaption className={presenter ? 'px-4 pt-3 pb-4 lg:px-5 space-y-2' : 'px-3 pt-2.5 pb-3 space-y-1.5'}>
+              <div className="flex items-baseline justify-between gap-3 min-h-[1.5em]">
+                <span className={`min-w-0 font-semibold leading-snug text-slate-900 dark:text-slate-100 [word-break:keep-all] ${presenter ? 'text-lg lg:text-xl' : 'text-sm'}`}>{isAutoPhotoName(option) ? '' : option}</span>
+                {showStats && <span className={`shrink-0 font-bold tabular-nums leading-none text-slate-900 dark:text-slate-100 ${presenter ? 'text-2xl lg:text-3xl' : 'text-lg'}`}>{formatPercent(count, total)}</span>}
               </div>
-              {showStats && <div className={`${presenter ? 'h-3 lg:h-4' : 'h-2'} rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700`}>
-                <motion.div initial={false} animate={{ scaleX: percent / 100 }} transition={{ type: 'spring', stiffness: 150, damping: 26 }}
-                  className="h-full w-full origin-left bg-indigo-500" />
-              </div>}
+              {showStats && <>
+                <div className={`${presenter ? 'h-2.5' : 'h-1.5'} rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700`}>
+                  <motion.div initial={false} animate={{ scaleX: percent / 100 }} transition={{ type: 'spring', stiffness: 150, damping: 26 }}
+                    className="h-full w-full origin-left bg-indigo-500" />
+                </div>
+                <p className={`text-right tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'text-sm lg:text-base' : 'text-xs'}`}><AnimatedNumber value={count} className="font-semibold text-slate-700 dark:text-slate-300" />명</p>
+              </>}
             </figcaption>
           </motion.figure>
         );
