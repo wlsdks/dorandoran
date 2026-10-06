@@ -7,14 +7,7 @@ import EngagementTab from './EngagementTab';
 import { TrendIndicator, DifficultQuestions } from './StatsInsights';
 import { CoursePerformance, RecentQuestions } from './StatsCharts';
 import { motion } from 'framer-motion';
-
-const stagger = {
-  container: { animate: { transition: { staggerChildren: 0.04 } } },
-  item: {
-    initial: { opacity: 0, y: 12 },
-    animate: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
-  },
-};
+import { list as stagger } from '@/lib/motion';
 
 const SUB_TABS = [
   { key: 'overview', label: '개요' },

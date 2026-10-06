@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import { fadeIn, dialog, popIn } from '@/lib/motion';
 
 /**
  * Custom confirm dialog — replaces window.confirm.
@@ -35,10 +36,7 @@ export default function ConfirmModal({
         <>
           <motion.div
             key="confirm-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            {...fadeIn}
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
             onClick={onCancel}
           />
@@ -49,19 +47,16 @@ export default function ConfirmModal({
             aria-modal="true"
             aria-label={title}
             tabIndex={-1}
-            initial={{ opacity: 0, scale: 0.95, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 8 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            {...dialog}
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-[360px] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden outline-none"
           >
             <div className="px-6 pt-8 pb-6">
               {/* Icon */}
               <div className="flex justify-center mb-5">
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.1, type: 'spring', stiffness: 400, damping: 22 }}
+                  initial={popIn.initial}
+                  animate={popIn.animate}
+                  transition={{ ...popIn.transition, delay: 0.08 }}
                   className={`w-12 h-12 rounded-full flex items-center justify-center ${
                     isDanger ? 'bg-red-50 dark:bg-red-900/20' : 'bg-slate-100 dark:bg-slate-700'
                   }`}

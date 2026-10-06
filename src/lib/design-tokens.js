@@ -3,50 +3,70 @@
 // Usage: import { colors, spacing, motion } from '@/lib/design-tokens'
 
 // ─── Colors ──────────────────────────────────────────
+// 값의 원본은 src/styles/index.css의 `html` / `html.dark` 변수 블록이다(Tailwind 기본 팔레트를 덮어쓴다).
+// 여기는 JS에서 색을 직접 써야 할 때(SVG, canvas, 차트)의 거울값 — 두 곳을 함께 바꾼다.
 export const colors = {
-  // Brand — Indigo
-  brand: '#4F46E5',          // indigo-600
-  brandHover: '#4338CA',     // indigo-700
-  brandLight: '#6366F1',     // indigo-500 (dark mode)
-  brandAccent: '#4F46E5',    // indigo-600
+  // Accent — 차분한 indigo (차트 바, 포커스 링, 진행바, 활성 ring 전용)
+  brand: '#5E6AD2',          // indigo-500 — 흰 바탕 4.7:1
+  brandHover: '#4E59BD',     // indigo-600
+  brandLight: '#7F87D8',     // indigo-400 (dark mode)
+  brandAccent: '#5E6AD2',    // indigo-500
 
-  // Functional (status only, not decorative)
-  success: '#10B981',        // emerald-500
-  warning: '#F59E0B',        // amber-500
-  error: '#EF4444',          // red-500
+  // Functional (status only, not decorative) — 500 = 채움·아이콘(흰 글자 4.5:1 이상), 600 = 글자, 400 = 다크 글자
+  success: '#0A845D',        // emerald-500
+  successText: '#0A7350',    // emerald-600
+  successDark: '#3DCF98',    // emerald-400
+  warning: '#C97A08',        // amber-500 (아이콘·점 전용, 3.35:1)
+  warningText: '#AD5D0A',    // amber-600
+  warningDark: '#F2B63A',    // amber-400
+  error: '#D43A3A',          // red-500
+  errorText: '#B53030',      // red-600
+  errorDark: '#EE8080',      // red-400
 
-  // Surfaces
-  bg: '#F8FAFC',             // slate-50
+  // Surfaces (light)
+  bg: '#F1F1F3',             // slate-50
   surface: '#FFFFFF',
-  surfaceAlt: '#F1F5F9',     // slate-100
-  surfaceHover: '#F8FAFC',   // slate-50
+  surfaceAlt: '#E9E9EC',     // slate-100
+  surfaceHover: '#F1F1F3',   // slate-50
 
-  // Borders
-  border: '#E2E8F0',         // slate-200
-  borderLight: '#F1F5F9',    // slate-100
-  borderActive: '#94A3B8',   // slate-400
+  // Borders (light)
+  border: '#DCDCE0',         // slate-200
+  borderLight: '#E9E9EC',    // slate-100
+  borderActive: '#72727B',   // slate-400
 
-  // Text
+  // Text (light)
   text: {
-    primary: '#0F172A',      // slate-900
-    secondary: '#475569',    // slate-600
-    muted: '#94A3B8',        // slate-400
-    subtle: '#CBD5E1',       // slate-300
+    primary: '#18181B',      // slate-900 — 17.7:1
+    secondary: '#4B4B53',    // slate-600 — 8.6:1
+    muted: '#72727B',        // slate-400 — 4.76:1 (AA, 글자로 쓸 수 있는 가장 흐린 단계)
+    subtle: '#BBBBC2',       // slate-300 — 아이콘·구분선 전용, 글자 금지
     inverse: '#FFFFFF',
+  },
+
+  // Dark surfaces/text (zinc — 남색 기 없음)
+  dark: {
+    stage: '#09090B',        // slate-950
+    panel: '#151517',        // slate-900
+    card: '#232327',         // slate-800
+    raised: '#3C3C43',       // slate-700 (입력칸·hover)
+    border: '#3C3C43',       // slate-700
+    text: '#F4F4F5',         // slate-100
+    secondary: '#D4D4D8',    // slate-300
+    muted: '#A7A7AF',        // slate-400 — 입력칸(700) 위 4.58:1
   },
 
   // Bar chart (indigo gradient)
   chart: {
-    bar1: '#4F46E5',         // indigo-600
-    bar2: '#818CF8',         // indigo-400
-    bar3: '#A5B4FC',         // indigo-300
-    barWrong: '#CBD5E1',
+    bar1: '#5E6AD2',         // indigo-500
+    bar2: '#7F87D8',         // indigo-400
+    bar3: '#A3A9E4',         // indigo-300
+    barWrong: '#BBBBC2',     // slate-300
   },
 
   // OX Battle
   ox: {
-    o: '#4F46E5',            // indigo-600
-    x: '#94A3B8',
+    o: '#5E6AD2',            // indigo-500
+    x: '#72727B',            // slate-400
   },
 };
 
@@ -195,7 +215,7 @@ export const tw = {
   btnLg: 'py-3 px-6 text-lg',
 
   // Inputs
-  input: 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150',
+  input: 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150',
   inputError: 'border-red-400 focus:ring-red-500/20 focus:border-red-500',
 
   // Badges

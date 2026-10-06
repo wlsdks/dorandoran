@@ -7,9 +7,7 @@ import Avatar from '@/components/ui/Avatar';
 import { useEngagementData } from '@/features/report/api/useEngagementData';
 import SummaryCard from './SummaryCard';
 
-const stagger = {
-  container: { animate: { transition: { staggerChildren: 0.04 } } },
-};
+import { list as stagger } from '@/lib/motion';
 
 const GRID = 'grid grid-cols-[1fr_80px_80px_80px] max-sm:grid-cols-[1fr_64px_64px] gap-2';
 

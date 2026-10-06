@@ -1,6 +1,7 @@
-import { memo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { memo, useId, useState } from 'react';
+import { motion, LayoutGroup } from 'framer-motion';
 import { StickyNote, Hand, AlertCircle, HelpCircle, MessageSquare } from 'lucide-react';
+import { snap } from '@/lib/motion';
 import InstructorNotes, { useNotesState } from './InstructorNotes';
 import HandRaiseList from '@/features/hand-raise/components/HandRaiseList';
 import UrgentQuestionList from '@/features/questions/components/UrgentQuestionList';
@@ -32,18 +33,19 @@ function TabButton({ active, onClick, icon: Icon, label, count = 0, urgent = fal
       aria-selected={active}
       className={`relative shrink-0 min-h-9 flex items-center justify-center gap-1 px-2.5 rounded-lg whitespace-nowrap text-xs font-semibold transition-colors duration-150 ${
         active
-          ? 'bg-slate-100 text-slate-900 ring-1 ring-slate-300 dark:bg-slate-800 dark:text-white dark:ring-slate-600'
+          ? 'text-slate-900 dark:text-white'
           : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200'
       }`}
     >
-      <Icon size={13} className={active ? '' : 'text-slate-400'} aria-hidden="true" />
-      <span className="truncate">{label}</span>
+      {active && <motion.span layoutId="comm-tab" transition={snap} aria-hidden="true" className="absolute inset-0 rounded-lg bg-slate-100 ring-1 ring-slate-300 dark:bg-slate-800 dark:ring-slate-600" />}
+      <Icon size={13} className={`relative z-10 ${active ? '' : 'text-slate-400'}`} aria-hidden="true" />
+      <span className="relative z-10 truncate">{label}</span>
       {count > 0 && (
         <motion.span
           key={count}
           initial={{ scale: 1.3 }}
           animate={{ scale: 1 }}
-          className={`inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-bold ${
+          className={`relative z-10 inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-bold ${
             urgent
               ? 'bg-red-500 text-white animate-pulse'
               : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
@@ -58,6 +60,7 @@ function TabButton({ active, onClick, icon: Icon, label, count = 0, urgent = fal
 
 export default memo(function InstructorCommHub({ sessionId }) {
   const [activeTab, setActiveTab] = useState('notes');
+  const layoutScope = useId();
 
   // 배지 카운트용 훅
   const { count: handCount } = useHandRaises(sessionId);
@@ -74,6 +77,7 @@ export default memo(function InstructorCommHub({ sessionId }) {
     <section className="space-y-3" aria-label="학습자 소통">
       {/* Tabs */}
       <div role="tablist" aria-label="강사 소통" className="flex flex-wrap gap-1">
+        <LayoutGroup id={layoutScope}>
         {TABS.map((t) => (
           <TabButton
             key={t.id}
@@ -85,6 +89,7 @@ export default memo(function InstructorCommHub({ sessionId }) {
             urgent={t.urgent}
           />
         ))}
+        </LayoutGroup>
       </div>
 
       {/* Body — 탭별 내용. 모든 탭을 항상 마운트하고 display 토글로 숨김.

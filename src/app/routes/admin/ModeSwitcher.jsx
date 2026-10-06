@@ -2,6 +2,7 @@ import { memo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Zap, X, Plus } from 'lucide-react';
 import { modeGroups, modeLabel } from '@/lib/modes';
+import { pop } from '@/lib/motion';
 
 export default memo(function ModeSwitcher({ currentMode, isSpecialMode, leaderboard, modeOpen, onToggle, onSwitchMode, onAddModeCard }) {
   const containerRef = useRef(null);
@@ -50,10 +51,8 @@ export default memo(function ModeSwitcher({ currentMode, isSpecialMode, leaderbo
       <AnimatePresence>
         {modeOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.96 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            {...pop}
+            style={{ transformOrigin: 'top left' }}
             role="region" aria-label="수업 화면 선택" className="mt-2 w-full min-w-52 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm py-1.5 max-h-[min(420px,60dvh)] overflow-y-auto overscroll-contain"
           >
             {groups.map((group, gi) => (

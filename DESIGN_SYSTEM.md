@@ -90,45 +90,83 @@ AI가 생성한 것처럼 보이면 안 됨. 토스, Linear, Notion처럼 절제
 
 ## 2. 색상 (Colors)
 
-### CTA & 브랜드
-| 용도 | Tailwind | Hex |
-|------|----------|-----|
-| CTA 버튼 | `bg-slate-900` | `#0F172A` |
-| CTA hover | `hover:bg-slate-800` | `#1E293B` |
-| CTA dark mode | `dark:bg-slate-100 dark:text-slate-900` | |
-| 브랜드 아이콘 | `text-indigo-600` | `#4F46E5` |
-| 악센트 (indigo) | `indigo-600/500/400/300` | 차트 바, 포커스 링, 진행바 전용 |
-| Input focus ring | `focus:ring-indigo-500/20` | |
-| 활성/선택 상태 | `bg-slate-900 text-white` | 탭, 토글, 선택지 |
+> 팔레트는 Tailwind 기본값이 아니다. `src/styles/index.css`의 `html` / `html.dark` 블록이 `--color-slate-*`,
+> `--color-indigo-*`, `--color-emerald-*`, `--color-amber-*`, `--color-red-*`를 다시 정의한다.
+> 컴포넌트는 Tailwind 클래스 이름(`slate-500`, `red-500`…)을 그대로 쓰고, 값은 토큰 층에서만 바꾼다.
+> 아래 대비 수치는 `node scripts` 없이 `tests`와 무관한 검증용 스크립트로 계산한 WCAG 2.x 명암비다.
 
-### 배경 & 표면
-| 용도 | Tailwind | Hex |
-|------|----------|-----|
-| 페이지 배경 | `bg-slate-50` | `#F8FAFC` |
-| 카드/표면 | `bg-white` | `#FFFFFF` |
-| 대체 표면 | `bg-slate-100` | `#F1F5F9` |
+### 무채색 — 라이트 (graphite)
+| 단계 | Hex | 역할 | 대비 |
+|------|-----|------|------|
+| slate-50 | `#F1F1F3` | 페이지 무대(배경) | — |
+| slate-100 | `#E9E9EC` | 대체 표면, 배지 바탕, 탭 트랙 | — |
+| slate-200 | `#DCDCE0` | 기본 테두리(hairline), 입력 테두리 | 흰 바탕 1.37:1 (장식선) |
+| slate-300 | `#BBBBC2` | 강조 테두리(hover), 비활성 아이콘, 끌기 손잡이 | 흰 바탕 1.9:1 |
+| slate-400 | `#72727B` | 흐린 글자(힌트·시간·placeholder), 기본 아이콘 | 흰 4.76 · 무대 4.22 · AA |
+| slate-500 | `#5C5C65` | 보조 글자, 라벨 | 흰 6.62 · 200 위 4.84 |
+| slate-600 | `#4B4B53` | 본문 보조, 아이콘 활성 | 흰 8.64 |
+| slate-700 | `#36363C` | 강조 보조 글자, 배지 글자 | 100 위 9.9 |
+| slate-800 | `#232327` | CTA hover | 흰 글자 15.7 |
+| slate-900 | `#18181B` | 주요 글자, CTA, 활성/선택 바탕 | 흰 글자 17.7 |
+| slate-950 | `#0C0C0E` | (예비) | — |
 
-### 텍스트
-| 용도 | Tailwind | Hex |
-|------|----------|-----|
-| 주요 텍스트 | `text-slate-900` | `#0F172A` |
-| 보조 텍스트 | `text-slate-600` | `#475569` |
-| 흐린 텍스트 | `text-slate-400` | `#94A3B8` |
-| 반전 (흰색) | `text-white` | `#FFFFFF` |
+### 무채색 — 다크 (zinc, 남색 기 없음)
+층은 색이 아니라 밝기로 나눈다: 950 무대 → 900 패널 → 800 카드 → 700 입력칸/hover.
+
+| 단계 | Hex | 역할 | 대비 |
+|------|-----|------|------|
+| slate-950 | `#09090B` | 무대 | — |
+| slate-900 | `#151517` | 패널, 페이지 배경 | — |
+| slate-800 | `#232327` | 카드 | 900 위 1.16:1 (hairline) |
+| slate-700 | `#3C3C43` | 입력칸, hover, 카드 테두리 | 800 위 1.43:1 |
+| slate-600 | `#52525B` | 입력 테두리, 끌기 손잡이 | — |
+| slate-500 | `#8F8F98` | 흐린 글자(아이콘) | 800 위 4.88 · 900 위 5.69 |
+| slate-400 | `#A7A7AF` | 보조 글자, placeholder | 800 위 6.55 · 700(입력칸) 위 4.58 · AA |
+| slate-300 | `#D4D4D8` | 보조 글자(밝음) | 800 위 10.6 |
+| slate-200 | `#E4E4E7` | 배지 글자 | 700 위 8.6 |
+| slate-100 | `#F4F4F5` | 주요 글자, CTA 바탕 | 800 위 14.3 |
+| slate-50 | `#FAFAFA` | (예비) | — |
+
+### 악센트 — indigo (차분한 인디고, 라이트/다크 공통)
+| 단계 | Hex | 역할 | 대비 |
+|------|-----|------|------|
+| indigo-300 | `#A3A9E4` | 다크 글자, 발표 화면 포커스 | 다크 800 위 7.0 |
+| indigo-400 | `#7F87D8` | 다크 차트 바, 다크 포커스 윤곽, 활성 카드 ring | 다크 800 위 4.7 · 흰 3.3 |
+| indigo-500 | `#5E6AD2` | 라이트 차트 바, 포커스 윤곽·링, 진행바 | 흰 4.7 · 100 트랙 3.9 |
+| indigo-600 | `#4E59BD` | 라이트 글자 강조 | 흰 6.0 |
+| indigo-700 | `#414A9D` | 라이트 틴트 위 글자 | indigo-50 위 7.0 |
+| 50 / 100 / 200 | `#F1F2FB` / `#E3E5F7` / `#C8CCEF` | 틴트(정답 강조 등, 최소한으로) | — |
+
+규칙: 악센트는 **차트 바, 포커스 링, 진행바, 활성 문항 ring** 전용. CTA·배지·아이콘 배경에는 쓰지 않는다.
+포커스 윤곽(`:focus-visible`)은 `var(--color-indigo-500)`, 다크는 `var(--color-indigo-400)`.
 
 ### 기능 색상 (상태 표시에만 사용, 장식 금지)
-| 용도 | Tailwind | Hex |
-|------|----------|-----|
-| 성공/연결 | `emerald-500` | `#10B981` |
-| 경고/타이머 | `amber-500` | `#F59E0B` |
-| 에러/위험 | `red-500` | `#EF4444` |
+단계별 역할을 고정해 두었으므로 라이트/다크 클래스만 바꾸면 된다.
+- **500** — 상태 점·아이콘·흰 글자를 올리는 채움. 흰 글자 4.5:1 이상.
+- **600 / 700** — 흰 바탕 위 글자(600), 틴트(50) 위 글자(700).
+- **400** — 다크모드 글자·아이콘(800 카드 위 5.7:1 이상).
+- **50** — 틴트 배경(에러 입력 배경 등). 다크는 `900/20~30` 투명도.
+
+| 계열 | 400 (다크 글자) | 500 (채움·아이콘) | 600 (글자) | 700 (틴트 위 글자) | 50 (틴트) |
+|------|------|------|------|------|------|
+| 성공 emerald | `#3DCF98` (800 위 7.9) | `#0A845D` (흰 글자 4.7) | `#0A7350` (흰 5.9) | `#085F41` (50 위 7.0) | `#EAF7F1` |
+| 경고 amber | `#F2B63A` (800 위 8.6) | `#C97A08` (아이콘 3.35) | `#AD5D0A` (흰 4.8) | `#8F4A08` (50 위 6.1) | `#FBF3E6` |
+| 위험 red | `#EE8080` (800 위 6.0) | `#D43A3A` (흰 글자 4.7) | `#B53030` (흰 6.1) | `#942323` (50 위 7.1) | `#FDF2F2` |
+
+> amber-500은 채도 특성상 흰 글자를 올릴 수 없다(3.35:1) — 아이콘·점 전용. 글자는 amber-600 이상.
+> 변경 전 Tailwind 기본값은 `red-500` 3.76, `emerald-600` 3.77, `amber-600` 3.19로 본문 AA에 미달했다.
 
 ### 차트 색상 (브랜드)
 | 용도 | Tailwind |
 |------|----------|
-| 바 차트 1~3 | indigo-600 → indigo-400 → indigo-300 |
-| 오답/비활성 | slate-300 |
-| OX - O/X | indigo-600 / slate-400 |
+| 바 차트 1~3 | indigo-500 → indigo-400 → indigo-300 (다크: 400 → 300 → 200) |
+| 오답/비활성 | slate-300 (다크: slate-600) |
+| OX - O/X | indigo-500 / slate-400 |
+
+### 대비 기준 (검사 항목)
+- 글자: AA 4.5:1 (큰 글자 3:1). `slate-400`까지가 글자로 쓸 수 있는 가장 흐린 단계.
+- UI 경계·아이콘: 3:1. 입력칸은 `border-slate-200` hairline + 포커스 시 indigo 테두리로 경계를 만든다(비활성 상태의 hairline은 Linear/Notion과 같은 의도적 1.4:1).
+- 비활성(disabled) 요소는 `opacity-50` — 대비 기준 제외.
 
 ---
 
@@ -156,18 +194,21 @@ AI가 생성한 것처럼 보이면 안 됨. 토스, Linear, Notion처럼 절제
 @custom-variant dark (&:where(.dark, .dark *));
 
 html.dark {
-  color: #E2E8F0;
-  background: #0F172A;
+  color: #E4E4E7;
+  background: #09090B;
   color-scheme: dark;
+  /* slate 단계만 다시 정의 — indigo·기능색은 html 블록의 값을 그대로 쓴다 (§2 표 참조) */
+  --color-slate-400: #a7a7af; /* … */
 }
-.dark ::-webkit-scrollbar-thumb { background: #334155; }
-.dark :focus-visible { outline-color: #818CF8; }
+.dark :focus-visible { outline-color: var(--color-indigo-400); }
 ```
 
 ### 주의사항
-- `text-slate-400`은 라이트/다크 양쪽에서 보이므로 dark: 생략 가능
-- `text-slate-300` (장식용)은 반드시 `dark:text-slate-600` 추가
-- inline style 색상은 다크모드 불가 → Tailwind 클래스 사용
+- `text-slate-400`은 라이트(4.76:1)·다크(6.5:1) 양쪽에서 AA를 넘기므로 dark: 생략 가능
+- `text-slate-300` (장식용)은 반드시 `dark:text-slate-600` 추가. 글자로는 쓰지 않는다.
+- 다크 입력칸(`dark:bg-slate-700`)의 placeholder는 `dark:placeholder:text-slate-400` (500은 3.4:1로 미달)
+- 기능색 글자는 라이트 600 / 다크 400 (`text-red-600 dark:text-red-400`). 점·아이콘은 500 그대로.
+- inline style 색상은 다크모드 불가 → Tailwind 클래스 사용. JS에서 색이 필요하면 `colors`(design-tokens.js)의 거울값.
 
 ---
 
@@ -336,6 +377,31 @@ Error:   bg-red-50 text-red-700 / dark:bg-red-900/30 dark:text-red-400
 ## 7. 모션 & 인터랙션
 
 > 토큰: `import { motion, press } from '@/lib/design-tokens'`
+> 프리셋: `import { fadeUp, pop, dialog, rise, popIn, list, snap, settle } from '@/lib/motion'` — 화면마다 숫자를 새로 정하지 않는다.
+
+### 공용 프리셋 (`src/lib/motion.js`)
+| 프리셋 | 움직임 | 쓰는 곳 |
+|--------|--------|---------|
+| `fadeIn` | opacity 0→1, 150ms | 배경 딤, 내용 교체 |
+| `fadeUp` / `fadeUpSm` | y 12→0 (6→0) + opacity, spring default | 패널·폼 등장, 탭 내용 |
+| `pop` | scale .96→1 + y -4→0, `snap` 스프링, `transformOrigin` 지정 | 드롭다운·팝오버·접힌 사이드바 버튼 |
+| `dialog` | scale .96→1 + y 8→0 | 가운데 대화상자 (ConfirmModal, centered Modal) |
+| `rise` | y 16→0 | 아래에서 올라오는 시트·토스트 |
+| `popIn` | scale .6→1, bouncy | LIVE 배지·상태 점·아이콘 |
+| `list.container` / `list.item` | staggerChildren 0.03, 항목 y 8→0 | 카드 격자, 통계, 빈 상태 단계 |
+| `snap` | spring 520/34 | 탭 표시선·선택 배경이 자리를 옮길 때 (`layoutId`) |
+| `settle` | spring 380/32 | 목록 항목이 자리를 바꿀 때 (`layout="position"`) |
+
+퇴장은 항상 `exitTween`(120ms ease-in) — 들어올 때보다 빨리 나간다.
+
+### 적용 규칙
+- **transform/opacity만** 움직인다. 진행바는 `width` 대신 `scaleX`(+`originX: 0`), 접기/펼치기(height auto)만 예외.
+- 세그먼트 컨트롤·탭은 선택 배경 한 장을 `layoutId`로 공유해 미끄러뜨린다(`LayoutGroup id`로 패널마다 분리).
+- 목록 추가/삭제는 `AnimatePresence initial={false}` + `list.item`, 순서 이동은 바깥 래퍼의 `layout="position"`. dnd-kit이 transform을 쓰는 요소에는 `layout`을 직접 두지 않는다(바깥 래퍼에).
+- `active:scale-*` 클래스를 쓴 버튼은 index.css 전역 규칙이 transform 전환을 넣는다(누를 때 60ms, 뗄 때 160ms) — `transition-colors`만 있어도 끊기지 않는다.
+- 발표 모드 ↔ 운영 화면은 한 `AnimatePresence mode="wait"` 아래에서 교차한다(return을 둘로 나누면 퇴장이 없다).
+- 숫자 변화는 `AnimatedNumber`(현재 값에서 이어감). 글자를 scale로 튕기지 않는다.
+- 감속 모션: App 루트 `MotionConfig reducedMotion`이 transform 애니메이션을 끄고, CSS는 `prefers-reduced-motion`에서 전환을 0.01ms로 만든다.
 
 ### Spring 프리셋
 | 이름 | stiffness | damping | 용도 |

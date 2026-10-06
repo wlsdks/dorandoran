@@ -1,5 +1,7 @@
 import { useId, useState, useEffect, memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, LayoutGroup } from 'framer-motion';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
+import { ease, snap, spring } from '@/lib/motion';
 import { Users, MessageCircle, BarChart3, Copy, Check, Monitor, ListPlus } from 'lucide-react';
 import ParticipantList from '@/features/participants/components/ParticipantList';
 import EventStats from '@/features/participants/components/EventStats';
@@ -36,15 +38,20 @@ function SidebarTabs({ activeTab, onChange, id }) {
     event.currentTarget.querySelectorAll('[role="tab"]')[next]?.focus();
   }
 
+  // 선택 배경 한 장이 탭 사이를 미끄러진다(세그먼트 컨트롤). LayoutGroup id로 패널마다 분리.
   return (
+    <LayoutGroup id={id}>
     <div role="tablist" aria-label="수업 관리 패널" onKeyDown={handleKeyDown} className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
       {SIDEBAR_TABS.map(({ id: tabId, label, icon: Icon }) => (
         <button key={tabId} type="button" role="tab" id={`${id}-tab-${tabId}`} aria-controls={`${id}-panel-${tabId}`} aria-selected={activeTab === tabId} tabIndex={activeTab === tabId ? 0 : -1} onClick={() => onChange(tabId)}
-          className={`min-h-11 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-colors ${activeTab === tabId ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
-          <Icon size={16} />{label}
+          className={`relative min-h-11 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-colors ${activeTab === tabId ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+          {activeTab === tabId && <motion.span layoutId="segment" transition={snap} aria-hidden="true" className="absolute inset-0 rounded-lg bg-white dark:bg-slate-600 shadow-sm" />}
+          {/* z-10: 이동 중인 선택 배경이 옆 탭 글자를 덮지 않게 */}
+          <Icon size={16} className="relative z-10" /><span className="relative z-10">{label}</span>
         </button>
       ))}
     </div>
+    </LayoutGroup>
   );
 }
 
@@ -53,7 +60,9 @@ const SidebarPanel = memo(function SidebarPanel({ id, tab, activeTab, children }
   const [visited, setVisited] = useState(!hidden);
   useEffect(() => { if (!hidden) setVisited(true); }, [hidden]);
   if (hidden && !visited) return null;
-  return <div id={`${id}-panel-${tab}`} role="tabpanel" aria-labelledby={`${id}-tab-${tab}`} hidden={hidden} inert={hidden} className="space-y-5">{children}</div>;
+  // 숨긴 패널은 마운트를 유지(입력 상태 보존)하고, 다시 보일 때만 살짝 떠오른다 — display:none 동안 값을 0으로 돌려 둔다.
+  return <motion.div id={`${id}-panel-${tab}`} role="tabpanel" aria-labelledby={`${id}-tab-${tab}`} hidden={hidden} inert={hidden}
+    initial={false} animate={{ opacity: hidden ? 0 : 1, y: hidden ? 6 : 0 }} transition={{ duration: hidden ? 0 : 0.18, ease: ease.out }} className="space-y-5">{children}</motion.div>;
 }, (previous, next) => previous.id === next.id && previous.tab === next.tab && previous.tab !== previous.activeTab && next.tab !== next.activeTab);
 
 function ActiveRightSidebar({ session, sessionId, count, participants, onlineList, leaderboard, voteCounts, studentUrl, courseId }) {
@@ -82,7 +91,7 @@ function ActiveRightSidebar({ session, sessionId, count, participants, onlineLis
     <div className="space-y-5">
       <div className="flex items-center gap-2">
         {drawOnly ? <Users size={20} className="text-slate-400" /> : <div className="w-2 h-2 rounded-full bg-emerald-400" />}
-        <motion.span key={count} initial={{ scale: 1.15 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 22 }} className="text-slate-900 dark:text-slate-100 font-bold text-2xl tabular-nums tracking-tight">{count}</motion.span>
+        <AnimatedNumber value={count} className="text-slate-900 dark:text-slate-100 font-bold text-2xl tabular-nums tracking-tight" />
         <span className="text-slate-500 dark:text-slate-400 text-xs">{drawOnly ? '명 추첨 대상' : '명 접속 중'}</span>
       </div>
       <SidebarTabs id={id} activeTab={activeTab} onChange={setActiveTab} />
@@ -107,7 +116,7 @@ function ActiveRightSidebar({ session, sessionId, count, participants, onlineLis
         {isResponseQuestion(activeQ) ? <div className="space-y-2">
           <div className="flex items-center justify-between text-xs"><span className="text-slate-500 dark:text-slate-400 font-semibold">참여율 {pct}%</span><span className="text-slate-600 dark:text-slate-300">{voted}/{total}명 응답</span></div>
           <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`참여율 ${pct}%`}>
-            <motion.div className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ type: 'spring', stiffness: 200, damping: 20 }} />
+            <motion.div className="h-full w-full bg-indigo-500 dark:bg-indigo-400 rounded-full" style={{ originX: 0 }} initial={{ scaleX: 0 }} animate={{ scaleX: pct / 100 }} transition={spring.gentle} />
           </div>
         </div> : <p className="text-xs text-slate-500 dark:text-slate-400">{activeQ
           ? activeKind === 'material' ? '수업 자료 표시 중' : activeKind === 'submission' ? '개별 제출 활동 진행 중' : '활동 화면 표시 중'
@@ -155,7 +164,7 @@ export default memo(function RightSidebar({ session, sessionId, effectiveReadOnl
     : <ActiveRightSidebar key={sessionId} session={session} sessionId={sessionId} count={count} participants={participants} onlineList={onlineList} leaderboard={leaderboard} voteCounts={voteCounts} studentUrl={studentUrl} courseId={courseId} />;
   if (isDrawer) return content;
   return (
-    <motion.div animate={{ width: sidebarCollapsed ? 0 : panel.width, minWidth: 0 }} transition={{ duration: panel.dragging ? 0 : 0.3, ease: [0.4, 0, 0.2, 1] }} className="relative border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 min-w-0 h-full">
+    <motion.div animate={{ width: sidebarCollapsed ? 0 : panel.width, minWidth: 0 }} transition={{ duration: panel.dragging ? 0 : 0.26, ease: ease.out }} className="relative border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 min-w-0 h-full">
       <div className="h-full overflow-hidden"><div className="p-5 overflow-y-auto h-full scrollbar-hide" style={{ minWidth: RIGHT_PANEL.min }}>{content}</div></div>
       {!sidebarCollapsed && <ResizeHandle side="right" label="소통 패널 폭 조절" width={panel.width} min={RIGHT_PANEL.min} max={RIGHT_PANEL.max} dragging={panel.dragging} {...panel.handleProps} />}
     </motion.div>

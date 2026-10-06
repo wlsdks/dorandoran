@@ -35,8 +35,8 @@ export function CoursePerformance({ courseData }) {
                 <div key={`${round.roundNumber}-${idx}`} className="flex items-center gap-3">
                   <span className="text-xs text-slate-400 w-8 shrink-0 font-medium">{round.roundNumber}차</span>
                   <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                    <motion.div className="h-full bg-slate-700 dark:bg-slate-300 rounded-full"
-                      initial={{ width: 0 }} animate={{ width: `${round.activityRate}%` }}
+                    <motion.div className="h-full w-full bg-slate-700 dark:bg-slate-300 rounded-full" style={{ originX: 0 }}
+                      initial={{ scaleX: 0 }} animate={{ scaleX: Math.min(1, round.activityRate / 100) }}
                       transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.15 }} />
                   </div>
                   <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 w-10 text-right">{round.activityRate}%</span>

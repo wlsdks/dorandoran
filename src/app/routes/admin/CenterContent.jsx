@@ -9,6 +9,7 @@ import { SuspenseFallback } from '@/components/ui/Skeleton';
 import PersistentAssignmentBar from '@/features/ai-judge/components/PersistentAssignmentBar';
 import { isQuizQuestion } from '@/lib/quiz';
 import { rankingHighlightUpdates } from '@/lib/ranking-highlight';
+import { fadeIn, fadeUp } from '@/lib/motion';
 
 const ClassSummary = lazy(() => import('./ClassSummary'));
 
@@ -35,10 +36,7 @@ export default function CenterContent({
       {showCenterForm ? (
         <motion.div
           key="center-form"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.2 }}
+          {...fadeUp}
           className="w-full max-w-2xl mx-auto"
         >
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-6 lg:p-8">
@@ -71,10 +69,7 @@ export default function CenterContent({
       ) : (
         <motion.div
           key="main-content"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          {...fadeIn}
           className="w-full flex-1 flex flex-col"
         >
           {/* 상시 과제 요약 바 — 강사 편집 모드에서만 */}
