@@ -6,14 +6,14 @@ import { QUIZ_DEFAULTS } from './quiz';
  * base 필드(type/title/order, 수정 시 기존 객체 병합)는 호출부가 담당한다.
  *
  * @param {string} type 질문 유형
- * @param {object} fields 폼 입력 { options, correctAnswer, points, event, betting, hints, mysteryItems, answerReasons, acceptableAnswers, winners, imageUrl, slideImages, hideTitle, modelAnswer, embedUrl }
+ * @param {object} fields 폼 입력 { options, correctAnswer, points, event, betting, hints, mysteryItems, answerReasons, acceptableAnswers, winners, imageUrl, answerImageUrl, answerExplanation, slideImages, hideTitle, modelAnswer, embedUrl }
  * @returns {object} type별로 채워진 필드 객체
  */
 export function buildQuestionData(type, fields = {}) {
   const {
     options: cleanOptions = [], correctAnswer, points, event, betting,
     hints, mysteryItems, answerReasons, acceptableAnswers, winners,
-    imageUrl, slideImages, hideTitle, modelAnswer, embedUrl,
+    imageUrl, answerImageUrl, answerExplanation, slideImages, hideTitle, modelAnswer, embedUrl,
   } = fields;
   const data = {};
 
@@ -62,6 +62,9 @@ export function buildQuestionData(type, fields = {}) {
     data.modelAnswer = modelAnswer.trim();
   }
   if (imageUrl) data.imageUrl = imageUrl;
+  // 정답 해설(글·이미지)은 공개할 정답이 있을 때만 의미가 있다.
+  if (answerImageUrl && data.correctAnswer) data.answerImageUrl = answerImageUrl;
+  if (answerExplanation?.trim() && data.correctAnswer) data.answerExplanation = answerExplanation.trim();
   if (hideTitle) data.hideTitle = true;
   if (type === 'imageSlide' && slideImages?.length > 0) data.slideImages = slideImages;
   if (type === 'webEmbed' && embedUrl) data.embedUrl = embedUrl;
@@ -76,5 +79,5 @@ export function buildQuestionData(type, fields = {}) {
 export const QUESTION_TYPE_FIELDS = [
   'speedWindowMs', 'maxSpeedBonus', 'event', 'betting', 'options', 'correctAnswer', 'points', 'hints', 'revealedHints',
   'mysteryItems', 'answerReasons', 'acceptableAnswers', 'winners', 'slideImages',
-  'imageUrl', 'hideTitle', 'modelAnswer', 'embedUrl',
+  'imageUrl', 'answerImageUrl', 'answerExplanation', 'hideTitle', 'modelAnswer', 'embedUrl',
 ];

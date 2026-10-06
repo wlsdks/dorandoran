@@ -59,6 +59,33 @@ test('question-view preparation coalesces callers and preserves a newer publicat
   }
 });
 
+test('question-view keeps the answer image out of the public view until the answer is revealed', async () => {
+  const project = async original => {
+    let published = null;
+    const target = { orderByKey() { return this; }, limitToFirst() { return this; },
+      get: async () => ({ exists: () => false }), transaction: async transform => { published = transform(null); } };
+    const db = { app: { options: { databaseURL: 'https://demo-resource.firebaseio.com' } },
+      ref: path => path.endsWith('/publicQuestions') ? target : ({ get: async () => ({ val: () => original[path.split('/').at(-1)] ?? null }) }) };
+    await ensureQuestionView(db, 'answer-image-room');
+    return published.q;
+  };
+  const previousHost = process.env.FIREBASE_DATABASE_EMULATOR_HOST, previousFetch = global.fetch;
+  process.env.FIREBASE_DATABASE_EMULATOR_HOST = '127.0.0.1:9000';
+  global.fetch = async () => ({ ok: true, json: async () => ({ q: true }) });
+  try {
+    const original = { type: 'ox', title: 'earth', correctAnswer: 'O', answerImageUrl: 'https://img.example/earth.jpg', answerExplanation: 'seen from orbit' };
+    const hidden = await project(original);
+    assert.equal(hidden.title, 'earth');
+    assert.equal(hidden.answerImageUrl, undefined); assert.equal(hidden.correctAnswer, undefined); assert.equal(hidden.answerExplanation, undefined);
+    const shown = await project({ ...original, revealedAt: 1 });
+    assert.equal(shown.answerImageUrl, 'https://img.example/earth.jpg'); assert.equal(shown.correctAnswer, 'O'); assert.equal(shown.answerExplanation, 'seen from orbit');
+  } finally {
+    global.fetch = previousFetch;
+    if (previousHost == null) delete process.env.FIREBASE_DATABASE_EMULATOR_HOST;
+    else process.env.FIREBASE_DATABASE_EMULATOR_HOST = previousHost;
+  }
+});
+
 test('oversized raw and parsed API bodies are rejected before calling the service', async () => {
   let calls = 0;
   const handler = createHttpApi(async () => { calls++; return { ok: true }; }, { emulator: true, maxBodyBytes: 64 });

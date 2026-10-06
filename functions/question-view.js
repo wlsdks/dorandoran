@@ -1,16 +1,17 @@
 const fields = require('./public-question-fields.json');
 const { metadataList } = require('./metadata');
 const pendingByDatabase = new WeakMap();
+// 정답 공개 뒤에만 공개 뷰에 싣는 필드. 클라이언트(src/lib/public-questions.js)·RTDB 규칙과 같아야 한다.
+const REVEALED_FIELDS = ['correctAnswer', 'acceptableAnswers', 'answerImageUrl', 'answerExplanation'];
 
 async function createQuestionView(db, sessionId) {
   const target = db.ref(`sessions/${sessionId}/publicQuestions`);
   if ((await target.orderByKey().limitToFirst(1).get()).exists()) return;
-  const rows = await metadataList(db, `sessions/${sessionId}/questions`, [...fields, 'correctAnswer', 'acceptableAnswers']);
-  const view = Object.fromEntries(rows.map(({ id, correctAnswer, acceptableAnswers, ...raw }) => {
-    const value = Object.fromEntries(Object.entries(raw).filter(([, field]) => field != null));
+  const rows = await metadataList(db, `sessions/${sessionId}/questions`, [...fields, ...REVEALED_FIELDS]);
+  const view = Object.fromEntries(rows.map(({ id, ...row }) => {
+    const value = Object.fromEntries(Object.entries(row).filter(([key, field]) => field != null && !REVEALED_FIELDS.includes(key)));
     if (value.revealedAt || value.answerRevealed === true) {
-      if (correctAnswer != null) value.correctAnswer = correctAnswer;
-      if (acceptableAnswers != null) value.acceptableAnswers = acceptableAnswers;
+      for (const key of REVEALED_FIELDS) if (row[key] != null) value[key] = row[key];
     }
     if (Array.isArray(value.hints)) value.hints = value.hints.slice(0, Number(value.revealedHints) || 0);
     return [id, value];

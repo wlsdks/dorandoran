@@ -13,7 +13,7 @@ const sizes = {
 
 export default function Badge({ variant = 'primary', size = 'sm', children, className = '' }) {
   return (
-    <span className={`inline-flex items-center rounded-full font-medium ${sizes[size]} ${variants[variant]} ${className}`}>
+    <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full font-medium ${sizes[size]} ${variants[variant]} ${className}`}>
       {children}
     </span>
   );

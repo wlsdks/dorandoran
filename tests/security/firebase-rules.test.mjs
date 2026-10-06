@@ -115,11 +115,20 @@ test('공개 점수 설정은 원본과 일치하며 미공개 정답·원본 �
   await assertFails(set(ref(db, path), { ...publicValue, correctAnswer: 'A' }));
   await assertFails(set(ref(db, path), { ...publicValue, votes: { student_a: { value: 'A' } } }));
   await assertFails(set(ref(db, path), { ...publicValue, awardedAt: 200 }));
+  await assertFails(set(ref(db, path), { ...publicValue, answerImageUrl: 'https://img.example/answer.jpg' }));
+  await assertFails(set(ref(db, path), { ...publicValue, answerExplanation: '미공개 해설' }));
   await environment.withSecurityRulesDisabled(async context => {
     await set(ref(context.database(), 'sessions/public_meta_probe/questions/q/revealedAt'), 200);
     await set(ref(context.database(), 'sessions/public_meta_probe/questions/q/awardedAt'), 200);
   });
   await assertSucceeds(set(ref(db, path), { ...publicValue, correctAnswer: 'A', revealedAt: 200, awardedAt: 200 }));
+  await assertSucceeds(set(ref(db, path + '/answerImageUrl'), 'https://img.example/answer.jpg'));
+  await assertFails(set(ref(db, path + '/answerImageUrl'), 'javascript:alert(1)'));
+  // Storage 에뮬레이터 주소(http)도 허용해야 정답 공개 동기화 전체가 막히지 않는다.
+  await assertSucceeds(set(ref(db, path + '/answerImageUrl'), 'http://127.0.0.1:9199/v0/b/demo/o/answer.png'));
+  await assertSucceeds(get(ref(student('student_a'), path + '/answerImageUrl')));
+  await assertSucceeds(set(ref(db, path + '/answerExplanation'), '공개된 해설'));
+  await assertFails(set(ref(db, path + '/answerExplanation'), 'x'.repeat(501)));
   await assertSucceeds(get(ref(student('student_a'), path + '/awardedAt')));
 });
 test('학생은 본인 DM만 읽고 타인 DM·미공개 정답을 읽을 수 없다', async () => {

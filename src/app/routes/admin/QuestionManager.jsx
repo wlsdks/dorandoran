@@ -231,7 +231,7 @@ export default function QuestionManager({
           adminUid={adminUid} onImport={importFromLibrary} />
       )}
 
-      <Toast message={toast} />
+      <Toast message={toast} raised />
 
       <QuestionPreview questionList={questionList} open={previewOpen} onClose={() => setPreviewOpen(false)} />
 

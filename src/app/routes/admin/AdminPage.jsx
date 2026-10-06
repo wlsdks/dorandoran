@@ -128,6 +128,9 @@ export default function AdminPage() {
       </div>
 
       {/* P1-5: 두구두구 + 정답 공개 floating bar — 발표 모드 진입 안 해도 사용 가능 */}
-      {!s.effectiveReadOnly && <PresentRevealControls sessionId={s.sessionId} session={s.session} onRevealQuiz={s.revealQuiz} onRevealAnswer={s.revealAnswer} />}
+      {/* 버튼이 있을 때만 여백·경계선을 둔다(화면 아래 끝에 버튼이 붙어 잘려 보이지 않게) */}
+      {!s.effectiveReadOnly && <div className="shrink-0 has-[button]:border-t has-[button]:border-slate-200 dark:has-[button]:border-slate-700 has-[button]:px-4 has-[button]:pt-2.5 has-[button]:pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+        <PresentRevealControls sessionId={s.sessionId} session={s.session} onRevealQuiz={s.revealQuiz} onRevealAnswer={s.revealAnswer} />
+      </div>}
     </div>;
 }
