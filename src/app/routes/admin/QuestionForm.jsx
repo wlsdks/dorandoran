@@ -18,9 +18,12 @@ import {
   MysteryBoxSection,
   HintQuizSection,
   ShortAnswerSection,
+  AnswerImageSection,
 } from './QuestionFormSections';
 
 const COMMON_TYPES = ['choice', 'quiz', 'ox', 'wordcloud', 'subjective', 'check'];
+// 공개할 정답이 있는 유형. 객관식(choice)은 정답을 지정했을 때만 해당한다.
+const ANSWER_TYPES = ['quiz', 'ox', 'fillinblank', 'shortAnswer', 'mysteryBox', 'hintQuiz', 'ranking'];
 
 const INPUT = 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150';
 
@@ -44,6 +47,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
   const [acceptableAnswers, setAcceptableAnswers] = useState(initialData?.acceptableAnswers?.length ? [...initialData.acceptableAnswers] : []);
   const [winners, setWinners] = useState(initialData?.winners?.length ? [...initialData.winners] : []);
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
+  const [answerImageUrl, setAnswerImageUrl] = useState(initialData?.answerImageUrl || '');
   const [hideTitle, setHideTitle] = useState(initialData?.hideTitle || false);
   const [slideImages, setSlideImages] = useState(initialData?.slideImages || []);
   const [modelAnswer, setModelAnswer] = useState(initialData?.modelAnswer || '');
@@ -58,6 +62,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
   const isSubjective = type === 'subjective';
   const isShortAnswer = type === 'shortAnswer';
   const isWebEmbed = type === 'webEmbed';
+  const hasAnswer = ANSWER_TYPES.includes(type) || (type === 'choice' && options.includes(correctAnswer) && !!correctAnswer);
 
   async function handleAdd() {
     if (!title.trim()) { setLocalError('질문 내용을 입력해주세요.'); return; }
@@ -84,6 +89,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
     setLocalError(null);
     const submitData = { type, title, options: cleanOptions, correctAnswer, points, event, betting, hideTitle };
     if (imageUrl) submitData.imageUrl = imageUrl;
+    if (hasAnswer && answerImageUrl) submitData.answerImageUrl = answerImageUrl;
     if (isWebEmbed) submitData.embedUrl = safeEmbed;
     if (isSubjective) submitData.modelAnswer = modelAnswer.trim();
     if (isMysteryBox) {
@@ -222,6 +228,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
           setHints={setHints} acceptableAnswers={acceptableAnswers}
           setAcceptableAnswers={setAcceptableAnswers} winners={winners}
           setWinners={setWinners} setLocalError={setLocalError} />}
+        {hasAnswer && <AnswerImageSection answerImageUrl={answerImageUrl} setAnswerImageUrl={setAnswerImageUrl} />}
         {isSubjective && available && (
           <div className="overflow-hidden">
             <div className="pt-4">

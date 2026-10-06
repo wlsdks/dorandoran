@@ -19,6 +19,15 @@ describe('공개 데이터와 계산의 신뢰 경계', () => {
     expect(input.q.submissions.student.code).toBe('private');
     input.q.revealedAt = 1; expect(publicQuestions(input).q.correctAnswer).toBe('B');
   });
+  it('정답 참고 이미지는 정답 공개 전에는 공개 뷰에 싣지 않고, 공개를 취소하면 다시 지운다', async () => {
+    const { publicQuestionUpdates } = await import('./public-questions');
+    const q = { type: 'ox', title: '지구는 둥글다', correctAnswer: 'O', answerImageUrl: 'https://img.example/earth.jpg' };
+    const hidden = publicQuestions({ q });
+    expect(hidden.q).not.toHaveProperty('answerImageUrl');
+    const shown = publicQuestions({ q: { ...q, revealedAt: 1 } });
+    expect(shown.q.answerImageUrl).toBe('https://img.example/earth.jpg');
+    expect(publicQuestionUpdates(shown, hidden)).toMatchObject({ 'q/answerImageUrl': null, 'q/correctAnswer': null });
+  });
   it('300명 응답과 큰 제출물이 있어도 공개 문항 데이터는 커지지 않는다', () => {
     const q = { title: '질문', type: 'quiz', options: ['A', 'B'], correctAnswer: 'B', votes: {}, submissions: {} };
     for (let index = 0; index < 300; index++) { q.votes[index] = { value: 'A', nickname: `참여${index}` }; q.submissions[index] = { code: 'x'.repeat(1000) }; }

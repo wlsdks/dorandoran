@@ -107,6 +107,14 @@ describe('buildQuestionData', () => {
       options: ['A', 'B']
     })).toBe(false);
   });
+  it('정답 참고 이미지는 공개할 정답이 있는 문항에만 저장한다', () => {
+    const answerImageUrl = 'https://img.example/a.jpg';
+    expect(buildQuestionData('ox', { correctAnswer: 'X', answerImageUrl }).answerImageUrl).toBe(answerImageUrl);
+    expect(buildQuestionData('quiz', { options: ['A', 'B'], correctAnswer: 'B', answerImageUrl }).answerImageUrl).toBe(answerImageUrl);
+    expect('answerImageUrl' in buildQuestionData('choice', { options: ['A', 'B'], answerImageUrl })).toBe(false);
+    expect('answerImageUrl' in buildQuestionData('wordcloud', { answerImageUrl })).toBe(false);
+    expect('answerImageUrl' in buildQuestionData('fillinblank', { correctAnswer: '  ', answerImageUrl })).toBe(false);
+  });
   it('QUESTION_TYPE_FIELDS가 buildQuestionData가 만들 수 있는 모든 type별 키를 커버 (stale 제거용)', () => {
     // 모든 유형으로 생성한 키가 stale-제거 목록에 포함돼야 type 변경 시 잔재가 안 남음
     const allKeys = new Set();
@@ -120,7 +128,7 @@ describe('buildQuestionData', () => {
       event: 'x'
     }], ['ranking', {
       options: ['a', 'b', 'c']
-    }], ['ox', {}], ['fillinblank', {
+    }], ['ox', { answerImageUrl: 'u' }], ['fillinblank', {
       correctAnswer: 'a'
     }], ['mysteryBox', {
       correctAnswer: 'a',

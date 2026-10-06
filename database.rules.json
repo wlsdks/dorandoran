@@ -700,6 +700,9 @@
             "acceptableAnswers": {
               ".validate": "root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists() || root.child('sessions').child($sid).child('questions').child($qId).child('answerRevealed').val() === true"
             },
+            "answerImageUrl": {
+              ".validate": "newData.isString() && newData.val().length <= 2000 && newData.val().matches(/^https?:\\/\\//) && (root.child('sessions').child($sid).child('questions').child($qId).child('revealedAt').exists() || root.child('sessions').child($sid).child('questions').child($qId).child('answerRevealed').val() === true)"
+            },
             "title": {
               ".validate": true
             },

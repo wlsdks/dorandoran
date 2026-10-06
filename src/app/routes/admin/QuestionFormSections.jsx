@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Plus, Trash2, Check, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { QUIZ_DEFAULTS, QUIZ_EVENT_PRESETS } from '@/lib/quiz';
+import ImageUpload from '@/components/ui/ImageUpload';
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'];
 const RANKING_LABELS = ['1', '2', '3', '4', '5', '6'];
@@ -486,5 +487,16 @@ export function QuizSettingsSection({ points, setPoints, event, setEvent, bettin
         </div>
       </div>
     </>
+  );
+}
+
+export function AnswerImageSection({ answerImageUrl, setAnswerImageUrl }) {
+  return (
+    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }} className={GAP}>
+      <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">정답 참고 이미지 <span className="normal-case font-normal">(선택)</span></p>
+      <ImageUpload value={answerImageUrl} onChange={setAnswerImageUrl} uploadLabel="정답 공개 때 보여줄 이미지 첨부" />
+      <p className="text-[11px] text-slate-400 mt-1.5">정답을 공개하면 발표 화면과 학생 화면에 함께 나타납니다. 공개 전에는 학생에게 전송되지 않아요.</p>
+    </motion.div>
   );
 }

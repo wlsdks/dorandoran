@@ -1,13 +1,15 @@
 import fields from '../../functions/public-question-fields.json';
 import { EMPTY_RECORD } from './realtime';
 
+/** 정답 공개 뒤에만 공개 뷰에 싣는 필드. 서버(functions/question-view.js)·RTDB 규칙과 같아야 한다. */
+export const REVEALED_FIELDS = ['correctAnswer', 'acceptableAnswers', 'answerImageUrl'];
+
 /** 공개 질문에서 원본 투표·제출물·미공개 정답을 제외한다. 원본 노드는 그대로 유지한다. */
 export function publicQuestions(questions) {
   return Object.fromEntries(Object.entries(questions || EMPTY_RECORD).map(([id, question]) => {
     const value = Object.fromEntries(fields.filter(key => question[key] !== undefined && question[key] !== null).map(key => [key, question[key]]));
     if (question.revealedAt || question.answerRevealed === true) {
-      if (question.correctAnswer != null) value.correctAnswer = question.correctAnswer;
-      if (question.acceptableAnswers != null) value.acceptableAnswers = question.acceptableAnswers;
+      for (const key of REVEALED_FIELDS) if (question[key] != null) value[key] = question[key];
     }
     if (Array.isArray(value.hints)) value.hints = value.hints.slice(0, Number(question.revealedHints) || 0);
     return [id, value];
