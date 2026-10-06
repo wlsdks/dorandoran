@@ -24,8 +24,14 @@ function createBubbleConfig(key, type) {
   };
 }
 
+// 몰려온 반응은 대기열에 쌓았다가 일정한 간격으로 흘려보낸다 — 90명이 동시에 눌러도 화면이 한꺼번에 덮이지 않게.
+const RELEASE_INTERVAL_MS = 110;
+const MAX_QUEUE = 60;
+
 export default memo(function ReactionOverlay({ sessionId }) {
   const [bubbles, setBubbles] = useState([]);
+  const queueRef = useRef([]);
+  const visibleRef = useRef(0);
   const mountedRef = useRef(true);
   const warmupTimerRef = useRef(null);
   const cleanupTimersRef = useRef([]);
@@ -48,28 +54,38 @@ export default memo(function ReactionOverlay({ sessionId }) {
       ready = true;
     }, 400);
 
-    const reactionsRef = query(ref(db, `sessions/${sessionId}/reactions`), limitToLast(24));
+    const reactionsRef = query(ref(db, `sessions/${sessionId}/reactions`), limitToLast(40));
     const unsubscribe = onChildAdded(reactionsRef, (snapshot) => {
       if (!ready || !mountedRef.current) return;
 
       const latest = snapshot.val();
       if (!latest?.type) return;
 
-      const bubble = createBubbleConfig(snapshot.key, latest.type);
-      setBubbles((prev) => [...prev.slice(-(limits.maxReactionBubbles - 1)), bubble]);
+      queueRef.current.push(createBubbleConfig(snapshot.key, latest.type));
+      // 너무 많이 밀리면 오래된 것부터 버린다(지금 분위기를 보여주는 게 목적이라 최신 반응이 우선).
+      if (queueRef.current.length > MAX_QUEUE) queueRef.current.splice(0, queueRef.current.length - MAX_QUEUE);
+    });
 
+    const release = setInterval(() => {
+      if (!mountedRef.current || !queueRef.current.length || visibleRef.current >= limits.maxReactionBubbles) return;
+      const bubble = queueRef.current.shift();
+      visibleRef.current += 1;
+      setBubbles((prev) => [...prev, bubble]);
       const removeTimer = setTimeout(() => {
         // 자기 자신을 배열에서 제거 — fire된 타이머 ID 무한 누적 방지(수업 내내 켜둔 전자칠판)
         cleanupTimersRef.current = cleanupTimersRef.current.filter((t) => t !== removeTimer);
+        visibleRef.current = Math.max(0, visibleRef.current - 1);
         if (!mountedRef.current) return;
         setBubbles((prev) => prev.filter((item) => item.id !== bubble.id));
       }, bubble.duration * 1000);
-
       cleanupTimersRef.current.push(removeTimer);
-    });
+    }, RELEASE_INTERVAL_MS);
 
     return () => {
       ready = false;
+      clearInterval(release);
+      queueRef.current = [];
+      visibleRef.current = 0;
       unsubscribe();
       if (warmupTimerRef.current) clearTimeout(warmupTimerRef.current);
       cleanupTimersRef.current.forEach(clearTimeout);
@@ -87,6 +103,7 @@ export default memo(function ReactionOverlay({ sessionId }) {
 
           return (
             <motion.div
+              data-reaction-bubble
               key={bubble.id}
               initial={{ opacity: 0, y: 0, scale: 0.2 }}
               animate={{
