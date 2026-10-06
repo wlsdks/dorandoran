@@ -14,6 +14,7 @@
     "test": "vitest",
     "preview": "vite preview",
     "test:integration": "npx --yes firebase-tools@15.32.1 emulators:exec --project demo-dorandoran --only auth,database,storage --config firebase.qa.json \"node tests/support/run-integration.mjs\"",
+    "test:security": "QA_SUITE=security npm run test:integration",
     "brand:generate": "node scripts/generate-brand-assets.mjs"
   },
   "dependencies": {

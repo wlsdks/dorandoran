@@ -20,7 +20,7 @@ import {
   ShortAnswerSection,
   AnswerExplanationSection,
 } from './QuestionFormSections';
-import { choiceNames } from '@/lib/option-images';
+import { choiceNames, isAutoPhotoName } from '@/lib/option-images';
 
 const COMMON_TYPES = ['choice', 'quiz', 'ox', 'wordcloud', 'subjective', 'check'];
 // 공개할 정답이 있는 유형. 객관식(choice)은 정답을 지정했을 때만 해당한다.
@@ -36,7 +36,10 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
   const [showMoreTypes, setShowMoreTypes] = useState(Boolean(initialData?.type && !COMMON_TYPES.includes(initialData.type)));
   const [title, setTitle] = useState(initialData?.title || '');
   const [options, setOptions] = useState(
-    initialData?.options?.length ? [...initialData.options] : ['', '']
+    // 사진만 넣은 보기의 자동 이름('사진 A')은 다시 열 때 빈칸으로 돌려 둔다 — 강사가 쓴 글처럼 보이지 않게.
+    initialData?.options?.length
+      ? initialData.options.map((o, i) => (initialData.optionImages?.[i] && isAutoPhotoName(o) ? '' : o))
+      : ['', '']
   );
   const [correctAnswer, setCorrectAnswer] = useState(initialData?.correctAnswer || '');
   const [points, setPoints] = useState(initialData?.points || QUIZ_DEFAULTS.points);
