@@ -14,24 +14,9 @@ import { GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import { useMyVote } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import VoteErrorToast from './VoteErrorToast';
+import { shuffleWithSeed } from '@/lib/ranking-order';
 
-/**
- * Deterministic shuffle based on questionId + participantId.
- * Produces a consistent order per student so refreshes don't reshuffle.
- */
-function shuffleWithSeed(items, seed) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) {
-    h = ((h << 5) - h + seed.charCodeAt(i)) | 0;
-  }
-  const arr = items.map((item, i) => ({ item, i }));
-  for (let i = arr.length - 1; i > 0; i--) {
-    h = (h * 1103515245 + 12345) & 0x7fffffff;
-    const j = h % (i + 1);
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr.map((a) => a.i);
-}
+// 학생마다(questionId + participantId) 고정된 순서로 섞는다 — 새로고침해도 바뀌지 않는다.
 
 function SortableRankItem({ id, label, position, total, disabled, onMove }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });

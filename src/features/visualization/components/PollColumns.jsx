@@ -4,12 +4,15 @@ import AnimatedNumber from '@/components/ui/AnimatedNumber';
 
 /** 짧은 보기 2~4개는 결과를 서로 비교할 수 있는 발표 차트로 표현한다. */
 export default function PollColumns({ options, counts, total, revealed, correctValue, resultsHidden = false, loading = false }) {
+  // 막대 높이는 1등 답 기준으로 키운다(최소 40% 기준). 4지선다에서 33%가 영역의 1/3만 차던 것을 키우되,
+  // 막대끼리의 비율과 표시하는 퍼센트는 그대로다.
+  const scale = Math.max(0.4, ...counts.map(count => (total ? count / total : 0)));
   return <div className="poll-columns" data-empty={total === 0}>
     <div className="poll-columns-plot" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}>
       {options.map((option, index) => {
         const correct = revealed && correctValue === option;
         const percent = total ? Math.round(counts[index] / total * 100) : 0;
-        const proportion = total ? counts[index] / total : 0;
+        const proportion = total ? counts[index] / total / scale : 0;
         return <div key={option} className="poll-column" data-correct={correct}>
           <div className="poll-column-bar-area">
             {total > 0 && <>

@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useVotes } from '@/hooks/useVotes';
 import { Check, X } from 'lucide-react';
+import { boardRankingOrder } from '@/lib/ranking-order';
 
 /**
  * RankingChart — instructor visualization for ranking questions.
@@ -56,10 +57,22 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], r
     return { totalVoters, positionAccuracy, perfectCount, avgScore };
   }, [votes, items]);
 
-  if (!revealed) return <div className="text-center py-8 space-y-4">
-    <p className="text-5xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">{analysis.totalVoters}명</p>
-    <p className="text-xl text-slate-500 dark:text-slate-300">순서를 맞춰 제출해주세요</p>
-    <p className="text-base text-slate-500 dark:text-slate-300">정답 순서는 잠시 후 함께 공개합니다</p>
+  // 공개 전에도 무엇을 정렬하는지는 보여야 한다. 저장 순서가 곧 정답이라 문항별로 고정해 섞어서 보여준다.
+  if (!revealed) return <div className={`w-full ${presenter ? 'max-w-4xl' : 'max-w-xl'} mx-auto px-4 space-y-5`}>
+    <ul className={`grid gap-3 ${presenter ? 'lg:gap-4' : ''} ${items.length > 4 ? 'md:grid-cols-2' : ''}`}>
+      {boardRankingOrder(items, questionId).map((itemIndex, position) => (
+        <motion.li key={itemIndex} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 25, delay: position * 0.05 }}
+          className={`flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-600/70 dark:bg-slate-800/60 ${presenter ? 'p-4 lg:p-5' : 'p-3'}`}>
+          <p className={`${presenter ? 'classroom-option-label' : 'text-base'} flex items-start gap-3 font-semibold leading-snug text-slate-900 dark:text-slate-100`}>
+            <span className="poll-option-letter shrink-0">{String.fromCharCode(65 + position)}</span>
+            <span className="min-w-0 [word-break:keep-all] [overflow-wrap:anywhere]">{items[itemIndex]}</span>
+          </p>
+        </motion.li>
+      ))}
+    </ul>
+    <p className={`text-center ${presenter ? 'text-xl lg:text-2xl' : 'text-base'} text-slate-600 dark:text-slate-300`}>
+      <span className="font-bold tabular-nums text-slate-900 dark:text-slate-100">{analysis.totalVoters}명</span> 제출 · 정답 순서는 잠시 후 함께 공개합니다
+    </p>
   </div>;
 
   if (analysis.totalVoters === 0) {
