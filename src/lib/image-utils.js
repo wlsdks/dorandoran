@@ -38,7 +38,11 @@ function toBlob(canvas, type, quality) {
   return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new ImageError('사진을 처리하지 못했어요. 다시 시도해주세요.')), type, quality));
 }
 
-export function compressImage(file, { maxWidth = 2560, maxHeight = 1440, quality = 0.9 } = {}) {
+// 올리는 파일을 작게: 전자칠판 해상도면 충분하다. 회사망 보안 프로그램이 큰 업로드를 막는 경우가 있어 보통 수백 KB로 맞춘다.
+const PASS_THROUGH_BYTES = 1 * 1024 * 1024;
+const TARGET_BYTES = 1.5 * 1024 * 1024;
+
+export function compressImage(file, { maxWidth = 1920, maxHeight = 1440, quality = 0.85 } = {}) {
   if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) return Promise.reject(new ImageError('지원하지 않는 이미지 형식이에요.'));
   return withTimeout((async () => {
     let decoded;
@@ -48,22 +52,33 @@ export function compressImage(file, { maxWidth = 2560, maxHeight = 1440, quality
       if (!width || !height) throw new ImageError('사진 파일을 읽지 못했어요.');
       if (width * height > MAX_PIXELS) throw new ImageError(`사진 해상도가 너무 커요(${Math.round(width * height / 1e6)}백만 화소). 1억 화소 이하 사진을 올려주세요.`);
       const target = fitWithin(width, height, maxWidth, maxHeight);
-      if (target.ratio === 1 && file.size <= 2 * 1024 * 1024) return file;
+      if (target.ratio === 1 && file.size <= PASS_THROUGH_BYTES) return file;
       if (file.type === 'image/gif') {
         if (file.size <= STORAGE_LIMIT) return file; // 움직이는 GIF는 그대로 둔다
         throw new ImageError('GIF는 9MB 이하로 올려주세요.');
       }
-      const canvas = document.createElement('canvas');
-      canvas.width = target.width; canvas.height = target.height;
-      const context = canvas.getContext('2d');
-      context.imageSmoothingQuality = 'high';
-      context.drawImage(decoded.source, 0, 0, target.width, target.height);
-      // 대부분 1~2MB로 끝나지만, 아주 복잡한 사진은 품질을 낮춰 저장소 한도(10MB) 아래로 맞춘다.
-      for (const q of [quality, 0.8, 0.7, 0.55]) {
-        const blob = await toBlob(canvas, 'image/webp', q);
-        if (blob.size <= STORAGE_LIMIT) return blob;
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = target.width; canvas.height = target.height;
+        const context = canvas.getContext('2d');
+        context.imageSmoothingQuality = 'high';
+        context.drawImage(decoded.source, 0, 0, target.width, target.height);
+        // WebP를 못 만드는 환경(일부 윈도우 그래픽 설정)은 PNG로 돌려주므로 JPEG로 다시 만든다.
+        let smallest = null;
+        for (const q of [quality, 0.75, 0.65, 0.5]) {
+          let blob = await toBlob(canvas, 'image/webp', q);
+          if (blob.type !== 'image/webp') blob = await toBlob(canvas, 'image/jpeg', q);
+          if (!smallest || blob.size < smallest.size) smallest = blob;
+          if (blob.size <= TARGET_BYTES) return blob;
+        }
+        if (smallest.size <= STORAGE_LIMIT) return smallest;
+        throw new ImageError('사진이 너무 복잡해서 줄이지 못했어요. 다른 사진으로 시도해주세요.');
+      } catch (error) {
+        // 줄이는 과정 자체가 실패하면(그래픽 기능 오류 등) 원본이 저장 한도 안일 때 원본으로 올린다.
+        if (error instanceof ImageError) throw error;
+        if (file.size <= STORAGE_LIMIT) return file;
+        throw new ImageError('이 PC에서 사진 크기를 줄이지 못했어요. 더 작은 사진으로 시도해주세요.');
       }
-      throw new ImageError('사진이 너무 복잡해서 줄이지 못했어요. 다른 사진으로 시도해주세요.');
     } finally { decoded.close(); }
   })(), TIMEOUT_MS);
 }

@@ -3,7 +3,7 @@ import { fitWithin, uploadErrorMessage, MAX_UPLOAD_MB } from './image-utils';
 
 describe('사진 축소 크기', () => {
   it('4800만 화소 사진도 발표용 2560x1440 안으로 비율을 지켜 줄인다', () => {
-    expect(fitWithin(8064, 6048, 2560, 1440)).toMatchObject({ width: 1920, height: 1440 });
+    expect(fitWithin(8064, 6048, 1920, 1440)).toMatchObject({ width: 1920, height: 1440 });
     expect(fitWithin(6048, 8064, 2560, 1440)).toMatchObject({ width: 1080, height: 1440 });
   });
   it('작은 사진은 키우지 않는다', () => {
