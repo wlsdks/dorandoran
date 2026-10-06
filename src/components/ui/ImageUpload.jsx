@@ -1,6 +1,7 @@
 import { useState, useRef, memo } from 'react';
 import { uploadErrorMessage, MAX_UPLOAD_MB } from '@/lib/image-utils';
 import { uploadImage } from '@/lib/image-upload';
+import { reportClientError } from '@/lib/error-report';
 import { imageRejection, normalizeImageFile } from '@/lib/image-file';
 import { logger } from '@/lib/logger';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,9 +21,14 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
 
   async function handleFile(e) {
     // 윈도우는 MIME을 비우거나 옛 이름으로 주므로 파일 내용으로 형식을 다시 확인한다
-    const file = await normalizeImageFile(e.target.files?.[0]);
-    if (!file) return;
+    const picked = e.target.files?.[0];
     if (inputRef.current) inputRef.current.value = '';
+    if (!picked) return;
+    let file;
+    try { file = await normalizeImageFile(picked); } catch (err) {
+      reportClientError('image-read', err, { type: picked.type, size: picked.size, cause: err.cause?.name });
+      setError(uploadErrorMessage(err)); return;
+    }
 
     // 형식·용량 문제는 이유를 그대로 보여준다(형식 이름 포함). 사용자가 직접 지울 때까지 남겨 둔다.
     const rejection = imageRejection(file, MAX_SIZE_MB);

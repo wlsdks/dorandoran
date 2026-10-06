@@ -52,3 +52,10 @@ describe('윈도우 파일 형식 판별', () => {
     expect(imageRejection(fixed, 50)).toContain('HEIC');
   });
 });
+
+describe('읽을 수 없는 파일', () => {
+  it('파일을 읽지 못하면 조용히 넘기지 않고 이유를 담은 오류를 낸다', async () => {
+    const broken = { name: '캡처.png', type: 'image/png', size: 1000, slice: () => ({ arrayBuffer: () => Promise.reject(Object.assign(new Error('read'), { name: 'NotReadableError' })) }) };
+    await expect(normalizeImageFile(broken)).rejects.toMatchObject({ code: 'file/unreadable' });
+  });
+});

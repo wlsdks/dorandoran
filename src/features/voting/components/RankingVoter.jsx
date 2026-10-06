@@ -121,9 +121,15 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
     const hits = mine ? mine.filter((idx, pos) => idx === pos).length : 0;
     return (
       <div className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-3">
-        <p className="text-center text-sm text-slate-600 dark:text-slate-300">
-          {mine ? <><span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">{options.length}개 중 {hits}개</span> 자리를 맞혔어요</> : '제출하지 않았어요. 정답 순서를 확인해보세요'}
-        </p>
+        {/* 순서가 전부 맞아야 정답. 자리별 결과는 참고로만 보여준다. */}
+        {mine ? (
+          <div className="text-center space-y-1">
+            <p className={`text-xl font-bold ${hits === options.length ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-900 dark:text-slate-100'}`}>
+              {hits === options.length ? '정답! 순서를 모두 맞혔어요' : '아쉬워요, 오답이에요'}
+            </p>
+            {hits < options.length && <p className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">순서를 모두 맞혀야 정답이에요 · {options.length}개 중 {hits}개 자리는 맞았어요</p>}
+          </div>
+        ) : <p className="text-center text-sm text-slate-600 dark:text-slate-300">제출하지 않았어요. 정답 순서를 확인해보세요</p>}
         <ol className="space-y-2">
           {options.map((item, pos) => {
             const ok = mine ? mine[pos] === pos : null;
