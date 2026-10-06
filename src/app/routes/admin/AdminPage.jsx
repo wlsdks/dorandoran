@@ -23,6 +23,7 @@ import TabletDrawers from './TabletDrawers';
 import CenterContent from './CenterContent';
 import MobileAdminView from './MobileAdminView';
 import ResizeHandle from '@/components/ui/ResizeHandle';
+import ConnectionBanner from '@/components/ui/ConnectionBanner';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
 
 // 기본 폭 = 화면의 25% (14인치 1512px → 378, 16인치 1728px → 432, 17인치 1920px → 480, 큰 모니터 최대 560)
@@ -68,12 +69,14 @@ export default function AdminPage() {
   const currentMode = s.session?.currentMode;
   const isSpecialMode = isSpecialModeKey(currentMode);
   if (s.presentMode) {
-    return <PresentationView sessionId={s.sessionId} session={s.session} currentMode={currentMode} onlineList={s.onlineList} leaderboard={s.leaderboard} drawParticipants={s.drawParticipants} studentUrl={s.studentUrl} count={s.count} onExit={s.handleExitPresent} readOnly={s.effectiveReadOnly} scores={s.scores} participants={s.participants} />;
+    return <><ConnectionBanner /><PresentationView sessionId={s.sessionId} session={s.session} currentMode={currentMode} onlineList={s.onlineList} leaderboard={s.leaderboard} drawParticipants={s.drawParticipants} studentUrl={s.studentUrl} count={s.count} onExit={s.handleExitPresent} readOnly={s.effectiveReadOnly} scores={s.scores} participants={s.participants} /></>;
   }
   const leftSidebarContent = <>
       <QuestionManager onCollapse={isTablet ? undefined : s.effectiveReadOnly ? undefined : s.handleCollapseClose} sessionId={s.sessionId} questions={s.session?.questions || {}} currentQuestion={s.session?.currentQuestion} scores={s.scores} participants={s.participants} pendingEvent={s.session?.pendingEvent || null} readOnly={s.effectiveReadOnly} formOpen={s.showCenterForm} onAddClick={s.effectiveReadOnly ? undefined : s.handleShowCenterForm} onEditClick={s.effectiveReadOnly ? undefined : s.handleEditQuestion} onViewQuestion={s.handleViewQuestion} adminUid={s.adminUser?.uid} speedQuizActive={s.speedQuizActive} onStartSpeedQuiz={s.startSpeedQuiz} onEndSpeedQuiz={s.endSpeedQuiz} speedQuizCount={s.speedQuizCount} modeButton={!s.effectiveReadOnly ? <ModeSwitcher currentMode={currentMode} isSpecialMode={isSpecialMode} onAddModeCard={s.addModeCard} leaderboard={s.leaderboard} modeOpen={s.modeOpen} onToggle={s.handleModeToggle} onSwitchMode={s.switchMode} /> : null} />
     </>;
   return <div className="h-dvh bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden">
+      {/* 강사 화면은 문항 공개·퀴즈 집계를 학생과 전자칠판에 중계한다 — 끊기면 바로 알 수 있어야 한다 */}
+      <ConnectionBanner />
       <JoinToast sessionId={s.sessionId} />
       <ReactionOverlay sessionId={s.sessionId} />
       <AnswerBubbleOverlay sessionId={s.sessionId} questionId={s.session?.currentQuestion} />

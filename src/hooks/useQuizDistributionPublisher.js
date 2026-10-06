@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger';
 import { EMPTY_LIST } from '@/lib/realtime';
 import { quizDistribution, QUIZ_HEARTBEAT_MS } from '@/lib/quiz-distribution';
 
-/** The instructor publishes a small tally at most five times per second. */
+/** The instructor publishes a small tally at most ten times per second (a few hundred bytes each). */
 export function useQuizDistributionPublisher(sessionId, session, enabled) {
   const questionId = session?.currentQuestion;
   const question = session?.questions?.[questionId];
@@ -48,7 +48,7 @@ export function useQuizDistributionPublisher(sessionId, session, enabled) {
         current.sent = null;
         logger.error('Quiz distribution publish failed:', error);
       });
-    }, 200);
+    }, 100);
   }, [scope, payload, sessionId, questionId]);
 
   // 응답이 없어도 주기적으로 신호를 보내 전자칠판이 "강사 화면이 살아 있음"을 알 수 있게 한다.

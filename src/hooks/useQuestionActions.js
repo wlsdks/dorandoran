@@ -32,6 +32,7 @@ const resetEpochs = new Map();
 // 정리가 없어 세션 내내 무한 누적되던 것을, 질문 전환 시점(강사 단일 작성자)에 트림.
 // 채팅/긴급질문은 '기록'이므로 트림하지 않음.
 const FEED_KEEP = 50;
+const FEED_TRIM_INTERVAL_MS = 60_000;
 export async function trimEphemeralFeeds(sessionId) {
   for (const node of ['reactions', 'chatBubbles']) {
     try {
@@ -66,6 +67,13 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
       if (resetEpochs.get(pending.sessionId) === pending.epoch) resetEpochs.delete(pending.sessionId);
       resetSweep.current = null;
     };
+  }, [sessionId]);
+
+  // 추첨·쉬는 시간처럼 문항 전환 없이 오래 머무는 모드에서도 반응이 무한히 쌓이지 않게 1분마다 정리한다.
+  useEffect(() => {
+    if (!sessionId) return undefined;
+    const timer = setInterval(() => { trimEphemeralFeeds(sessionId); }, FEED_TRIM_INTERVAL_MS);
+    return () => clearInterval(timer);
   }, [sessionId]);
 
   const questionList = useMemo(
