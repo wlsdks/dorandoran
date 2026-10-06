@@ -308,6 +308,9 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .paper-surface .classroom-option-statistics p { color:#cbd5e1; }
 .paper-surface .classroom-option-card > div:last-child { height:10px;background:#3f3f46; }
 .paper-surface .wordcloud-token { color:#a5b4fc; }
+/* 워드클라우드 단어는 자리를 지키고 크기만 자란다 — 빈도 변화가 튀지 않고 부풀어 오르듯 보인다 */
+.wordcloud-token { transition: font-size 320ms cubic-bezier(.22,1,.36,1), color 320ms ease; }
+@media (prefers-reduced-motion: reduce) { .wordcloud-token { transition: none; } }
 .paper-surface .text-slate-200,.paper-surface .text-slate-300 { color:#cbd5e1; }
 .poll-columns { width:100%; }
 .poll-columns-plot { display:grid;gap:clamp(20px,3vw,56px);align-items:end;padding:clamp(20px,2.6vw,52px) clamp(0px,2vw,24px) 0; }

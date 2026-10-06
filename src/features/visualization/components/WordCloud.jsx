@@ -1,7 +1,8 @@
 import { useVotes } from '@/hooks/useVotes';
-import { useMemo, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, memo } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
+import { arrangeWordCloud } from '@/lib/wordcloud-layout';
 // Monochromatic slate palette — Tailwind classes for dark mode support
 const WORD_CLASSES = [
   'text-slate-900 dark:text-slate-100',
@@ -13,20 +14,27 @@ const WORD_CLASSES = [
   'text-slate-700 dark:text-slate-300',
   'text-slate-600 dark:text-slate-400',
 ];
+const EMPTY = Object.freeze([]);
+
+/**
+ * 단어는 처음 나타난 자리를 지키고 크기만 자란다 — 200명이 답하는 동안 구름이 매번 튀지 않는다.
+ * 집계(tallied)가 바뀔 때만 직전 순서를 이어받아 다시 배치한다(렌더 중 파생 상태 갱신).
+ */
+function useStableWords(tallied, limit) {
+  const [state, setState] = useState({ tallied: null, limit: 0, words: EMPTY });
+  if (state.tallied !== tallied || state.limit !== limit) {
+    const words = arrangeWordCloud(state.words.map((word) => word.text), tallied, limit);
+    setState({ tallied, limit, words });
+    return words;
+  }
+  return state.words;
+}
 
 export default memo(function WordCloud({ sessionId, questionId, presenter = false }) {
   const { tally, totalVotes } = useVotes(sessionId, questionId);
+  const reduced = useReducedMotion();
   const tallied = tally();
-
-  const words = useMemo(() => {
-    return Object.entries(tallied)
-      .map(([text, count]) => ({ text, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, presenter ? 12 : 40)
-      .map((word, rank) => ({ ...word, rank }))
-      // 가장 많이 나온 단어를 가운데에 두고 나머지를 양옆으로 번갈아 놓는다 — 줄 맞춤 목록이 아니라 구름처럼 보이게.
-      .reduce((arranged, word, rank) => (rank % 2 ? [...arranged, word] : [word, ...arranged]), []);
-  }, [tallied, presenter]);
+  const words = useStableWords(tallied, presenter ? 12 : 40);
 
   const maxCount = Math.max(...words.map(w => w.count), 1);
   const isNarrow = typeof window !== 'undefined' && window.innerWidth < 640;
@@ -46,13 +54,13 @@ export default memo(function WordCloud({ sessionId, questionId, presenter = fals
       >
         <AnimatePresence initial={false}>
           {words.map((word) => (
-            // layout(FLIP) 제거 — 매 집계 갱신마다 40단어 전체 위치 재계산 reflow 방지. enter/exit만 유지
+            // 자리는 고정(FLIP 없음) — 새 단어만 바깥쪽 끝에서 피어나고, 크기는 CSS transition으로 자란다
             <motion.span
               key={word.text}
-              initial={{ opacity: 0, scale: 0.6 }}
+              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.6 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 22, delay: Math.min(word.rank, 12) * 0.008 }}
+              exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.5 }}
+              transition={reduced ? { duration: 0.12 } : { type: 'spring', stiffness: 260, damping: 22 }}
               style={{ fontSize: presenter ? `clamp(1.5rem, min(${1.6 + 4 * word.count / maxCount}vw, ${Math.floor(860 / Math.max(1, word.text.length))}px), 6.5rem)` : getFontSize(word.count, word.text) }}
               className={`wordcloud-token font-bold cursor-default max-w-full break-keep [overflow-wrap:anywhere] ${WORD_CLASSES[word.rank % WORD_CLASSES.length]}`}
               title={`${word.text}: ${word.count}회`}

@@ -345,7 +345,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
     <div className="dark classroom-stage presenter-stage h-dvh bg-slate-900 relative overflow-hidden">
       <ParticipationSpotlight sessionId={sessionId} />
       {currentMode !== 'joinShow' && <JoinToast sessionId={sessionId} />}
-      <ReactionOverlay sessionId={sessionId} />
+      <ReactionOverlay sessionId={sessionId} presenter />
       <ChatBubbleOverlay sessionId={sessionId} />
 
 
