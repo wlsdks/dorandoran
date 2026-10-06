@@ -24,16 +24,16 @@ export default function CreateSessionStepCourse({ courses, onSelectCourse, onNew
             onClick={() => onSelectCourse(course)}
             className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 hover:shadow-sm transition-colors duration-150 active:scale-[0.98] text-left group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-6 flex items-center justify-center">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="w-6 shrink-0 flex items-center justify-center">
                 <BookOpen size={18} className="text-slate-600" />
               </div>
-              <div>
-                <p className="font-medium text-slate-900 dark:text-slate-100 text-sm">{course.name}</p>
+              <div className="min-w-0">
+                <p className="font-medium text-slate-900 dark:text-slate-100 text-sm break-keep [overflow-wrap:anywhere] line-clamp-2" title={course.name}>{course.name}</p>
                 <p className="text-slate-400 text-xs">{course.count}개 차수 진행</p>
               </div>
             </div>
-            <ChevronRight size={16} className="text-slate-300 group-hover:text-slate-500 transition-colors duration-150" />
+            <ChevronRight size={16} className="shrink-0 ml-2 text-slate-300 group-hover:text-slate-500 transition-colors duration-150" />
           </button>
         ))}
 

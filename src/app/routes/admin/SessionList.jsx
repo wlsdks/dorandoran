@@ -97,8 +97,11 @@ const SessionRow = memo(function SessionRow({ session, onClick, onDelete, onDupl
   );
 });
 
+const SESSION_PREVIEW = 8;
+
 export function CourseGroup({ name, sessions, onSelect, onDelete, onDuplicate, startIndex, groupIndex = 0, hideActions = false, courseId = null, canManageStaff = false }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [staffModalOpen, setStaffModalOpen] = useState(false);
 
   const stats = useMemo(() => {
@@ -117,9 +120,9 @@ export function CourseGroup({ name, sessions, onSelect, onDelete, onDuplicate, s
       className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
     >
       <div className="px-5 py-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight tracking-tight">{name}</h3>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <h3 className="min-w-0 text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight tracking-tight break-keep [overflow-wrap:anywhere]">{name}</h3>
             {canManageStaff && courseId && (
               <button
                 onClick={() => setStaffModalOpen(true)}
@@ -135,7 +138,7 @@ export function CourseGroup({ name, sessions, onSelect, onDelete, onDuplicate, s
           </div>
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
+            className="shrink-0 p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
             aria-label={collapsed ? '펼치기' : '접기'}
           >
             <motion.div animate={{ rotate: collapsed ? 0 : 180 }} transition={{ duration: 0.2 }}>
@@ -144,15 +147,15 @@ export function CourseGroup({ name, sessions, onSelect, onDelete, onDuplicate, s
           </button>
         </div>
         <div className="flex items-center gap-8">
-          <div>
+          <div className="shrink-0 whitespace-nowrap">
             <span className="text-3xl font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight">{stats.rounds}</span>
             <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">차수</span>
           </div>
-          <div>
+          <div className="shrink-0 whitespace-nowrap">
             <span className="text-3xl font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight">{stats.totalParticipants}</span>
             <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">명</span>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-slate-500 dark:text-slate-400">평균 참여율</span>
               <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{stats.avgActivity}%</span>
@@ -175,9 +178,15 @@ export function CourseGroup({ name, sessions, onSelect, onDelete, onDuplicate, s
             className="overflow-hidden"
           >
             <div className="border-t border-slate-100 dark:border-slate-700">
-              {sessions.map((session, i) => (
+              {(showAll ? sessions : sessions.slice(0, SESSION_PREVIEW)).map((session, i) => (
                 <SessionRow key={session.id} session={session} onClick={() => onSelect(session)} onDelete={onDelete} onDuplicate={onDuplicate} index={startIndex + i} hideActions={hideActions} />
               ))}
+              {sessions.length > SESSION_PREVIEW && (
+                <button type="button" onClick={() => setShowAll((v) => !v)}
+                  className="w-full min-h-11 border-t border-slate-100 dark:border-slate-700 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  {showAll ? '접기' : `나머지 ${sessions.length - SESSION_PREVIEW}개 차수 보기`}
+                </button>
+              )}
             </div>
           </motion.div>
         )}

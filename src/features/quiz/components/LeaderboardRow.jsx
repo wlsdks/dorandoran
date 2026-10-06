@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { ChevronUp, ChevronDown, Crown, Flame } from 'lucide-react';
+import { ChevronUp, ChevronDown, Flame } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import AnimatedScore from './AnimatedScore';
 
@@ -51,11 +51,13 @@ function Sash({ reducedMotion }) {
 
 function PresenterRow({ entry, rank, isFeatured, isDimmed, reducedMotion }) {
   const podium = rank < 3;
+  const medal = podium && !isFeatured;
   return <motion.div layout={reducedMotion ? false : 'position'} data-ranking-featured={isFeatured ? 'true' : undefined} data-rank={rank + 1} data-podium={podium ? 'true' : 'false'}
-    className={`board-ranking-row ${isFeatured ? 'ranking-sash' : ''}`} initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+    data-medal={medal ? rank + 1 : undefined} style={medal ? { '--medal-i': rank } : undefined}
+    className={`board-ranking-row ${isFeatured ? 'ranking-sash' : medal ? `medal-row${reducedMotion ? ' medal-static' : ''}` : ''}`} initial={reducedMotion ? false : { opacity: 0, y: 6 }}
     animate={{ opacity: isDimmed ? 0.42 : 1, y: 0, scale: isFeatured && !reducedMotion ? 1.02 : 1 }} transition={{ ...SPRING, layout: SPRING }}>
     {isFeatured && <Sash reducedMotion={reducedMotion} />}
-    <span className={`board-ranking-rank ${isFeatured ? 'ranking-sash-emblem' : ''}`} aria-label={`${rank + 1}위${isFeatured ? ' 특별 순위' : ''}`}>{rank + 1}</span>
+    <span className={`board-ranking-rank ${isFeatured ? 'ranking-sash-emblem' : medal ? 'medal-emblem' : ''}`} aria-label={`${rank + 1}위${isFeatured ? ' 특별 순위' : ''}`}>{rank + 1}</span>
     <div className="board-ranking-name">
       <Reveal active={isFeatured} reducedMotion={reducedMotion} delay={0.12}>{entry.nickname || '참여자'}</Reveal>
     </div>
@@ -71,6 +73,7 @@ const BADGE = 'shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold leadi
 export default function LeaderboardRow({ entry, rank, isHighlighted = false, rankDelta = 0, presenter = false, orderIndex = 0, reducedMotion = false, isFeatured = false, isDimmed = false }) {
   if (presenter) return <PresenterRow entry={entry} rank={rank} isFeatured={isFeatured} isDimmed={isDimmed} reducedMotion={reducedMotion} />;
   const podium = rank < 3;
+  const medal = podium && !isFeatured;
   const surface = isFeatured ? 'ranking-sash text-white'
     : isHighlighted ? 'bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-500'
     : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700';
@@ -80,10 +83,11 @@ export default function LeaderboardRow({ entry, rank, isHighlighted = false, ran
   return <motion.div layout={reducedMotion ? false : 'position'} initial={reducedMotion ? false : { opacity: 0, y: 4 }} animate={{ opacity: isDimmed ? 0.6 : 1, y: 0, scale: isFeatured && !reducedMotion ? 1.02 : 1 }}
     transition={{ ...SPRING, delay: Math.min(orderIndex, 5) * 0.018, layout: { type: 'spring', stiffness: 500, damping: 30 } }}
     data-ranking-featured={isFeatured ? 'true' : undefined} data-rank={rank + 1}
-    className={`relative flex items-center gap-3 min-h-14 rounded-xl border px-3 py-2 transition-colors ${reducedMotion ? 'duration-0' : 'duration-200'} ${surface}`}>
+    data-medal={medal ? rank + 1 : undefined} style={medal ? { '--medal-i': rank } : undefined}
+    className={`${medal ? `medal-row${reducedMotion ? ' medal-static' : ''} ` : ''}relative flex items-center gap-3 min-h-14 rounded-xl border px-3 py-2 transition-colors ${reducedMotion ? 'duration-0' : 'duration-200'} ${surface}`}>
     {isFeatured && <Sash reducedMotion={reducedMotion} />}
-    <span aria-label={`${rank + 1}위${isFeatured ? ' 특별 순위' : ''}`} className={`w-6 shrink-0 text-center text-sm tabular-nums ${isFeatured ? 'ranking-sash-emblem' : podium ? 'font-bold text-slate-900 dark:text-slate-100' : 'font-semibold text-slate-400 dark:text-slate-500'}`}>
-      {rank === 0 && !isFeatured ? <Crown size={16} className="mx-auto" aria-hidden="true" /> : rank + 1}
+    <span aria-label={`${rank + 1}위${isFeatured ? ' 특별 순위' : ''}`} className={`shrink-0 text-center text-sm tabular-nums ${isFeatured ? 'w-6 ranking-sash-emblem' : medal ? 'medal-emblem flex h-8 w-8 items-center justify-center rounded-full font-bold' : 'w-6 font-semibold text-slate-400 dark:text-slate-500'}`}>
+      {rank + 1}
     </span>
     <Avatar name={entry.nickname} size="sm" />
     <div className="min-w-0 flex-1">

@@ -21,16 +21,16 @@ export function CoursePerformance({ courseData }) {
     <motion.div variants={stagger.container} initial="initial" animate="animate" className="space-y-4">
       {courseData.map((course) => (
         <motion.div key={course.name} variants={stagger.item} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 max-sm:p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="font-bold text-slate-900 dark:text-slate-100 tracking-tight">{course.name}</h4>
-            <div className="flex items-center gap-4 text-xs text-slate-400">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <h4 className="min-w-0 font-bold text-slate-900 dark:text-slate-100 tracking-tight break-keep [overflow-wrap:anywhere] line-clamp-2" title={course.name}>{course.name}</h4>
+            <div className="flex shrink-0 items-center gap-4 text-xs text-slate-400 whitespace-nowrap">
               <TrendIndicator roundDetails={course.roundDetails} />
               <span><span className="font-semibold text-slate-600 dark:text-slate-300">{course.conductedRounds}</span>차수</span>
               <span className="max-sm:hidden"><span className="font-semibold text-slate-600 dark:text-slate-300">{course.totalParticipants}</span>명</span>
             </div>
           </div>
           <div className="flex items-end gap-4">
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 min-w-0 space-y-2 max-h-72 overflow-y-auto overscroll-contain pr-1">
               {course.roundDetails.map((round, idx) => (
                 <div key={`${round.roundNumber}-${idx}`} className="flex items-center gap-3">
                   <span className="text-xs text-slate-400 w-8 shrink-0 font-medium">{round.roundNumber}차</span>

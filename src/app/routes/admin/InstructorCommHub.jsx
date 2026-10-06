@@ -38,7 +38,7 @@ function TabButton({ active, onClick, icon: Icon, label, count = 0, urgent = fal
       }`}
     >
       {active && <motion.span layoutId="comm-tab" transition={snap} aria-hidden="true" className="absolute inset-0 rounded-lg bg-slate-100 ring-1 ring-slate-300 dark:bg-slate-800 dark:ring-slate-600" />}
-      <Icon size={13} className={`relative z-10 ${active ? '' : 'text-slate-400'}`} aria-hidden="true" />
+      <Icon size={13} className={`relative z-10 hidden @[24rem]:block ${active ? '' : 'text-slate-400'}`} aria-hidden="true" />
       <span className="relative z-10 truncate">{label}</span>
       {count > 0 && (
         <motion.span
@@ -74,7 +74,7 @@ export default memo(function InstructorCommHub({ sessionId }) {
   const counts = { notes: notesUnread, hands: handCount, urgent: urgentCount, class: classCount, dm: waitingDMs.length };
 
   return (
-    <section className="space-y-3" aria-label="학습자 소통">
+    <section className="@container space-y-3" aria-label="학습자 소통">
       {/* Tabs */}
       <div role="tablist" aria-label="강사 소통" className="flex flex-wrap gap-1">
         <LayoutGroup id={layoutScope}>

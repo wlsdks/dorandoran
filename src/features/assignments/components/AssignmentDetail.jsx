@@ -58,7 +58,7 @@ export default function AssignmentDetail({ assignmentId, onBack }) {
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight truncate">
+              <h2 className="min-w-0 text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight line-clamp-2 break-keep [overflow-wrap:anywhere]" title={assignment.title}>
                 {assignment.title}
               </h2>
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">
@@ -74,7 +74,7 @@ export default function AssignmentDetail({ assignmentId, onBack }) {
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-1 line-clamp-2 break-words">
               {assignment.courseName}{assignment.roundNumber ? ` · ${assignment.roundNumber}차` : ''}
               {assignment.description && assignment.description !== assignment.title ? ` — ${assignment.description}` : ''}
             </p>
