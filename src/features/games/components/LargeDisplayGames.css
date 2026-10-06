@@ -8,9 +8,7 @@
 @media (min-width: 2560px) and (min-height: 1200px) {
   .break-timer-stage[data-presenter="true"] {
     max-width: min(1800px, 100%);
-    --flip-digit-width: clamp(168px, 6vw, 240px);
-    --flip-digit-height: clamp(260px, 9vw, 360px);
-    --flip-digit-font: clamp(184px, 6.7vw, 260px);
+    --flip-cap: 15rem;
   }
   .break-timer-stage[data-presenter="true"] .break-timer-title { font-size: clamp(40px, 1.4vw, 54px); }
   .break-timer-stage[data-presenter="true"] .break-timer-caption { font-size: clamp(24px, .84vw, 32px); }
@@ -55,16 +53,17 @@
   .scratch-stage[data-presenter="true"] .scratch-past { display: none; }
 }
 
-/* The instructor dashboard has side panels; keep all six clock digits in its canvas. */
-.break-timer-stage[data-presenter="false"] {
-  --flip-digit-width: clamp(32px, 6vw, 64px);
-  --flip-digit-height: clamp(52px, 10vw, 104px);
-  --flip-digit-font: clamp(36px, 7vw, 72px);
-}
-@media (max-width: 768px) {
-  .break-timer-stage {
-    --flip-digit-width: clamp(32px, 6vw, 64px);
-    --flip-digit-height: clamp(52px, 10vw, 104px);
-    --flip-digit-font: clamp(36px, 7vw, 72px);
-  }
+/* 플립 카드 폭은 컨테이너 폭(cqw)으로 정한다 — 전자칠판 1366, 강사 가운데 미리보기 어디서도 왼쪽이 잘리지 않는다.
+   HH:MM(카드 4장)과 H:MM:SS(6장)에 각각 상한을 두고, 높이·글자는 폭에서 비례한다. */
+/* 무대 전체가 발표 캔버스(위 6rem·아래 7rem 여백) 안에 들어가야 한다 — 768p에서 560px. 넘치면 시작 버튼을 누를 때 포커스 스크롤로 화면이 튄다. */
+.break-timer-stage { container-type: inline-size; --flip-cap: 9rem; gap: clamp(16px, 3.2vh, 32px); }
+.break-caption-slot { height: clamp(28px, 4.6vh, 40px); }
+@media (max-height: 850px) { .break-timer-stage[data-presenter="true"] { --flip-cap: 6.5rem; } }
+.break-timer-stage[data-presenter="false"] { --flip-cap: 4rem; }
+@media (max-width: 768px) { .break-timer-stage { --flip-cap: 4rem; } }
+.break-timer-stage[data-pairs="2"] { --flip-digit-width: clamp(2rem, 18cqw, var(--flip-cap)); }
+.break-timer-stage[data-pairs="3"] { --flip-digit-width: clamp(1.6rem, 11.5cqw, calc(var(--flip-cap) * .8)); }
+.break-timer-stage {
+  --flip-digit-height: calc(var(--flip-digit-width) * 1.56);
+  --flip-digit-font: calc(var(--flip-digit-width) * 1.12);
 }

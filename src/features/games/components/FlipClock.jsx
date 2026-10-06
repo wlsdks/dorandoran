@@ -1,6 +1,6 @@
 import { useState, useEffect, memo } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { roll } from '@/lib/motion';
+import { roll, settle, exitTween } from '@/lib/motion';
 
 /** 한 자리 숫자 카드 — 값이 바뀌면 위에서 새 숫자가 슬라이드로 내려오는 split-flap 풍. */
 function FlipDigit({ digit }) {
@@ -70,6 +70,7 @@ function Pair({ value }) {
  * @param {number[]} [values]   두 자리 그룹 배열 — 주어지면 내부 시계 대신 이 값 표시
  */
 export default memo(function FlipClock({ showSeconds = true, values = null }) {
+  const reduced = useReducedMotion();
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -85,14 +86,20 @@ export default memo(function FlipClock({ showSeconds = true, values = null }) {
 
   const groups = values ?? [now.getHours(), now.getMinutes(), ...(showSeconds ? [now.getSeconds()] : [])];
 
+  // 자릿수 묶음이 늘거나 줄면(예: 1시간 이상 카운트다운) 카드가 미끄러져 자리를 내주고 새 묶음이 피어난다 — 뚝 바뀌지 않는다.
   return (
-    <div className="flex items-center gap-[clamp(0.5rem,2vw,1.5rem)]">
-      {groups.map((v, i) => (
-        <span key={i} className="contents">
-          {i > 0 && <Colon />}
-          <Pair value={v} />
-        </span>
-      ))}
-    </div>
+    <motion.div layout={!reduced} transition={settle} className="flex items-center gap-[clamp(0.5rem,2vw,1.5rem)]">
+      <AnimatePresence initial={false} mode="popLayout">
+        {groups.map((v, i) => (
+          <motion.div key={`g${i}`} layout={!reduced} transition={{ ...settle, layout: settle }}
+            initial={reduced ? false : { opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }}
+            exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.85, transition: exitTween }}
+            className="flex items-center gap-[clamp(0.5rem,2vw,1.5rem)]">
+            {i > 0 && <Colon />}
+            <Pair value={v} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </motion.div>
   );
 });

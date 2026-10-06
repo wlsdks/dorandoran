@@ -4,6 +4,7 @@ const sizes = {
   lg: 'h-10 min-w-10 px-2 text-base',
   xl: 'h-12 min-w-12 px-2 text-lg',
   stage: 'number-badge-stage',
+  fluid: 'number-badge-fluid',
 };
 
 const tones = {

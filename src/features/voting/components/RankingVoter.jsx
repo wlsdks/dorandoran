@@ -12,7 +12,7 @@ import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ArrowUp, ArrowDown, ArrowRight, Check, X } from 'lucide-react';
+import { GripVertical, ArrowUp, ArrowDown, Check, X } from 'lucide-react';
 import { useMyVote } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import VoteErrorToast from './VoteErrorToast';
@@ -41,18 +41,29 @@ function SortableRankItem({ id, index, label, position, total, disabled, onMove 
 }
 
 /** "정답 ① → ③ → ④ → ②" 같은 번호 순서 한 줄. */
-function SequenceChips({ label, order, options, strong = false }) {
+/**
+ * 정답·내 답 번호 줄 — 두 줄이 한 격자를 나눠 써서 자리별로 위아래가 맞고(정답과 내 답을 열마다 비교),
+ * 화살표는 남은 폭을 채우는 연결선이라 상자 오른쪽이 비지 않는다. 칩 크기는 상자 폭에 맞춰 32~44px.
+ * 내 답에서 틀린 자리는 붉은 테두리로 조용히 표시한다.
+ */
+function SequenceGrid({ correct, mine, options, hits }) {
+  const n = correct.length;
+  const columns = ['auto', ...correct.flatMap((_, i) => (i < n - 1 ? ['auto', 'minmax(6px,1fr)'] : ['auto']))].join(' ');
+  const row = (label, order, strong) => [
+    <span key={`${label}-label`} className="pr-2 whitespace-nowrap text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</span>,
+    ...order.flatMap((index, pos) => {
+      const miss = !strong && hits?.[pos] === false;
+      const chip = <NumberBadge key={`${label}-${pos}`} number={index + 1} size="fluid" label={null} tone={strong ? 'solid' : 'outline'} className={miss ? 'ranking-chip-miss' : ''} />;
+      return pos < n - 1 ? [chip, <span key={`${label}-c${pos}`} className="ranking-connector" />] : [chip];
+    }),
+  ];
   return (
-    <div className="flex items-center gap-2 min-w-0" aria-label={`${label} ${formatRankingSequence(order, { options })}`}>
-      <span className="w-10 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</span>
-      <ol className="flex flex-wrap items-center gap-1" aria-hidden="true">
-        {order.map((index, position) => (
-          <li key={position} className="flex items-center gap-1">
-            {position > 0 && <ArrowRight size={12} className="text-slate-300 dark:text-slate-600" />}
-            <NumberBadge number={index + 1} size="md" tone={strong ? 'solid' : 'outline'} />
-          </li>
-        ))}
-      </ol>
+    <div className="ranking-sequence rounded-lg bg-slate-50 dark:bg-slate-900/40 px-3 py-2.5" style={{ '--n': n }} role="group"
+      aria-label={`정답 ${formatRankingSequence(correct, { options })}${mine ? `. 내 답 ${formatRankingSequence(mine, { options })}` : ''}`}>
+      <div className="grid items-center gap-y-2" style={{ gridTemplateColumns: columns }} aria-hidden="true">
+        {row('정답', correct, true)}
+        {mine && row('내 답', mine, false)}
+      </div>
     </div>
   );
 }
@@ -146,10 +157,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
             {!perfect && <p className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">순서를 모두 맞혀야 정답이에요 · {options.length}개 중 {hitCount}개 자리는 맞았어요</p>}
           </div>
         ) : <p className="text-center text-sm text-slate-600 dark:text-slate-300">제출하지 않았어요. 정답 순서를 확인해보세요</p>}
-        <div className="space-y-2 rounded-lg bg-slate-50 dark:bg-slate-900/40 px-3 py-2.5">
-          <SequenceChips label="정답" order={correct} options={options} strong />
-          {mine && <SequenceChips label="내 답" order={mine} options={options} />}
-        </div>
+        <SequenceGrid correct={correct} mine={mine} options={options} hits={hits} />
         <ol className="space-y-2">
           {correct.map((itemIndex, pos) => {
             const ok = hits[pos];
