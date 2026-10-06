@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { fadeUpSm } from '@/lib/motion';
 import { lazy, Suspense } from 'react';
 import { Check, X, Flame, ChevronDown } from 'lucide-react';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
@@ -7,7 +8,7 @@ const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 export default function QuizResult({ isCorrect, points, correctAnswer, correctImage = null, correctLetter = null, bet = 1, streak = 0, scoreApplied = true, scoreDetails }) {
   const reduced = useReducedMotion();
   const signed = points > 0 ? '+' : points < 0 ? '−' : '';
-  return <motion.div initial={reduced ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : 0.18 }}
+  return <motion.div initial={reduced ? false : fadeUpSm.initial} animate={fadeUpSm.animate} transition={reduced ? { duration: 0 } : fadeUpSm.transition}
     className="w-full rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 p-5 shadow-sm overflow-hidden relative" aria-label="이번 퀴즈 결과">
     {isCorrect && scoreApplied && !reduced && <Suspense fallback={null}><ConfettiBurst /></Suspense>}
     <div className="relative z-[1] space-y-4">

@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useVotes } from '@/hooks/useVotes';
+import { grow, spring } from '@/lib/motion';
 
 const LEVELS = [
   { key: 'high', label: '확신', color: 'bg-slate-800 dark:bg-slate-200' },
@@ -33,7 +34,7 @@ export default memo(function ConfidenceStats({ sessionId, questionId }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3, type: 'spring', stiffness: 300, damping: 25 }}
+      transition={{ ...spring.default, delay: 0.3 }}
       className="mt-4 px-4 max-w-xl mx-auto"
     >
       <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
@@ -48,7 +49,7 @@ export default memo(function ConfidenceStats({ sessionId, questionId }) {
               key={key}
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.4 }}
+              transition={{ ...grow, delay: 0.4 }}
               className={`h-full ${color} first:rounded-l-full last:rounded-r-full`}
             />
           );

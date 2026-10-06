@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { HelpCircle, FileText, Copy, Check } from 'lucide-react';
 import StudentHeader from './StudentHeader';
 import StudentBottomBar from './StudentBottomBar';
@@ -51,7 +52,7 @@ export default function SessionEndedPage({ sessionId, session, reviewing = false
       <motion.div
         initial={reducedMotion ? false : { opacity: 0, y: 24, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         className="w-full min-w-0 max-w-xl [overflow-wrap:anywhere] [word-break:keep-all]"
       >
         <SessionSummaryCard session={session} sessionId={sessionId} reviewing={reviewing} />
@@ -62,7 +63,7 @@ export default function SessionEndedPage({ sessionId, session, reviewing = false
         <motion.div
           initial={reducedMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, type: 'spring', stiffness: 300, damping: 25 }}
+          transition={{ ...spring.default, delay: 0.5 }}
           className="w-full min-w-0 max-w-xl mx-auto mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-2 px-1"
         >
           <a
@@ -95,7 +96,7 @@ export default function SessionEndedPage({ sessionId, session, reviewing = false
           <motion.button
             initial={reducedMotion ? false : { opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.6, type: 'spring', stiffness: 300, damping: 25 }}
+            transition={{ ...spring.default, delay: 0.6 }}
             whileHover={{ scale: reducedMotion ? 1 : 1.04 }}
             whileTap={{ scale: reducedMotion ? 1 : 0.95 }}
             onClick={() => setShowQA(true)}

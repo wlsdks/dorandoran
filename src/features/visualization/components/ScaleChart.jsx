@@ -1,5 +1,6 @@
 import { useMemo, memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { grow } from '@/lib/motion';
 import { useVotes } from '@/hooks/useVotes';
 
 /**
@@ -81,7 +82,7 @@ export default memo(function ScaleChart({ sessionId, questionId, minLabel = '낮
             role="img" aria-label={`평균 ${stats.avg}점, ${minLabel}에서 ${maxLabel} 사이`}>
             <motion.div className="h-full w-full bg-indigo-500 dark:bg-indigo-400 origin-left"
               initial={{ scaleX: reduced ? stats.avg / 100 : 0 }} animate={{ scaleX: stats.avg / 100 }}
-              transition={{ duration: reduced ? 0 : 0.24, ease: 'easeOut' }} />
+              transition={reduced ? { duration: 0 } : grow} />
           </div>
           <div className="scale-result-caption flex justify-between gap-4 mt-2 text-slate-600 dark:text-slate-300 font-medium">
             <span>{minLabel}</span><span className="text-right">{maxLabel}</span>
@@ -101,7 +102,7 @@ export default memo(function ScaleChart({ sessionId, questionId, minLabel = '낮
                   <motion.div className={`h-full w-full rounded-t-md origin-bottom ${count > 0 ? getBarColor(i) : 'bg-slate-200 dark:bg-slate-700'}`}
                     initial={{ scaleY: reduced ? Math.max(count / maxBucket, 0.02) : 0 }}
                     animate={{ scaleY: Math.max(count / maxBucket, 0.02) }}
-                    transition={{ duration: reduced ? 0 : 0.24, ease: 'easeOut' }} />
+                    transition={reduced ? { duration: 0 } : grow} />
                 </div>
               </div>
             ))}

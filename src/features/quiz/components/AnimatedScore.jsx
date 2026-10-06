@@ -1,8 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useMotionValue, useTransform, animate } from 'framer-motion';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { count } from '@/lib/motion';
 
-/** Animated number counter — counts from prev to `value` on change. */
+/** 점수 카운터 — 이전 값에서 새 값으로 이어 센다(공용 count.score 곡선, 감속 모션이면 즉시). */
 export default function AnimatedScore({ value, suffix = '점' }) {
+  const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const motionVal = useMotionValue(0);
   const rounded = useTransform(motionVal, (v) => Math.round(v));
   const displayRef = useRef(null);
@@ -17,14 +20,14 @@ export default function AnimatedScore({ value, suffix = '점' }) {
     });
     const controls = animate(motionVal, value, {
       from,
-      duration: 0.7,
-      ease: [0.25, 0.1, 0.25, 1],
+      duration: reduced ? 0 : count.score.duration,
+      ease: count.score.ease,
     });
     return () => {
       controls.stop();
       unsubscribe();
     };
-  }, [value, motionVal, rounded, suffix]);
+  }, [value, motionVal, rounded, suffix, reduced]);
 
   return <span ref={displayRef} className="tabular-nums">{value}{suffix}</span>;
 }

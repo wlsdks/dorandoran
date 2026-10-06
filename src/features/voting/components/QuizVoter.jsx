@@ -1,6 +1,8 @@
 import { useVoteAcknowledgement } from '@/hooks/useVoteAcknowledgement';
 import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring, stagger } from '@/lib/motion';
+import { motion as motionTokens } from '@/lib/design-tokens';
 import { hapticTap } from '@/lib/haptics';
 import { ref, set, serverTimestamp } from 'firebase/database';
 import { Check, Lock } from 'lucide-react';
@@ -142,23 +144,14 @@ export default memo(function QuizVoter({
     }} animate={{
       opacity: 1,
       y: 0
-    }} transition={{
-      type: 'spring',
-      stiffness: 300,
-      damping: 25
-    }} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-5 space-y-4">
+    }} transition={spring.default} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-5 space-y-4">
         {/* Header */}
         <div className="flex items-center gap-3">
           <motion.div initial={{
           scale: 0
         }} animate={{
           scale: 1
-        }} transition={{
-          type: 'spring',
-          stiffness: 400,
-          damping: 22,
-          delay: 0.1
-        }} className="flex items-center justify-center shrink-0">
+        }} transition={{ ...spring.bouncy, delay: 0.1 }} className="flex items-center justify-center shrink-0">
             <Lock size={24} className="text-slate-500 dark:text-slate-400" />
           </motion.div>
           <div>
@@ -179,12 +172,7 @@ export default memo(function QuizVoter({
           }} animate={{
             opacity: isCorrect ? 1 : 0.45,
             x: 0
-          }} transition={{
-            type: 'spring',
-            stiffness: 300,
-            damping: 25,
-            delay: 0.12 + index * 0.05
-          }} className={`w-full py-3 px-4 rounded-xl border flex items-center gap-3 ${isCorrect ? 'answer-glow bg-slate-900 dark:bg-slate-100 border-slate-900 dark:border-slate-100' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
+          }} transition={{ ...spring.default, delay: 0.12 + index * 0.05 }} className={`w-full py-3 px-4 rounded-xl border flex items-center gap-3 ${isCorrect ? 'answer-glow bg-slate-900 dark:bg-slate-100 border-slate-900 dark:border-slate-100' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
                   <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${isCorrect ? 'bg-white/20 dark:bg-slate-900/20 text-white dark:text-slate-900' : `${style.badge} text-white`}`}>
                     {letter}
                   </span>
@@ -205,12 +193,7 @@ export default memo(function QuizVoter({
       }} animate={{
         opacity: 1,
         y: 0
-      }} transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 25,
-        delay: 0.2
-      }} className="rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-center">
+      }} transition={{ ...spring.default, delay: 0.2 }} className="rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-3 text-center">
             <p className="text-xs font-medium text-slate-400 mb-0.5">정답</p>
             <p className="text-base font-semibold text-slate-900 dark:text-slate-100">{correctAnswer}</p>
           </motion.div>}
@@ -228,11 +211,7 @@ export default memo(function QuizVoter({
       }} animate={{
         opacity: 1,
         y: 0
-      }} transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 25
-      }} className="space-y-4">
+      }} transition={spring.default} className="space-y-4">
             <p className="text-xs text-slate-400 text-center">
               {bettingEnabled ? '배율은 답을 고르기 전까지 바꿀 수 있어요. 답을 고르면 바로 제출됩니다.' : question?.event ? '이벤트 라운드 — 보너스 점수가 적용됩니다' : (question?.maxSpeedBonus ?? QUIZ_DEFAULTS.maxSpeedBonus) > 0 ? '빠르게 답할수록 더 높은 점수를 받을 수 있습니다' : '답을 고르면 바로 제출됩니다.'}
             </p>
@@ -254,10 +233,8 @@ export default memo(function QuizVoter({
               y: 0,
               scale: isSelected ? 0.98 : 1
             }} transition={{
-              delay: index * 0.05,
-              type: 'spring',
-              stiffness: 300,
-              damping: 25
+              ...spring.default,
+              delay: isLocked ? 0 : stagger(index, { step: motionTokens.stagger.normal })
             }} whileTap={{
               scale: 0.97
             }} onClick={() => {

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { motion as motionTokens } from '@/lib/design-tokens';
 import { AlertCircle, UserPlus, ArrowRight } from 'lucide-react';
 import { registerStaff } from '@/lib/auth-session';
@@ -72,7 +73,7 @@ export default function RegisterView({ onSwitchToLogin }) {
           </div>
           <div className="text-center space-y-3">
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.2 }}
+              transition={{ ...spring.default, delay: 0.2 }}
               className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mx-auto">
               <UserPlus size={24} className="text-slate-600 dark:text-slate-300" />
             </motion.div>

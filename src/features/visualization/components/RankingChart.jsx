@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import NumberBadge from '@/components/ui/NumberBadge';
 import { useVotes } from '@/hooks/useVotes';
 import { correctRankingOrder, formatRankingSequence, rankingOrdinal, rankingPositionStats } from '@/lib/ranking-answer';
-import { settle } from '@/lib/motion';
+import { settle, grow } from '@/lib/motion';
 
 /**
  * RankingChart — 순위 맞추기 발표/강사 화면.
@@ -96,8 +96,8 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], c
                 <motion.div initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: reducedMotion ? 0 : 0.2 }}
                   className={`overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700 ${presenter ? 'h-3 lg:h-3.5' : 'col-span-4 row-start-2 mt-2.5 h-2'}`}
                   role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`${rankingOrdinal(position)} 자리를 맞힌 비율 ${pct}%`}>
-                  <motion.div className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400" initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-                    transition={reducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 200, damping: 24, delay: 0.25 }} />
+                  <motion.div className="h-full w-full origin-left rounded-full bg-indigo-500 dark:bg-indigo-400" initial={{ scaleX: 0 }} animate={{ scaleX: pct / 100 }}
+                    transition={reducedMotion ? { duration: 0 } : { ...grow, delay: 0.25 }} />
                 </motion.div>
                 <motion.span layout="position" initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: reducedMotion ? 0 : 0.2 }}
                   className={`whitespace-nowrap tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'ranking-count' : 'col-start-4 row-start-1 text-sm'}`}>

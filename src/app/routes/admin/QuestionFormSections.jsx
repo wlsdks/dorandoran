@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Plus, Trash2, Check, ArrowRight, Undo2, X, Lock } from 'lucide-react';
 import { QUIZ_DEFAULTS, QUIZ_EVENT_PRESETS } from '@/lib/quiz';
 import ImageUpload from '@/components/ui/ImageUpload';
@@ -550,7 +551,7 @@ export function QuizSettingsSection({ points, setPoints, event, setEvent, bettin
             role="switch" aria-checked={betting} aria-label="포인트 베팅 활성화">
             <span className={`relative block w-11 h-6 rounded-full transition-colors duration-150 ${betting ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-200 dark:bg-slate-600'}`}>
             <motion.div animate={{ x: betting ? 20 : 2 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              transition={spring.stiff}
               className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm" />
             </span>
           </button>

@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import { spring, exitTween } from '@/lib/motion';
 import { ExternalLink, Globe } from 'lucide-react';
 import { embedDisplayUrl, safeEmbedUrl } from '@/lib/embed';
 import { useMyVote } from '@/hooks/useMyVote';
@@ -122,7 +123,7 @@ export default memo(function ActivePollView({
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.04 }}
+            transition={{ ...spring.default, delay: 0.04 }}
           >
             <QuizEventBanner
               event={question.event}
@@ -141,8 +142,8 @@ export default memo(function ActivePollView({
               key={`voter-${questionId}-${question.activatedAt ?? 'na'}`}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.08 }}
+              exit={{ opacity: 0, y: -8, transition: exitTween }}
+              transition={{ ...spring.default, delay: 0.06 }}
               className="relative"
             >
               {question.type === 'choice' && (

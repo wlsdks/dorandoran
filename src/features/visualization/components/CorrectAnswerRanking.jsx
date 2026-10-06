@@ -1,11 +1,12 @@
 import { memo, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Trophy, Search } from 'lucide-react';
 import { useVotes } from '@/hooks/useVotes';
 import { normalizeAnswer } from '@/lib/utils';
 import Avatar from '@/components/ui/Avatar';
 
-const SPRING = { type: 'spring', stiffness: 300, damping: 25 };
+const SPRING = spring.default;
 const MAX_HEIGHT = '40vh';
 
 export default memo(function CorrectAnswerRanking({ sessionId, questionId, correctAnswer, acceptableAnswers = [], myParticipantId = null, presenter = false }) {

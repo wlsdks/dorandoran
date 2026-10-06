@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ref, onValue, query, orderByChild, equalTo } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Eye, CheckCircle } from 'lucide-react';
 
 export default function ReviewingBanner({ sessionId }) {
@@ -56,7 +57,7 @@ export default function ReviewingBanner({ sessionId }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          transition={spring.stiff}
           className="fixed bottom-36 left-1/2 -translate-x-1/2 z-30 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium"
         >
           <Eye size={16} />
@@ -70,7 +71,7 @@ export default function ReviewingBanner({ sessionId }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          transition={spring.stiff}
           className="fixed bottom-36 left-1/2 -translate-x-1/2 z-30 bg-emerald-600 dark:bg-emerald-500 text-white px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium"
         >
           <CheckCircle size={16} />
@@ -83,7 +84,7 @@ export default function ReviewingBanner({ sessionId }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          transition={spring.stiff}
           className="fixed bottom-36 left-1/2 -translate-x-1/2 z-30 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium"
         >
           <CheckCircle size={16} />

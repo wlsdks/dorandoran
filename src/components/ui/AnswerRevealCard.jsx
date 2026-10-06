@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Check, X } from 'lucide-react';
 import { normalizeAnswer } from '@/lib/utils';
 
@@ -17,7 +18,7 @@ export default memo(function AnswerRevealCard({ correctAnswer, myAnswer }) {
     <motion.div
       initial={{ opacity: 0, y: 12, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="w-full rounded-xl overflow-hidden"
     >
       <div className={`p-5 text-center ${isCorrect ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-slate-50 dark:bg-slate-800'}`}>
@@ -25,7 +26,7 @@ export default memo(function AnswerRevealCard({ correctAnswer, myAnswer }) {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.1 }}
+            transition={{ ...spring.bouncy, delay: 0.1 }}
             className="mx-auto mb-3"
           >
             {isCorrect

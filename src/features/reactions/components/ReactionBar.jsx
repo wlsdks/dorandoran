@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react';
 import { createReactionBucket, takeReaction, refundReaction } from '@/lib/reaction-rate';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { fadeUpSm } from '@/lib/motion';
 import { MessageCircle, X } from 'lucide-react';
 import { ref, push, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
@@ -118,7 +119,8 @@ export default function ReactionBar({ sessionId, bubbleSessionId, onInputFocus }
         <MessageCircle size={26} strokeWidth={1.8} className="shrink-0 text-indigo-500 dark:text-indigo-300" aria-hidden="true" /><span>한마디</span>
       </motion.button>}
     </div>
-    {bubbleOpen && <form id="reaction-word-editor" onSubmit={handleBubbleSend} className="border-t border-slate-200 dark:border-slate-700 pt-2 space-y-2">
+    <AnimatePresence initial={false}>
+    {bubbleOpen && <motion.form key="editor" {...fadeUpSm} id="reaction-word-editor" onSubmit={handleBubbleSend} className="border-t border-slate-200 dark:border-slate-700 pt-2 space-y-2">
       <div className="flex items-center justify-between gap-2"><label htmlFor="reaction-word-input" className="text-sm font-semibold text-slate-700 dark:text-slate-200">한마디</label><button type="button" onClick={() => setBubbleOpen(false)} aria-label="한마디 입력 닫기" className="h-11 w-11 shrink-0 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"><X size={18} /></button></div>
       <div className="flex items-center gap-2" data-message-controls>
         <div className="relative flex-1 min-w-0">
@@ -130,7 +132,8 @@ export default function ReactionBar({ sessionId, bubbleSessionId, onInputFocus }
         <button type="submit" disabled={!bubbleText.trim() || sending || Boolean(bubbleCooldownUntil)} aria-label="한마디 보내기" className="min-h-12 shrink-0 px-3 rounded-xl bg-indigo-600 dark:bg-indigo-400 text-white dark:text-slate-950 font-semibold text-sm disabled:opacity-40">{sending ? '보내는 중' : '보내기'}</button>
       </div>
       <p className="text-xs text-slate-500 dark:text-slate-400">{bubbleText.length}/{BUBBLE_MAX}자 · 일부 이모지는 2자 이상으로 셉니다</p>
-    </form>}
+    </motion.form>}
+    </AnimatePresence>
     {/* 연속 3번까지는 바로 보내지고, 그 뒤엔 남은 시간만 짧게 안내한다 */}
     <p role="status" aria-live="polite" className="min-h-5 text-sm text-slate-500 dark:text-slate-400 leading-relaxed tabular-nums">
       {waitSeconds ? `${waitSeconds.toFixed(1)}초 후에 다시 보낼 수 있어요` : feedback}

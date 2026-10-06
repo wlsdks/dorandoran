@@ -1,6 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { ThumbsUp, MessageSquare, Send, ChevronDown, ChevronUp, Check, EyeOff, Eye, ShieldAlert, Lightbulb } from 'lucide-react';
 import { timeAgo } from '@/lib/utils';
 import AnswerItem from './AnswerItem';
@@ -24,7 +25,7 @@ export default function QuestionCard({ question: originalQuestion, index, pid, n
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25, delay: index * 0.03 }}
+        transition={{ ...spring.default, delay: index * 0.03 }}
         className="rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700 p-4"
       >
         <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
@@ -49,7 +50,7 @@ export default function QuestionCard({ question: originalQuestion, index, pid, n
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25, delay: index * 0.03 }}
+      transition={{ ...spring.default, delay: index * 0.03 }}
       className={`rounded-xl shadow-sm overflow-hidden transition-all duration-300 bg-white dark:bg-slate-800 ${
         isHidden
           ? 'ring-1 ring-red-300 dark:ring-red-800/50 opacity-70'

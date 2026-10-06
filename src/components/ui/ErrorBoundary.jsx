@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { RefreshCw } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 
@@ -75,7 +76,7 @@ function ErrorFallback({ fullPage, errorMessage, scope, onRetry, onReload }) {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+        transition={spring.gentle}
         className="text-center max-w-sm"
       >
         {/* Mascot */}

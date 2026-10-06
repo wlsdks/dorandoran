@@ -1,5 +1,6 @@
 import { useState, useEffect, memo } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { roll } from '@/lib/motion';
 
 /** 한 자리 숫자 카드 — 값이 바뀌면 위에서 새 숫자가 슬라이드로 내려오는 split-flap 풍. */
 function FlipDigit({ digit }) {
@@ -22,7 +23,7 @@ function FlipDigit({ digit }) {
           initial={{ y: '-105%' }}
           animate={{ y: '0%' }}
           exit={{ y: '105%' }}
-          transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+          transition={roll}
           className="absolute inset-0 flex items-center justify-center font-bold tabular-nums text-white leading-none"
           style={{ fontSize: 'var(--flip-digit-font, clamp(3rem, 13vw, 10rem))' }}
         >

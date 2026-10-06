@@ -5,6 +5,7 @@ import { ref, set, onValue, remove, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { getParticipantId } from '@/lib/participant';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { RotateCcw } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { hapticTap } from '@/lib/haptics';
@@ -54,7 +55,7 @@ function StudentSurvey({ sessionId, embedded = false }) {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         className="text-center space-y-8 w-full max-w-sm"
       >
         <div className="space-y-2">
@@ -74,7 +75,7 @@ function StudentSurvey({ sessionId, embedded = false }) {
                   opacity: hasVoted && !isSelected ? 0.25 : 1,
                   scale: isSelected ? 1.15 : 1,
                 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25, delay: i * 0.05 }}
+                transition={{ ...spring.default, delay: i * 0.05 }}
                 whileTap={{ scale: 0.85 }}
                 onClick={() => handleVote(rating)}
                 disabled={hasVoted || pending}
@@ -132,7 +133,7 @@ function SurveyBarChart({ counts, total, presenter = false }) {
                 className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-lg"
                 initial={{ width: 0 }}
                 animate={{ width: `${barPct}%` }}
-                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                transition={spring.gentle}
               />}
             </div>
             <span className={`${presenter ? "w-20 text-2xl" : "w-14 text-sm"} text-right font-semibold text-slate-600 dark:text-slate-300 tabular-nums`}>{pct}%</span>

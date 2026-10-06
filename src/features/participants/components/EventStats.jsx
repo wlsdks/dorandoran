@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { IdCard } from 'lucide-react';
+import { fadeUp } from '@/lib/motion';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
 
 /**
  * EventStats — 기업 행사모드(사번 필수) 전용 통계.
@@ -17,9 +19,9 @@ export default function EventStats({ participants = [], count, variant = 'sideba
   if (variant === 'presenter') {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        initial={fadeUp.initial}
+        animate={fadeUp.animate}
+        transition={fadeUp.transition}
         className="flex items-stretch gap-4"
       >
         <Stat big label="입장" value={total} unit="명" />
@@ -48,7 +50,7 @@ function Stat({ label, value, unit, sub, big, accent }) {
   return (
     <div className="text-center px-2">
       <div className="flex items-baseline justify-center gap-1">
-        <span className={`font-black tabular-nums tracking-tight ${big ? 'text-5xl md:text-6xl' : 'text-2xl'} ${accent ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-900 dark:text-slate-100'}`}>{value}</span>
+        <span className={`font-black tabular-nums tracking-tight ${big ? 'text-5xl md:text-6xl' : 'text-2xl'} ${accent ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-900 dark:text-slate-100'}`}>{big ? <AnimatedNumber value={value} /> : value}</span>
         {unit && <span className="text-slate-400 text-sm font-medium">{unit}</span>}
       </div>
       <div className="mt-1 flex items-center justify-center gap-1.5">

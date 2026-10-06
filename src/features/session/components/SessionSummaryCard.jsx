@@ -1,5 +1,6 @@
 import { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Trophy, Target, Hash, Sparkle, Flame, CheckCheck, Zap, Crown } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import { useScores } from '@/features/quiz/api/useScores';
@@ -46,7 +47,7 @@ const AchievementItem = memo(function AchievementItem({ achievement, index }) {
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.5 + index * 0.08 }}
+      transition={{ ...spring.default, delay: 0.5 + index * 0.08 }}
       className="flex items-center gap-2.5 py-2"
     >
       <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
@@ -114,22 +115,22 @@ export default function SessionSummaryCard({ session, sessionId, reviewing = fal
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm overflow-hidden"
       >
         {/* Header */}
         <div className="pt-6 pb-4 px-5 text-center">
           <CelebrationMascot />
           <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 25 }}
+            transition={{ ...spring.default, delay: 0.2 }}
             className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mt-3"
           >{title}</motion.p>
           <motion.p initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, type: 'spring', stiffness: 300, damping: 25 }}
+            transition={{ ...spring.default, delay: 0.3 }}
             className="text-sm text-slate-400 mt-1"
           >{nickname}님의 오늘 기록</motion.p>
           {session?.courseName && (
-            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, type: 'spring', stiffness: 300, damping: 25 }} className="mt-2 flex justify-center [&>*]:max-w-full [&>*]:whitespace-normal [&>*]:text-center [&>*]:break-keep [&>*]:[overflow-wrap:anywhere] [&>*]:rounded-xl">
+            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring.default, delay: 0.35 }} className="mt-2 flex justify-center [&>*]:max-w-full [&>*]:whitespace-normal [&>*]:text-center [&>*]:break-keep [&>*]:[overflow-wrap:anywhere] [&>*]:rounded-xl">
               <Badge variant="neutral">
                 {session.courseName} {session.roundNumber ? `${session.roundNumber}차` : ''}
               </Badge>
@@ -157,7 +158,7 @@ export default function SessionSummaryCard({ session, sessionId, reviewing = fal
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, type: 'spring', stiffness: 400, damping: 22 }}
+            transition={{ ...spring.bouncy, delay: 0.4 }}
             className="px-5 pb-4 flex justify-center"
           >
             <Badge variant="primary">
@@ -187,7 +188,7 @@ export default function SessionSummaryCard({ session, sessionId, reviewing = fal
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45, type: 'spring', stiffness: 300, damping: 25 }}
+              transition={{ ...spring.default, delay: 0.45 }}
             >
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">획득한 업적</p>
               <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl px-3.5 py-1 divide-y divide-slate-100 dark:divide-slate-600">

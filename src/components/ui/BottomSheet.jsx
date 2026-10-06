@@ -1,14 +1,15 @@
 import { memo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls, useMotionValue, useReducedMotion, useTransform } from 'framer-motion';
+import { spring, sheet } from '@/lib/motion';
 import { X } from 'lucide-react';
 import { useDialogLayer } from '@/hooks/useDialogLayer';
 import { hapticTap } from '@/lib/haptics';
 import { backdropOpacityForDrag, shouldDismissSheet } from '@/lib/sheet-gesture';
 
-const OPEN_SPRING = { type: 'spring', stiffness: 300, damping: 25 };
-const EXIT_SPRING = { type: 'spring', stiffness: 420, damping: 38 };
-const SNAP_BACK = { bounceStiffness: 300, bounceDamping: 25 };
+const OPEN_SPRING = spring.default;
+const EXIT_SPRING = sheet;           // 손을 뗀 속도를 이어받아 빠르게 닫힌다
+const SNAP_BACK = { bounceStiffness: spring.default.stiffness, bounceDamping: spring.default.damping };
 
 /**
  * 모바일 바텀 시트. 손잡이·제목 영역에서만 끌어서 닫고(본문은 평소대로 스크롤),
@@ -45,7 +46,8 @@ export default memo(function BottomSheet({
   return createPortal(
     <AnimatePresence>
       {open && (
-        <motion.div initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        <motion.div initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: { duration: reducedMotion ? 0 : 0.2, delay: reducedMotion ? 0 : 0.08 } }}
           transition={{ duration: reducedMotion ? 0 : 0.16 }}
           className="viewport-overlay fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4"
           onClick={event => { if (event.target === event.currentTarget) onClose?.(); }}>

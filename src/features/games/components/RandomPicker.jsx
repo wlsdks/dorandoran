@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { spring, reveal } from '@/lib/motion';
 import { UserCircle, RefreshCw, Monitor } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
@@ -190,7 +191,7 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
               // 퇴장은 짧은 tween으로 고정한다. spring 퇴장이 끝나기를 기다리는 사이
               // 다음 숫자가 통째로 건너뛰어졌다(3 → 1로 보이던 문제).
               exit={{ scale: reduced ? 1 : 0.6, opacity: 0, transition: { duration: 0.12 } }}
-              transition={{ type: 'spring', stiffness: 320, damping: 16 }}
+              transition={spring.bouncy}
               className="text-6xl font-black tabular-nums text-slate-900 dark:text-slate-100 tracking-tighter"
             >
               {viewCountdown}
@@ -219,7 +220,7 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
               initial={{ scale: reduced ? 1 : 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: reduced ? 1 : 0.8, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+              transition={spring.bouncy}
             >
               <Avatar name={viewSelected.nickname} size="2xl" className={presenter ? "!w-[clamp(128px,12vw,256px)] !h-[clamp(128px,12vw,256px)] !text-[clamp(40px,4vw,80px)]" : ""} />
               {!reduced && !mirrorError && <Suspense fallback={null}><ConfettiBurst /></Suspense>}
@@ -282,7 +283,7 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
                 }}
                 transition={{
                   opacity: { duration: 0.5, ease: 'easeOut' },
-                  scale: { type: 'spring', stiffness: 260, damping: 15, delay: 0.25 },
+                  scale: { ...reveal, delay: 0.25 },
                   x: { duration: 0.6, ease: 'easeInOut', delay: 0.3 },
                 }}
                 className="text-center"
@@ -322,7 +323,7 @@ export default function RandomPicker({ participants, onResult, sessionId, role =
             initial={{ opacity: 0, scale: reduced ? 1 : 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
+            transition={{ ...spring.default, delay: 0.15 }}
             className="inline-flex items-center px-5 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-full text-base font-bold"
           >
             {mirrorError ? '결과 공유 대기' : '발표 차례!'}

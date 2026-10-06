@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Flame, Zap } from 'lucide-react';
 import { getComboLevel } from '@/features/quiz/api/useSpeedQuiz';
 
@@ -18,14 +19,14 @@ export default memo(function SpeedQuizCombo({ streak = 0 }) {
           initial={{ opacity: 0, scale: 0.8, y: -10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: -10 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+          transition={spring.bouncy}
           className="flex items-center justify-center"
         >
           <motion.div
             key={streak}
             initial={{ scale: 1.35 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            transition={spring.stiff}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border shadow-sm ${
               combo.level >= 3
                 ? 'bg-slate-900 text-white border-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-200'

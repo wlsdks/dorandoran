@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { ease, exitTween } from '@/lib/motion';
 import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { Trophy, ChevronLeft, ChevronRight } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
@@ -50,6 +51,10 @@ export default memo(function Leaderboard({
   const featuredEntry = rankingHighlightEntry(ranked, featured);
   const featuredOnPage = Boolean(featured && featured.activeRank > offset && featured.activeRank <= offset + visible.length);
   const reducedMotion = useReducedMotion();
+  // 페이지가 어느 쪽으로 넘어가는지 — 다음 페이지는 오른쪽에서, 이전 페이지는 왼쪽에서 들어온다(렌더 중 파생 상태)
+  const [pageTrack, setPageTrack] = useState({ page: currentPage, dir: 1 });
+  if (pageTrack.page !== currentPage) setPageTrack({ page: currentPage, dir: currentPage > pageTrack.page ? 1 : -1 });
+  const pageDirection = pageTrack.page === currentPage ? pageTrack.dir : (currentPage > pageTrack.page ? 1 : -1);
   const swipeStart = useRef(null);
   const previousExternalPage = useRef(page);
   const previousHighlightRank = useRef(null);
@@ -139,7 +144,11 @@ export default memo(function Leaderboard({
   const pager = paginated && pageCount > 1 && <Pager presenter={presenter} page={currentPage} pageCount={pageCount} onPrev={() => goToPage(currentPage - 1)} onNext={() => goToPage(currentPage + 1)} />;
   const featuredPage = featured ? Math.floor((featured.activeRank - 1) / size) : 0;
   const rows = <div onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={() => { swipeStart.current = null; }} style={{ touchAction: 'pan-y' }}>
-    <motion.ol key={currentPage} start={offset + 1} initial={reducedMotion ? false : { opacity: 0, x: 5 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.14 }} className={presenter ? 'board-ranking-list' : 'space-y-2'}>
+    <AnimatePresence mode="popLayout" initial={false} custom={pageDirection}>
+    <motion.ol key={currentPage} start={offset + 1} custom={pageDirection}
+      initial={reducedMotion ? { opacity: 0 } : { opacity: 0, x: 16 * pageDirection }} animate={{ opacity: 1, x: 0 }}
+      exit={reducedMotion ? { opacity: 0, transition: exitTween } : { opacity: 0, x: -12 * pageDirection, transition: exitTween }}
+      transition={{ duration: reducedMotion ? 0.08 : 0.2, ease: ease.out }} className={presenter ? 'board-ranking-list' : 'space-y-2'}>
       {visible.map((entry, index) => {
         const rank = offset + index;
         return <li key={entry.id} data-podium={rank < 3 ? 'true' : 'false'}>
@@ -149,6 +158,7 @@ export default memo(function Leaderboard({
         </li>;
       })}
     </motion.ol>
+    </AnimatePresence>
   </div>;
 
   if (presenter) return <section aria-label={title || '랭킹'} tabIndex={0} className="board-ranking">

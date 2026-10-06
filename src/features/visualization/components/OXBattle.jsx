@@ -2,6 +2,8 @@ import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { useVotes } from '@/hooks/useVotes';
 import { Check } from 'lucide-react';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
+import { grow, spring } from '@/lib/motion';
 
 export default memo(function OXBattle({ sessionId, questionId, correctValue = null, revealed = false }) {
   const { totalVotes, countByValue } = useVotes(sessionId, questionId);
@@ -38,7 +40,7 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
               <motion.span
                 initial={{ scale: 0, rotate: -45 }}
                 animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30, delay: 0.1 }}
+                transition={{ ...spring.stiff, delay: 0.1 }}
                 className="absolute -top-1 -right-3 flex items-center justify-center w-6 h-6 rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
               >
                 <Check size={14} strokeWidth={3} />
@@ -48,7 +50,7 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
           <div
             className={`text-3xl font-bold tracking-tight tabular-nums ${oCorrect ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-900 dark:text-slate-100'}`}
           >
-            {oCount}<span className="ml-0.5 text-base font-medium text-slate-400 dark:text-slate-500">명</span>
+            <AnimatedNumber value={oCount} /><span className="ml-0.5 text-base font-medium text-slate-400 dark:text-slate-500">명</span>
           </div>
         </div>
 
@@ -71,7 +73,7 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
               <motion.span
                 initial={{ scale: 0, rotate: -45 }}
                 animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30, delay: 0.1 }}
+                transition={{ ...spring.stiff, delay: 0.1 }}
                 className="absolute -top-1 -right-3 flex items-center justify-center w-6 h-6 rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
               >
                 <Check size={14} strokeWidth={3} />
@@ -81,29 +83,32 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
           <div
             className={`text-3xl font-bold tracking-tight tabular-nums ${xCorrect ? 'text-slate-800 dark:text-slate-200' : 'text-slate-900 dark:text-slate-100'}`}
           >
-            {xCount}<span className="ml-0.5 text-base font-medium text-slate-400 dark:text-slate-500">명</span>
+            <AnimatedNumber value={xCount} /><span className="ml-0.5 text-base font-medium text-slate-400 dark:text-slate-500">명</span>
           </div>
         </div>
       </div>
 
       {/* Progress bar */}
       <div className="space-y-2.5">
-        <div className="h-8 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
+        {/* 양쪽 막대는 width 대신 scaleX — 왼쪽은 왼끝에서, 오른쪽은 오른끝에서 자란다 */}
+        <div className="relative h-8 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
           <motion.div
-            animate={{ width: `${oPct}%` }}
-            transition={{ type: 'spring', stiffness: 120, damping: 18 }}
-            className="bg-indigo-500 h-full rounded-l-full"
+            initial={false}
+            animate={{ scaleX: oPct / 100 }}
+            transition={grow}
+            className="absolute inset-0 origin-left bg-indigo-500 rounded-l-full"
           />
           <motion.div
-            animate={{ width: `${xPct}%` }}
-            transition={{ type: 'spring', stiffness: 120, damping: 18 }}
-            className="bg-slate-400 h-full rounded-r-full"
+            initial={false}
+            animate={{ scaleX: xPct / 100 }}
+            transition={grow}
+            className="absolute inset-0 origin-right bg-slate-400 rounded-r-full"
           />
         </div>
         <div className="flex justify-between text-base font-bold">
-          <span className="text-indigo-600 dark:text-indigo-400">{oPct}%</span>
-          <span className="text-slate-400 dark:text-slate-500 text-sm">총 {totalVotes}명</span>
-          <span className="text-slate-600 dark:text-slate-300">{xPct}%</span>
+          <span className="text-indigo-600 dark:text-indigo-400"><AnimatedNumber value={oPct} />%</span>
+          <span className="text-slate-400 dark:text-slate-500 text-sm">총 <AnimatedNumber value={totalVotes} />명</span>
+          <span className="text-slate-600 dark:text-slate-300"><AnimatedNumber value={xPct} />%</span>
         </div>
       </div>
     </div>

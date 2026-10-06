@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { snap, spring } from '@/lib/motion';
 import { ArrowLeft, BarChart3, Users, MessageSquare, Play, MoreHorizontal, Gift, Coffee, Trophy, Gamepad2 } from 'lucide-react';
 import JoinToast from '@/features/participants/components/JoinToast';
 import ReactionOverlay from '@/features/reactions/components/ReactionOverlay';
@@ -81,11 +82,7 @@ function MobileHeader({
               scale: 1.15
             }} animate={{
               scale: 1
-            }} transition={{
-              type: 'spring',
-              stiffness: 400,
-              damping: 22
-            }} className="inline-block tabular-nums">{count}</motion.span>명 접속</span>
+            }} transition={spring.bouncy} className="inline-block tabular-nums">{count}</motion.span>명 접속</span>
           </div>
         </div>
       </div>
@@ -125,11 +122,7 @@ function MobileTabBar({
         return <motion.button key={tab.key} whileTap={{
           scale: 0.92
         }} onClick={() => onTabChange(tab.key)} className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors duration-150 relative ${isActive ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>
-              {isActive && <motion.div layoutId="mobile-tab-indicator" className="absolute top-0 left-3 right-3 h-[2px] rounded-full bg-slate-900 dark:bg-slate-100" transition={{
-            type: 'spring',
-            stiffness: 500,
-            damping: 30
-          }} />}
+              {isActive && <motion.div layoutId="mobile-tab-indicator" className="absolute top-0 left-3 right-3 h-[2px] rounded-full bg-slate-900 dark:bg-slate-100" transition={snap} />}
               <Icon size={24} strokeWidth={isActive ? 2 : 1.5} />
               <span>{tab.label}</span>
               {tab.key === 'chat' && hasUnreadChat && <span className="absolute top-2 left-1/2 ml-2 w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />}
@@ -180,11 +173,7 @@ export default function MobileAdminView({
         }} exit={{
           opacity: 0,
           y: -4
-        }} transition={{
-          type: 'spring',
-          stiffness: 320,
-          damping: 28
-        }} className="h-full overflow-y-auto overscroll-contain scrollbar-hide">
+        }} transition={spring.default} className="h-full overflow-y-auto overscroll-contain scrollbar-hide">
               <div className="bg-white dark:bg-slate-800 p-5 space-y-5">
                 <QuestionManager sessionId={s.sessionId} questions={s.session?.questions || {}} currentQuestion={s.session?.currentQuestion} scores={s.scores} participants={s.participants} pendingEvent={s.session?.pendingEvent || null} readOnly={s.effectiveReadOnly} formOpen={s.showCenterForm} onAddClick={s.effectiveReadOnly ? undefined : () => {
               s.handleShowCenterForm();
@@ -208,11 +197,7 @@ export default function MobileAdminView({
         }} exit={{
           opacity: 0,
           y: -4
-        }} transition={{
-          type: 'spring',
-          stiffness: 320,
-          damping: 28
-        }} className="h-full flex flex-col overflow-y-auto overscroll-contain scrollbar-hide">
+        }} transition={spring.default} className="h-full flex flex-col overflow-y-auto overscroll-contain scrollbar-hide">
               <div className="bg-white dark:bg-slate-800 flex-1 p-5 flex flex-col">
                 <CenterContent showCenterForm={s.showCenterForm} onHideCenterForm={s.handleHideCenterForm} onCenterFormSubmit={s.handleCenterFormSubmit} editingQuestion={s.editingQuestion} effectiveReadOnly={s.effectiveReadOnly} session={s.session} currentMode={currentMode} sessionId={s.sessionId} onlineList={s.onlineList} leaderboard={s.leaderboard} drawParticipants={s.drawParticipants} participants={s.participants} scores={s.scores} count={s.count} onGameResult={handleGameResult} />
               </div>
@@ -227,11 +212,7 @@ export default function MobileAdminView({
         }} exit={{
           opacity: 0,
           y: -4
-        }} transition={{
-          type: 'spring',
-          stiffness: 320,
-          damping: 28
-        }} className="h-full overflow-y-auto overscroll-contain scrollbar-hide">
+        }} transition={spring.default} className="h-full overflow-y-auto overscroll-contain scrollbar-hide">
               <MobileParticipantsTab sessionId={s.sessionId} session={s.session} onlineList={s.onlineList} count={s.count} participants={s.participants} studentUrl={s.studentUrl} />
             </motion.div>}
 
@@ -244,11 +225,7 @@ export default function MobileAdminView({
         }} exit={{
           opacity: 0,
           y: -4
-        }} transition={{
-          type: 'spring',
-          stiffness: 320,
-          damping: 28
-        }} className="h-full">
+        }} transition={spring.default} className="h-full">
               <ChatPanel sessionId={s.sessionId} senderName={s.adminUser?.displayName || '강사'} senderType="instructor" open={true} onClose={() => setActiveTab('results')} onNewMessage={handleNewChatMessage} inline />
             </motion.div>}
         </AnimatePresence>

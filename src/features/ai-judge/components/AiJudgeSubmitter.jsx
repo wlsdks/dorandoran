@@ -1,6 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useEffect, useRef, useId, memo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Check, Send, Trophy, Trash2, Edit3, AlertCircle, Image as ImageIcon, Code2, Upload, Lightbulb } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ImageUpload from '@/components/ui/ImageUpload';
@@ -133,7 +134,7 @@ export default memo(function AiJudgeSubmitter({ sessionId, questionId, disabled 
         key="result"
         initial={reducedMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
       >
         <LiveResultHero
           top3={top3}

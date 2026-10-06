@@ -1,5 +1,6 @@
 import { memo, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { snap, spring } from '@/lib/motion';
 import { Pin, Users, PinOff, Code2, Lightbulb } from 'lucide-react';
 import { useLiveSubmissions, useLiveJudgeResults, usePersistentAssignment } from '../api/useLiveJudging';
 import Button from '@/components/ui/Button';
@@ -52,7 +53,7 @@ export default memo(function PersistentAssignmentBar({ sessionId, session, onAct
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 flex items-center gap-3"
       >
         <div className="flex items-center gap-1.5 shrink-0">
@@ -89,7 +90,7 @@ export default memo(function PersistentAssignmentBar({ sessionId, session, onAct
                 initial={{ opacity: 0, y: -4, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                transition={snap}
                 role="dialog"
                 aria-label="제출자 목록"
                 className="absolute left-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] z-30 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg overflow-hidden"

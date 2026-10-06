@@ -3,7 +3,7 @@ import { useState, memo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { arrangeWordCloud, wordSizeStep } from '@/lib/wordcloud-layout';
-import { settle } from '@/lib/motion';
+import { settle, reveal } from '@/lib/motion';
 // Monochromatic slate palette — Tailwind classes for dark mode support
 const WORD_CLASSES = [
   'text-slate-900 dark:text-slate-100',
@@ -66,7 +66,7 @@ export default memo(function WordCloud({ sessionId, questionId, presenter = fals
               initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.6 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.5 }}
-              transition={reduced ? { duration: 0.12 } : { type: 'spring', stiffness: 260, damping: 22, layout: settle }}
+              transition={reduced ? { duration: 0.12 } : { ...reveal, layout: settle }}
               style={{ fontSize: presenter ? presenterFontSize(word) : getFontSize(word.count, word.text) }}
               className={`wordcloud-token font-bold cursor-default max-w-full break-keep [overflow-wrap:anywhere] ${WORD_CLASSES[word.rank % WORD_CLASSES.length]}`}
               title={`${word.text}: ${word.count}회`}

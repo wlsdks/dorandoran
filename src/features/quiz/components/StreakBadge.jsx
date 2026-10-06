@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Flame } from 'lucide-react';
 
 /**
@@ -25,14 +26,14 @@ export default memo(function StreakBadge({ streak = 0, compact = false }) {
           initial={{ opacity: 0, scale: 0.7 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.7 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+          transition={spring.bouncy}
           className="flex items-center justify-center"
         >
           <motion.div
             key={streak}
             initial={{ scale: 1.3 }}
             animate={isOnFire ? { scale: [1, 1.04, 1] } : { scale: 1 }}
-            transition={isOnFire ? { repeat: Infinity, duration: 1.2 } : { type: 'spring', stiffness: 500, damping: 30 }}
+            transition={isOnFire ? { repeat: Infinity, duration: 1.2 } : spring.stiff}
             className={`inline-flex items-center gap-1.5 rounded-full border shadow-sm ${
               compact ? 'px-2.5 py-1' : 'px-3.5 py-1.5'
             } ${

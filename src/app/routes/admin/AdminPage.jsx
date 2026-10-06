@@ -25,11 +25,11 @@ import MobileAdminView from './MobileAdminView';
 import ResizeHandle from '@/components/ui/ResizeHandle';
 import ConnectionBanner from '@/components/ui/ConnectionBanner';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
-import { ease, exitTween, pop } from '@/lib/motion';
+import { ease, pop, swap } from '@/lib/motion';
 
 // 발표 모드 ↔ 운영 화면: 운영 화면은 짧게 사라지고, 무대는 살짝 확대되며 들어온다(투영기 앞에서 뚝 바뀌지 않게).
-const stageIn = { initial: { opacity: 0, scale: 0.985 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, transition: exitTween }, transition: { duration: 0.24, ease: ease.out } };
-const dashboardIn = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0, transition: exitTween }, transition: { duration: 0.2, ease: ease.out } };
+const stageIn = swap('stage');
+const dashboardIn = swap('fade');
 
 // 기본 폭 = 화면의 25% (14인치 1512px → 378, 16인치 1728px → 432, 17인치 1920px → 480, 큰 모니터 최대 560)
 const LEFT_PANEL = { initial: (viewport) => Math.round(Math.min(560, Math.max(360, viewport * 0.25))), min: 300, max: 760, side: 'left' };

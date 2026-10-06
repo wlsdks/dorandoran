@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { useSession } from '@/features/session/api/useSession';
 import { motion, AnimatePresence } from 'framer-motion';
+import { exitTween } from '@/lib/motion';
 import { VotePageSkeleton, SuspenseFallback } from '@/components/ui/Skeleton';
 import { useTimer, getServerNow } from '@/features/timer/api/useTimer';
 import { useMyScore } from '@/features/quiz/api/useScores';
@@ -95,7 +96,7 @@ export default memo(function VotePage({ sessionId }) {
           key={modeKey}
           initial={variants.initial}
           animate={variants.animate}
-          exit={{ ...variants.exit, transition: { type: 'tween', duration: 0.12, ease: 'easeIn' } }}
+          exit={{ ...variants.exit, transition: exitTween }}
           transition={ENTER_TRANSITION}
         >
           <VoteModeContent

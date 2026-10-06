@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Hash, Target, Trophy, Flame, Copy, Check, CheckCircle, XCircle, Minus, Award, CheckCheck, Zap, Crown } from 'lucide-react';
 import { useReportData } from '@/features/report/api/useReportData';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
@@ -175,7 +176,7 @@ export default function ReportPage() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          transition={spring.default}
           className="text-center space-y-3"
         >
           {stats.nickname && (

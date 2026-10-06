@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { ArrowUpDown, BarChart3, Trophy, Circle, Cloud, MessageSquare, PenLine, Swords, TextCursorInput, Thermometer, AlertTriangle, CheckCircle, Image, HelpCircle, Lightbulb, Gavel } from 'lucide-react';
 import AchievementSummary from '@/features/quiz/components/AchievementSummary';
 import ExportMenu from './ExportMenu';
@@ -122,7 +123,7 @@ export default memo(function ClassSummary({ session, participants, scores, leade
           <div className="mt-2 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
             <motion.div className="h-full w-full bg-indigo-500 dark:bg-indigo-400 rounded-full" style={{ originX: 0 }}
               initial={{ scaleX: 0 }} animate={{ scaleX: Math.min(1, activityRate / 100) }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.2 }} />
+              transition={{ ...spring.gentle, delay: 0.2 }} />
           </div>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 text-center">
@@ -228,7 +229,7 @@ export default memo(function ClassSummary({ session, participants, scores, leade
                         style={{ originX: 0 }}
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: Math.min(1, q.responseRate / 100) }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.1 + i * 0.05 }}
+                        transition={{ ...spring.gentle, delay: 0.1 + i * 0.05 }}
                       />
                     </div>
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 text-right mt-0.5">{q.responseRate}%</p>

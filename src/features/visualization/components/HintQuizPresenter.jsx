@@ -1,11 +1,12 @@
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Lightbulb, Trophy } from 'lucide-react';
 import { useVotes } from '@/hooks/useVotes';
 import Avatar from '@/components/ui/Avatar';
 
-const SPRING = { type: 'spring', stiffness: 300, damping: 25 };
-const SPRING_BOUNCY = { type: 'spring', stiffness: 400, damping: 22 };
+const SPRING = spring.default;
+const SPRING_BOUNCY = spring.bouncy;
 
 export default memo(function HintQuizPresenter({ sessionId, questionId, question, revealed }) {
   const { totalVotes } = useVotes(sessionId, questionId);

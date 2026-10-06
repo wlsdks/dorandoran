@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { breakActions, useBreakState } from '@/features/games/api/useBreakState';
 import { formatClock, formatRemaining } from '@/lib/break-time';
 import BreakMascot from './BreakMascot';
@@ -34,13 +35,13 @@ export default function BreakTimer({ sessionId, readOnly = false, presenter = fa
   return (
     <div data-presenter={presenter} className={`break-timer-stage flex flex-col items-center gap-8 md:gap-10 w-full ${presenter ? 'max-w-[1200px] mx-auto' : ''}`} onClick={e => e.stopPropagation()}>
       <motion.div initial={{ opacity: 0, y: reduced ? 0 : -8 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="flex items-center gap-3">
+        transition={spring.default} className="flex items-center gap-3">
         <BreakMascot size={presenter ? 64 : 48} />
         <p className={`break-timer-title ${presenter ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'} font-bold tracking-tight text-slate-900 dark:text-slate-100`}>{heading}</p>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, scale: reduced ? 1 : 0.96 }} animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 26, delay: 0.05 }}
+        transition={{ ...spring.default, delay: 0.05 }}
         className={`break-clock-display flex flex-col items-center gap-4 ${finished && !reduced ? 'animate-pulse' : ''}`}>
         <FlipClock key={startAt ? 'start' : values ? 'countdown' : 'clock'} showSeconds={!startAt} values={values} />
         {/* 시작 시각 방식: 큰 숫자는 시각, 아래 한 줄로 "시작 · 남은 시간" — 숫자 옆에 붙이면 가운데 정렬이 깨진다 */}

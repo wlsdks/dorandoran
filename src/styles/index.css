@@ -409,13 +409,13 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 }
 
 /* 순위 맞추기 결과: 내가 맞힌 자리만 빛이 한 번 스치고 은은한 테두리 빛이 남는다(차례로). */
-.ranking-hit { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); animation: ranking-hit-glow 900ms ease-out var(--hit-delay, 0ms) both; }
+.ranking-hit { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); animation: ranking-hit-glow 720ms cubic-bezier(.2, .8, .2, 1) var(--hit-delay, 0ms) both; }
 .ranking-hit::after { content: ''; position: absolute; inset: 0; pointer-events: none; transform: translateX(-120%);
   background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / .55) 50%, transparent 70%);
-  animation: ranking-hit-shine 900ms ease-out calc(var(--hit-delay, 0ms) + 120ms) both; }
+  animation: ranking-hit-shine 640ms cubic-bezier(.3, .7, .3, 1) calc(var(--hit-delay, 0ms) + 100ms) both; }
 .dark .ranking-hit::after { background: linear-gradient(105deg, transparent 30%, rgb(165 172 240 / .35) 50%, transparent 70%); }
 @keyframes ranking-hit-shine { to { transform: translateX(120%); } }
-@keyframes ranking-hit-glow { 0% { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); } 40% { box-shadow: 0 0 0 4px rgb(94 106 210 / .28), 0 0 18px rgb(94 106 210 / .35); } 100% { box-shadow: 0 0 0 1px rgb(94 106 210 / .18), 0 0 10px rgb(94 106 210 / .14); } }
+@keyframes ranking-hit-glow { 0% { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); transform: scale(1); } 40% { box-shadow: 0 0 0 4px rgb(94 106 210 / .28), 0 0 18px rgb(94 106 210 / .35); transform: scale(1.02); } 100% { box-shadow: 0 0 0 1px rgb(94 106 210 / .18), 0 0 10px rgb(94 106 210 / .14); transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .ranking-hit, .ranking-hit::after { animation: none; } .ranking-hit::after { display: none; } }
 
 /* 정답 공개 빛(answer-glow): 공개 순간 인디고 빛이 한 번 부풀어 가라앉고(700ms) 빛줄기가 한 번 지나간 뒤,
@@ -430,13 +430,13 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .dark .answer-glow { --glow: 127 135 216; }
 .answer-glow::after { content: ''; position: absolute; inset: calc(-1 * var(--glow-pad)); border-radius: inherit; pointer-events: none; z-index: -1; opacity: .45;
   box-shadow: 0 0 0 calc(var(--glow-ring) + 2px) rgb(var(--glow) / .32), 0 0 36px 8px rgb(var(--glow) / .5);
-  animation: answer-glow-bloom 700ms cubic-bezier(.2, .8, .2, 1) both; }
+  animation: answer-glow-bloom 560ms cubic-bezier(.2, .8, .2, 1) both; }
 .answer-glow::before { content: ''; position: absolute; top: calc(-1 * var(--glow-pad)); bottom: calc(-1 * var(--glow-pad)); left: calc(-1 * var(--glow-pad)); width: 38%;
   pointer-events: none; z-index: var(--glow-sweep-z, -1); opacity: 0;
   background: linear-gradient(100deg, transparent 15%, rgb(255 255 255 / .3) 50%, transparent 85%), linear-gradient(100deg, transparent 15%, rgb(var(--glow) / .18) 50%, transparent 85%);
-  animation: answer-glow-sweep 800ms cubic-bezier(.3, .7, .3, 1) 140ms both; }
-.answer-dim { opacity: .55; transition: opacity 300ms ease; }
-@keyframes answer-glow-bloom { 0% { opacity: 0; transform: scale(.96); } 40% { opacity: 1; transform: scale(1.02); } 100% { opacity: .45; transform: scale(1); } }
+  animation: answer-glow-sweep 640ms cubic-bezier(.3, .7, .3, 1) 120ms both; }
+.answer-dim { opacity: .55; transition: opacity 240ms cubic-bezier(.22, 1, .36, 1); }
+@keyframes answer-glow-bloom { 0% { opacity: 0; transform: scale(.97); } 45% { opacity: 1; transform: scale(1.015); } 100% { opacity: .45; transform: scale(1); } }
 @keyframes answer-glow-sweep { 0% { transform: translateX(0); opacity: 0; } 20%, 80% { opacity: 1; } 100% { transform: translateX(165%); opacity: 0; } }
 /* 전자칠판: 뒷자리에서도 보이게 테두리를 한 단계 굵게 */
 .paper-surface .answer-glow, .classroom-visualization .answer-glow { --glow-ring: 3px; }

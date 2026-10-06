@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { ChevronRight, X } from 'lucide-react';
 import { JUDGES } from '@/lib/judging/judges';
 import Modal from '@/components/ui/Modal';
@@ -65,7 +66,7 @@ export default function JudgeView({ assignmentId, submissions, results, hasResul
                   key={sub.id}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 25 }}
+                  transition={{ ...spring.default, delay: i * 0.04 }}
                   onClick={() => setSelectedSub(sub)}
                   className="w-full flex items-center gap-3 p-4 text-left bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.99]"
                 >
@@ -85,7 +86,7 @@ export default function JudgeView({ assignmentId, submissions, results, hasResul
                     key={String(r.summary.avgScore)}
                     initial={{ scale: 0.85, opacity: 0.5 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                    transition={spring.bouncy}
                     className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums shrink-0"
                   >
                     {r.summary.avgScore}

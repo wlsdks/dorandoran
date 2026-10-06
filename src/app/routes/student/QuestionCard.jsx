@@ -1,6 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { spring, grow, roll } from '@/lib/motion';
 import { Maximize2, X } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
@@ -25,7 +26,7 @@ export default function QuestionCard({ question, questionId, questionProgress })
       key={`header-${questionId}`}
       initial={reducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="bg-white dark:bg-slate-800 rounded-2xl shadow-md ring-1 ring-slate-200/70 dark:ring-slate-700 p-6"
     >
       {/* 진행바 + 타입 칩을 한 줄에 — 칩 우측 여백 없애고 제목은 아래 full-width */}
@@ -36,8 +37,9 @@ export default function QuestionCard({ question, questionId, questionProgress })
               질문{' '}
               <motion.span
                 key={questionProgress.current}
-                initial={{ scale: 0.8, opacity: 0.5 }}
-                animate={{ scale: 1, opacity: 1 }}
+                initial={reducedMotion ? false : { y: -6, opacity: 0.4 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={roll}
                 className="inline-block"
               >
                 {questionProgress.current}
@@ -46,10 +48,10 @@ export default function QuestionCard({ question, questionId, questionProgress })
             </span>
             <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${(questionProgress.current / questionProgress.total) * 100}%` }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
+                className="h-full w-full origin-left bg-indigo-500 dark:bg-indigo-400 rounded-full"
+                initial={reducedMotion ? false : { scaleX: 0 }}
+                animate={{ scaleX: questionProgress.current / questionProgress.total }}
+                transition={{ ...grow, delay: 0.15 }}
               />
             </div>
           </>

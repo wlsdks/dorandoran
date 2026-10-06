@@ -72,7 +72,7 @@ export default memo(function ChatBubbleOverlay({ sessionId }) {
             key={b.id}
             initial={{ opacity: 0, y: 0, scale: 0.85 }}
             animate={{ opacity: 1, y: -160, scale: 1 }}
-            exit={{ opacity: 0, y: -200, scale: 0.8 }}
+            exit={{ opacity: 0, y: -190, scale: 0.9, transition: { duration: 0.3, ease: 'easeIn' } }}
             transition={{ duration: 2.5, ease: 'easeOut' }}
             className="absolute bottom-40"
             style={{ left: `${b.x}%` }}

@@ -1,15 +1,10 @@
 import { motion } from 'framer-motion';
+import { list } from '@/lib/motion';
 import EmptyState from '@/components/ui/EmptyState';
 import { MessageSquare, Loader2, TrendingUp, TrendingDown, Minus, AlertTriangle } from 'lucide-react';
 import { QUESTION_TYPE_MAP } from '@/lib/question-types';
 
-const stagger = {
-  container: { animate: { transition: { staggerChildren: 0.04 } } },
-  item: {
-    initial: { opacity: 0, y: 12 },
-    animate: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
-  },
-};
+const stagger = list;
 
 export function TrendIndicator({ roundDetails }) {
   if (roundDetails.length < 2) return null;

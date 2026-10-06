@@ -37,7 +37,7 @@
 .ranking-sash > :where(:not(.ranking-sash-body)) { position:relative;z-index:1; }
 .ranking-sash-body { position:absolute;inset:0;z-index:0;border-radius:inherit;overflow:hidden;pointer-events:none;
   background:linear-gradient(90deg,var(--color-indigo-600),var(--color-indigo-700) 45%,var(--color-indigo-800)); }
-.ranking-sash-body::before,.ranking-sash-body::after { content:'';position:absolute;top:-40%;bottom:-40%;left:-50%;width:34%;transform:skewX(-20deg);
+.ranking-sash-body::before,.ranking-sash-body::after { content:'';position:absolute;top:-40%;bottom:-40%;left:-50%;width:34%;transform:translateX(0) skewX(-20deg);will-change:transform;
   background:linear-gradient(90deg,rgb(255 255 255 / 0),rgb(255 255 255 / .34) 50%,rgb(255 255 255 / 0)); }
 .ranking-sash-body::before { animation:sash-shine .95s cubic-bezier(.4,0,.2,1) .3s 1 both; }
 .ranking-sash-body::after { opacity:.3;animation:sash-shine-idle 7s linear 2.4s infinite; }
@@ -53,8 +53,9 @@
 .ranking-sash .board-ranking-name,.ranking-sash .board-ranking-score,.ranking-sash .board-ranking-score small { color:#fff; }
 @keyframes sash-glow { from { box-shadow:0 0 0 0 var(--color-indigo-300),0 0 0 rgb(94 106 210 / 0),0 4px 12px rgb(0 0 0 / .2); } 55% { box-shadow:0 0 0 1.5px var(--color-indigo-300),0 0 70px rgb(94 106 210 / .6),0 16px 36px rgb(0 0 0 / .35); } }
 @keyframes sash-tail { from { transform:scaleX(0);opacity:0; } 60% { opacity:1; } to { transform:scaleX(1);opacity:1; } }
-@keyframes sash-shine { from { left:-50%; } to { left:125%; } }
-@keyframes sash-shine-idle { 0% { left:-50%; } 16% { left:125%; } 100% { left:125%; } }
+/* 빛줄기는 left 대신 translateX로 — 합성만으로 그려 전자칠판 10줄에서도 레이아웃을 건드리지 않는다(이동량 515% = 폭 34% 기준 175%) */
+@keyframes sash-shine { from { transform:translateX(0) skewX(-20deg); } to { transform:translateX(515%) skewX(-20deg); } }
+@keyframes sash-shine-idle { 0% { transform:translateX(0) skewX(-20deg); } 16% { transform:translateX(515%) skewX(-20deg); } 100% { transform:translateX(515%) skewX(-20deg); } }
 @keyframes sash-emblem { from { transform:scale(.3);opacity:0; } 60% { transform:scale(1.12);opacity:1; } to { transform:scale(1);opacity:1; } }
 @keyframes sash-spark { 0% { transform:scale(0) rotate(0deg);opacity:0; } 45% { transform:scale(1) rotate(30deg);opacity:1; } 100% { transform:scale(0) rotate(70deg);opacity:0; } }
 @media (prefers-reduced-motion: reduce) {

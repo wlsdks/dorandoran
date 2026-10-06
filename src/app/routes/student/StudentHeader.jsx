@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig, LayoutGroup, useReducedMotion } from 'framer-motion';
+import { snap } from '@/lib/motion';
 import { Award, Sun, Moon, Users, Settings, UserRound } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
@@ -83,12 +84,18 @@ export default function StudentHeader({ sessionId, question, isSpeedQuiz = false
     </motion.header>
     <BottomSheet open={scoreOpen} onClose={() => setScoreOpen(false)} title={scoreTab === 'ranking' ? '실시간 랭킹' : '점수 기준'} ariaLabel="실시간 랭킹과 점수 기준" closeLabel="랭킹 닫기">
       <div className="space-y-4 pt-1">
+        {/* 선택 배경 한 장이 layoutId로 미끄러진다(운영 화면 탭과 같은 snap 스프링) */}
+        <LayoutGroup id="student-score-tabs">
         <div role="tablist" aria-label="랭킹 보기" className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 dark:bg-slate-700/50 p-1">
           {[['ranking', '전체 랭킹'], ['guide', '점수 기준']].map(([id, label]) => (
             <button key={id} type="button" role="tab" aria-selected={scoreTab === id} onClick={() => setScoreTab(id)}
-              className={`min-h-11 rounded-lg text-sm font-semibold transition-colors ${scoreTab === id ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>{label}</button>
+              className={`relative min-h-11 rounded-lg text-sm font-semibold transition-colors ${scoreTab === id ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+              {scoreTab === id && <motion.span layoutId="segment" transition={reduced ? { duration: 0 } : snap} className="absolute inset-0 rounded-lg bg-white dark:bg-slate-600 shadow-sm" aria-hidden="true" />}
+              <span className="relative z-10">{label}</span>
+            </button>
           ))}
         </div>
+        </LayoutGroup>
         {scoreTab === 'ranking'
           ? <StudentRankingSheet sessionId={sessionId} hidden={rankingHidden === true} />
           : <>

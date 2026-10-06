@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { useVotes } from '@/hooks/useVotes';
 import { useMyVote } from '@/hooks/useMyVote';
@@ -35,7 +36,7 @@ function DebateLiveRatio({ sessionId, questionId, mySide }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4, type: 'spring', stiffness: 300, damping: 25 }}
+      transition={{ ...spring.default, delay: 0.4 }}
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-3"
     >
       <div className="flex items-center justify-between">
@@ -51,12 +52,12 @@ function DebateLiveRatio({ sessionId, questionId, mySide }) {
         <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
           <motion.div
             animate={{ width: `${forPct}%` }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            transition={spring.gentle}
             className="bg-slate-800 dark:bg-slate-200 h-full rounded-l-full"
           />
           <motion.div
             animate={{ width: `${againstPct}%` }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            transition={spring.gentle}
             className="bg-slate-300 dark:bg-slate-600 h-full rounded-r-full"
           />
         </div>
@@ -145,7 +146,7 @@ export default memo(function DebateVoter({ sessionId, questionId, disabled = fal
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="w-full space-y-3"
     >
       <AnimatePresence>

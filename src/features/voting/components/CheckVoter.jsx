@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { hapticTap } from '@/lib/haptics';
 import { useState, useEffect, memo } from 'react';
 import { Check } from 'lucide-react';
@@ -69,7 +70,7 @@ export default memo(function CheckVoter({ sessionId, questionId, disabled = fals
     <motion.button
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       whileTap={{ scale: 0.95 }}
       onClick={handleCheck}
       disabled={disabled}

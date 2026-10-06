@@ -32,9 +32,9 @@ export default memo(function Tooltip({ label, children, multiline = false }) {
       onMouseLeave={() => setShow(false)}
     >
       {children}
-      {show && createPortal(
+      {createPortal(
         <AnimatePresence>
-          <motion.div
+          {show && <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -52,7 +52,7 @@ export default memo(function Tooltip({ label, children, multiline = false }) {
             }`}
           >
             {label}
-          </motion.div>
+          </motion.div>}
         </AnimatePresence>,
         document.body
       )}

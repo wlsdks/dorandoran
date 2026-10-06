@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { rise, spring } from '@/lib/motion';
 import { createPortal } from 'react-dom';
 import Button from '@/components/ui/Button';
 import NumberBadge from '@/components/ui/NumberBadge';
@@ -192,7 +193,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
     <motion.div
       initial={reducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-4"
     >
       <p className="text-sm text-slate-500 dark:text-slate-300 text-center leading-relaxed [word-break:keep-all]">
@@ -219,13 +220,13 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
       </DndContext>
 
       {createPortal(
-        <div className="mobile-learning-tools fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 px-4 py-3 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700">
+        <motion.div initial={rise.initial} animate={rise.animate} transition={{ ...rise.transition, delay: 0.1 }} className="mobile-learning-tools fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 px-4 py-3 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700">
           <div className="max-w-xl mx-auto">
             <Button type="button" onClick={handleSubmit} disabled={disabled || submitting} className="w-full min-h-12" aria-label="현재 순서로 순위 제출">
               {submitting ? '제출 중...' : '이 순서로 제출'}
             </Button>
           </div>
-        </div>, document.body
+        </motion.div>, document.body
       )}
     </motion.div>
     </div>

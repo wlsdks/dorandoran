@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { useVotes } from '@/hooks/useVotes';
 import { Shield, Target, Flame } from 'lucide-react';
 
@@ -44,7 +45,7 @@ export default memo(function BetDistribution({ sessionId, questionId, presenter 
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3, type: 'spring', stiffness: 300, damping: 25 }}
+      transition={{ ...spring.default, delay: 0.3 }}
       className="w-full max-w-xl mx-auto px-8 mt-6"
     >
       <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">베팅 분포</p>

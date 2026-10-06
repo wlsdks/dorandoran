@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 
 /**
  * 학생 과제 제출 폼의 ID 영역 — 이름 + PIN(조회용 비밀번호) + PIN 확인.
@@ -70,7 +71,7 @@ export default function IdentityFields({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            transition={spring.default}
             className="overflow-hidden"
           >
             <div className="pt-1">

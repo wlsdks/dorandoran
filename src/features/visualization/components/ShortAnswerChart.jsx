@@ -1,5 +1,6 @@
 import { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
+import { spring, reveal } from '@/lib/motion';
 import { useVotes } from '@/hooks/useVotes';
 import { normalizeAnswer } from '@/lib/utils';
 import AnswerDistribution from './AnswerDistribution';
@@ -69,7 +70,7 @@ export default memo(function ShortAnswerChart({ sessionId, questionId, correctAn
           {revealed ? (
             <motion.p
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+              transition={reveal}
               className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-100 tracking-tight break-keep"
             >
               {correctAnswer}
@@ -90,7 +91,7 @@ export default memo(function ShortAnswerChart({ sessionId, questionId, correctAn
         <div className="text-center">
           <motion.p
             key={totalVotes} initial={{ scale: 1.15 }} animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+            transition={spring.bouncy}
             className="text-5xl font-black text-slate-900 dark:text-slate-100 tabular-nums"
           >
             {totalVotes}
@@ -102,7 +103,7 @@ export default memo(function ShortAnswerChart({ sessionId, questionId, correctAn
           {correctAnswer && totalVotes > 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              transition={spring.default}
               className="text-center space-y-1"
             >
               <p className="text-5xl font-black text-slate-900 dark:text-slate-100 tabular-nums">{correctPct}%</p>
@@ -111,7 +112,7 @@ export default memo(function ShortAnswerChart({ sessionId, questionId, correctAn
           )}
 
           {topAnswers.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2">
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring.default, delay: 0.15 }} className="space-y-2">
               <AnswerDistribution answers={topAnswers} revealed={revealed} presenter={presenter} />
             </motion.div>
           )}

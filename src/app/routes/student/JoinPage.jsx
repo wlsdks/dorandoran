@@ -6,6 +6,7 @@ import { nicknameKey } from '@/lib/nickname';
 import { db } from '@/lib/firebase';
 import { getParticipantId, getNickname, setNickname as saveNickname, getSessionNickname, getSessionEmployeeId } from '@/lib/participant';
 import { motion, AnimatePresence } from 'framer-motion';
+import { snap, spring } from '@/lib/motion';
 import { Loader2, ArrowRight } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Avatar from '@/components/ui/Avatar';
@@ -135,7 +136,7 @@ export default function JoinPage({ sessionId, onJoin }) {
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center px-5">
         <motion.div
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          transition={spring.default}
           className="text-center space-y-4 max-w-sm"
         >
           <div className="flex justify-center"><DoranDoranMascot size="md" mood="sad" /></div>
@@ -158,7 +159,7 @@ export default function JoinPage({ sessionId, onJoin }) {
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center px-5">
         <motion.div
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          transition={spring.default}
           className="text-center space-y-4 max-w-sm"
         >
           <div className="flex justify-center"><DoranDoranMascot size="md" mood="waiting" /></div>
@@ -184,14 +185,14 @@ export default function JoinPage({ sessionId, onJoin }) {
             animate={keyboardOpen
               ? { opacity: 0, height: 0, marginBottom: 0 }
               : { opacity: 1, height: 'auto', marginBottom: 32 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            transition={spring.default}
             className="text-center space-y-3 overflow-hidden"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1, y: [0, -3, 0] }}
               transition={{
-                scale: { type: 'spring', stiffness: 300, damping: 25, delay: 0.1 },
+                scale: { ...spring.default, delay: 0.1 },
                 opacity: { duration: 0.3, delay: 0.1 },
                 y: { duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 1 },
               }}
@@ -215,7 +216,7 @@ export default function JoinPage({ sessionId, onJoin }) {
             animate={keyboardOpen
               ? { opacity: 1, height: 'auto', marginBottom: 20 }
               : { opacity: 0, height: 0, marginBottom: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            transition={spring.default}
             className="overflow-hidden"
           >
             <div className="flex items-center gap-2">
@@ -239,7 +240,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                       initial={{ opacity: 0, scale: 0.6 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.6 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                      transition={spring.bouncy}
                       className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none"
                     >
                       <Avatar name={trimmed} size="sm" />
@@ -265,7 +266,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                   autoComplete="off"
                   enterKeyHint="go"
                   animate={isValid ? { paddingLeft: '3rem' } : { paddingLeft: '1rem' }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                  transition={snap}
                   className={`w-full bg-white dark:bg-slate-800 border rounded-2xl pr-4 py-4 text-lg text-center text-slate-900 dark:text-slate-100 font-medium placeholder:text-slate-600 dark:placeholder:text-slate-300 placeholder:font-normal focus:outline-none focus:ring-2 focus:bg-white dark:focus:bg-slate-700 transition-colors duration-150 ${
                     tooShort || error
                       ? 'border-red-300 focus:ring-red-500/15 focus:border-red-400'
@@ -323,7 +324,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+                    transition={spring.default}
                     className="overflow-hidden space-y-1.5 pt-1"
                   >
                     <input
@@ -361,7 +362,7 @@ export default function JoinPage({ sessionId, onJoin }) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
+        transition={{ ...spring.default, delay: 0.15 }}
         className="sticky bottom-0 px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-gradient-to-t from-slate-50 dark:from-slate-900 via-slate-50/95 dark:via-slate-900/95 to-transparent"
       >
         <div className="max-w-sm mx-auto">

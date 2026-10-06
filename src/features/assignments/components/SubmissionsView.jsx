@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Copy, Check, Link2, Download, ExternalLink } from 'lucide-react';
 import { exportResultsCSV } from '@/features/assignments/api/useSubmissions';
 import { JUDGES, getAwardById } from '@/lib/judging/judges';
@@ -26,7 +27,7 @@ function StatCard({ value, label }) {
         key={String(value)}
         initial={{ scale: 0.85, opacity: 0.5 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+        transition={spring.bouncy}
         className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums leading-none"
       >
         {value}
@@ -89,7 +90,7 @@ function SubmissionCard({ submission, result, rank, awardInfo, passThreshold = 3
                 key={String(summary.avgScore)}
                 initial={{ scale: 0.85, opacity: 0.5 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                transition={spring.bouncy}
                 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums leading-none"
               >
                 {summary.avgScore}
