@@ -115,6 +115,8 @@ const QuestionCard = memo(function QuestionCard({ q: originalQuestion, participa
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => onUpvote(q.id)}
+              disabled={q.participantId === participantId}
+              title={q.participantId === participantId ? '내 질문에는 추천할 수 없어요' : undefined}
               aria-label={hasUpvoted ? '추천 취소' : '추천'}
               aria-pressed={!!hasUpvoted}
               className={`min-h-11 min-w-11 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 ${

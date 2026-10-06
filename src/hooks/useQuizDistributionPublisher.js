@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { ref, set } from 'firebase/database';
+import { ref, set, update, serverTimestamp } from 'firebase/database';
 import { useVotes } from '@/hooks/useVotes';
 import { db } from '@/lib/firebase';
 import { auth } from '@/lib/auth-session';
 import { logger } from '@/lib/logger';
 import { EMPTY_LIST } from '@/lib/realtime';
-import { quizDistribution } from '@/lib/quiz-distribution';
+import { quizDistribution, QUIZ_HEARTBEAT_MS } from '@/lib/quiz-distribution';
 
 /** The instructor publishes a small tally at most five times per second. */
 export function useQuizDistributionPublisher(sessionId, session, enabled) {
@@ -43,11 +43,23 @@ export function useQuizDistributionPublisher(sessionId, session, enabled) {
       if (current.scope !== scope || !current.latest || current.latest === current.sent) return;
       const next = current.latest;
       current.sent = next;
-      set(ref(db, `sessions/${sessionId}/publicQuizAggregates/${questionId}`), JSON.parse(next)).catch(error => {
+      set(ref(db, `sessions/${sessionId}/publicQuizAggregates/${questionId}`), { ...JSON.parse(next), heartbeat: serverTimestamp() }).catch(error => {
         if (current.scope !== scope) return;
         current.sent = null;
         logger.error('Quiz distribution publish failed:', error);
       });
     }, 200);
   }, [scope, payload, sessionId, questionId]);
+
+  // 응답이 없어도 주기적으로 신호를 보내 전자칠판이 "강사 화면이 살아 있음"을 알 수 있게 한다.
+  useEffect(() => {
+    if (!scope) return undefined;
+    const beat = () => {
+      if (state.current.scope !== scope || !state.current.sent) return;
+      update(ref(db, `sessions/${sessionId}/publicQuizAggregates/${questionId}`), { heartbeat: serverTimestamp() })
+        .catch(error => logger.error('Quiz heartbeat failed:', error));
+    };
+    const timer = setInterval(beat, QUIZ_HEARTBEAT_MS);
+    return () => clearInterval(timer);
+  }, [scope, sessionId, questionId]);
 }

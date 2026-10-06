@@ -9,6 +9,8 @@ import { useGameResultPublisher } from '@/features/games/api/useGameResult';
 import QuestionManager from './QuestionManager';
 import CenterContent from './CenterContent';
 import ChatPanel from '@/features/chat/components/ChatPanel';
+import StaffDMAlert from '@/features/dm/components/StaffDMAlert';
+import { getStaffSession } from '@/lib/auth-session';
 import BottomSheet from '@/components/ui/BottomSheet';
 import MobileModePicker from './MobileModePicker';
 import MobileParticipantsTab from './MobileParticipantsTab';
@@ -158,6 +160,8 @@ export default function MobileAdminView({
   } = useGameResultPublisher(s.sessionId, s.onlineList, s.drawParticipants);
   return <div className="h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col overflow-hidden">
       <JoinToast sessionId={s.sessionId} />
+      {/* 학생 1:1 도움 요청 — 모바일에서는 화면 위에 알림으로 띄운다 */}
+      {!s.effectiveReadOnly && <StaffDMAlert sessionId={s.sessionId} staffId={getStaffSession()?.uid} staffName={getStaffSession()?.displayName || '강사'} senderType="instructor" />}
       <ReactionOverlay sessionId={s.sessionId} />
       <AnswerBubbleOverlay sessionId={s.sessionId} questionId={s.session?.currentQuestion} />
       <ChatBubbleOverlay sessionId={s.sessionId} />

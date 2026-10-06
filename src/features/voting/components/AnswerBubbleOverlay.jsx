@@ -12,7 +12,8 @@ function hashSeed(value) {
   return String(value).split('').reduce((s, c, i) => (s * 33 + c.charCodeAt(0) + i) % 2147483647, 7);
 }
 
-export default memo(function AnswerBubbleOverlay({ sessionId, questionId }) {
+// hideText: 전자칠판처럼 모두가 보는 화면에서는 답 내용을 띄우지 않고(정답 공개 전 노출 방지) 응답이 들어왔다는 신호만 준다.
+export default memo(function AnswerBubbleOverlay({ sessionId, questionId, hideText = false }) {
   const [bubbles, setBubbles] = useState([]);
   const mountedRef = useRef(true);
   const timersRef = useRef([]);
@@ -80,7 +81,7 @@ export default memo(function AnswerBubbleOverlay({ sessionId, questionId }) {
         if (prevKeysRef.current.has(key)) continue;
         const vote = data[key];
         if (!vote?.value) continue;
-        const text = String(vote.value).trim();
+        const text = hideText ? '응답' : String(vote.value).trim();
         if (!text) continue;
 
         const seed = hashSeed(key);
@@ -110,7 +111,7 @@ export default memo(function AnswerBubbleOverlay({ sessionId, questionId }) {
       if (drainTimerRef.current) { clearInterval(drainTimerRef.current); drainTimerRef.current = null; }
       setBubbles([]);
     };
-  }, [active, sessionId, questionId, startDrain]);
+  }, [active, sessionId, questionId, startDrain, hideText]);
 
   if (!active || bubbles.length === 0) return null;
 

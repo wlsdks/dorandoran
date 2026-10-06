@@ -194,6 +194,43 @@ test('정답 공개된 문항도 강사는 필드 단위로 수정할 수 있고
   });
 });
 
+test('닉네임 색인은 먼저 쓴 학생 것이고, 점수 이름은 본인 닉네임과 같을 때만 바꿀 수 있다', async () => {
+  const base = 'sessions/nick_probe';
+  await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), base), {
+    creatorId: 'legacy_teacher', courseId: 'course_a', createdAt: 1, status: 'active',
+    participants: { stu_a: { nickname: '민준' } }, scores: { stu_a: { nickname: '민준', total: 100 } },
+  }));
+  const a = student('stu_a'), b = student('stu_b');
+  await assertSucceeds(set(ref(a, `${base}/nicknames/민준`), 'stu_a'));
+  await assertFails(set(ref(b, `${base}/nicknames/민준`), 'stu_b'));
+  await assertFails(set(ref(b, `${base}/nicknames/민준`), null));
+  await assertSucceeds(update(ref(a, base), { 'participants/stu_a/nickname': '지훈', 'scores/stu_a/nickname': '지훈', 'nicknames/민준': null, 'nicknames/지훈': 'stu_a' }));
+  await assertFails(update(ref(a, base), { 'scores/stu_a/nickname': '다른이름' }));
+  await assertFails(update(ref(a, base), { 'scores/stu_a/total': 999 }));
+});
+
+test('학생은 자기 수업 질문에 공감할 수 없다', async () => {
+  const base = 'sessions/qa_upvote_probe';
+  await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), base), {
+    creatorId: 'legacy_teacher', courseId: 'course_a', createdAt: 1, status: 'active',
+    participants: { stu_a: { nickname: '가' }, stu_b: { nickname: '나' } },
+    classQuestions: { q: { text: '질문', nickname: '가', participantId: 'stu_a', timestamp: 1 } },
+  }));
+  await assertFails(set(ref(student('stu_a'), `${base}/classQuestions/q/upvotes/stu_a`), true));
+  await assertSucceeds(set(ref(student('stu_b'), `${base}/classQuestions/q/upvotes/stu_b`), true));
+});
+
+test('토론 시간이 끝나면 학생 메모를 받지 않는다', async () => {
+  const base = 'sessions/discussion_probe';
+  await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), base), {
+    creatorId: 'legacy_teacher', courseId: 'course_a', createdAt: 1, status: 'active',
+    participants: { stu_a: { nickname: '가' } }, discussion: { duration: 60, endTime: Date.now() + 60000 },
+  }));
+  await assertSucceeds(set(ref(student('stu_a'), `${base}/discussion/memos/m1`), { text: '메모', nickname: '가', pid: 'stu_a', timestamp: 1 }));
+  await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), `${base}/discussion/endTime`), Date.now() - 60000));
+  await assertFails(set(ref(student('stu_a'), `${base}/discussion/memos/m2`), { text: '늦은 메모', nickname: '가', pid: 'stu_a', timestamp: 2 }));
+});
+
 test('승인 강사와 스태프의 강의 제어 범위를 제한한다', async () => {
   await assertSucceeds(set(ref(staff('legacy_teacher', 'admin'), 'sessions/qa_room/currentMode'), 'quiz'));
   await assertFails(set(ref(staff('legacy_teacher', 'admin'), 'sessions/other_room/currentMode'), 'quiz'));

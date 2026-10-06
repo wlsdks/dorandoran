@@ -13,6 +13,7 @@ import { useUrgentQuestions } from '@/features/questions/api/useUrgentQuestions'
 import VizRenderer from '@/features/visualization/components/VizRenderer';
 import ReactionOverlay from '@/features/reactions/components/ReactionOverlay';
 import ChatBubbleOverlay from '@/features/reactions/components/ChatBubbleOverlay';
+import AnswerBubbleOverlay from '@/features/voting/components/AnswerBubbleOverlay';
 import JoinToast from '@/features/participants/components/JoinToast';
 import TimerCountdown from '@/features/timer/components/TimerCountdown';
 import Badge from '@/components/ui/Badge';
@@ -23,6 +24,7 @@ import EventStats from '@/features/participants/components/EventStats';
 import LiveHeader from './LiveHeader';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
 import LiveParticipation from './LiveParticipation';
+import QuizTallyNotice from './QuizTallyNotice';
 
 const Lottery = lazy(() => import('@/features/games/components/Lottery'));
 const ScratchCard = lazy(() => import('@/features/games/components/ScratchCard'));
@@ -52,7 +54,7 @@ export default function LivePage() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('s');
   const { session, loading } = useSession(sessionId, { readOnly: true });
-  const { onlineList, count } = useParticipants(sessionId);
+  const { list: participantList, onlineList, count } = useParticipants(sessionId);
   const { isRunning, endTime, duration } = useTimer(sessionId);
   const { leaderboard } = useScores(['leaderboard','combinedRanking'].includes(session?.currentMode) ? sessionId : null);
   const { count: handCount } = useHandRaises(sessionId);
@@ -78,7 +80,8 @@ export default function LivePage() {
 
   // Stable per-game callbacks (avoid re-creating on every render)
   const isGameMode = isSpecialMode(currentMode);
-  const isEnded = session?.status === 'ended';
+  // 종료 직후에는 'reviewing'(후속 질문 받는 기간)이 된다 — 전자칠판에는 둘 다 끝난 수업으로 보여준다.
+  const isEnded = session?.status === 'ended' || session?.status === 'reviewing';
   const hasActiveQuestion = ['poll', 'quiz'].includes(currentMode) && currentQId && question;
 
 
@@ -103,19 +106,24 @@ export default function LivePage() {
     );
   }
 
-  // Session ended
+  // Session ended — 전자칠판은 큰 화면이라 어두운 무대에 짧은 요약만 남긴다
   if (isEnded) {
+    const questionCount = Object.keys(session?.questions || {}).length;
     return (
-      <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+      <div className="dark classroom-stage min-h-dvh bg-slate-950 flex items-center justify-center px-8">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="text-center space-y-5"
+          className="text-center space-y-6"
         >
-          <DoranDoranMascot size="lg" mood="happy" />
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">수업이 종료되었습니다</h1>
-          <p className="text-slate-400 text-sm">참여해 주셔서 감사합니다</p>
+          <div className="flex justify-center"><DoranDoranMascot size="lg" mood="happy" /></div>
+          <h1 className="classroom-question-title font-bold text-slate-50 tracking-tight">수업이 끝났어요</h1>
+          <p className="text-xl lg:text-2xl text-slate-400">참여해 주셔서 감사합니다</p>
+          <dl className="flex items-center justify-center gap-10 pt-2 text-slate-300">
+            <div><dt className="text-base text-slate-400">함께한 학생</dt><dd className="text-3xl lg:text-4xl font-bold tabular-nums text-slate-50">{participantList.length}명</dd></div>
+            {questionCount > 0 && <div><dt className="text-base text-slate-400">진행한 활동</dt><dd className="text-3xl lg:text-4xl font-bold tabular-nums text-slate-50">{questionCount}개</dd></div>}
+          </dl>
         </motion.div>
       </div>
     );
@@ -131,6 +139,8 @@ export default function LivePage() {
       {currentMode !== 'joinShow' && <JoinToast sessionId={sessionId} />}
       <ReactionOverlay sessionId={sessionId} />
       <ChatBubbleOverlay sessionId={sessionId} />
+      {/* 학생이 답하면 전자칠판에도 버블이 떠오른다 — 답 내용은 숨긴다 */}
+      <AnswerBubbleOverlay sessionId={sessionId} questionId={currentQId} hideText />
       <DrumrollOverlay active={!!session?.drumroll} />
 
 
@@ -196,6 +206,7 @@ export default function LivePage() {
                   <VizRenderer sessionId={sessionId} session={session} isPresenter />
                 </div>
 
+                {question?.type === 'quiz' && !question?.revealedAt && <QuizTallyNotice sessionId={sessionId} questionId={currentQId} activatedAt={question?.activatedAt || 0} />}
                 {question?.type !== 'imageSlide' && <LiveParticipation voted={totalVotes} total={count} resultsHidden={audienceResultsHidden} loading={votesLoading} />}
               </motion.div>
             ) : (

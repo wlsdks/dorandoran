@@ -28,3 +28,13 @@ export function publicQuestionUpdates(previous, next) {
   }
   return updates;
 }
+
+/** 변경을 문항별로 묶는다 — 한 문항의 필드가 규칙에 막혀도 다른 문항 동기화는 계속되게. */
+export function groupUpdatesByQuestion(updates) {
+  const groups = {};
+  for (const [path, value] of Object.entries(updates)) {
+    const id = path.split('/')[0];
+    (groups[id] ||= {})[path] = value;
+  }
+  return groups;
+}

@@ -1,7 +1,8 @@
 import { useRealtimeRecord } from '@/hooks/useRealtimeRecord';
 import { useCooldown } from '@/hooks/useCooldown';
 import { useState, useEffect, useRef } from 'react';
-import { ref, get, update, serverTimestamp } from 'firebase/database';
+import { ref, get, set, update, serverTimestamp } from 'firebase/database';
+import { nicknameKey } from '@/lib/nickname';
 import { db } from '@/lib/firebase';
 import { getParticipantId, getNickname, setNickname as saveNickname, getSessionNickname, getSessionEmployeeId } from '@/lib/participant';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -101,8 +102,28 @@ export default function JoinPage({ sessionId, onJoin }) {
       const participantId = getParticipantId();
       const participant = ref(db, `sessions/${sessionId}/participants/${participantId}`);
       const existing = (await get(participant)).val();
-      await update(participant, { nickname: trimmed, employeeId: employeeId.trim() || null,
-        joinedAt: existing?.joinedAt || serverTimestamp() });
+      // 같은 수업 안 닉네임 중복 방지 — 색인 칸이 비었거나 내 것일 때만 규칙이 쓰기를 허용한다.
+      const key = nicknameKey(trimmed);
+      try {
+        await set(ref(db, `sessions/${sessionId}/nicknames/${key}`), participantId);
+      } catch {
+        join.fail(attempt);
+        setError('같은 닉네임이 이미 있어요. 다른 닉네임으로 참여해주세요.');
+        return;
+      }
+      const updates = {
+        [`participants/${participantId}/nickname`]: trimmed,
+        [`participants/${participantId}/employeeId`]: employeeId.trim() || null,
+        [`participants/${participantId}/joinedAt`]: existing?.joinedAt || serverTimestamp(),
+      };
+      // 닉네임을 바꾸면 리더보드·시상이 읽는 점수 기록의 이름도 같이 바꾼다(점수가 있을 때만).
+      if (existing?.nickname && existing.nickname !== trimmed) {
+        const oldKey = nicknameKey(existing.nickname);
+        if (oldKey !== key) updates[`nicknames/${oldKey}`] = null;
+        const scored = await get(ref(db, `sessions/${sessionId}/scores/${participantId}/nickname`)).then(s => s.exists()).catch(() => false);
+        if (scored) updates[`scores/${participantId}/nickname`] = trimmed;
+      }
+      await update(ref(db, `sessions/${sessionId}`), updates);
       if (!join.finish(attempt)) return;
       saveNickname(trimmed);
       onJoin(participantId, trimmed, employeeId.trim());

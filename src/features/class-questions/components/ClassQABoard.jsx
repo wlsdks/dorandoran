@@ -157,6 +157,8 @@ export default function ClassQABoard({ sessionId, showInput = true, role, isAdmi
           <div className="flex items-center justify-between px-1">
             <button
               type="button"
+              role="switch"
+              aria-checked={anonymous}
               onClick={() => setAnonymous(!anonymous)}
               className={`flex items-center gap-1.5 text-sm transition-colors duration-150 ${
                 anonymous ? 'text-slate-900 dark:text-slate-100 font-medium' : 'text-slate-400'

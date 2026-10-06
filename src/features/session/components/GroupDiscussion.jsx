@@ -54,7 +54,7 @@ function StudentDiscussion({ sessionId, embedded = false }) {
   async function handleSubmit(e) {
     e?.preventDefault();
     const scope = sendScope.current;
-    if (!memo.trim() || !scope?.active || scope.pending) return;
+    if (!memo.trim() || !scope?.active || scope.pending || isFinished) return;
     scope.pending = true;
     setPending(true);
     setError('');
@@ -127,7 +127,7 @@ function StudentDiscussion({ sessionId, embedded = false }) {
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">토론 메모</p>
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-3">
           <textarea
-            disabled={pending}
+            disabled={pending || isFinished}
             value={memo}
             onChange={e => setMemo(e.target.value)}
             placeholder="토론 내용을 메모하세요..."
@@ -135,8 +135,8 @@ function StudentDiscussion({ sessionId, embedded = false }) {
             maxLength={500}
             className="flex-1 bg-white dark:bg-slate-800 rounded-xl px-4 py-3.5 text-[16px] text-slate-900 dark:text-slate-100 placeholder:text-slate-600 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm resize-none transition-colors"
           />
-          <Button type="submit" variant="primary" size="lg" disabled={!memo.trim() || pending} className="w-full">
-            <Send size={16} /> {pending ? '보내는 중...' : '메모 제출'}
+          <Button type="submit" variant="primary" size="lg" disabled={!memo.trim() || pending || isFinished} className="w-full">
+            <Send size={16} /> {isFinished ? '토론 시간이 끝났어요' : pending ? '보내는 중...' : '메모 제출'}
           </Button>
         </form>
         {error && <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-300">{error}</p>}

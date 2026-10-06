@@ -33,6 +33,8 @@ export function useClassQuestions(sessionId) {
   }, [sessionId, beginAnswer, finishAnswer, failAnswer]);
   const toggleUpvote = useCallback(async (questionId, participantId) => {
     if (!sessionId || !questionId || !participantId) return;
+    // 내 질문에는 공감할 수 없다 — 랭킹·정렬이 부풀려지지 않게
+    if (raw[questionId]?.participantId === participantId) return;
     const path = `sessions/${sessionId}/classQuestions/${questionId}/upvotes/${participantId}`;
     if (raw[questionId]?.upvotes?.[participantId]) await remove(ref(db, path));
     else await update(ref(db, `sessions/${sessionId}/classQuestions/${questionId}/upvotes`), { [participantId]: true });
