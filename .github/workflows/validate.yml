@@ -5,9 +5,14 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
+  # 린트·단위 테스트·빌드·의존성 감사 (~1분)
   checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -15,8 +20,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm ci --prefix functions
-      - run: npm ci --prefix functions-ai
       - run: npm run check
         env:
           VITE_FIREBASE_API_KEY: demo-key
@@ -24,11 +27,31 @@ jobs:
           VITE_FIREBASE_DATABASE_URL: https://demo-dorandoran.firebaseio.com
           VITE_GEMINI_API_KEY: ''
       - run: npm audit --audit-level=low
-      - run: npm audit --prefix functions --audit-level=low
-      - run: npm audit --prefix functions-ai --audit-level=low
+  # DB·Storage 보안 규칙과 서버 API 권한 — 에뮬레이터만, 브라우저 없음 (~2분)
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
+            functions-ai/package-lock.json
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
-      - run: npx playwright install --with-deps chromium webkit
-      - run: npm run test:integration
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-15.32.1
+      - run: npm ci
+      - run: npm ci --prefix functions
+      - run: npm ci --prefix functions-ai
+      - run: npm audit --prefix functions --audit-level=low
+      - run: npm audit --prefix functions-ai --audit-level=low
+      - run: npm run test:security

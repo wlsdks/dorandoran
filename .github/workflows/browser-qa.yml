@@ -1,0 +1,27 @@
+name: Browser QA
+# 브라우저 시나리오·부하 테스트(약 8분)는 PR마다 돌리지 않는다. 필요할 때 수동 실행하거나 매일 밤 main에서 돈다.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 18 * * *' # 매일 03:00 KST
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm ci --prefix functions
+      - run: npm ci --prefix functions-ai
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run test:integration
