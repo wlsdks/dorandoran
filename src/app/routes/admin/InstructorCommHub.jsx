@@ -25,13 +25,13 @@ function TabButton({ active, onClick, icon: Icon, label, count = 0, urgent = fal
       onClick={onClick}
       role="tab"
       aria-selected={active}
-      className={`relative flex-1 min-w-0 min-h-11 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-semibold transition-colors duration-150 ${
+      className={`relative min-w-0 min-h-9 flex items-center justify-center gap-1 px-2 rounded-lg text-xs font-semibold transition-colors duration-150 ${
         active
-          ? 'text-slate-900 dark:text-slate-100'
-          : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+          ? 'bg-slate-100 text-slate-900 ring-1 ring-slate-300 dark:bg-slate-800 dark:text-white dark:ring-slate-600'
+          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200'
       }`}
     >
-      <Icon size={13} className={active ? '' : 'text-slate-400'} />
+      <Icon size={13} className={active ? '' : 'text-slate-400'} aria-hidden="true" />
       <span className="truncate">{label}</span>
       {count > 0 && (
         <motion.span
@@ -46,13 +46,6 @@ function TabButton({ active, onClick, icon: Icon, label, count = 0, urgent = fal
         >
           {count}
         </motion.span>
-      )}
-      {active && (
-        <motion.span
-          layoutId="comm-hub-underline"
-          className="absolute inset-x-2 bottom-0 h-[2px] bg-slate-900 dark:bg-slate-100 rounded-full"
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        />
       )}
     </button>
   );
@@ -73,7 +66,7 @@ export default memo(function InstructorCommHub({ sessionId }) {
   return (
     <section className="space-y-3" aria-label="학습자 소통">
       {/* Tabs */}
-      <div role="tablist" aria-label="강사 소통" className="grid grid-cols-2 items-stretch border-b border-slate-100 dark:border-slate-700">
+      <div role="tablist" aria-label="강사 소통" className="grid grid-cols-4 gap-1">
         {TABS.map((t) => (
           <TabButton
             key={t.id}

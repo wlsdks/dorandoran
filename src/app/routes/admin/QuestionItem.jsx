@@ -58,7 +58,7 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
         isDragging ? 'shadow-lg opacity-80 scale-[1.03] bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-500 cursor-grabbing touch-none' :
         readOnly
           ? `bg-white dark:bg-slate-800 ${currentQuestion === qId ? 'border-slate-400 dark:border-slate-500 shadow-sm' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer'}`
-          : isActive ? 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-500 shadow-sm sm:cursor-grab' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 sm:cursor-grab'
+          : isActive ? 'bg-white dark:bg-slate-800 border-indigo-400 ring-1 ring-indigo-400/60 dark:border-indigo-400/80 shadow-sm sm:cursor-grab' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 sm:cursor-grab'
       }`}
     >
       <div className="flex items-start gap-2">

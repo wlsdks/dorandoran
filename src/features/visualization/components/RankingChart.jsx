@@ -81,24 +81,24 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], r
   // 공개 후: 정답 순서 한 목록. 한 줄 = "N위 · 항목 · 막대 · 맞힌 수" — 막대를 줄 안에 넣어 빈 가로 공간과 세로 높이를 줄인다.
   // 폭은 내용에 맞춘 3xl(약 768px). 전자칠판처럼 큰 화면에서는 글자 크기(lg:)로 키운다.
   return (
-    <div className={`w-full ${presenter ? 'max-w-3xl lg:max-w-4xl' : 'max-w-xl'} mx-auto space-y-4 px-4 ${presenter ? 'ranking-chart-stage' : ''}`}>
+    <div className={`w-full ${presenter ? 'max-w-3xl lg:max-w-4xl' : 'max-w-2xl'} mx-auto space-y-5 px-4 ${presenter ? 'ranking-chart-stage' : ''}`}>
       <p className={`text-center ${presenter ? 'text-xl lg:text-2xl' : 'text-sm'} text-slate-600 dark:text-slate-300`}>
         순서를 모두 맞힌 학생 <span className={`font-bold tabular-nums text-slate-900 dark:text-slate-100 ${presenter ? 'text-3xl lg:text-4xl' : 'text-lg'}`}>{analysis.perfectCount}명</span>
         <span className="text-slate-400"> / {analysis.totalVoters}명</span>
       </p>
-      <ol className={presenter ? 'space-y-2.5 lg:space-y-3' : 'space-y-2'}>
+      <ol className={presenter ? 'space-y-2.5 lg:space-y-3' : 'space-y-3'}>
         {analysis.positionAccuracy.map((pos, i) => (
           <motion.li key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, type: 'spring', stiffness: 300, damping: 25 }}
-            className={`grid items-center gap-x-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 ${presenter ? 'grid-cols-[auto_minmax(0,1.4fr)_minmax(0,1fr)_auto] px-5 py-3.5 lg:py-4' : 'grid-cols-[auto_minmax(0,1fr)_auto] px-4 py-3'}`}>
+            className={`grid items-center gap-x-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 ${presenter ? 'grid-cols-[auto_minmax(0,1.4fr)_minmax(0,1fr)_auto] px-5 py-3.5 lg:py-4' : 'grid-cols-[auto_minmax(0,1fr)_auto] px-5 py-4'}`}>
             <span className={`font-bold tabular-nums text-slate-900 dark:text-slate-100 ${presenter ? 'text-2xl lg:text-3xl' : 'text-base'}`}>{pos.position}위</span>
             <span className={`min-w-0 font-semibold text-slate-900 dark:text-slate-100 [word-break:keep-all] ${presenter ? 'text-2xl lg:text-3xl' : 'text-base'}`}>{pos.item}</span>
-            <div className={`${presenter ? 'h-3 lg:h-3.5' : 'col-span-3 row-start-2 mt-2 h-1.5'} bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden`} role="progressbar" aria-valuenow={pos.pct} aria-valuemin={0} aria-valuemax={100} aria-label={`${pos.position}위를 맞힌 비율 ${pos.pct}%`}>
+            <div className={`${presenter ? 'h-3 lg:h-3.5' : 'col-span-3 row-start-2 mt-3 h-2'} bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden`} role="progressbar" aria-valuenow={pos.pct} aria-valuemin={0} aria-valuemax={100} aria-label={`${pos.position}위를 맞힌 비율 ${pos.pct}%`}>
               <motion.div className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400"
                 initial={{ width: 0 }} animate={{ width: `${pos.pct}%` }}
                 transition={{ type: 'spring', stiffness: 200, damping: 20, delay: i * 0.05 + 0.1 }} />
             </div>
-            <span className={`whitespace-nowrap tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'text-lg lg:text-2xl' : 'text-xs col-start-3 row-start-1'}`}>
+            <span className={`whitespace-nowrap tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'text-lg lg:text-2xl' : 'text-sm col-start-3 row-start-1'}`}>
               <span className="font-semibold text-slate-800 dark:text-slate-200">{pos.correct}명</span> 맞힘
             </span>
           </motion.li>

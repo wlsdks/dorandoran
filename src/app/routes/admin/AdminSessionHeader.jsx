@@ -132,7 +132,7 @@ export default memo(function AdminSessionHeader({
   }, [timerOpen]);
 
   return (
-    <div className={`bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between shrink-0 ${isTablet ? 'px-3 py-3' : 'px-6 py-4'}`}>
+    <div className={`bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 ${isTablet ? 'px-3 py-3' : 'px-6 py-4'}`}>
       <div className="flex items-center gap-2 lg:gap-3 min-w-0">
         {/* Tablet: questions drawer toggle */}
         {isTablet && onLeftDrawer && (

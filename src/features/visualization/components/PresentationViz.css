@@ -6,7 +6,7 @@
 .presentation-viz .classroom-response-single .classroom-response-caption { margin-bottom:12px; }
 .presentation-viz .classroom-response-single .classroom-response-text { font-size:24px;line-height:1.45; }
 .presentation-viz .short-answer-chart { display:flex;flex-direction:column;gap:20px;width:100%;max-width:1200px;margin:auto; }
-.presentation-viz .short-answer-summary { display:flex;align-items:center;justify-content:space-between;gap:32px;padding:20px 24px;border-radius:14px;background:#334155; }
+.presentation-viz .short-answer-summary { display:flex;align-items:center;justify-content:space-between;gap:32px;padding:20px 24px;border-radius:14px;background:#2a2a2f; }
 .presentation-viz .short-answer-caption { font-size:20px;line-height:1.4;color:#cbd5e1;margin-bottom:8px; }
 .presentation-viz .short-answer-text { font-size:44px;line-height:1.2;font-weight:650;color:#f1f5f9;overflow-wrap:anywhere; }
 .presentation-viz .short-answer-guidance { font-size:24px;line-height:1.4; }
@@ -20,7 +20,7 @@
 .presentation-viz .check-progress-stage { display:flex;flex-direction:column;gap:20px; }
 .presentation-viz .check-progress-stage > * { margin-top:0!important; }
 .presentation-viz .check-completed-list { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px; }
-.presentation-viz .check-completed-list > div { border:0;border-radius:10px;min-width:0;padding:10px;background:#334155; }
+.presentation-viz .check-completed-list > div { border:0;border-radius:10px;min-width:0;padding:10px;background:#2a2a2f; }
 .presentation-viz .check-completed-list > div > div { width:24px;height:24px;flex-shrink:0; }
 .presentation-viz .check-completed-list > span { grid-column:1/-1;padding:0;font-size:18px; }
 @media(max-height:850px) and (min-width:768px) {

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Play, Square, Zap, PartyPopper, Check, Trophy, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Play, Square, Zap, PartyPopper, Check, Trophy, ChevronLeft, ChevronRight, Eye, Flag } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { QUIZ_EVENT_PRESETS, isQuizQuestion } from '@/lib/quiz';
 
@@ -11,6 +11,23 @@ function KeyHint({ keys, label }) {
       </kbd>
       {label}
     </span>
+  );
+}
+
+// 마지막 활동이면 회색으로 죽은 버튼 대신 "마지막 활동" 상태 표시를 둔다 — 눌러도 안 되는 버튼처럼 보이지 않게.
+function NextActivityButton({ hasNext, onClick, busy = false, event = null }) {
+  if (!hasNext) return (
+    <div role="status" className="h-12 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+      <Flag size={18} />마지막 활동
+    </div>
+  );
+  return (
+    <Button onClick={onClick} variant="primary" size="md" disabled={busy}
+      className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
+      <Play size={20} />
+      다음 활동
+      {event && <PartyPopper size={20} />}
+    </Button>
   );
 }
 
@@ -100,12 +117,7 @@ export default memo(function QuickProgressCard({
       </Button>
     );
     secondaryBtn = (
-      <Button onClick={handleActivateNext} variant="primary" size="md"
-        disabled={!nextEntry || speedQuizActive}
-        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
-        <Play size={20} />
-        다음 활동
-      </Button>
+      <NextActivityButton hasNext={!!nextEntry} onClick={handleActivateNext} busy={speedQuizActive} />
     );
   } else if (mhUnrevealed) {
     /* Mystery Box / Hint Quiz — waiting for reveal */
@@ -132,12 +144,7 @@ export default memo(function QuickProgressCard({
   } else if (mhRevealed) {
     /* Mystery Box / Hint Quiz revealed — next question */
     primaryBtn = (
-      <Button onClick={handleActivateNext} variant="primary" size="md"
-        disabled={!nextEntry}
-        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
-        <Play size={20} />
-        다음 활동
-      </Button>
+      <NextActivityButton hasNext={!!nextEntry} onClick={handleActivateNext} />
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
@@ -165,12 +172,7 @@ export default memo(function QuickProgressCard({
   } else if (answerRevealed) {
     /* 정답 공개됨 — next */
     primaryBtn = (
-      <Button onClick={handleActivateNext} variant="primary" size="md"
-        disabled={!nextEntry}
-        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
-        <Play size={20} />
-        다음 활동
-      </Button>
+      <NextActivityButton hasNext={!!nextEntry} onClick={handleActivateNext} />
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md"
@@ -182,13 +184,7 @@ export default memo(function QuickProgressCard({
   } else {
     /* Active non-quiz (poll, word cloud, etc.) */
     primaryBtn = (
-      <Button onClick={handleActivateNext} variant="primary" size="md"
-        disabled={!nextEntry || speedQuizActive}
-        className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
-        <Play size={20} />
-        다음 활동
-        {nextEvent && <PartyPopper size={20} />}
-      </Button>
+      <NextActivityButton hasNext={!!nextEntry} onClick={handleActivateNext} busy={speedQuizActive} event={nextEvent} />
     );
     secondaryBtn = (
       <Button onClick={onClearActive} variant="secondary" size="md" disabled={speedQuizActive}
