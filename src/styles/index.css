@@ -34,6 +34,18 @@ html {
   --color-slate-800: #232327;
   --color-slate-900: #18181b;
   --color-slate-950: #0c0c0e;
+  /* 강조색: 채도 높은 기본 indigo(#6366F1) 대신 무채색 바탕에 어울리는 차분한 인디고. 막대·포커스·진행 표시 전용. */
+  --color-indigo-50: #f1f2fb;
+  --color-indigo-100: #e3e5f7;
+  --color-indigo-200: #c8ccef;
+  --color-indigo-300: #a3a9e4;
+  --color-indigo-400: #7f87d8;
+  --color-indigo-500: #5e6ad2;
+  --color-indigo-600: #4e59bd;
+  --color-indigo-700: #414a9d;
+  --color-indigo-800: #353c7d;
+  --color-indigo-900: #2b3163;
+  --color-indigo-950: #1b1f40;
 }
 
 html.dark {
