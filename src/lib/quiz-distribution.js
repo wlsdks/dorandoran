@@ -20,6 +20,15 @@ export function readQuizDistribution(value, options, round = 0) {
   return { tallied, totalVotes: value.total };
 }
 
+/**
+ * 활성화 직후에는 강사 화면의 questions 칸(120ms로 묶음)이 currentQuestion보다 늦게 와서 round가 직전 값이다.
+ * 그 첫 전송은 규칙이 거부하지만 다음 payload(새 round)가 곧바로 다시 보내므로 정상 동작이다.
+ * 같은 범위에서 두 번째로 실패할 때만 진짜 오류로 알린다.
+ */
+export function shouldReportPublishFailure(failuresInScope) {
+  return failuresInScope >= 2;
+}
+
 /** 강사 화면이 집계 신호를 보내는 주기. 전자칠판은 이 주기의 3배 넘게 소식이 없으면 연결을 의심한다. */
 export const QUIZ_HEARTBEAT_MS = 10000;
 

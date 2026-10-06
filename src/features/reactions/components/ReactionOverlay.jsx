@@ -28,7 +28,8 @@ function createBubbleConfig(key, type) {
 const RELEASE_INTERVAL_MS = 110;
 const MAX_QUEUE = 60;
 
-export default memo(function ReactionOverlay({ sessionId }) {
+/** presenter: 전자칠판·발표 화면 — 뒷자리에서도 보이게 버블을 키우고 더 높이 띄운다. */
+export default memo(function ReactionOverlay({ sessionId, presenter = false }) {
   const [bubbles, setBubbles] = useState([]);
   const queueRef = useRef([]);
   const visibleRef = useRef(0);
@@ -100,6 +101,12 @@ export default memo(function ReactionOverlay({ sessionId }) {
           const reaction = REACTION_META[bubble.type] || REACTION_META.thumbsup;
           const Icon = reaction.icon;
           const fillHeart = bubble.type === 'heart';
+          // 전자칠판은 1.4배 크게, 더 높이 떠오르되 무대 양옆 여백(2~12%, 88~98%)에서만 올라간다 — 보기 글자·집계를 가리지 않는다.
+          // 떠오르는 동안 좌우로 한 번 느리게 흔들린다(지그재그가 아니라 부유).
+          const size = presenter ? Math.round(bubble.size * 1.4) : bubble.size;
+          const rise = presenter ? 1.3 : 1;
+          const sway = bubble.drift * (presenter ? 0.8 : 1);
+          const left = presenter ? (bubble.left % 2 ? 2 + (bubble.left % 10) : 88 + (bubble.left % 10)) : bubble.left;
 
           return (
             <motion.div
@@ -107,28 +114,28 @@ export default memo(function ReactionOverlay({ sessionId }) {
               key={bubble.id}
               initial={{ opacity: 0, y: 0, scale: 0.2 }}
               animate={{
-                opacity: [0, 1, 0.95, 0.8, 0],
-                y: [0, -60, -200, -400, -650],
-                x: [0, bubble.drift * 0.4, -bubble.drift * 0.5, bubble.drift * 0.8, -bubble.drift * 0.3],
-                scale: [0.2, 1.2, 1.05, 0.9, 0.6],
-                rotate: [0, bubble.rotate * 1.5, -bubble.rotate, bubble.rotate * 0.5, 0],
+                opacity: [0, 1, 1, 0.85, 0],
+                y: [0, -70 * rise, -220 * rise, -420 * rise, -660 * rise],
+                x: [0, sway * 0.5, -sway * 0.35, sway * 0.4, 0],
+                scale: [0.2, 1.15, 1.04, 1, 0.82],
+                rotate: [0, bubble.rotate, -bubble.rotate * 0.6, bubble.rotate * 0.3, 0],
               }}
               exit={{ opacity: 0, scale: 0.3, transition: { duration: 0.1 } }}
               transition={{
                 duration: bubble.duration,
-                ease: [0.15, 0.7, 0.25, 0.95],
-                times: [0, 0.1, 0.4, 0.7, 1],
+                ease: ['easeOut', 'easeInOut', 'easeInOut', 'easeIn'],
+                times: [0, 0.12, 0.42, 0.72, 1],
               }}
               className="absolute bottom-[max(4.75rem,env(safe-area-inset-bottom))]"
-              style={{ left: `${bubble.left}%` }}
+              style={{ left: `${left}%` }}
             >
               {/* 무한 펄스 제거 — 외부 keyframe scale이 이미 생동감 제공. 동시 버블 최대 15개 × repeat:Infinity 제거로 프레임 비용 절감 */}
               <div
-                className={`flex items-center justify-center rounded-full border shadow-md ${reaction.bubbleBg} ${reaction.bubbleBorder}`}
-                style={{ width: bubble.size, height: bubble.size }}
+                className={`flex items-center justify-center rounded-full border ${presenter ? 'shadow-lg shadow-black/30' : 'shadow-md'} ${reaction.bubbleBg} ${reaction.bubbleBorder}`}
+                style={{ width: size, height: size }}
               >
                 <Icon
-                  size={Math.round(bubble.size * 0.46)}
+                  size={Math.round(size * 0.46)}
                   className={reaction.bubbleIcon}
                   fill={fillHeart ? 'currentColor' : 'none'}
                 />

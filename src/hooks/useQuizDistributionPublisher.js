@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { auth } from '@/lib/auth-session';
 import { logger } from '@/lib/logger';
 import { EMPTY_LIST } from '@/lib/realtime';
-import { quizDistribution, QUIZ_HEARTBEAT_MS } from '@/lib/quiz-distribution';
+import { quizDistribution, shouldReportPublishFailure, QUIZ_HEARTBEAT_MS } from '@/lib/quiz-distribution';
 
 /** The instructor publishes a small tally at most ten times per second (a few hundred bytes each). */
 export function useQuizDistributionPublisher(sessionId, session, enabled) {
@@ -18,13 +18,14 @@ export function useQuizDistributionPublisher(sessionId, session, enabled) {
   const payload = useMemo(() => active && !loading && !error && options.length
     ? JSON.stringify(quizDistribution(options, countByValue, round)) : null, [active, loading, error, options, countByValue, round]);
   const scope = active ? `${auth.currentUser?.uid}:${sessionId}:${questionId}:${round}` : null;
-  const state = useRef({ scope: null, latest: null, sent: null, timer: null });
+  const state = useRef({ scope: null, latest: null, sent: null, timer: null, failures: 0 });
 
   useEffect(() => {
     const current = state.current;
     current.scope = scope;
     current.latest = null;
     current.sent = null;
+    current.failures = 0;
     return () => {
       clearTimeout(current.timer);
       current.timer = null;
@@ -46,7 +47,9 @@ export function useQuizDistributionPublisher(sessionId, session, enabled) {
       set(ref(db, `sessions/${sessionId}/publicQuizAggregates/${questionId}`), { ...JSON.parse(next), heartbeat: serverTimestamp() }).catch(error => {
         if (current.scope !== scope) return;
         current.sent = null;
-        logger.error('Quiz distribution publish failed:', error);
+        current.failures += 1;
+        // 활성화 직후 round가 아직 직전 값인 첫 전송은 거부된다 — 다음 payload가 다시 보낸다. 반복 실패만 알린다.
+        if (shouldReportPublishFailure(current.failures)) logger.error('Quiz distribution publish failed:', error);
       });
     }, 100);
   }, [scope, payload, sessionId, questionId]);

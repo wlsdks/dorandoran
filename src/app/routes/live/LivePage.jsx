@@ -136,7 +136,7 @@ export default function LivePage() {
       <ConnectionBanner />
       <ParticipationSpotlight sessionId={sessionId} />
       {currentMode !== 'joinShow' && <JoinToast sessionId={sessionId} />}
-      <ReactionOverlay sessionId={sessionId} />
+      <ReactionOverlay sessionId={sessionId} presenter />
       <ChatBubbleOverlay sessionId={sessionId} />
       {/* 학생이 답하면 전자칠판에도 버블이 떠오른다 — 답 내용은 숨긴다 */}
       <AnswerBubbleOverlay sessionId={sessionId} questionId={currentQId} hideText />
