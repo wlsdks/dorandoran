@@ -133,6 +133,7 @@ export const TEMPLATE_PACKS = [
       {
         type: 'ranking',
         title: 'OSI 7계층을 아래에서 위로 정렬하세요',
+        // 순위 맞추기 정답은 항목 번호 순서(0부터). 항목을 정답 순서로 적었으면 "0,1,2,3"이다.
         options: ['물리 계층', '데이터링크 계층', '네트워크 계층', '전송 계층'],
         correctAnswer: '0,1,2,3',
       },

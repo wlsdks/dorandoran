@@ -17,4 +17,17 @@ describe('순위 맞추기 항목 순서', () => {
       }
     }
   });
+  it('정답이 번호 순서(예: 0,2,3,1)일 때도 공개 전 순서는 정답과 절대 같지 않다', () => {
+    const items = ['DNS 조회', '렌더링', '요청 전송', '응답 생성'];
+    for (const correct of [[0, 2, 3, 1], [3, 2, 1, 0], [1, 0, 3, 2]]) {
+      for (let q = 0; q < 300; q++) {
+        const order = boardRankingOrder(items, `q${q}`, correct);
+        expect([...order].sort((a, b) => a - b)).toEqual([0, 1, 2, 3]);
+        expect(order).not.toEqual(correct);
+      }
+    }
+    // 섞은 결과가 정답과 같을 때는 한 칸 돌리고, 돌린 결과도 모든 항목을 한 번씩 담는다.
+    const shuffled = shuffleWithSeed(items, 'board-q7');
+    expect(boardRankingOrder(items, 'q7', shuffled)).toEqual([...shuffled.slice(1), shuffled[0]]);
+  });
 });

@@ -6,36 +6,57 @@ import { getParticipantId, getNickname } from '@/lib/participant';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import Button from '@/components/ui/Button';
+import NumberBadge from '@/components/ui/NumberBadge';
 import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ArrowUp, ArrowDown, Check, X } from 'lucide-react';
+import { GripVertical, ArrowUp, ArrowDown, ArrowRight, Check, X } from 'lucide-react';
 import { useMyVote } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import VoteErrorToast from './VoteErrorToast';
 import { shuffleWithSeed } from '@/lib/ranking-order';
+import { correctRankingOrder, formatRankingSequence, parseRankingOrder, rankingOrdinal, rankingPositionHits } from '@/lib/ranking-answer';
 
+// 항목 번호(①②③…)는 강사가 정한 고정 이름표다. 학생은 번호 카드를 정답 순서대로 놓고, 투표 값은 그 번호 순서다.
 // 학생마다(questionId + participantId) 고정된 순서로 섞는다 — 새로고침해도 바뀌지 않는다.
 
-function SortableRankItem({ id, label, position, total, disabled, onMove }) {
+function SortableRankItem({ id, index, label, position, total, disabled, onMove }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
+  const name = `${index + 1}번 ${label}`;
   return (
     <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 10 : undefined }}
-      className={`rounded-xl border bg-white dark:bg-slate-800 pl-3 pr-1.5 py-1.5 ${isDragging ? 'shadow-lg border-slate-300' : 'border-slate-200 dark:border-slate-700'}`}>
+      className={`rounded-xl border bg-white dark:bg-slate-800 pl-2.5 pr-1.5 py-1.5 ${isDragging ? 'shadow-lg border-slate-300' : 'border-slate-200 dark:border-slate-700'}`}>
       {/* 한 줄 배치 — 위/아래 버튼을 따로 한 줄에 두면 카드가 두 배로 길어져 4개도 한 화면에 안 들어간다 */}
-      <div className="flex items-center gap-1.5">
-        <span className="w-10 shrink-0 text-center text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums">{position}위</span>
-        <span className="flex-1 min-w-0 pl-1 [word-break:keep-all] [overflow-wrap:anywhere] text-base font-medium text-slate-800 dark:text-slate-200 leading-snug">{label}</span>
-        <button type="button" onClick={() => onMove(position - 1, -1)} disabled={disabled || position === 1} aria-label={`${label} 위로 이동`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.94] disabled:opacity-25 disabled:cursor-not-allowed"><ArrowUp size={20} /></button>
-        <button type="button" onClick={() => onMove(position - 1, 1)} disabled={disabled || position === total} aria-label={`${label} 아래로 이동`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.94] disabled:opacity-25 disabled:cursor-not-allowed"><ArrowDown size={20} /></button>
-        <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} disabled={disabled} aria-label={`${label} 순서 끌어서 변경`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-400 touch-none cursor-grab disabled:opacity-40"><GripVertical size={20} /></button>
+      <div className="flex items-center gap-2">
+        <NumberBadge number={index + 1} size="lg" label={`${index + 1}번`} />
+        <span className="flex-1 min-w-0 [word-break:keep-all] [overflow-wrap:anywhere] text-base font-medium text-slate-800 dark:text-slate-200 leading-snug">{label}</span>
+        <button type="button" onClick={() => onMove(position - 1, -1)} disabled={disabled || position === 1} aria-label={`${name} 위로 이동`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.94] disabled:opacity-25 disabled:cursor-not-allowed"><ArrowUp size={20} /></button>
+        <button type="button" onClick={() => onMove(position - 1, 1)} disabled={disabled || position === total} aria-label={`${name} 아래로 이동`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.94] disabled:opacity-25 disabled:cursor-not-allowed"><ArrowDown size={20} /></button>
+        <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} disabled={disabled} aria-label={`${name} 순서 끌어서 변경`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-400 touch-none cursor-grab disabled:opacity-40"><GripVertical size={20} /></button>
       </div>
     </div>
   );
 }
 
-export default memo(function RankingVoter({ sessionId, questionId, options = [], disabled = false, revealed = false }) {
+/** "정답 ① → ③ → ④ → ②" 같은 번호 순서 한 줄. */
+function SequenceChips({ label, order, options, strong = false }) {
+  return (
+    <div className="flex items-center gap-2 min-w-0" aria-label={`${label} ${formatRankingSequence(order, { options })}`}>
+      <span className="w-10 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</span>
+      <ol className="flex flex-wrap items-center gap-1" aria-hidden="true">
+        {order.map((index, position) => (
+          <li key={position} className="flex items-center gap-1">
+            {position > 0 && <ArrowRight size={12} className="text-slate-300 dark:text-slate-600" />}
+            <NumberBadge number={index + 1} size="md" tone={strong ? 'solid' : 'outline'} />
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+export default memo(function RankingVoter({ sessionId, questionId, options = [], correctAnswer, disabled = false, revealed = false }) {
   const reducedMotion = useReducedMotion();
   const pid = getParticipantId();
 
@@ -53,15 +74,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  const savedOrder = useMemo(() => {
-    if (myVote == null) return null;
-    const parts = String(myVote).split(',');
-    if (!parts.every(part => /^\d+$/.test(part))) return null;
-    const candidate = parts.map(Number);
-    return candidate.length === options.length && new Set(candidate).size === options.length
-      && candidate.every(index => Number.isInteger(index) && index >= 0 && index < options.length)
-      ? candidate : null;
-  }, [myVote, options.length]);
+  const savedOrder = useMemo(() => (myVote == null ? null : parseRankingOrder(String(myVote), options.length)), [myVote, options.length]);
   const invalidSavedOrder = myVote != null && !savedOrder;
 
   useEffect(() => {
@@ -115,33 +128,40 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
     }
   }, [sessionId, questionId, order, pid, disabled, submitting, begin, finish]);
 
-  // 정답 공개 후: 정답 순서와 내 순서를 자리별로 나란히 비교한다(정답은 저장 순서 0,1,2…).
+  // 정답 공개 후: 정답 번호 순서와 내 순서를 나란히 두고, 자리별로 맞았는지 보여준다. 순서가 전부 같아야 정답이다.
   if (revealed) {
+    const correct = correctRankingOrder(options, correctAnswer);
     const mine = submitted || savedOrder ? (savedOrder || order) : null;
-    const hits = mine ? mine.filter((idx, pos) => idx === pos).length : 0;
+    const hits = rankingPositionHits(correct, mine);
+    const hitCount = hits.filter(Boolean).length;
+    const perfect = mine !== null && hitCount === options.length;
     return (
-      <div className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-3">
-        {/* 순서가 전부 맞아야 정답. 자리별 결과는 참고로만 보여준다. */}
+      <div className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-4" data-ranking-result={mine ? (perfect ? 'correct' : 'wrong') : 'none'}>
         {mine ? (
           <div className="text-center space-y-1">
-            <p className={`text-xl font-bold ${hits === options.length ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-900 dark:text-slate-100'}`}>
-              {hits === options.length ? '정답! 순서를 모두 맞혔어요' : '아쉬워요, 오답이에요'}
+            <p className={`text-xl font-bold ${perfect ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-900 dark:text-slate-100'}`}>
+              {perfect ? '정답! 순서를 모두 맞혔어요' : '아쉬워요, 오답이에요'}
             </p>
-            {hits < options.length && <p className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">순서를 모두 맞혀야 정답이에요 · {options.length}개 중 {hits}개 자리는 맞았어요</p>}
+            {!perfect && <p className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">순서를 모두 맞혀야 정답이에요 · {options.length}개 중 {hitCount}개 자리는 맞았어요</p>}
           </div>
         ) : <p className="text-center text-sm text-slate-600 dark:text-slate-300">제출하지 않았어요. 정답 순서를 확인해보세요</p>}
+        <div className="space-y-2 rounded-lg bg-slate-50 dark:bg-slate-900/40 px-3 py-2.5">
+          <SequenceChips label="정답" order={correct} options={options} strong />
+          {mine && <SequenceChips label="내 답" order={mine} options={options} />}
+        </div>
         <ol className="space-y-2">
-          {options.map((item, pos) => {
-            const ok = mine ? mine[pos] === pos : null;
+          {correct.map((itemIndex, pos) => {
+            const ok = hits[pos];
             return (
               <li key={pos} data-ranking-hit={ok || undefined} style={ok ? { '--hit-delay': `${pos * 110}ms` } : undefined}
                 className={`relative overflow-hidden rounded-xl border px-3 py-2.5 ${ok ? 'ranking-hit border-indigo-300 bg-indigo-50/60 dark:border-indigo-400/60 dark:bg-indigo-500/10' : 'border-slate-200 dark:border-slate-700'}`}>
                 <div className="flex items-center gap-2">
-                  <span className="w-10 shrink-0 text-center text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums">{pos + 1}위</span>
-                  <span className="flex-1 min-w-0 text-base font-semibold text-slate-900 dark:text-slate-100 [word-break:keep-all]">{item}</span>
+                  <span className="w-12 shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400 [word-break:keep-all]">{rankingOrdinal(pos)}</span>
+                  <NumberBadge number={itemIndex + 1} size="md" label={`${itemIndex + 1}번`} />
+                  <span className="flex-1 min-w-0 text-base font-semibold text-slate-900 dark:text-slate-100 [word-break:keep-all]">{options[itemIndex]}</span>
                   {ok !== null && (ok ? <Check size={18} className="shrink-0 text-emerald-600 dark:text-emerald-400" aria-label="맞음" /> : <X size={18} className="shrink-0 text-red-500" aria-label="틀림" />)}
                 </div>
-                {ok === false && <p className="mt-1 pl-12 text-xs text-slate-500 dark:text-slate-400 [word-break:keep-all]">내 답: {options[mine[pos]]}</p>}
+                {ok === false && <p className="mt-1 pl-14 text-xs text-slate-500 dark:text-slate-400 [word-break:keep-all]">내 답: {mine[pos] + 1}번 {options[mine[pos]]}</p>}
               </li>
             );
           })}
@@ -151,14 +171,13 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
   }
 
   if (submitted) {
-    const answerStr = order.map((idx, pos) => `${pos + 1}위 ${options[idx]}`).join(' → ');
     return (
       <VoteConfirm
         submittedLabel="순위 제출 완료!"
-        submittedDescription="나의 순위가 기록되었습니다"
+        submittedDescription="나의 순서가 기록되었습니다"
         waitingLabel="결과를 기다리는 중..."
         waitingDescription="강사가 결과를 공개하면 표시됩니다"
-        selectedAnswer={answerStr}
+        selectedAnswer={formatRankingSequence(order, { circled: true, options })}
         selectedAnswerLabel="내 순서"
       />
     );
@@ -177,7 +196,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-4"
     >
       <p className="text-sm text-slate-500 dark:text-slate-300 text-center leading-relaxed [word-break:keep-all]">
-        맨 위가 1위예요. 화살표나 오른쪽 손잡이를 끌어 순서를 바꾸세요.
+        맨 위가 첫 번째예요. 번호는 항목 이름표이니, 화살표나 손잡이로 정답 순서대로 놓으세요.
       </p>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -187,6 +206,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
               <SortableRankItem
                 key={`rank-${idx}`}
                 id={`rank-${idx}`}
+                index={idx}
                 label={options[idx]}
                 position={pos + 1}
                 total={order.length}

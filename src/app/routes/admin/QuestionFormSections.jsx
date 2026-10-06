@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Check, ArrowUp, ArrowDown, X, Lock } from 'lucide-react';
+import { Plus, Trash2, Check, ArrowRight, Undo2, X, Lock } from 'lucide-react';
 import { QUIZ_DEFAULTS, QUIZ_EVENT_PRESETS } from '@/lib/quiz';
 import ImageUpload from '@/components/ui/ImageUpload';
+import NumberBadge from '@/components/ui/NumberBadge';
 import { choiceNames } from '@/lib/option-images';
 import { EDIT_LOCK_MESSAGES } from '@/lib/question-edit';
+import { formatRankingSequence, rankingOrdinal, removeRankingItem } from '@/lib/ranking-answer';
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'];
-const RANKING_LABELS = ['1위', '2위', '3위', '4위', '5위', '6위'];
 const GAP = 'pt-4';
 const MOBILE_ICON_TARGET = 'max-sm:min-h-11 max-sm:min-w-11 max-sm:flex max-sm:items-center max-sm:justify-center max-sm:shrink-0 max-sm:dark:text-slate-300 max-sm:[&>svg]:size-5';
 const INPUT = 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150';
@@ -105,57 +106,98 @@ export function CorrectAnswerSection({ optional = false, options, optionImages =
   );
 }
 
-export function RankingOptionsSection({ options, setOptions, setLocalError }) {
-  function moveRankingItem(index, direction) {
-    const next = [...options];
-    const swapIdx = direction === 'up' ? index - 1 : index + 1;
-    if (swapIdx < 0 || swapIdx >= next.length) return;
-    [next[index], next[swapIdx]] = [next[swapIdx], next[index]];
-    setOptions(next);
-  }
+/**
+ * 순위 맞추기 — "번호 고정 + 정답 번호순".
+ * 항목은 입력한 순서대로 1..N 번호를 달고(학생·발표 화면 어디서나 같은 이름표), 정답은 번호를 눌러 순서를 만든다.
+ */
+export function RankingOptionsSection({ options, setOptions, answer = [], setAnswer, setLocalError }) {
+  const count = options.length;
+  const used = new Set(answer);
+  const remaining = options.map((_, i) => i).filter((i) => !used.has(i));
+  const itemName = (i) => options[i]?.trim() || `항목 ${i + 1}`;
 
   function removeOption(index) {
     if (options.length <= 3) return;
     setOptions(options.filter((_, i) => i !== index));
+    setAnswer(removeRankingItem(answer, index));
   }
 
   return (
     <div className={GAP}>
       <div className="flex items-baseline gap-2 mb-2 max-sm:flex-col max-sm:items-start max-sm:gap-1">
-        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">정답 순서</p>
-        <span className="text-[11px] text-slate-500 dark:text-slate-400">맨 위가 1위예요. 입력한 이 순서가 그대로 정답이 되고, 학생에게는 섞여서 보여요</span>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">항목</p>
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">번호는 학생에게 보이는 이름표예요. 입력 순서는 정답과 상관없어요</span>
       </div>
       <div className="rounded-xl border border-slate-200 dark:border-slate-600 p-3 space-y-2">
         {options.map((opt, i) => (
           <div key={i} className="flex items-center gap-2">
-            <span className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-sm font-bold text-slate-700 dark:text-slate-200 shrink-0 tabular-nums">
-              {RANKING_LABELS[i] || `${i + 1}위`}
-            </span>
+            <NumberBadge number={i + 1} size="lg" label={null} />
             <input value={opt}
               onChange={(e) => { const next = [...options]; next[i] = e.target.value; setOptions(next); setLocalError(null); }}
-              placeholder={`${i + 1}위 항목`} aria-label={`${i + 1}위 항목`}
-              className={`flex-1 ${INPUT} py-2.5`} />
-            <div className="flex items-center gap-0.5 shrink-0">
-              <button onClick={() => moveRankingItem(i, 'up')} disabled={i === 0}
-                className={`p-1 ${MOBILE_ICON_TARGET} rounded text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 transition-colors duration-150 active:scale-90`}
-                aria-label={`${i + 1}위 항목 위로 이동`}><ArrowUp size={16} /></button>
-              <button onClick={() => moveRankingItem(i, 'down')} disabled={i === options.length - 1}
-                className={`p-1 ${MOBILE_ICON_TARGET} rounded text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 transition-colors duration-150 active:scale-90`}
-                aria-label={`${i + 1}위 항목 아래로 이동`}><ArrowDown size={16} /></button>
-            </div>
+              placeholder={`항목 ${i + 1}`} aria-label={`${i + 1}번 항목`}
+              className={`flex-1 min-w-0 ${INPUT} py-2.5`} />
             {options.length > 3 && (
-              <button onClick={() => removeOption(i)}
+              <button type="button" onClick={() => removeOption(i)}
                 className={`p-1.5 ${MOBILE_ICON_TARGET} rounded-lg text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors duration-150 active:scale-90`}
-                aria-label="항목 삭제"><Trash2 size={14} /></button>
+                aria-label={`${i + 1}번 항목 삭제`}><Trash2 size={14} /></button>
             )}
           </div>
         ))}
         {options.length < 6 && (
-          <button onClick={() => setOptions([...options, ''])}
+          <button type="button" onClick={() => setOptions([...options, ''])}
             className="w-full max-sm:min-h-11 py-2.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-sm hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-300 transition-colors duration-150 active:scale-[0.98] flex items-center justify-center gap-1.5">
             <Plus size={14} /> 항목 추가
           </button>
         )}
+      </div>
+
+      <div className="flex items-baseline gap-2 mt-4 mb-2 max-sm:flex-col max-sm:items-start max-sm:gap-1">
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">정답 순서</p>
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">번호를 정답 순서대로 눌러 채우세요. 학생에게는 섞여서 보여요</span>
+      </div>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-600 p-3 space-y-3" data-ranking-answer={answer.join(',')}>
+        {/* 채워지는 자리 — 첫 번째부터 차례로. 빈 자리는 점선 */}
+        <ol className="flex flex-wrap items-center gap-1.5" aria-label={`정답 순서 ${formatRankingSequence(answer) || '비어 있음'}`}>
+          {options.map((_, position) => {
+            const index = answer[position];
+            const filled = index !== undefined;
+            return (
+              <li key={position} className="flex items-center gap-1.5">
+                {position > 0 && <ArrowRight size={14} aria-hidden="true" className="text-slate-300 dark:text-slate-600" />}
+                <span title={filled ? itemName(index) : undefined}
+                  className={`inline-flex h-10 min-w-10 items-center justify-center rounded-full ${filled ? '' : 'border border-dashed border-slate-300 dark:border-slate-600 text-[11px] text-slate-400 dark:text-slate-500 px-2'}`}>
+                  {filled ? <NumberBadge number={index + 1} size="lg" label={`${rankingOrdinal(position)} ${index + 1}번 ${itemName(index)}`} /> : rankingOrdinal(position)}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+        {remaining.length > 0 ? (
+          <div className="flex flex-wrap gap-2" role="group" aria-label="다음 자리에 넣을 항목">
+            {remaining.map((i) => (
+              <button key={i} type="button" onClick={() => { setAnswer([...answer, i]); setLocalError(null); }}
+                className="inline-flex max-sm:min-h-11 items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 py-1.5 pl-1.5 pr-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors duration-150 active:scale-[0.97]">
+                <NumberBadge number={i + 1} size="md" tone="outline" label={`${i + 1}번`} />
+                <span className="max-w-40 truncate">{itemName(i)}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200"><Check size={14} aria-hidden="true" />정답 순서가 완성됐어요 · {formatRankingSequence(answer)}</p>
+        )}
+        {answer.length > 0 && (
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setAnswer(answer.slice(0, -1))}
+              className="inline-flex max-sm:min-h-11 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+              <Undo2 size={13} aria-hidden="true" />마지막 지우기
+            </button>
+            <button type="button" onClick={() => setAnswer([])}
+              className="inline-flex max-sm:min-h-11 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+              <X size={13} aria-hidden="true" />모두 지우기
+            </button>
+          </div>
+        )}
+        {count > 0 && answer.length < count && <p className="text-[11px] text-slate-500 dark:text-slate-400">{count}개 중 {answer.length}개 채움</p>}
       </div>
     </div>
   );

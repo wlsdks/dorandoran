@@ -1,16 +1,17 @@
 import { buildQuestionData, QUESTION_TYPE_FIELDS } from './question';
+import { normalizeRankingAnswer } from './ranking-answer';
 
 /**
  * 수업에서 이미 쓴 문항의 수정 규칙. 학생 응답·점수를 조용히 망가뜨리는 수정은 막는다.
  * - 정답 공개 후: 정답(허용 답 포함)은 바꿀 수 없다.
  * - 응답이 있으면: 유형 변경 불가, 응답 받은 보기는 이름 변경·삭제 불가(새 보기 추가는 가능),
- *   순위 맞추기는 항목·순서 변경 불가(투표가 항목 번호로 저장된다).
+ *   순위 맞추기는 항목·정답 순서 변경 불가(투표가 항목 번호로 저장된다).
  * 응답 초기화 후에는 모두 다시 바꿀 수 있다.
  */
 export const EDIT_LOCK_MESSAGES = {
   answer: '정답 공개 후에는 정답을 바꿀 수 없어요. 응답 초기화 후 바꿀 수 있어요.',
   options: '응답이 있는 보기는 이름을 바꾸거나 지울 수 없어요. 응답 초기화 후 바꿀 수 있어요.',
-  ranking: '응답이 있으면 순위 항목과 순서를 바꿀 수 없어요. 응답 초기화 후 바꿀 수 있어요.',
+  ranking: '응답이 있으면 순위 항목과 정답 순서를 바꿀 수 없어요. 응답 초기화 후 바꿀 수 있어요.',
   type: '응답이 있는 문항은 유형을 바꿀 수 없어요. 응답 초기화 후 바꿀 수 있어요.',
 };
 
@@ -21,6 +22,13 @@ const isRevealed = (q) => (q?.revealedAt !== null && q?.revealedAt !== undefined
 const voteValues = (q) => Object.values(q?.votes || {}).map((v) => v?.value).filter((v) => v !== null && v !== undefined);
 const sameList = (a = [], b = []) => a.length === b.length && a.every((v, i) => v === b[i]);
 const cleanList = (list) => (Array.isArray(list) ? list.map((v) => String(v).trim()).filter(Boolean) : []);
+/** 순위 맞추기 항목·정답 순서가 기존 문항과 같은지. 정답은 저장 규칙(normalizeRankingAnswer)으로 맞춘 뒤 비교한다. */
+function sameRanking(existing, fields) {
+  const options = cleanList(fields.options);
+  if (!sameList(options, existing.options || [])) return false;
+  const next = buildQuestionData('ranking', { ...fields, options }).correctAnswer;
+  return next === normalizeRankingAnswer(existing.correctAnswer, options.length);
+}
 
 /** 기존 문항(수업 데이터)으로부터 수정 폼이 잠글 부분을 계산한다. 보관함 문항처럼 응답이 없으면 아무것도 잠기지 않는다. */
 export function questionEditLocks(existing) {
@@ -43,12 +51,12 @@ export function validateQuestionEdit(existing, fields) {
   if (!existing) return null;
   const locks = questionEditLocks(existing);
   if (locks.typeLocked && fields.type !== existing.type) return EDIT_LOCK_MESSAGES.type;
-  if (locks.rankingLocked && !sameList(cleanList(fields.options), existing.options || [])) return EDIT_LOCK_MESSAGES.ranking;
+  if (locks.rankingLocked && !sameRanking(existing, fields)) return EDIT_LOCK_MESSAGES.ranking;
   if (locks.lockedOptions.length) {
     const next = cleanList(fields.options);
     if (locks.lockedOptions.some((option) => !next.includes(option))) return EDIT_LOCK_MESSAGES.options;
   }
-  if (locks.answerLocked && existing.type === 'ranking' && !sameList(cleanList(fields.options), existing.options || [])) return EDIT_LOCK_MESSAGES.ranking;
+  if (locks.answerLocked && existing.type === 'ranking' && !sameRanking(existing, fields)) return EDIT_LOCK_MESSAGES.ranking;
   if (locks.answerLocked && existing.type !== 'ranking') {
     const nextAnswer = typeof fields.correctAnswer === 'string' ? fields.correctAnswer.trim() : fields.correctAnswer;
     if ((nextAnswer || '') !== (existing.correctAnswer || '')) return EDIT_LOCK_MESSAGES.answer;

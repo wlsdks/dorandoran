@@ -167,7 +167,8 @@ function makeDebateVotes(participantIds, participants, forRatio = 0.6, voteRatio
 
 /**
  * Generate ranking votes. Value format: comma-separated item indices (e.g. "2,0,3,1").
- * Items are stored in correct order (0,1,2,...), so correct answer is "0,1,2,...".
+ * The demo ranking questions use the legacy form: items stored in correct order, correctAnswer "0,1,2,...".
+ * (New questions may store any index sequence, e.g. "0,2,3,1" — see src/lib/ranking-answer.js.)
  * Students' answers are shuffled from correct with varying accuracy.
  */
 function makeRankingVotes(participantIds, participants, itemCount, voteRatio = 0.85) {

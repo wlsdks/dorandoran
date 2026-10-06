@@ -353,10 +353,14 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .classroom-visualization .text-slate-400,.classroom-visualization .text-slate-500 { color:#cbd5e1; }
 .classroom-visualization .scale-histogram { height:160px; }
 .classroom-visualization .scale-histogram span { font-size:18px; }
-.classroom-visualization[data-kind='ranking'] .truncate { white-space:normal;word-break:keep-all;overflow-wrap:anywhere; }
-.classroom-visualization[data-kind='ranking'] .text-sm { font-size:clamp(22px,1.8vw,28px); }
-.classroom-visualization[data-kind='ranking'] .h-6 { height:12px; }
-.classroom-visualization[data-kind='ranking'] .h-6 > span { position:static;display:none; }
+/* 순위 맞추기 발표 화면 — 무대 글자 규격(--stage-*)에 맞춘다. 번호 이름표는 글자보다 한 단계 크다. */
+.ranking-board-card { flex:0 0 calc((100% - 1.25rem * (var(--ranking-columns, 2) - 1)) / var(--ranking-columns, 2)); }
+.ranking-board-stage .ranking-item-label { font-size:var(--stage-label);line-height:1.25; }
+.ranking-board-stage .ranking-ordinal { font-size:calc(var(--stage-count) * .78); }
+.ranking-board-stage .ranking-count,.ranking-board-stage .ranking-note { font-size:var(--stage-count);line-height:1.4; }
+.ranking-board-stage .ranking-count-strong { font-size:calc(var(--stage-count) * 1.35); }
+.ranking-board-stage .ranking-arrow { width:calc(var(--stage-count) * .9);height:calc(var(--stage-count) * .9); }
+.number-badge-stage { width:clamp(2.5rem,2.9vw,3.75rem);height:clamp(2.5rem,2.9vw,3.75rem);font-size:clamp(1.125rem,1.5vw,1.75rem); }
 .classroom-visualization[data-kind='check'] .text-xs { font-size:20px; }
 .classroom-visualization[data-kind='hintQuiz'] .text-base { font-size:clamp(24px,2vw,30px); }
 .classroom-visualization[data-kind='hintQuiz'] .text-sm { font-size:20px; }

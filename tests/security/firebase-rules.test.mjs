@@ -197,6 +197,21 @@ test('문항 시간 제한은 5~3600초 정수만 저장된다', async () => {
   await assertSucceeds(update(ref(owner, path), { timerDuration: null }));
 });
 
+test('순위 맞추기 정답은 항목 번호 순서 문자열("0,2,3,1")만 저장된다', async () => {
+  const owner = staff('legacy_teacher', 'admin');
+  const path = 'sessions/qa_room/questions/ranking_probe';
+  const items = ['DNS 조회', '렌더링', '요청 전송', '응답 생성'];
+  await assertSucceeds(set(ref(owner, path), { title: '순서 맞추기', type: 'ranking', options: items, correctAnswer: '0,2,3,1' }));
+  // 예전 형식(저장 순서 = 정답)도 그대로 쓸 수 있다.
+  await assertSucceeds(update(ref(owner, path), { correctAnswer: '0,1,2,3' }));
+  await assertFails(update(ref(owner, path), { correctAnswer: 'DNS 조회' }));
+  await assertFails(update(ref(owner, path), { correctAnswer: '0,2,,1' }));
+  await assertFails(update(ref(owner, path), { correctAnswer: [0, 2, 3, 1] }));
+  await assertFails(update(ref(owner, path), { correctAnswer: 2 }));
+  // 다른 유형의 정답은 글자 그대로다.
+  await assertSucceeds(set(ref(owner, 'sessions/qa_room/questions/ranking_quiz_probe'), { title: '퀴즈', type: 'quiz', options: ['A', 'B'], correctAnswer: 'B' }));
+});
+
 test('서버 예비 집계가 쓴 뒤에도 강사 화면은 집계를 다시 덮고 신호를 보낼 수 있다', async () => {
   const question = 'sessions/qa_room/questions/tally_probe';
   const aggregatePath = 'sessions/qa_room/publicQuizAggregates/tally_probe';

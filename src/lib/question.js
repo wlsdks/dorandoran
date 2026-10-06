@@ -1,5 +1,6 @@
 import { QUIZ_DEFAULTS } from './quiz';
 import { normalizeTimeLimit, supportsTimeLimit } from './question-timer';
+import { normalizeRankingAnswer } from './ranking-answer';
 
 /**
  * 질문 폼 입력에서 type별 questionData 필드를 순수 계산한다.
@@ -7,12 +8,12 @@ import { normalizeTimeLimit, supportsTimeLimit } from './question-timer';
  * base 필드(type/title/order, 수정 시 기존 객체 병합)는 호출부가 담당한다.
  *
  * @param {string} type 질문 유형
- * @param {object} fields 폼 입력 { options, correctAnswer, points, event, betting, hints, mysteryItems, answerReasons, acceptableAnswers, winners, imageUrl, answerImageUrl, answerExplanation, slideImages, hideTitle, modelAnswer, embedUrl }
+ * @param {object} fields 폼 입력 { options, correctAnswer, rankingAnswer, points, event, betting, hints, mysteryItems, answerReasons, acceptableAnswers, winners, imageUrl, answerImageUrl, answerExplanation, slideImages, hideTitle, modelAnswer, embedUrl }
  * @returns {object} type별로 채워진 필드 객체
  */
 export function buildQuestionData(type, fields = {}) {
   const {
-    options: cleanOptions = [], correctAnswer, points, event, betting,
+    options: cleanOptions = [], correctAnswer, rankingAnswer, points, event, betting,
     hints, mysteryItems, answerReasons, acceptableAnswers, winners,
     imageUrl, answerImageUrl, answerExplanation, slideImages, hideTitle, modelAnswer, embedUrl, optionImages, timerDuration,
   } = fields;
@@ -28,8 +29,9 @@ export function buildQuestionData(type, fields = {}) {
     else if (cleanOptions.includes(correctAnswer)) data.correctAnswer = correctAnswer;
   }
   if (type === 'ranking') {
+    // 항목은 표시 순서 그대로(번호 1..N 고정), 정답은 번호 순서 "0,2,3,1". 순서가 없거나 어긋나면 저장 순서(예전 형식)를 정답으로 쓴다.
     data.options = cleanOptions;
-    data.correctAnswer = cleanOptions.map((_, i) => String(i)).join(',');
+    data.correctAnswer = normalizeRankingAnswer(rankingAnswer ?? correctAnswer, cleanOptions.length);
   }
   if (type === 'fillinblank') {
     data.correctAnswer = correctAnswer?.trim() || '';
