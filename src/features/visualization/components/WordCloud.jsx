@@ -22,7 +22,10 @@ export default memo(function WordCloud({ sessionId, questionId, presenter = fals
     return Object.entries(tallied)
       .map(([text, count]) => ({ text, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, presenter ? 12 : 40);
+      .slice(0, presenter ? 12 : 40)
+      .map((word, rank) => ({ ...word, rank }))
+      // 가장 많이 나온 단어를 가운데에 두고 나머지를 양옆으로 번갈아 놓는다 — 줄 맞춤 목록이 아니라 구름처럼 보이게.
+      .reduce((arranged, word, rank) => (rank % 2 ? [...arranged, word] : [word, ...arranged]), []);
   }, [tallied, presenter]);
 
   const maxCount = Math.max(...words.map(w => w.count), 1);
@@ -37,19 +40,19 @@ export default memo(function WordCloud({ sessionId, questionId, presenter = fals
   return (
     <div className={presenter ? "w-full classroom-results" : "w-full max-w-3xl mx-auto"}>
       <div
-        className={`flex flex-wrap items-center justify-center ${presenter ? 'gap-x-8 gap-y-5 min-h-[40dvh] p-4' : 'gap-x-4 gap-y-2.5 p-6 min-h-[300px]'}`}
+        className={`flex flex-wrap content-center items-center justify-center ${presenter ? 'gap-x-8 gap-y-3 min-h-[40dvh] p-4 max-w-2xl mx-auto' : 'gap-x-4 gap-y-2.5 p-6 min-h-[300px]'}`}
       >
         <AnimatePresence initial={false}>
-          {words.map((word, i) => (
+          {words.map((word) => (
             // layout(FLIP) 제거 — 매 집계 갱신마다 40단어 전체 위치 재계산 reflow 방지. enter/exit만 유지
             <motion.span
               key={word.text}
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 22, delay: Math.min(i, 12) * 0.008 }}
-              style={{ fontSize: presenter ? `clamp(2rem, ${2 + 3 * word.count / maxCount}vw, 6rem)` : getFontSize(word.count) }}
-              className={`wordcloud-token font-bold cursor-default max-w-full break-keep ${WORD_CLASSES[i % WORD_CLASSES.length]}`}
+              transition={{ type: 'spring', stiffness: 260, damping: 22, delay: Math.min(word.rank, 12) * 0.008 }}
+              style={{ fontSize: presenter ? `clamp(1.75rem, ${1.6 + 4 * word.count / maxCount}vw, 6.5rem)` : getFontSize(word.count) }}
+              className={`wordcloud-token font-bold cursor-default max-w-full break-keep ${WORD_CLASSES[word.rank % WORD_CLASSES.length]}`}
               title={`${word.text}: ${word.count}회`}
             >
               {word.text}
