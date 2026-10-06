@@ -95,8 +95,8 @@ export default memo(function ActivePollView({
           <StreakBadge streak={myStreak} />
         )}
 
-        {/* Question title card */}
-        {question.type !== 'fillinblank' && <QuestionCard
+        {/* Question title card — 빈칸 채우기는 풀이 화면이 문장을 직접 보여주므로, 정답 공개 뒤에만 머리를 다시 단다 */}
+        {(question.type !== 'fillinblank' || (question.revealedAt && question.correctAnswer)) && <QuestionCard
           question={question}
           questionId={questionId}
           questionProgress={questionProgress}

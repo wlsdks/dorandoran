@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Check, ArrowUp, ArrowDown, X } from 'lucide-react';
+import { Plus, Trash2, Check, ArrowUp, ArrowDown, X, Lock } from 'lucide-react';
 import { QUIZ_DEFAULTS, QUIZ_EVENT_PRESETS } from '@/lib/quiz';
 import ImageUpload from '@/components/ui/ImageUpload';
 import { choiceNames } from '@/lib/option-images';
+import { EDIT_LOCK_MESSAGES } from '@/lib/question-edit';
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'];
 const RANKING_LABELS = ['1위', '2위', '3위', '4위', '5위', '6위'];
@@ -10,7 +11,15 @@ const GAP = 'pt-4';
 const MOBILE_ICON_TARGET = 'max-sm:min-h-11 max-sm:min-w-11 max-sm:flex max-sm:items-center max-sm:justify-center max-sm:shrink-0 max-sm:dark:text-slate-300 max-sm:[&>svg]:size-5';
 const INPUT = 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150';
 
-export function ChoiceOptionsSection({ options, setOptions, optionImages = [], setOptionImages, correctAnswer, setCorrectAnswer, setLocalError }) {
+/** 잠긴 입력 옆 안내 — 왜 못 바꾸는지 바로 보이게(툴팁 아님). */
+export function EditLockNote({ children }) {
+  return <p role="note" className="mt-2 flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed"><Lock size={13} className="mt-0.5 shrink-0" aria-hidden="true" />{children}</p>;
+}
+
+export function ChoiceOptionsSection({ options, setOptions, optionImages = [], setOptionImages, correctAnswer, setCorrectAnswer, setLocalError, lockedNames = [] }) {
+  // 응답을 받은 보기는 이름·사진을 바꾸거나 지울 수 없다(투표가 보기 이름으로 저장된다).
+  const names = choiceNames(options, optionImages);
+  const isLocked = (i) => lockedNames.includes(names[i]);
   function removeOption(index) {
     if (options.length <= 2) return;
     const next = options.filter((_, i) => i !== index);
@@ -29,15 +38,18 @@ export function ChoiceOptionsSection({ options, setOptions, optionImages = [], s
             <span className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-base font-bold text-slate-500 dark:text-slate-300 shrink-0">
               {OPTION_LABELS[i]}
             </span>
-            <input value={opt}
+            <input value={opt} readOnly={isLocked(i)} aria-readonly={isLocked(i) || undefined}
               onChange={(e) => {
                 const next = [...options]; next[i] = e.target.value; setOptions(next);
                 if (correctAnswer && !choiceNames(next, optionImages).includes(correctAnswer)) setCorrectAnswer('');
                 setLocalError(null);
               }}
               placeholder={optionImages[i] ? `사진 ${OPTION_LABELS[i]} (설명 선택)` : `선택지 ${OPTION_LABELS[i]}`} aria-label={`선택지 ${OPTION_LABELS[i]}`}
-              className={`flex-1 min-w-0 ${INPUT} py-2.5`} />
-            {setOptionImages && (
+              className={`flex-1 min-w-0 ${INPUT} py-2.5 ${isLocked(i) ? 'opacity-70 cursor-not-allowed' : ''}`} />
+            {setOptionImages && isLocked(i) && optionImages[i] && (
+              <img src={optionImages[i]} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover opacity-70" />
+            )}
+            {setOptionImages && !isLocked(i) && (
               <ImageUpload compact value={optionImages[i] || ''} uploadLabel={`선택지 ${OPTION_LABELS[i]} 이미지`}
                 onChange={(url) => {
                   const next = options.map((_, k) => optionImages[k] || ''); next[i] = url; setOptionImages(next);
@@ -45,7 +57,7 @@ export function ChoiceOptionsSection({ options, setOptions, optionImages = [], s
                   setLocalError(null);
                 }} />
             )}
-            {options.length > 2 && (
+            {options.length > 2 && !isLocked(i) && (
               <button onClick={() => removeOption(i)}
                 className={`p-1.5 ${MOBILE_ICON_TARGET} rounded-lg text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors duration-150 active:scale-90`}
                 aria-label="선택지 삭제"><Trash2 size={14} /></button>
@@ -59,6 +71,7 @@ export function ChoiceOptionsSection({ options, setOptions, optionImages = [], s
           </button>
         )}
       </div>
+      {lockedNames.length > 0 && <EditLockNote>{EDIT_LOCK_MESSAGES.options}</EditLockNote>}
       {setOptionImages && <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">선택지마다 사진을 붙일 수 있어요. 사진만 넣고 글을 비워 두면 '사진 A'처럼 표시돼요.</p>}
     </div>
   );
@@ -77,7 +90,7 @@ export function CorrectAnswerSection({ optional = false, options, optionImages =
           if (!option.trim()) return null;
           const isCorrect = correctAnswer === option;
           return (
-            <button key={option} aria-pressed={isCorrect} onClick={() => { setCorrectAnswer(option); setLocalError(null); }}
+            <button key={i} aria-pressed={isCorrect} onClick={() => { setCorrectAnswer(option); setLocalError(null); }}
               className={`min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.96] flex items-center gap-1.5 ${
                 isCorrect ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'}`}>
               {isCorrect && <Check size={14} />}

@@ -2,7 +2,7 @@ import { memo, useState, useEffect, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Tooltip from '@/components/ui/Tooltip';
-import { GripVertical, BookmarkPlus, Check, Copy, MessageSquare, Pencil, Play, Square, Trash2, Trophy, Loader2, Pin, PinOff, RotateCcw, MoreHorizontal } from 'lucide-react';
+import { GripVertical, BookmarkPlus, Check, Copy, MessageSquare, Pencil, Play, Square, Trash2, Trophy, Loader2, Pin, PinOff, RotateCcw, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import { isQuizQuestion } from '@/lib/quiz';
 import { QUESTION_TYPES } from '@/lib/question-types';
@@ -32,7 +32,7 @@ function ActionButton({ onClick, className, children, 'aria-label': ariaLabel, f
 }
 
 /** Shared question item UI — used both sortable (desktop) and static (mobile/readOnly). */
-export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView, onActivate, onReveal, onRevealAnswer, onShowLeaderboard, onClearActive, onEdit, onDuplicate, onDelete, onReset, onSaveToLibrary, isPersistent = false, onTogglePersistent, isDragging = false, dragProps = {} }) {
+export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView, onActivate, onReveal, onRevealAnswer, onShowLeaderboard, onClearActive, onEdit, onDuplicate, onDelete, onReset, onSaveToLibrary, isPersistent = false, onTogglePersistent, onMoveUp = null, onMoveDown = null, isDragging = false, dragProps = {} }) {
   const hasVotes = Object.keys(q?.votes || {}).length > 0;
   // 모드 카드는 질문이 아니라 화면 전환 항목이다 — 라벨·아이콘을 모드 목록에서 가져온다
   const isModeCard = q.type === MODE_CARD_TYPE;
@@ -131,6 +131,9 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
             ...(isQuiz && q.revealedAt && !q.awardedAt ? [{ label: '점수 반영 다시 시도', icon: RotateCcw, action: () => onReveal?.(qId) }] : []),
             ...(onEdit && !isModeCard ? [{ label: '질문 수정', icon: Pencil, action: () => onEdit(qId) }] : []),
             { label: '질문 복제', icon: Copy, action: () => onDuplicate(qId) },
+            // 드래그 대신 쓸 수 있는 순서 이동(키보드·터치)
+            ...(onMoveUp ? [{ label: '위로 이동', icon: ArrowUp, action: () => onMoveUp(qId) }] : []),
+            ...(onMoveDown ? [{ label: '아래로 이동', icon: ArrowDown, action: () => onMoveDown(qId) }] : []),
             ...(onSaveToLibrary && !isModeCard ? [{ label: '보관함에 저장', icon: BookmarkPlus, action: () => onSaveToLibrary(qId) }] : []),
             ...(isAiJudge && onTogglePersistent ? [{ label: isPersistent ? '상시 과제 해제' : '상시 과제로 설정', icon: isPersistent ? PinOff : Pin, action: () => onTogglePersistent(qId) }] : []),
             ...(onReset && hasVotes ? [{ label: '응답 초기화', icon: RotateCcw, action: () => onReset(qId) }] : []),

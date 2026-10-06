@@ -21,10 +21,18 @@ function useIsMobile() {
   return mobile;
 }
 
+// dnd-kit 기본 낭독 문구는 영어라 한국어로 바꾼다.
+const dragAnnouncements = {
+  onDragStart: () => '문항을 집었어요.',
+  onDragOver: ({ over }) => (over ? '다른 문항 위로 옮기는 중이에요.' : '목록 밖이에요.'),
+  onDragEnd: ({ over }) => (over ? '문항 순서를 바꿨어요.' : '문항을 제자리에 놓았어요.'),
+  onDragCancel: () => '순서 바꾸기를 취소했어요.',
+};
+
 export default memo(function QuestionList({
   questionList, currentQuestion, onActivate, onReveal, onRevealAnswer, onShowLeaderboard, onClearActive,
   onEdit, onDuplicate, onDelete, onReset, readOnly = false, onView, onReorder, onSaveToLibrary,
-  persistentAssignmentId, onTogglePersistent,
+  persistentAssignmentId, onTogglePersistent, onMoveUp, onMoveDown,
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const { toast, showToast } = useToast();
@@ -91,9 +99,9 @@ export default memo(function QuestionList({
           >
             <div className="p-2 space-y-2">
               {!readOnly && questionList.length > 1 && !isMobile ? (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} accessibility={{ announcements: dragAnnouncements, screenReaderInstructions: { draggable: '스페이스로 문항을 집고 위·아래 화살표로 옮긴 뒤 스페이스로 놓으세요. Esc로 취소합니다.' } }}>
                   <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-                    {questionList.map(([qId, q]) => (
+                    {questionList.map(([qId, q], index) => (
                       <SortableItem
                         key={qId} qId={qId} q={q} currentQuestion={currentQuestion} readOnly={readOnly}
                         onActivate={onActivate} onReveal={onReveal} onRevealAnswer={onRevealAnswer} onShowLeaderboard={onShowLeaderboard}
@@ -104,12 +112,14 @@ export default memo(function QuestionList({
                         onSaveToLibrary={onSaveToLibrary ? handleSaveWithToast : null}
                         isPersistent={persistentAssignmentId === qId}
                         onTogglePersistent={onTogglePersistent}
+                        onMoveUp={index > 0 ? onMoveUp : null}
+                        onMoveDown={index < questionList.length - 1 ? onMoveDown : null}
                       />
                     ))}
                   </SortableContext>
                 </DndContext>
               ) : (
-                questionList.map(([qId, q]) => (
+                questionList.map(([qId, q], index) => (
                   <QuestionItemContent
                     key={qId} qId={qId} q={q} currentQuestion={currentQuestion} readOnly={readOnly}
                     onView={onView} onActivate={onActivate} onReveal={onReveal} onRevealAnswer={onRevealAnswer} onShowLeaderboard={onShowLeaderboard}
@@ -120,6 +130,8 @@ export default memo(function QuestionList({
                     onSaveToLibrary={onSaveToLibrary ? handleSaveWithToast : null}
                     isPersistent={persistentAssignmentId === qId}
                     onTogglePersistent={onTogglePersistent}
+                    onMoveUp={!readOnly && index > 0 ? onMoveUp : null}
+                    onMoveDown={!readOnly && index < questionList.length - 1 ? onMoveDown : null}
                   />
                 ))
               )}
@@ -154,7 +166,7 @@ export default memo(function QuestionList({
         onConfirm={confirmReset}
         onCancel={() => setPendingReset(null)}
         title="이 질문만 초기화할까요?"
-        description={pendingReset ? `이 질문의 응답 ${pendingReset.voteCount}건과 정답 공개 상태가 지워집니다. 다른 질문·점수는 그대로예요.` : ''}
+        description={pendingReset ? `이 질문의 응답 ${pendingReset.voteCount}건과 정답 공개 상태, 이 질문으로 받은 퀴즈 점수가 지워집니다. 다른 질문의 점수는 그대로예요.` : ''}
         confirmLabel="초기화"
         cancelLabel="취소"
         variant="primary"

@@ -19,7 +19,9 @@ import {
   HintQuizSection,
   ShortAnswerSection,
   AnswerExplanationSection,
+  EditLockNote,
 } from './QuestionFormSections';
+import { questionEditLocks, EDIT_LOCK_MESSAGES } from '@/lib/question-edit';
 import { choiceNames, isAutoPhotoName } from '@/lib/option-images';
 
 const COMMON_TYPES = ['choice', 'quiz', 'ox', 'wordcloud', 'subjective', 'check'];
@@ -59,6 +61,8 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
   const [modelAnswer, setModelAnswer] = useState(initialData?.modelAnswer || '');
   const [embedUrl, setEmbedUrl] = useState(initialData?.embedUrl || '');
   const [localError, setLocalError] = useState(null);
+  // 수업에서 이미 쓴 문항: 응답·점수를 망가뜨리는 부분은 잠근다(보관함 문항처럼 응답이 없으면 잠금 없음).
+  const locks = isEdit ? questionEditLocks(initialData) : questionEditLocks(null);
 
   const isChoiceLike = type === 'choice' || type === 'quiz';
   const isRanking = type === 'ranking';
@@ -150,7 +154,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
             const Icon = t.icon;
             const selected = type === t.value;
             return (
-              <motion.button key={t.value} aria-pressed={type === t.value} disabled={t.value === 'aiJudge' && !available} title={t.value === 'aiJudge' && !available ? reason : undefined}
+              <motion.button key={t.value} aria-pressed={type === t.value} disabled={(t.value === 'aiJudge' && !available) || (locks.typeLocked && t.value !== type)} title={t.value === 'aiJudge' && !available ? reason : undefined}
                 whileTap={{ scale: 0.93 }}
                 onClick={() => {
                   setType(t.value); setLocalError(null);
@@ -165,6 +169,8 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
             );
           })}
         </div>
+        {locks.typeLocked && <EditLockNote>{EDIT_LOCK_MESSAGES.type}</EditLockNote>}
+        {showMoreTypes && !available && <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">AI 심사는 지금 쓸 수 없어요{reason ? ` · ${reason}` : ''}</p>}
         <button type="button" onClick={() => setShowMoreTypes(value => !value)} aria-expanded={showMoreTypes} className="mt-2 min-h-12 w-full rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
           {showMoreTypes ? '자주 쓰는 유형만 보기' : `다른 문항 유형 ${QUESTION_TYPES.length - COMMON_TYPES.length}개 보기`}
         </button>
@@ -224,9 +230,13 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
 
       {/* Only the selected type is mounted: departed controls cannot overlap the new form. */}
       <motion.div key={type} initial={reducedMotion ? false : { opacity: .8 }} animate={{ opacity: 1 }} transition={{ duration: reducedMotion ? 0 : .12 }}>
-        {isChoiceLike && <ChoiceOptionsSection options={options} setOptions={setOptions} optionImages={optionImages} setOptionImages={setOptionImages}
+        {isChoiceLike && <ChoiceOptionsSection lockedNames={locks.lockedOptions} options={options} setOptions={setOptions} optionImages={optionImages} setOptionImages={setOptionImages}
           correctAnswer={correctAnswer} setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
-        {isRanking && <RankingOptionsSection options={options} setOptions={setOptions} setLocalError={setLocalError} />}
+        {isRanking && <fieldset disabled={locks.rankingLocked || locks.answerLocked} className="min-w-0 disabled:opacity-70">
+          <RankingOptionsSection options={options} setOptions={setOptions} setLocalError={setLocalError} />
+          {(locks.rankingLocked || locks.answerLocked) && <EditLockNote>{EDIT_LOCK_MESSAGES.ranking}</EditLockNote>}
+        </fieldset>}
+        <fieldset disabled={locks.answerLocked} className="min-w-0 disabled:opacity-70">
         {isFillInBlank && <FillBlankSection title={title} correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
         {isShortAnswer && <ShortAnswerSection correctAnswer={correctAnswer}
@@ -248,6 +258,8 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
           setHints={setHints} acceptableAnswers={acceptableAnswers}
           setAcceptableAnswers={setAcceptableAnswers} winners={winners}
           setWinners={setWinners} setLocalError={setLocalError} />}
+        {locks.answerLocked && !isRanking && <EditLockNote>{EDIT_LOCK_MESSAGES.answer}</EditLockNote>}
+        </fieldset>
         {hasAnswer && <AnswerExplanationSection answerExplanation={answerExplanation} setAnswerExplanation={setAnswerExplanation}
           answerImageUrl={answerImageUrl} setAnswerImageUrl={setAnswerImageUrl} />}
         {isSubjective && available && (

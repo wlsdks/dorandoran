@@ -149,6 +149,24 @@ test('학생은 본인 투표만 쓰고 점수·권한을 조작할 수 없다',
   await assertFails(set(ref(db, 'staffProfiles/student_a/role'), 'master'));
   await assertFails(set(ref(db, 'sessions/qa_room/qaStats/student_a'), { questions: 10000 }));
 });
+test('응답 초기화는 그 문항으로 받은 퀴즈 점수를 되돌리고, 학생은 점수를 고칠 수 없다', async () => {
+  const base = 'sessions/qa_room';
+  await environment.withSecurityRulesDisabled(async context => {
+    await set(ref(context.database(), `${base}/questions/reset_probe`), { title: '초기화 문항', type: 'quiz', options: ['A', 'B'], correctAnswer: 'A', revealedAt: 20, awardedAt: 20,
+      votes: { s1: { value: 'A', nickname: '학생', timestamp: 1 } } });
+    await set(ref(context.database(), `${base}/scores/s1`), { nickname: '학생', total: 245, quizAwards: { reset_probe: { round: 20, points: 145 }, other: { round: 5, points: 100 } } });
+  });
+  await assertFails(update(ref(student('s1'), base), { 'scores/s1/total': 9999 }));
+  await assertSucceeds(update(ref(staff('legacy_teacher', 'admin'), base), {
+    'scores/s1/total': 100, 'scores/s1/quizAwards/reset_probe': null,
+    'questions/reset_probe/votes': null, 'questions/reset_probe/revealedAt': null, 'questions/reset_probe/awardedAt': null,
+  }));
+  await environment.withSecurityRulesDisabled(async context => {
+    const score = (await get(ref(context.database(), `${base}/scores/s1`))).val();
+    assert.equal(score.total, 100); assert.equal(score.quizAwards.reset_probe, undefined); assert.equal(score.quizAwards.other.points, 100);
+  });
+});
+
 test('정답 공개된 문항도 강사는 필드 단위로 수정할 수 있고 학생 투표는 보존된다', async () => {
   const path = 'sessions/qa_room/questions/edit_probe';
   await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), path), {
