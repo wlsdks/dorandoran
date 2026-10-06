@@ -1,5 +1,7 @@
 import { useState, memo } from 'react';
 import { motion } from 'framer-motion';
+import { spring, stagger } from '@/lib/motion';
+import { motion as motionTokens } from '@/lib/design-tokens';
 import { Maximize2, X } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import { hapticTap } from '@/lib/haptics';
@@ -25,7 +27,7 @@ export default memo(function ImageOptionGrid({ options, images, selected, locked
             <motion.div key={option} className="relative"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: dimmed ? 0.3 : 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25, delay: hasSelection ? 0 : i * 0.05 }}>
+              transition={{ ...spring.default, delay: hasSelection ? 0 : stagger(i, { step: motionTokens.stagger.normal }) }}>
               <button type="button" onClick={() => { hapticTap(); onPick(option); }} disabled={locked || disabled || hasSelection}
                 aria-label={`${letter}. ${option}`} aria-pressed={isSelected}
                 className={`w-full h-full flex flex-col overflow-hidden rounded-xl border bg-white dark:bg-slate-800 text-left transition-colors duration-150 active:scale-[0.97] ${isSelected ? 'ring-2 ring-slate-400 dark:ring-slate-500 border-slate-300 dark:border-slate-500' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'} ${dimmed ? 'pointer-events-none' : ''}`}>

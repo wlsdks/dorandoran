@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { rise } from '@/lib/motion';
 import { CheckCircle, AlertCircle, Headset, Hand, MessageSquare } from 'lucide-react';
 
 export default function StudentToasts({ submitted, submitError, dmResolved, handAcknowledged, staffReplied, onOpenDM }) {
@@ -7,9 +8,7 @@ export default function StudentToasts({ submitted, submitError, dmResolved, hand
       <AnimatePresence>
         {submitted && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            {...rise}
             role="status"
             aria-live="polite"
             className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 rounded-lg text-sm font-medium z-50 shadow-lg flex items-center gap-2"
@@ -22,9 +21,7 @@ export default function StudentToasts({ submitted, submitError, dmResolved, hand
       <AnimatePresence>
         {submitError && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            {...rise}
             role="alert"
             className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 bg-red-500 dark:bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium z-50 shadow-lg flex items-center gap-2"
           >
@@ -36,9 +33,7 @@ export default function StudentToasts({ submitted, submitError, dmResolved, hand
       <AnimatePresence>
         {dmResolved && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            {...rise}
             role="status"
             aria-live="polite"
             className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 bg-emerald-600 dark:bg-emerald-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium z-50 shadow-lg flex items-center gap-2"
@@ -51,9 +46,7 @@ export default function StudentToasts({ submitted, submitError, dmResolved, hand
       <AnimatePresence>
         {staffReplied && (
           <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            {...rise}
             onClick={onOpenDM}
             role="status"
             aria-live="polite"
@@ -68,9 +61,7 @@ export default function StudentToasts({ submitted, submitError, dmResolved, hand
       <AnimatePresence>
         {handAcknowledged && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            {...rise}
             role="status"
             aria-live="polite"
             className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 rounded-lg text-sm font-medium z-50 shadow-lg flex items-center gap-2"

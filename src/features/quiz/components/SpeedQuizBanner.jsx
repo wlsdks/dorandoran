@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Zap } from 'lucide-react';
 
 /**
@@ -11,7 +12,7 @@ export default memo(function SpeedQuizBanner({ currentIndex, totalQuestions }) {
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl px-4 py-3 flex items-center justify-between"
     >
       <div className="flex items-center gap-2">

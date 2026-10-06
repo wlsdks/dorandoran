@@ -1,6 +1,7 @@
 import { isAutoPhotoName } from '@/lib/option-images';
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { grow, spring } from '@/lib/motion';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useVotes } from '@/hooks/useVotes';
 import { formatPercent } from '@/lib/utils';
@@ -27,7 +28,7 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4, type: 'spring', stiffness: 300, damping: 25 }}
+      transition={{ ...spring.default, delay: 0.4 }}
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-3"
     >
       <div className="flex items-center justify-between">
@@ -80,7 +81,7 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
                 <motion.div
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: proportion }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                  transition={grow}
                   className={`h-full w-full origin-left rounded-full ${
                     isCorrect || (isMine && !dimmed) ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-slate-200 dark:bg-slate-600'
                   }`}

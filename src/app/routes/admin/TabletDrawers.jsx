@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
-import { fadeIn } from '@/lib/motion';
+import { fadeIn, sheet, ease } from '@/lib/motion';
 
-// 서랍: 빠르게 닫히고 튀지 않는 스프링. 숫자를 바꾸면 양쪽 서랍이 같이 바뀐다.
-const drawerSpring = { type: 'spring', stiffness: 420, damping: 38 };
+// 서랍: 시트와 같은 스프링으로 들어오고(튀지 않음), 나갈 땐 들어온 쪽으로 짧게 미끄러진다.
+const drawerSpring = sheet;
+const drawerExit = { duration: 0.16, ease: ease.in };
 
 export default function TabletDrawers({
   leftOpen,
@@ -27,7 +28,7 @@ export default function TabletDrawers({
             <motion.div
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%', transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
+              exit={{ x: '-100%', transition: drawerExit }}
               transition={drawerSpring}
               className="fixed inset-y-0 left-0 z-50 w-[340px] max-w-[85vw] bg-white dark:bg-slate-800 shadow-xl overflow-hidden flex flex-col"
             >
@@ -61,7 +62,7 @@ export default function TabletDrawers({
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '100%', transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
+              exit={{ x: '100%', transition: drawerExit }}
               transition={drawerSpring}
               className="fixed inset-y-0 right-0 z-50 w-[340px] max-w-[85vw] bg-white dark:bg-slate-800 shadow-xl overflow-hidden flex flex-col"
             >

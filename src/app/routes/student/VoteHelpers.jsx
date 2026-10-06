@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- vote 화면 helper 모음 (getModeVariants/ENTER_TRANSITION + 컴포넌트들) 의도적 collocation */
 import { lazy } from 'react';
 import { motion } from 'framer-motion';
+import { swap, spring, exitTween } from '@/lib/motion';
 import { Clock } from 'lucide-react';
 import QuizResult from '@/features/quiz/components/QuizResult';
 import { getQuizReward } from '@/lib/quiz';
@@ -17,101 +18,21 @@ const LazyQuickSurvey = lazy(() => import('@/features/session/components/QuickSu
 const LazyGroupDiscussion = lazy(() => import('@/features/session/components/GroupDiscussion'));
 
 // --- Mode transition variants ---
-// poll/quiz: slide up   leaderboard: curtain from top
-// special modes: scale-in   waiting: fade   ended/reviewing: slide from below
+// 공용 swap() 궤적을 쓴다: 질문은 아래에서 위로, 랭킹은 위에서 내려오고, 특수 화면은 살짝 커지며 들어온다.
+// 감속 모션이면 모두 짧은 페이드. (matchMedia는 렌더마다 읽어도 싸다)
 export function getModeVariants(modeKey) {
   if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
   }
-  if (modeKey === 'leaderboard') {
-    return {
-      initial: {
-        opacity: 0,
-        y: -24
-      },
-      animate: {
-        opacity: 1,
-        y: 0
-      },
-      exit: {
-        opacity: 0,
-        y: 24
-      }
-    };
-  }
-  if (modeKey === 'ended' || modeKey === 'reviewing') {
-    return {
-      initial: {
-        opacity: 0,
-        y: 24,
-        scale: 0.97
-      },
-      animate: {
-        opacity: 1,
-        y: 0,
-        scale: 1
-      },
-      exit: {
-        opacity: 0,
-        y: -12,
-        scale: 0.98
-      }
-    };
-  }
-  if (['focus', 'comprehension', 'quickSurvey', 'discussion', 'qaBoard'].includes(modeKey)) {
-    return {
-      initial: {
-        opacity: 0,
-        scale: 0.94
-      },
-      animate: {
-        opacity: 1,
-        scale: 1
-      },
-      exit: {
-        opacity: 0,
-        scale: 1.02
-      }
-    };
-  }
-  if (modeKey === 'waiting') {
-    return {
-      initial: {
-        opacity: 0,
-        y: 8
-      },
-      animate: {
-        opacity: 1,
-        y: 0
-      },
-      exit: {
-        opacity: 0,
-        y: -8
-      }
-    };
-  }
-  return {
-    initial: {
-      opacity: 0,
-      y: 20
-    },
-    animate: {
-      opacity: 1,
-      y: 0
-    },
-    exit: {
-      opacity: 0,
-      y: -12
-    }
-  };
+  if (modeKey === 'leaderboard') return swap('leaderboard');
+  if (modeKey === 'ended' || modeKey === 'reviewing') return { initial: { opacity: 0, y: 20, scale: 0.985 }, animate: { opacity: 1, y: 0, scale: 1 }, exit: { opacity: 0, y: -10, scale: 0.99 } };
+  if (['focus', 'comprehension', 'quickSurvey', 'discussion', 'qaBoard'].includes(modeKey)) return swap('stage');
+  if (modeKey === 'waiting') return { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -6 } };
+  return swap('question');
 }
 
-// Spring transition for mode changes (~0.3s enter)
-export const ENTER_TRANSITION = {
-  type: 'tween',
-  duration: 0.18,
-  ease: [0.22, 1, 0.36, 1]
-};
+/** 화면 교체 진입 곡선 — swap()과 같은 0.22s ease-out. 퇴장은 VotePage가 exitTween으로 고정한다. */
+export const ENTER_TRANSITION = swap('question').transition;
 
 /** Renders QuizResult from vote data passed by QuizVoter. */
 export function QuizResultFromVote({
@@ -149,12 +70,9 @@ export function TimerExpiredBanner() {
     y: 0
   }} exit={{
     opacity: 0,
-    y: -8
-  }} transition={{
-    type: 'spring',
-    stiffness: 300,
-    damping: 25
-  }} className="flex items-center gap-3 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-3">
+    y: -8,
+    transition: exitTween
+  }} transition={spring.default} className="flex items-center gap-3 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-3">
       <Clock size={18} className="shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold leading-tight">시간이 종료되었습니다</p>

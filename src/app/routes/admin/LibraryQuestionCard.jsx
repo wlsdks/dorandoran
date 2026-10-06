@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { stagger, exitTween, ease } from '@/lib/motion';
 import { MessageSquare, Pencil, Trash2 } from 'lucide-react';
 import { QUESTION_TYPES } from '@/lib/question-types';
 
@@ -10,8 +11,8 @@ export default function LibraryQuestionCard({ question, onDelete, onEdit, index 
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2, delay: index * 0.03 }}
+      exit={{ opacity: 0, y: -8, transition: exitTween }}
+      transition={{ duration: 0.2, ease: ease.out, delay: stagger(index) }}
       className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-colors duration-150 group"
     >
       <div className="flex items-start gap-3">

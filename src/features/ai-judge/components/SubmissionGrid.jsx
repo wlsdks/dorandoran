@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- getPresenterGridConfig helper와 SubmissionGrid 컴포넌트 의도적 collocation (그리드 config는 컴포넌트 전용) */
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 
 /**
  * 제출 수별 프레젠터 그리드 구성 — 뒷자리 가독성 vs 전체 조망 균형.
@@ -36,7 +37,7 @@ const SubmissionGrid = memo(function SubmissionGrid({ submissions, isPresenter }
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            transition={spring.default}
             className="rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800"
           >
             {(() => {

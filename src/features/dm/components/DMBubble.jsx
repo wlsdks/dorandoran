@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { MessageSquare, Send, Plus, ArrowLeft, Headset, CheckCircle2, Clipboard } from 'lucide-react';
 import { formatChatTime } from '@/lib/utils';
 import Button from '@/components/ui/Button';
@@ -19,7 +20,7 @@ const DMMessage = memo(function DMMessage({ msg, isOwn }) {
     );
   }
   return (
-    <motion.div initial={{ opacity: 0, x: isOwn ? 8 : -8 }} animate={{ opacity: 1, x: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+    <motion.div initial={{ opacity: 0, x: isOwn ? 8 : -8 }} animate={{ opacity: 1, x: 0 }} transition={spring.default}
       className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} gap-0.5`}>
       {!isOwn && (
         <span className="text-[13px] font-medium text-slate-500 dark:text-slate-400 px-1">
@@ -183,7 +184,7 @@ export default function DMBubble({ open = true, activeDMs, activeDM, senderName,
             <div ref={messagesEndRef} />
           </div>
           {isResolved ? (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={spring.default}
               className="flex flex-col items-center gap-1.5 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3 border-t border-slate-100 dark:border-slate-700 shrink-0">
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={14} className="text-emerald-500 dark:text-emerald-400" />
@@ -256,7 +257,7 @@ export default function DMBubble({ open = true, activeDMs, activeDM, senderName,
             <div className="dm-request-body flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] scrollbar-hide">
               {requestSent ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3">
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={spring.default}
                     className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
                     <Headset size={20} className="text-emerald-600 dark:text-emerald-400" />
                   </motion.div>

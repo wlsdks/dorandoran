@@ -59,8 +59,8 @@ export default function TimerRing({ endTime, duration, onExpire, size = 'md' }) 
 
   return (
     <motion.div
-      animate={isPulsing ? { scale: [1, 1.05, 1] } : {}}
-      transition={isPulsing ? { repeat: Infinity, duration: 0.8 } : {}}
+      animate={isPulsing ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+      transition={isPulsing ? { repeat: Infinity, duration: 0.6, ease: 'easeInOut' } : {}}
       className={`relative ${sizeClasses[size]} flex items-center justify-center`}
     >
       <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
@@ -75,7 +75,7 @@ export default function TimerRing({ endTime, duration, onExpire, size = 'md' }) 
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE}
           animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 0.3, ease: 'linear' }}
+          transition={{ duration: 0.2, ease: 'linear' }}
         />
       </svg>
       <div className={`absolute inset-0 flex items-center justify-center font-bold ${textSizes[size]} ${color.text}`}>

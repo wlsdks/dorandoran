@@ -1,6 +1,7 @@
 import { useState, memo, useMemo } from 'react';
 import { useVotes } from '@/hooks/useVotes';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { X, Users } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Avatar from '@/components/ui/Avatar';
@@ -75,7 +76,7 @@ export default memo(function QACards({ sessionId, questionId, title }) {
               key={vote.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.03, type: 'spring', stiffness: 300, damping: 25 }}
+              transition={{ ...spring.default, delay: i * 0.03 }}
               onClick={() => setSelected(vote)}
               className="w-full text-left rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3.5 hover:border-slate-300 dark:hover:border-slate-600 transition-colors duration-150 group"
             >

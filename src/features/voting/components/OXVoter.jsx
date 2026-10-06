@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { hapticTap } from '@/lib/haptics';
 import { useState, useEffect, memo } from 'react';
 import { useMyVote } from '@/hooks/useMyVote';
@@ -90,7 +91,7 @@ export default memo(function OXVoter({ sessionId, questionId, disabled = false }
       <motion.button
         initial={{ opacity: 0, x: -12 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         whileTap={{ scale: 0.95 }}
         onClick={() => { hapticTap(); handleVote('O'); }}
         disabled={selected !== null || disabled}
@@ -102,7 +103,7 @@ export default memo(function OXVoter({ sessionId, questionId, disabled = false }
       <motion.button
         initial={{ opacity: 0, x: 12 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         whileTap={{ scale: 0.95 }}
         onClick={() => { hapticTap(); handleVote('X'); }}
         disabled={selected !== null || disabled}

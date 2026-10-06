@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { stepForward } from '@/lib/motion';
 import { AlertCircle, Copy, Plus, Loader2, IdCard, Gift, Eye } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
@@ -52,18 +53,7 @@ export default function CreateSessionStepConfirm({
   onBack,
   onCreate
 }) {
-  return <motion.div key="confirm" initial={{
-    opacity: 0,
-    x: 12
-  }} animate={{
-    opacity: 1,
-    x: 0
-  }} exit={{
-    opacity: 0,
-    x: 12
-  }} transition={{
-    duration: 0.2
-  }} className="space-y-5">
+  return <motion.div key="confirm" {...stepForward} className="space-y-5">
       <div>
         <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">클래스 확인</h2>
         <p className="text-slate-400 text-sm mt-1">정보를 확인하고 등록하세요</p>

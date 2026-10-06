@@ -2,6 +2,7 @@ import { participantIsOnline } from '@/lib/participants';
 import { authenticatedRequest } from '@/lib/auth-session';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { LogOut, BookOpen, ChevronRight, Users, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useCourses } from '@/features/course/api/useCourses';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
@@ -135,7 +136,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+              transition={spring.default}
               className="space-y-3"
             >
               {courses.length === 0 ? (
@@ -151,7 +152,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
                     key={course.id}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05, type: 'spring', stiffness: 300, damping: 25 }}
+                    transition={{ ...spring.default, delay: i * 0.05 }}
                     onClick={() => setSelectedCourse(course)}
                     className="w-full flex items-center justify-between p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 text-left group"
                   >
@@ -182,7 +183,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
               initial={{ opacity: 0, x: 12 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -12 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+              transition={spring.default}
               className="space-y-3"
             >
               {sessionsLoading ? (
@@ -203,7 +204,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
                     key={session.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 25 }}
+                    transition={{ ...spring.default, delay: i * 0.04 }}
                     onClick={() => handleSessionClick(session)}
                     className="w-full flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 text-left"
                   >

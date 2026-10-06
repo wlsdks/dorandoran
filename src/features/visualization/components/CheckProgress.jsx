@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { useVotes } from '@/hooks/useVotes';
 import { useParticipants } from '@/features/participants/api/useParticipants';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
+import { grow, popIn, stagger } from '@/lib/motion';
 
 const MAX_AVATARS = 40; // 완료 아바타 렌더 상한 — 300명 동시 완료 시 렌더 렉 방지
 
@@ -30,7 +32,7 @@ export default memo(function CheckProgress({ sessionId, questionId, presenter = 
           <span
             className="text-7xl font-black tabular-nums text-slate-900 dark:text-slate-100"
           >
-            {totalVotes}
+            <AnimatedNumber value={totalVotes} />
           </span>
           <span className="text-3xl font-bold text-slate-300 dark:text-slate-600">
             / {totalParticipants}
@@ -48,7 +50,7 @@ export default memo(function CheckProgress({ sessionId, questionId, presenter = 
             className="h-full w-full origin-left bg-slate-900 dark:bg-slate-100 rounded-full"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: pct / 100 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            transition={grow}
           />
         </div>
         <div className="flex justify-between text-sm text-slate-400 dark:text-slate-500 tabular-nums">
@@ -69,9 +71,11 @@ export default memo(function CheckProgress({ sessionId, questionId, presenter = 
               {completedList.slice(0, maxDisplayed).map((v, i) => (
                 <motion.div
                   key={v.id}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 25, delay: Math.min(i, 12) * 0.03 }}
+                  layout="position"
+                  initial={popIn.initial}
+                  animate={popIn.animate}
+                  exit={popIn.exit}
+                  transition={{ ...popIn.transition, delay: stagger(i, { cap: 12 }) }}
                   className="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full pl-1.5 pr-3 py-1"
                 >
                   <div className="w-5 h-5 rounded-full bg-slate-900 dark:bg-slate-100 flex items-center justify-center">

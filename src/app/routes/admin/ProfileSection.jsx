@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { authenticatedRequest, restoreStaffProfile, auth, notifyStaffProfileChange } from '@/lib/auth-session';
 import Button from '@/components/ui/Button';
 import { User, Check, AlertCircle } from 'lucide-react';
 
 const itemVariant = {
   initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
+  animate: { opacity: 1, y: 0, transition: spring.default },
 };
 
 export default function ProfileSection({ adminUser }) {

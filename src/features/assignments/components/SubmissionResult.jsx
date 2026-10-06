@@ -1,5 +1,6 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Trophy, Clock } from 'lucide-react';
 import { JUDGES, AWARDS, getAwardById } from '@/lib/judging/judges';
 import JudgeResultCard from './JudgeResultCard';
@@ -19,7 +20,7 @@ export default function SubmissionResult({ submission, results, awards, passThre
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         className="flex flex-col items-center justify-center py-16 space-y-4"
       >
         <DoranDoranMascot size="md" mood="waiting" />
@@ -47,14 +48,14 @@ export default function SubmissionResult({ submission, results, awards, passThre
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         className="text-center space-y-3"
       >
         <p className="text-sm text-slate-400">{submission.name}님의 심사 결과</p>
         <motion.p
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.1 }}
+          transition={{ ...spring.bouncy, delay: 0.1 }}
           className="text-5xl font-bold text-slate-900 dark:text-slate-100 tracking-tight tabular-nums"
         >
           {summary.avgScore}
@@ -78,7 +79,7 @@ export default function SubmissionResult({ submission, results, awards, passThre
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.3 }}
+            transition={{ ...spring.bouncy, delay: 0.3 }}
             className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-full text-sm font-bold"
           >
             <Trophy size={16} />
@@ -95,7 +96,7 @@ export default function SubmissionResult({ submission, results, awards, passThre
             key={judge.id}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25, delay: i * 0.05 }}
+            transition={{ ...spring.default, delay: i * 0.05 }}
           >
             <JudgeResultCard judge={judge} result={judges?.[judge.id]} />
           </motion.div>

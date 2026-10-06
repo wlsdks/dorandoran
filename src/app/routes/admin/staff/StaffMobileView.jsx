@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { ArrowLeft, MessageCircle, Hand, MessageSquare, Users, LogOut, FileText, Coffee, Trophy, Award, BarChart3 } from 'lucide-react';
 import { useParticipants } from '@/features/participants/api/useParticipants';
 import StaffDMAlert from '@/features/dm/components/StaffDMAlert';
@@ -93,7 +94,7 @@ export default function StaffMobileView({ sessionId, session, adminUser, onBack,
               {courseName} {round}
             </h1>
             <div className="flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-slate-400">
-              <span><motion.span key={count} initial={{ scale: 1.15 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 22 }} className="inline-block tabular-nums">{count}</motion.span>명 접속</span>
+              <span><motion.span key={count} initial={{ scale: 1.15 }} animate={{ scale: 1 }} transition={spring.bouncy} className="inline-block tabular-nums">{count}</motion.span>명 접속</span>
               <span>·</span>
               <span>스태프</span>
             </div>

@@ -1,5 +1,6 @@
 import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { snap } from '@/lib/motion';
 import { Users, UserCog } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import ParticipantList from '@/features/participants/components/ParticipantList';
@@ -31,7 +32,7 @@ function TabButton({ active, onClick, icon: Icon, label, count = 0 }) {
         <motion.span
           layoutId="people-hub-underline"
           className="absolute inset-x-2 bottom-0 h-[2px] bg-slate-900 dark:bg-slate-100 rounded-full"
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          transition={snap}
         />
       )}
     </button>

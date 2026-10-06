@@ -4,6 +4,7 @@ import RankingHighlightControls from '@/features/quiz/components/RankingHighligh
 import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
 import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
+import { swap } from '@/lib/motion';
 import { isQuizQuestion, normalizeQuizEvent } from '@/lib/quiz';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, QrCode, X, Copy, Check, Hand, MessageSquare, ChevronDown, ChevronLeft, ChevronRight, Eye, Trophy, Maximize, Minimize } from 'lucide-react';
@@ -39,18 +40,12 @@ const CombinedRanking = lazy(() => import('@/features/quiz/components/CombinedRa
 const QARanking = lazy(() => import('@/features/class-questions/components/QARanking'));
 const JoinShow = lazy(() => import('@/features/games/components/JoinShow'));
 
-// Mode-specific transition variants (MainContent 전용 로컬 헬퍼)
-function getModeVariants(mode) {
-  if (mode === 'leaderboard') {
-    return { initial: { opacity: 0, y: -12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 12 } };
-  }
-  if (['lottery', 'scratchCard', 'breakTime', 'awards', 'randomPicker', 'comprehension', 'quickSurvey', 'discussion', 'focus', 'combinedRanking', 'qaRanking', 'joinShow'].includes(mode)) {
-    return { initial: { opacity: 0, scale: 0.98 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.98 } };
-  }
-  if (['poll', 'quiz'].includes(mode)) {
-    return { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -12 } };
-  }
-  return { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
+// 활동 교체 궤적 — 전자칠판(LivePage)과 같은 swap() 프리셋을 쓴다. 모드별 종류만 고른다.
+function swapKind(mode) {
+  if (mode === 'leaderboard') return 'leaderboard';
+  if (['lottery', 'scratchCard', 'breakTime', 'awards', 'randomPicker', 'comprehension', 'quickSurvey', 'discussion', 'focus', 'combinedRanking', 'qaRanking', 'joinShow'].includes(mode)) return 'stage';
+  if (['poll', 'quiz'].includes(mode)) return 'question';
+  return 'fade';
 }
 
 function MainContent({ currentMode, sessionId, session, onlineList, leaderboard, drawParticipants, presentMode, studentUrl, count, onGameResult, onLeaderboardPageChange, onHighlightChange }) {
@@ -115,15 +110,13 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
     content = <VizRenderer sessionId={sessionId} session={session} isAdmin />;
   }
 
-  const variants = getModeVariants(gameContent ? currentMode : isActive ? currentMode : 'waiting');
+  const variants = swap(swapKind(gameContent ? currentMode : isActive ? currentMode : 'waiting'));
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
         key={contentKey}
         {...variants}
-        exit={{ ...variants.exit, transition: { type: 'tween', duration: 0.12, ease: 'easeIn' } }}
-        transition={{ type: 'tween', duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
         className={`flex-1 flex justify-center w-full ${contentKey === 'game-qaBoard' ? 'items-start overflow-y-auto' : 'items-center'}`}
       >
         {content}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import { getServerNow } from '@/features/timer/api/useTimer';
+import { spring, roll, exitTween } from '@/lib/motion';
 
 function getColor(secondsLeft, totalSeconds) {
   const ratio = totalSeconds > 0 ? secondsLeft / totalSeconds : 0;
@@ -59,15 +60,16 @@ export default function TimerCountdown({ endTime, duration, onExpire, presenter 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -8, height: 0 }}
-      animate={{ opacity: 1, y: 0, height: 'auto' }}
-      exit={{ opacity: 0, y: -8, height: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8, transition: exitTween }}
+      transition={spring.default}
       className={`rounded-xl shadow-sm ${presenter ? 'px-6 py-4 border border-slate-700' : 'px-4 py-3'} ${color.bg} transition-colors duration-300`}
     >
       <motion.div
-        animate={isUrgent ? { x: [0, -3, 3, -2, 2, 0], scale: [1, 1.04, 1] } : isPulsing ? { scale: [1, 1.03, 1] } : {}}
-        transition={isUrgent ? { repeat: Infinity, duration: 0.5 } : isPulsing ? { repeat: Infinity, duration: 0.6 } : {}}
+        // 마지막 5초는 심장 박동처럼 — 흔들지 않고(멀미) 1초에 한 번 커졌다 돌아온다. 3초 이하에선 조금 더 크게.
+        animate={isUrgent ? { scale: [1, 1.05, 1] } : isPulsing ? { scale: [1, 1.03, 1] } : { scale: 1 }}
+        transition={isPulsing ? { repeat: Infinity, duration: isUrgent ? 0.5 : 0.6, ease: 'easeInOut' } : {}}
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
@@ -78,8 +80,9 @@ export default function TimerCountdown({ endTime, duration, onExpire, presenter 
           </div>
           <motion.span
             key={secondsLeft}
-            initial={{ opacity: 0.6, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0.4, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={roll}
             className={`${presenter ? 'text-[clamp(22px,1.7vw,38px)] leading-none' : 'text-sm'} font-bold tabular-nums ${color.text} transition-colors duration-300`}
           >
             {formatTime(secondsLeft)}
@@ -90,7 +93,7 @@ export default function TimerCountdown({ endTime, duration, onExpire, presenter 
           <motion.div
             className={`h-full w-full origin-left rounded-full ${color.bar}`}
             animate={{ scaleX: progress }}
-            transition={{ duration: 0.3, ease: 'linear' }}
+            transition={{ duration: 0.2, ease: 'linear' }}
           />
         </div>
       </motion.div>

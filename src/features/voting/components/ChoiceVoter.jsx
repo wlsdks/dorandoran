@@ -4,6 +4,8 @@ import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { motion } from 'framer-motion';
+import { spring, stagger } from '@/lib/motion';
+import { motion as motionTokens } from '@/lib/design-tokens';
 import { RotateCcw } from 'lucide-react';
 import { useState, useEffect, memo } from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -125,8 +127,8 @@ export default memo(function ChoiceVoter({ sessionId, questionId, options, optio
               scale: isSelected ? [0.95, 1.04, 1] : 1,
             }}
             transition={isSelected
-              ? { scale: { type: 'spring', stiffness: 300, damping: 25 }, opacity: { duration: 0.2 } }
-              : { delay: hasSelection ? 0 : i * 0.05, type: 'spring', stiffness: 300, damping: 25, opacity: { duration: 0.15 } }
+              ? { scale: spring.bouncy, opacity: { duration: 0.2 } }
+              : { ...spring.default, delay: hasSelection ? 0 : stagger(i, { step: motionTokens.stagger.normal }), opacity: { duration: 0.15 } }
             }
             whileTap={!hasSelection ? { scale: 0.95 } : undefined}
             onClick={() => { hapticTap(); handleVote(option); }}

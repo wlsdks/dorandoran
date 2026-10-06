@@ -1,6 +1,7 @@
 import './LargeDisplayGames.css';
 import { useState, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { spring, reveal, stagger } from '@/lib/motion';
 import { Gift, Loader2, Minus, Plus, RotateCcw, Trophy, Monitor, ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
@@ -119,11 +120,7 @@ function BigSlot({
         } : {
           y: '-110%',
           opacity: 0
-        }} transition={stopped ? {
-          type: 'spring',
-          stiffness: 400,
-          damping: 18
-        } : {
+        }} transition={stopped ? reveal : {
           duration: 0.08,
           ease: 'linear'
         }} className={`text-white font-bold tracking-tight truncate max-w-full tabular-nums ${nameSize} ${!stopped ? 'blur-[0.6px]' : ''}`}>
@@ -160,11 +157,7 @@ function PastWinner({
     opacity: 1,
     scale: 1,
     y: 0
-  }} transition={{
-    type: 'spring',
-    stiffness: 360,
-    damping: 22
-  }} className={`inline-flex items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 ${presenter ? 'px-4 py-2 text-base' : 'px-3 py-1.5 text-sm'}`}>
+  }} transition={spring.bouncy} className={`inline-flex items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 ${presenter ? 'px-4 py-2 text-base' : 'px-3 py-1.5 text-sm'}`}>
       <Trophy size={presenter ? 16 : 13} className="text-amber-500 shrink-0" />
       <span className="text-slate-400 font-bold">#{slotIdx + 1}</span>
       <span className="text-slate-900 dark:text-slate-100 font-bold tabular-nums">{drawPrimary(winner, displayMode)}</span>
@@ -179,10 +172,12 @@ const SPARKLE_ANGLES = Array.from({
 function SparkleBurst({
   presenter
 }) {
+  // 거리는 한 번만 정한다 — 렌더마다 Math.random()을 부르면 부모가 다시 그릴 때 목표점이 바뀌어 튄다
+  const distances = useMemo(() => SPARKLE_ANGLES.map(() => (presenter ? 120 : 80) + Math.random() * 30), [presenter]);
   return <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
       {SPARKLE_ANGLES.map((angle, i) => {
       const rad = angle * Math.PI / 180;
-      const distance = (presenter ? 120 : 80) + Math.random() * 30;
+      const distance = distances[i];
       return <motion.div key={i} className={`absolute top-1/2 left-1/2 ${presenter ? 'w-3 h-3' : 'w-2 h-2'} rounded-full ${i % 2 === 0 ? 'bg-amber-300' : 'bg-white'}`} style={{
         marginLeft: presenter ? -6 : -4,
         marginTop: presenter ? -6 : -4
@@ -486,11 +481,7 @@ export default function Lottery({
           y: 0
         }} exit={{
           opacity: 0
-        }} transition={{
-          type: 'spring',
-          stiffness: 300,
-          damping: 25
-        }} className="lottery-results flex flex-col items-center gap-5">
+        }} transition={spring.default} className="lottery-results flex flex-col items-center gap-5">
               {!reduced && !mirrorError && <Suspense fallback={null}><ConfettiBurst /></Suspense>}
               <h3 className={`inline-flex items-center gap-3 font-bold tracking-tight text-slate-900 dark:text-slate-100 ${presenter ? 'text-[clamp(36px,3.2vw,64px)]' : 'text-2xl'}`}>
                 <Trophy className="h-[0.8em] w-[0.8em] text-amber-500" aria-hidden="true" />
@@ -504,10 +495,8 @@ export default function Lottery({
               opacity: 1,
               scale: 1
             }} transition={{
-              delay: i * 0.08,
-              type: 'spring',
-              stiffness: 360,
-              damping: 22
+              ...spring.bouncy,
+              delay: reduced ? 0 : stagger(i, { step: 0.08, cap: 6 })
             }} className={`lottery-result-card flex flex-col items-center bg-slate-900 rounded-2xl shadow-lg ${presenter ? (viewWinners.length === 1 ? 'w-[clamp(340px,30vw,680px)] min-h-[clamp(340px,40dvh,540px)] p-8 justify-center' : viewWinners.length <= 3 ? 'w-[clamp(270px,21vw,460px)] min-h-[clamp(340px,38dvh,500px)] p-6 justify-center' : 'w-[clamp(200px,22vw,340px)] min-h-[240px] p-5') : 'w-[clamp(140px,18vw,192px)] min-h-36 p-3'}`}>
                     <Avatar name={w.nickname} size={presenter ? "2xl" : "lg"} className={presenter ? (viewWinners.length > 3 ? "lottery-result-avatar shrink-0" : "shrink-0 !w-[clamp(96px,10vw,192px)] !h-[clamp(96px,10vw,192px)] !text-[clamp(32px,3.5vw,64px)]") : ""} />
                     {/* 발표 후 남는 화면 — 강사가 당첨자를 호명하는 곳이라 사번이 여기에도 있어야 한다. */}

@@ -6,6 +6,7 @@ import { formatPercent } from '@/lib/utils';
 import PollColumns from './PollColumns';
 import ImageOptionBoard from './ImageOptionBoard';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
+import { grow, dim, popIn, spring, stagger } from '@/lib/motion';
 
 // columns=false: 옆에 정답 해설이 붙어 폭이 좁을 때. 세로 막대는 좁으면 보기 글자가 한 음절씩 끊기므로 가로 막대로 그린다.
 export default memo(function BarChart({ sessionId, questionId, options, correctValue = null, revealed = false, presenter = false, hideResults = false, page = 0, onPageChange, columns = true, optionImages = null }) {
@@ -42,7 +43,7 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
         const correct = revealed && correctValue === option;
         // 정답 공개 뒤 틀린 보기는 살짝 가라앉힌다 — Framer가 inline opacity를 쥐고 있어 CSS 클래스 대신 여기서 애니메이션한다
         const dimmed = revealed && correctValue != null && !correct;
-        return <motion.div key={`${questionId}:${index}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: dimmed ? 0.55 : 1, y: 0 }} transition={{ duration: 0.2 }}
+        return <motion.div key={`${questionId}:${index}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: dimmed ? dim.option : 1, y: 0 }} transition={{ ...spring.default, delay: stagger(offset), opacity: { duration: 0.24 } }}
           data-correct={correct} className={`classroom-option-card rounded-xl border ${presenter ? 'px-4 py-3 lg:px-5 lg:py-3.5' : 'p-4'} ${correct ? 'answer-glow border-indigo-300 bg-indigo-50 text-indigo-950 dark:border-indigo-400/70 dark:bg-indigo-500/15 dark:text-slate-50' : 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-600/70 dark:bg-slate-800/60 dark:text-slate-100'}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
@@ -50,14 +51,14 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
               <p className={`${presenter ? 'classroom-option-label' : 'text-lg'} font-semibold leading-snug break-words flex items-start gap-3`}>
                 <span className="poll-option-letter shrink-0">{String.fromCharCode(65 + index)}</span>
                 <span className="min-w-0">{option}</span>
-                {correct && <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-indigo-600 dark:bg-indigo-500 text-white px-2 py-0.5 text-sm lg:text-base font-semibold whitespace-nowrap self-center"><Check size={16} />정답</span>}
+                {correct && <motion.span {...popIn} transition={{ ...popIn.transition, delay: 0.18 }} className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-indigo-600 dark:bg-indigo-500 text-white px-2 py-0.5 text-sm lg:text-base font-semibold whitespace-nowrap self-center"><Check size={16} />정답</motion.span>}
               </p>
             </div>
             {/* 숫자는 비율 하나만 크게. 인원은 막대 아래 작게 둬 "1 20%"처럼 숫자 두 개가 붙지 않게 한다. */}
             {!concealed && !loading && <p className={`classroom-option-statistics shrink-0 ${presenter ? 'classroom-option-count' : 'text-2xl'} leading-none font-bold tabular-nums ${correct ? 'text-indigo-700 dark:text-indigo-200' : ''}`}>{formatPercent(count, visibleTotal)}</p>}
           </div>
           <div className={`mt-3 ${presenter ? 'h-2.5 lg:h-3' : 'h-2'} rounded-full overflow-hidden ${correct ? 'bg-indigo-200 dark:bg-indigo-400/20' : 'bg-slate-200 dark:bg-slate-700'}`}>
-            <motion.div initial={false} animate={{ scaleX: percent / 100 }} transition={{ type: 'spring', stiffness: 150, damping: 26 }}
+            <motion.div initial={false} animate={{ scaleX: percent / 100 }} transition={grow}
               className={`h-full w-full origin-left ${correct ? 'bg-indigo-600 dark:bg-indigo-400' : revealed && correctValue ? 'bg-slate-400 dark:bg-slate-500' : 'bg-indigo-500'}`} />
           </div>
           {!concealed && !loading && <p className={`mt-1.5 text-right tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'text-sm lg:text-base' : 'text-xs'}`}><AnimatedNumber value={count} className="font-semibold text-slate-700 dark:text-slate-300" />명</p>}

@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Send, MessageCircle, Cloud, PenLine } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useMyVote } from '@/hooks/useMyVote';
@@ -21,14 +22,14 @@ function SubmitConfirm({ type, value }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="w-full rounded-xl bg-white dark:bg-slate-800 px-5 py-8 shadow-sm"
     >
       <div className="flex flex-col items-center gap-4">
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
+          transition={{ ...spring.default, delay: 0.15 }}
         >
           <div className="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center">
             <Icon size={24} className="text-white" />
@@ -111,7 +112,7 @@ export default memo(function TextInput({ sessionId, questionId, type = 'wordclou
     <motion.form
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       onSubmit={handleSubmit}
       className="w-full space-y-3"
     >

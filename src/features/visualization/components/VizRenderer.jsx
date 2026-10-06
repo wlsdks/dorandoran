@@ -36,6 +36,8 @@ import { db } from '@/lib/firebase';
 import { lazy, Suspense, useState, useEffect } from 'react';
 
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
+import { motion } from 'framer-motion';
+import { popIn, fadeUpSm } from '@/lib/motion';
 import { Check } from 'lucide-react';
 import { TYPE_LABELS } from '@/lib/question-types';
 import './PresentationViz.css';
@@ -118,16 +120,16 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
             <div className="flex items-center justify-center gap-2">
               <Badge variant="primary">{TYPE_LABELS[question.type] || question.type}</Badge>
               {answerRevealed && (hasCorrectAnswer || question.type === 'ranking') && (
-                <span data-answer-revealed className={`inline-flex items-center gap-1 rounded-full bg-indigo-600 text-white font-semibold ${isPresenter ? 'px-3 py-1 text-sm lg:text-base' : 'px-2.5 py-0.5 text-xs'}`}>
+                <motion.span data-answer-revealed {...popIn} transition={{ ...popIn.transition, delay: 0.12 }} className={`inline-flex items-center gap-1 rounded-full bg-indigo-600 text-white font-semibold ${isPresenter ? 'px-3 py-1 text-sm lg:text-base' : 'px-2.5 py-0.5 text-xs'}`}>
                   <Check size={isPresenter ? 16 : 12} aria-hidden="true" />정답 공개
-                </span>
+                </motion.span>
               )}
             </div>
             <h2 className={`${compact ? 'text-xl' : isPresenter ? 'classroom-question-title' : 'preview-question-title'} font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight`}>{question.title}</h2>
             {hasCorrectAnswer && isQuizQuestion(question) && answerRevealed && (options.length > 6 || !['choice','quiz','ox'].includes(question.type)) && (
-              <p className={isPresenter ? "text-slate-200 text-xl lg:text-2xl" : "text-slate-400 text-sm"}>
+              <motion.p initial={fadeUpSm.initial} animate={fadeUpSm.animate} transition={{ ...fadeUpSm.transition, delay: 0.2 }} className={isPresenter ? "text-slate-200 text-xl lg:text-2xl" : "text-slate-400 text-sm"}>
                 <span className="inline-block rounded-xl bg-indigo-100 text-indigo-950 px-5 py-2 font-bold">정답 · {question.correctAnswer}</span>
-              </p>
+              </motion.p>
             )}
             {/* 발표 화면은 세로 공간이 좁아 질문 이미지를 더 낮게 두고, 해설이 나오면 해설에 자리를 내준다 */}
             {question.imageUrl && !sideImage && (

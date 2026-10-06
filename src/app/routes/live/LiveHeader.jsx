@@ -1,5 +1,7 @@
 import { memo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { popIn } from '@/lib/motion';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
 import { Users, Maximize, Minimize, QrCode, Hand, AlertCircle } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import Badge from '@/components/ui/Badge';
@@ -40,42 +42,33 @@ export default memo(function LiveHeader({ courseName, roundNumber, count, handCo
         </button>}
         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         {/* P1-4: 손들기/긴급질문 카운트 — 강사 호명용. 명단은 프라이버시상 미노출 */}
+        {/* 칩은 생길 때 한 번 튀어 오르고, 안의 숫자만 이어서 바뀐다(매번 다시 튀지 않는다) */}
+        <AnimatePresence initial={false}>
         {handCount > 0 && (
           <motion.span
-            key={`hand-${handCount}`}
-            initial={{ opacity: 0.6, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            key="hand"
+            {...popIn}
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold tabular-nums"
             aria-label={`손든 학생 ${handCount}명`}
           >
             <Hand size={14} className="text-slate-500 dark:text-slate-400" />
-            {handCount}
+            <AnimatedNumber value={handCount} />
           </motion.span>
         )}
         {urgentCount > 0 && (
           <motion.span
-            key={`urgent-${urgentCount}`}
-            initial={{ opacity: 0.6, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            key="urgent"
+            {...popIn}
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm font-semibold tabular-nums"
             aria-label={`읽지 않은 긴급 질문 ${urgentCount}건`}
           >
             <AlertCircle size={14} />
-            {urgentCount}
+            <AnimatedNumber value={urgentCount} />
           </motion.span>
         )}
+        </AnimatePresence>
         <Users size={16} className="text-slate-400" />
-        <motion.span
-          key={count}
-          initial={{ opacity: 0.6, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="text-slate-900 dark:text-slate-100 font-bold text-xl tabular-nums tracking-tight"
-        >
-          {count}
-        </motion.span>
+        <AnimatedNumber value={count} className="text-slate-900 dark:text-slate-100 font-bold text-xl tabular-nums tracking-tight" />
         <span className="text-slate-400 dark:text-slate-500 text-sm">명</span>
         {studentUrl && (
           <button

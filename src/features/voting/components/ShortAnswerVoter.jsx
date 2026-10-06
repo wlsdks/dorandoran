@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { useState, useCallback, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Send } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import VoteConfirm from './VoteConfirm';
@@ -71,7 +72,7 @@ export default memo(function ShortAnswerVoter({ sessionId, questionId, disabled 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="w-full space-y-4"
     >
       <AnimatePresence>{error && <VoteErrorToast message={error} />}</AnimatePresence>

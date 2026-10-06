@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { ref, onChildAdded } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { slideInRight, settle } from '@/lib/motion';
 import Avatar from '@/components/ui/Avatar';
 import { ROSTER_SOURCE } from '@/lib/roster';
 import { abortableDelay } from '@/lib/async-work';
@@ -77,10 +78,9 @@ export default function JoinToast({ sessionId }) {
         {visible.filter(item => item.sessionId === sessionId).map((item) => (
           <motion.div
             key={item.id}
-            initial={{ opacity: 0, x: 44, scale: 0.92 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 44, scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+            layout="position"
+            {...slideInRight}
+            transition={{ ...slideInRight.transition, layout: settle }}
             className="flex items-center gap-2.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md shadow-lg ring-1 ring-slate-900/5 dark:ring-white/10 pl-2 pr-4 py-2 rounded-full whitespace-nowrap"
           >
             <div className="relative shrink-0">

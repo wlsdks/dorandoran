@@ -1,5 +1,6 @@
 import { useState, useMemo, memo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { stagger, spring } from '@/lib/motion';
 import { ChevronDown, Copy, Trash2, Users } from 'lucide-react';
 
 const CourseStaffModal = lazy(() => import('./CourseStaffModal'));
@@ -36,7 +37,7 @@ const SessionRow = memo(function SessionRow({ session, onClick, onDelete, onDupl
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.2, delay: index * 0.02 }}
+      transition={{ duration: 0.2, delay: stagger(index, { step: 0.02, cap: 10 }) }}
       role="button"
       tabIndex={0}
       aria-label={`${session.roundNumber ? `${session.roundNumber}차` : '세션'} ${formatDate(session.createdAt)} 열기`}
@@ -116,7 +117,7 @@ export function CourseGroup({ name, sessions, onSelect, onDelete, onDuplicate, s
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: groupIndex * 0.05, type: 'spring', stiffness: 300, damping: 25 }}
+      transition={{ ...spring.default, delay: groupIndex * 0.05 }}
       className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
     >
       <div className="px-5 py-6">
@@ -161,7 +162,7 @@ export function CourseGroup({ name, sessions, onSelect, onDelete, onDuplicate, s
               <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{stats.avgActivity}%</span>
             </div>
             <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full transition-all duration-500"
+              <div className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full transition-[width] duration-300 ease-out"
                 style={{ width: `${stats.avgActivity}%` }} />
             </div>
           </div>
@@ -205,7 +206,7 @@ export function UngroupedSessions({ sessions, onSelect, onDelete, onDuplicate, s
   if (sessions.length === 0) return null;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: groupIndex * 0.05, type: 'spring', stiffness: 300, damping: 25 }}>
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring.default, delay: groupIndex * 0.05 }}>
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-shadow duration-200">
         <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-700">
           <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">미분류 클래스</span>

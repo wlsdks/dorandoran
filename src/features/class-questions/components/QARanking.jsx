@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { HelpCircle, MessageSquare, Crown, Trophy, Medal, Award } from 'lucide-react';
 import { useQAStats } from '@/features/class-questions/api/useQAStats';
 import EmptyState from '@/components/ui/EmptyState';
@@ -20,7 +21,7 @@ function RankRow({ entry, rank, field, presenter = false }) {
       layout
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25, delay: rank * 0.04 }}
+      transition={{ ...spring.default, delay: rank * 0.04 }}
       className={`flex items-center gap-3 px-4 py-3 rounded-xl ${presenter ? "min-h-16" : ""} transition-colors duration-150 ${
         isPodium
           ? 'bg-white dark:bg-slate-800 shadow-sm'

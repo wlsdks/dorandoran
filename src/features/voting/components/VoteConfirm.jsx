@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { spring, settle } from '@/lib/motion';
 import { useState, useEffect, useMemo, memo } from 'react';
 import { hapticSuccess } from '@/lib/haptics';
 
@@ -81,7 +82,7 @@ function AnimatedCheck({ reduced }) {
       <motion.div
         initial={reduced ? false : { scale: 0.9 }}
         animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+        transition={settle}
         className="absolute inset-0 bg-slate-900 dark:bg-slate-100 rounded-full"
       />
 
@@ -130,7 +131,7 @@ export default memo(function VoteConfirm({
     <motion.div
       initial={reduced ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       role="status"
       aria-live="polite"
       className="w-full rounded-xl bg-white dark:bg-slate-800 px-5 py-8 shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700/60"
@@ -191,7 +192,7 @@ export default memo(function VoteConfirm({
           <motion.div
             initial={reduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, type: 'spring', stiffness: 300, damping: 25 }}
+            transition={{ ...spring.default, delay: 0.35 }}
             className="rounded-xl ring-1 ring-slate-200 dark:ring-slate-600 bg-slate-50 dark:bg-slate-700/80 px-4 py-3 text-center w-full"
           >
             <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">{selectedAnswerLabel}</p>

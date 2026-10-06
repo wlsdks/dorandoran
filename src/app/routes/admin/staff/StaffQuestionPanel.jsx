@@ -1,5 +1,6 @@
 import { useState, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { MessageCircle, ChevronDown, AlertCircle, HelpCircle, Check } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
 import { timeAgo } from '@/lib/utils';
@@ -90,7 +91,7 @@ function AccordionSection({ icon: Icon, title, count, defaultOpen, badgeVariant,
             initial={{ height: 0 }}
             animate={{ height: 'auto' }}
             exit={{ height: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            transition={spring.default}
             className="overflow-hidden"
           >
             <div className="px-3.5 pb-3 space-y-1.5">

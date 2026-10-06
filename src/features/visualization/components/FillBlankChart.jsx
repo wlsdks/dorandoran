@@ -1,5 +1,6 @@
 import { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { useVotes } from '@/hooks/useVotes';
 import { normalizeAnswer } from '@/lib/utils';
 import AnswerDistribution from './AnswerDistribution';
@@ -16,7 +17,7 @@ function SentenceDisplay({ title, correctAnswer, revealed, presenter }) {
             <motion.span
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.2 }}
+              transition={{ ...spring.default, delay: 0.2 }}
               // 밑줄(border-b) 대신 둥근 칩 하나로 빈칸을 표시한다 — 공개 전은 점선 테두리, 공개 후는 인디고 틴트.
               className={`inline-block mx-1 px-[0.45em] py-[0.05em] rounded-[0.35em] font-bold tracking-tight align-baseline ${
                 revealed
@@ -78,14 +79,14 @@ export default memo(function FillBlankChart({ sessionId, questionId, title, corr
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          transition={spring.default}
           className="text-center space-y-2"
         >
           <motion.p
             key={correctCount}
             initial={{ scale: 1.2 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+            transition={spring.bouncy}
             className="text-5xl font-black text-slate-900 dark:text-slate-100 tabular-nums"
           >
             {correctPct}%
@@ -109,7 +110,7 @@ export default memo(function FillBlankChart({ sessionId, questionId, title, corr
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ ...spring.default, delay: 0.15 }}
           className="space-y-2"
         >
           <AnswerDistribution answers={topAnswers} revealed={revealed} presenter={presenter} />

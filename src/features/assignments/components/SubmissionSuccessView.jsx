@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Check } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAIAvailability } from '@/hooks/useAIAvailability';
@@ -14,13 +15,13 @@ export default function SubmissionSuccessView({ onEdit }) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="flex flex-col items-center justify-center py-16 space-y-4"
     >
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.1 }}
+        transition={{ ...spring.bouncy, delay: 0.1 }}
         className="w-16 h-16 rounded-2xl bg-slate-900 dark:bg-slate-100 flex items-center justify-center"
       >
         <Check size={28} className="text-white dark:text-slate-900" />

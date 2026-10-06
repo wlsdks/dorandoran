@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { goOffline, goOnline } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
@@ -103,7 +104,7 @@ export default function ConnectionBanner({ inlineStatus = false }) {
         {showBanner && minimized && !inlineStatus && (
           <motion.div
             initial={{ opacity: 0, y: -12, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -12, scale: 0.96 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            transition={spring.default}
             className="fixed inset-x-0 top-[calc(env(safe-area-inset-top)+4.75rem)] z-30 flex justify-center px-4 pointer-events-none"
           >
             <button type="button" onClick={() => offline && setMinimized(false)} aria-label={offline ? `연결이 끊겼어요. ${detail}. 안내 열기` : '다시 연결됐어요'}

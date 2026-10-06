@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 
 /**
  * AnswerExplanation — 정답 공개 뒤 보여주는 해설 글과 참고 이미지(둘 다 선택).
@@ -21,7 +22,7 @@ export default memo(function AnswerExplanation({ text, imageSrc, presenter = fal
     <motion.figure
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
+      transition={{ ...spring.default, delay: 0.15 }}
       data-answer-explanation
       className={presenter
         ? 'w-full min-w-0 lg:flex-[2] space-y-4 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 p-5 lg:p-6'

@@ -4,6 +4,8 @@ import { Check, ImageOff } from 'lucide-react';
 import { formatPercent } from '@/lib/utils';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
 import { isAutoPhotoName } from '@/lib/option-images';
+import { grow, dim, popIn, spring, stagger } from '@/lib/motion';
+import { motion as motionTokens } from '@/lib/design-tokens';
 
 // 보기 수 → 열 수. 사진을 비교해 고르는 문제라 사진이 크게, 한 줄에 나란히 보여야 한다(5개만 3+2).
 const COLUMNS = { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-2 xl:grid-cols-4', 5: 'grid-cols-3' };
@@ -28,8 +30,8 @@ export default memo(function ImageOptionBoard({ options, optionImages, counts, t
         const image = optionImages[index];
         return (
           <motion.figure key={index} data-correct={correct}
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: dimmed ? 0.55 : 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25, delay: index * 0.05 }}
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: dimmed ? dim.option : 1, y: 0 }}
+            transition={{ ...spring.default, delay: stagger(index, { step: motionTokens.stagger.normal }), opacity: { duration: 0.24 } }}
             // overflow-hidden은 사진 칸에만 — 카드에 두면 정답 공개 때 바깥 후광(answer-glow)이 잘린다
             className={`relative flex flex-col rounded-2xl border bg-white dark:bg-slate-800 ${correct ? 'answer-glow border-indigo-500' : 'border-slate-200 dark:border-slate-700'}`}>
             <div className="relative aspect-[4/3] overflow-hidden rounded-t-[15px] bg-slate-100 dark:bg-slate-900">
@@ -38,7 +40,7 @@ export default memo(function ImageOptionBoard({ options, optionImages, counts, t
                 : <div className="absolute inset-0 flex items-center justify-center text-slate-400"><ImageOff size={presenter ? 40 : 24} aria-hidden="true" /></div>}
               {/* 보기 글자는 사진 위 왼쪽 위 — 뒷자리에서도 "B번 사진"을 바로 가리킬 수 있게 */}
               <span className={`absolute left-3 top-3 flex items-center justify-center rounded-xl bg-slate-900/85 text-white font-bold shadow ${presenter ? 'h-12 w-12 text-2xl lg:h-14 lg:w-14 lg:text-3xl' : 'h-8 w-8 text-base'}`}>{letter}</span>
-              {correct && <span className={`absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 text-white font-bold shadow ${presenter ? 'px-4 py-2 text-xl lg:text-2xl' : 'px-2.5 py-1 text-sm'}`}><Check size={presenter ? 24 : 16} />정답</span>}
+              {correct && <motion.span {...popIn} transition={{ ...popIn.transition, delay: 0.18 }} className={`absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 text-white font-bold shadow ${presenter ? 'px-4 py-2 text-xl lg:text-2xl' : 'px-2.5 py-1 text-sm'}`}><Check size={presenter ? 24 : 16} />정답</motion.span>}
             </div>
             {/* 숫자는 하나만 크게(비율), 인원은 막대 아래 작게 — "0 0%"처럼 숫자 두 개가 붙지 않게 */}
             <figcaption className={presenter ? 'px-4 pt-3 pb-4 lg:px-5 space-y-2' : 'px-3 pt-2.5 pb-3 space-y-1.5'}>
@@ -48,7 +50,7 @@ export default memo(function ImageOptionBoard({ options, optionImages, counts, t
               </div>
               {showStats && <>
                 <div className={`${presenter ? 'h-2.5' : 'h-1.5'} rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700`}>
-                  <motion.div initial={false} animate={{ scaleX: percent / 100 }} transition={{ type: 'spring', stiffness: 150, damping: 26 }}
+                  <motion.div initial={false} animate={{ scaleX: percent / 100 }} transition={grow}
                     className="h-full w-full origin-left bg-indigo-500" />
                 </div>
                 <p className={`text-right tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'text-sm lg:text-base' : 'text-xs'}`}><AnimatedNumber value={count} className="font-semibold text-slate-700 dark:text-slate-300" />명</p>

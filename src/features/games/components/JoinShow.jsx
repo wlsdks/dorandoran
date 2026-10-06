@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import Avatar from '@/components/ui/Avatar';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { useParticipants } from '@/features/participants/api/useParticipants';
+import { ease, exitTween, count as countMotion } from '@/lib/motion';
 import './JoinShow.css';
 
 /** Retarget from the displayed value; no React render on each animation frame. */
@@ -13,9 +14,10 @@ function EntryCount({ value }) {
   const rounded = useTransform(displayed, number => Math.round(number));
   useEffect(() => {
     const distance = Math.abs(value - displayed.get());
+    // 한 명이 들어오면 짧게, 수십 명이 한꺼번에 들어오면 조금 길게 — 그래도 점수 카운트(0.45s)보다 길지 않다.
     const control = animate(displayed, value, {
-      duration: reduced ? 0 : Math.min(1.25, 0.5 + distance * 0.008),
-      ease: [0.22, 1, 0.36, 1],
+      duration: reduced ? 0 : Math.min(countMotion.score.duration, countMotion.number.duration + distance * 0.004),
+      ease: countMotion.number.ease,
     });
     return () => control.stop();
   }, [displayed, reduced, value]);
@@ -56,9 +58,9 @@ export default memo(function JoinShow({ sessionId, eventMode = false }) {
     <div className="entry-welcome" role="status" aria-live="polite" aria-atomic="true">
       <AnimatePresence mode="wait" initial={false}>
         {latest ? <motion.div key={latest.id} className="entry-welcome-line"
-          initial={{ opacity: 0, y: reduced ? 0 : 6 }} animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, transition: { duration: reduced ? 0 : 0.1 } }}
-          transition={{ duration: reduced ? 0 : 0.24, ease: 'easeOut' }}>
+          initial={{ opacity: 0, y: reduced ? 0 : 8 }} animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: reduced ? 0 : -6, transition: reduced ? { duration: 0 } : exitTween }}
+          transition={{ duration: reduced ? 0 : 0.22, ease: ease.out }}>
           <div className="entry-avatar-stack" aria-hidden="true">
             {[...recent].reverse().map(person => <Avatar key={person.id} name={person.nickname || '학습자'} size="md" className="entry-avatar" />)}
           </div>

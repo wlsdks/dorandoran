@@ -1,5 +1,6 @@
 import { useMemo, memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { grow, spring, exitTween } from '@/lib/motion';
 import { useVotes } from '@/hooks/useVotes';
 import { MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -65,7 +66,7 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         className="flex items-center justify-between text-center"
       >
         <div className="flex-1 space-y-1">
@@ -73,7 +74,7 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
             key={forCount}
             initial={{ scale: 1.2 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+            transition={spring.bouncy}
             className="text-5xl font-black text-slate-900 dark:text-slate-100 tabular-nums"
           >
             {forPct}%
@@ -91,7 +92,7 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
             key={againstCount}
             initial={{ scale: 1.2 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+            transition={spring.bouncy}
             className="text-5xl font-black text-slate-900 dark:text-slate-100 tabular-nums"
           >
             {againstPct}%
@@ -105,19 +106,22 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ ...spring.default, delay: 0.1 }}
         className="space-y-2"
       >
-        <div className="debate-ratio-bar h-6 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
+        {/* width 대신 scaleX — 찬성은 왼끝에서, 반대는 오른끝에서 자란다 */}
+        <div className="debate-ratio-bar relative h-6 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
           <motion.div
-            animate={{ width: `${forPct}%` }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="bg-slate-800 h-full rounded-l-full"
+            initial={false}
+            animate={{ scaleX: forPct / 100 }}
+            transition={grow}
+            className="absolute inset-0 origin-left bg-slate-800 rounded-l-full"
           />
           <motion.div
-            animate={{ width: `${againstPct}%` }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="bg-slate-300 h-full rounded-r-full"
+            initial={false}
+            animate={{ scaleX: againstPct / 100 }}
+            transition={grow}
+            className="absolute inset-0 origin-right bg-slate-300 rounded-r-full"
           />
         </div>
         {/* 발표 화면은 위 큰 숫자와 겹치므로 생략해 세로 공간을 아낀다 */}
@@ -133,7 +137,7 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ ...spring.default, delay: 0.2 }}
           className="space-y-3"
         >
           {/* Filter tabs */}
@@ -171,8 +175,8 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
                   key={op.id}
                   initial={{ opacity: 0, x: op.side === 'for' ? -12 : 12 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  exit={{ opacity: 0, scale: 0.98, transition: exitTween }}
+                  transition={spring.default}
                   className={`flex ${presenter ? 'items-center gap-3' : 'items-start gap-2.5'} py-2 px-3 rounded-lg ${
                     op.side === 'for' ? 'bg-slate-50 dark:bg-slate-700' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
                   }`}

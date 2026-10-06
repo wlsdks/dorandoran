@@ -1,5 +1,6 @@
 import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { MessageSquare, X, ArrowRight } from 'lucide-react';
 import { useStaffDMs } from '@/features/dm/api/useStaffDMs';
 import StaffDMChat from '@/features/dm/components/StaffDMChat';
@@ -14,7 +15,7 @@ const DMAlertItem = memo(function DMAlertItem({ dm, onRespond, onDismiss }) {
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md p-3.5 flex items-start gap-3"
     >
       <div className="shrink-0 mt-0.5">

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { stepForward } from '@/lib/motion';
 import { ArrowLeft, IdCard, Gift, EyeOff } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ScratchCard from '@/features/games/components/ScratchCard';
@@ -78,18 +79,7 @@ export default function ModePreview({
   const content = CONTENT[mode];
   if (!content) return null;
   const Icon = content.icon;
-  return <motion.div key="preview" initial={{
-    opacity: 0,
-    x: 12
-  }} animate={{
-    opacity: 1,
-    x: 0
-  }} exit={{
-    opacity: 0,
-    x: 12
-  }} transition={{
-    duration: 0.2
-  }} className="space-y-5">
+  return <motion.div key="preview" {...stepForward} className="space-y-5">
       <div className="flex items-start gap-3">
         <Icon size={20} className="text-slate-500 mt-0.5 shrink-0" />
         <div>

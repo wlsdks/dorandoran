@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { useState, useCallback, useEffect, useRef, memo, useMemo } from 'react';
 import VoteConfirm from './VoteConfirm';
 import VoteErrorToast from './VoteErrorToast';
@@ -33,7 +34,7 @@ function ScaleLiveAverage({ sessionId, questionId, myValue }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4, type: 'spring', stiffness: 300, damping: 25 }}
+      transition={{ ...spring.default, delay: 0.4 }}
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm"
     >
       <div className="flex items-center justify-between mb-3">
@@ -52,7 +53,7 @@ function ScaleLiveAverage({ sessionId, questionId, myValue }) {
           className="h-full bg-slate-400 dark:bg-slate-500 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${avg}%` }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+          transition={spring.gentle}
         />
       </div>
       <div className="flex justify-between mt-1 text-[10px] text-slate-400">
@@ -135,7 +136,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-5 shadow-sm space-y-5"
     >
       {/* Big centered value display */}
@@ -144,7 +145,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
           key={value}
           initial={{ scale: 1.15, opacity: 0.7 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+          transition={spring.bouncy}
           className="text-5xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums"
         >
           {value}
@@ -161,7 +162,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
               className={`h-full rounded-full ${getScaleColor(value)}`}
               initial={{ width: '50%' }}
               animate={{ width: `${value}%` }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              transition={spring.default}
             />
           </div>
 
@@ -185,7 +186,7 @@ export default memo(function ScaleVoter({ sessionId, questionId, minLabel, maxLa
             style={{ left: `calc(${value}% - 10px)` }}
             initial={false}
             animate={{ left: `calc(${value}% - 10px)` }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            transition={spring.default}
           >
             <div className={`w-5 h-5 rounded-full ${getScaleColor(value)} ring-2 ring-white shadow-md`} />
           </motion.div>

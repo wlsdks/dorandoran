@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useMemo, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { spring, dim } from '@/lib/motion';
 import './LargeDisplayGames.css';
 import { Gift, Trophy, Monitor } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -177,7 +178,7 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
             initial={{ opacity: 0, scale: reduced ? 1 : 0.94, y: reduced ? 0 : 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: reduced ? 1 : 0.96 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+            transition={spring.default}
             className={`scratch-board relative flex flex-col ${presenter ? 'gap-4' : 'gap-3'}`}
           >
             {won && !reduced && <Suspense fallback={null}><ConfettiBurst /></Suspense>}
@@ -187,9 +188,9 @@ export default function ScratchCard({ participants = [], onResult, presenter = f
                 key={`row-${rowIndex}`}
                 animate={{
                   scale: !reduced && won && rowIndex === state.winningRow ? 1.025 : 1,
-                  opacity: won && rowIndex !== state.winningRow ? 0.5 : 1,
+                  opacity: won && rowIndex !== state.winningRow ? dim.option : 1,
                 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                transition={spring.default}
                 className={`scratch-row grid grid-cols-3 rounded-3xl ring-1 shadow-sm ${boardShell} ${
                   won && rowIndex === state.winningRow
                     ? 'ring-amber-400 bg-amber-50 dark:bg-amber-500/10 shadow-lg shadow-amber-500/10'

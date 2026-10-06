@@ -1,17 +1,12 @@
 import { motion } from 'framer-motion';
+import { list, spring } from '@/lib/motion';
 import EmptyState from '@/components/ui/EmptyState';
 import { MessageSquare, Users } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { QUESTION_TYPE_MAP } from '@/lib/question-types';
 import { TrendIndicator, MiniTrendLine } from './StatsInsights';
 
-const stagger = {
-  container: { animate: { transition: { staggerChildren: 0.04 } } },
-  item: {
-    initial: { opacity: 0, y: 12 },
-    animate: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
-  },
-};
+const stagger = list;
 
 export function CoursePerformance({ courseData }) {
   if (courseData.length === 0) {
@@ -37,7 +32,7 @@ export function CoursePerformance({ courseData }) {
                   <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <motion.div className="h-full w-full bg-slate-700 dark:bg-slate-300 rounded-full" style={{ originX: 0 }}
                       initial={{ scaleX: 0 }} animate={{ scaleX: Math.min(1, round.activityRate / 100) }}
-                      transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.15 }} />
+                      transition={{ ...spring.gentle, delay: 0.15 }} />
                   </div>
                   <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 w-10 text-right">{round.activityRate}%</span>
                 </div>

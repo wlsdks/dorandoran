@@ -3,6 +3,7 @@ import { Star } from 'lucide-react';
 import { useState, useEffect, memo } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { motion } from 'framer-motion';
+import { reveal, spring } from '@/lib/motion';
 import { db } from '@/lib/firebase';
 import { getParticipantId } from '@/lib/participant';
 import TextInput from './TextInput';
@@ -21,23 +22,14 @@ function GradeCard({
   }} animate={{
     opacity: 1,
     y: 0
-  }} transition={{
-    type: 'spring',
-    stiffness: 300,
-    damping: 25
-  }} className="w-full rounded-xl bg-white dark:bg-slate-800 px-5 py-8 shadow-sm">
+  }} transition={spring.default} className="w-full rounded-xl bg-white dark:bg-slate-800 px-5 py-8 shadow-sm">
       <div className="flex flex-col items-center gap-4">
         <p className="text-sm font-medium text-slate-400">AI 채점 결과</p>
         <motion.div initial={{
         scale: 0
       }} animate={{
         scale: 1
-      }} transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 20,
-        delay: 0.1
-      }} className="flex items-baseline gap-1">
+      }} transition={{ ...reveal, delay: 0.1 }} className="flex items-baseline gap-1">
           <span className={`text-5xl font-bold tracking-tight ${scoreColor(grade.score)}`}>{grade.score}</span>
           <span className="text-xl font-semibold text-slate-300 dark:text-slate-600">/ 100</span>
         </motion.div>
@@ -90,11 +82,7 @@ export default memo(function SubjectiveVoter({
     opacity: 1,
     y: 0,
     scale: 1
-  }} transition={{
-    type: 'spring',
-    stiffness: 300,
-    damping: 24
-  }} className="w-full rounded-xl bg-amber-50 dark:bg-amber-400/10 ring-1 ring-amber-400/60 px-4 py-3.5 flex items-center gap-3">
+  }} transition={spring.default} className="w-full rounded-xl bg-amber-50 dark:bg-amber-400/10 ring-1 ring-amber-400/60 px-4 py-3.5 flex items-center gap-3">
       <Star size={22} fill="currentColor" className="shrink-0 text-amber-500 dark:text-amber-400" aria-hidden="true" />
       <span className="text-sm font-semibold text-amber-700 dark:text-amber-300 leading-snug">
         내 답변이 전자칠판에 소개되고 있어요!

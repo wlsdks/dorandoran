@@ -307,7 +307,15 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .paper-surface .classroom-option-statistics { color:#f1f5f9; }
 .paper-surface .classroom-option-statistics p { color:#cbd5e1; }
 .paper-surface .classroom-option-card > div:last-child { height:10px;background:#3f3f46; }
-.paper-surface .wordcloud-token { color:#a5b4fc; }
+.paper-surface .wordcloud-token,.paper-surface .wordcloud-token-stage { color:#a5b4fc; }
+/* 전자칠판 워드클라우드: 고정 높이 무대 안에 줄 단위로 빽빽하게 모은 덩어리를 가운데 둔다(1080p·768p 모두 들어간다).
+   --wc-scale은 단어 수에 따른 전체 배율. 줄 간격은 좁고 일정해 '따로 떨어진 줄'로 읽히지 않는다. */
+.wordcloud-stage { position:relative;height:clamp(280px,44dvh,540px);display:flex;align-items:center;justify-content:center;overflow:hidden;width:100%; }
+/* 구름 상자와 줄은 늘 무대 폭을 다 쓴다 — 가장 긴 줄이 바뀌어도 상자가 옮겨지지 않고(레이아웃 시프트 0) 글자만 transform으로 미끄러진다 */
+.wordcloud-cloud { display:flex;flex-direction:column;align-items:stretch;justify-content:center;row-gap:.15em;width:100%;height:100%;max-width:min(100%,1400px);font-size:calc(var(--wc-scale,1) * 2.4rem); }
+.wordcloud-line { display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;column-gap:.6em;row-gap:.2em;line-height:1.05;width:100%; }
+.wordcloud-token-stage { white-space:nowrap;line-height:1.05;will-change:transform; }
+@media (max-height:850px) { .wordcloud-stage { height:clamp(240px,42dvh,400px); } }
 /* 워드클라우드 단어는 자리를 지키고 크기만 자란다 — 빈도 변화가 튀지 않고 부풀어 오르듯 보인다 */
 .wordcloud-token { transition: font-size 320ms cubic-bezier(.22,1,.36,1), color 320ms ease; }
 @media (prefers-reduced-motion: reduce) { .wordcloud-token { transition: none; } }
@@ -365,6 +373,15 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .ranking-board-stage .ranking-count-strong { font-size:calc(var(--stage-count) * 1.35); }
 .ranking-board-stage .ranking-arrow { width:calc(var(--stage-count) * .9);height:calc(var(--stage-count) * .9); }
 .number-badge-stage { width:clamp(2.5rem,2.9vw,3.75rem);height:clamp(2.5rem,2.9vw,3.75rem);font-size:clamp(1.125rem,1.5vw,1.75rem); }
+/* 순위 결과의 번호 줄: 칩은 상자 폭(cqw)에서 계산해 3~6개가 항상 한 줄에 고르게 들어간다(32~44px) */
+.ranking-sequence { container-type:inline-size;--chip:clamp(32px,calc((100cqw - 3.25rem - (var(--n,4) - 1) * 12px) / var(--n,4)),44px); }
+.number-badge-fluid { width:var(--chip,2rem);height:var(--chip,2rem);min-width:0;padding:0;font-size:calc(var(--chip,2rem) * .42); }
+.ranking-connector { position:relative;height:1px;margin-inline:4px 7px;background:#BBBBC2; }
+.ranking-connector::after { content:'';position:absolute;right:-1px;top:50%;width:5px;height:5px;border-top:1px solid #BBBBC2;border-right:1px solid #BBBBC2;transform:translateY(-50%) rotate(45deg); }
+.dark .ranking-connector,.dark .ranking-connector::after { background-color:#4B4B53;border-color:#4B4B53; }
+.dark .ranking-connector::after { background:transparent; }
+.ranking-chip-miss { color:#B53030;--tw-ring-color:rgb(212 58 58 / .55); }
+.dark .ranking-chip-miss { color:#EE8080;--tw-ring-color:rgb(238 128 128 / .6); }
 .classroom-visualization[data-kind='check'] .text-xs { font-size:20px; }
 .classroom-visualization[data-kind='hintQuiz'] .text-base { font-size:clamp(24px,2vw,30px); }
 .classroom-visualization[data-kind='hintQuiz'] .text-sm { font-size:20px; }
@@ -409,13 +426,13 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 }
 
 /* 순위 맞추기 결과: 내가 맞힌 자리만 빛이 한 번 스치고 은은한 테두리 빛이 남는다(차례로). */
-.ranking-hit { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); animation: ranking-hit-glow 900ms ease-out var(--hit-delay, 0ms) both; }
+.ranking-hit { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); animation: ranking-hit-glow 720ms cubic-bezier(.2, .8, .2, 1) var(--hit-delay, 0ms) both; }
 .ranking-hit::after { content: ''; position: absolute; inset: 0; pointer-events: none; transform: translateX(-120%);
   background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / .55) 50%, transparent 70%);
-  animation: ranking-hit-shine 900ms ease-out calc(var(--hit-delay, 0ms) + 120ms) both; }
+  animation: ranking-hit-shine 640ms cubic-bezier(.3, .7, .3, 1) calc(var(--hit-delay, 0ms) + 100ms) both; }
 .dark .ranking-hit::after { background: linear-gradient(105deg, transparent 30%, rgb(165 172 240 / .35) 50%, transparent 70%); }
 @keyframes ranking-hit-shine { to { transform: translateX(120%); } }
-@keyframes ranking-hit-glow { 0% { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); } 40% { box-shadow: 0 0 0 4px rgb(94 106 210 / .28), 0 0 18px rgb(94 106 210 / .35); } 100% { box-shadow: 0 0 0 1px rgb(94 106 210 / .18), 0 0 10px rgb(94 106 210 / .14); } }
+@keyframes ranking-hit-glow { 0% { box-shadow: 0 0 0 0 rgb(94 106 210 / 0); transform: scale(1); } 40% { box-shadow: 0 0 0 4px rgb(94 106 210 / .28), 0 0 18px rgb(94 106 210 / .35); transform: scale(1.02); } 100% { box-shadow: 0 0 0 1px rgb(94 106 210 / .18), 0 0 10px rgb(94 106 210 / .14); transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .ranking-hit, .ranking-hit::after { animation: none; } .ranking-hit::after { display: none; } }
 
 /* 정답 공개 빛(answer-glow): 공개 순간 인디고 빛이 한 번 부풀어 가라앉고(700ms) 빛줄기가 한 번 지나간 뒤,
@@ -430,13 +447,13 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .dark .answer-glow { --glow: 127 135 216; }
 .answer-glow::after { content: ''; position: absolute; inset: calc(-1 * var(--glow-pad)); border-radius: inherit; pointer-events: none; z-index: -1; opacity: .45;
   box-shadow: 0 0 0 calc(var(--glow-ring) + 2px) rgb(var(--glow) / .32), 0 0 36px 8px rgb(var(--glow) / .5);
-  animation: answer-glow-bloom 700ms cubic-bezier(.2, .8, .2, 1) both; }
+  animation: answer-glow-bloom 560ms cubic-bezier(.2, .8, .2, 1) both; }
 .answer-glow::before { content: ''; position: absolute; top: calc(-1 * var(--glow-pad)); bottom: calc(-1 * var(--glow-pad)); left: calc(-1 * var(--glow-pad)); width: 38%;
   pointer-events: none; z-index: var(--glow-sweep-z, -1); opacity: 0;
   background: linear-gradient(100deg, transparent 15%, rgb(255 255 255 / .3) 50%, transparent 85%), linear-gradient(100deg, transparent 15%, rgb(var(--glow) / .18) 50%, transparent 85%);
-  animation: answer-glow-sweep 800ms cubic-bezier(.3, .7, .3, 1) 140ms both; }
-.answer-dim { opacity: .55; transition: opacity 300ms ease; }
-@keyframes answer-glow-bloom { 0% { opacity: 0; transform: scale(.96); } 40% { opacity: 1; transform: scale(1.02); } 100% { opacity: .45; transform: scale(1); } }
+  animation: answer-glow-sweep 640ms cubic-bezier(.3, .7, .3, 1) 120ms both; }
+.answer-dim { opacity: .55; transition: opacity 240ms cubic-bezier(.22, 1, .36, 1); }
+@keyframes answer-glow-bloom { 0% { opacity: 0; transform: scale(.97); } 45% { opacity: 1; transform: scale(1.015); } 100% { opacity: .45; transform: scale(1); } }
 @keyframes answer-glow-sweep { 0% { transform: translateX(0); opacity: 0; } 20%, 80% { opacity: 1; } 100% { transform: translateX(165%); opacity: 0; } }
 /* 전자칠판: 뒷자리에서도 보이게 테두리를 한 단계 굵게 */
 .paper-surface .answer-glow, .classroom-visualization .answer-glow { --glow-ring: 3px; }

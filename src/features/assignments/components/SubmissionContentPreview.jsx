@@ -1,6 +1,7 @@
 import { submissionImages } from '@/lib/submission-images';
 import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { ExternalLink, FileCode2, FileText, X, Code as CodeIcon, Maximize2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { safeHttpUrl } from '@/lib/utils';
 
@@ -229,7 +230,7 @@ export default memo(function SubmissionContentPreview({ submission }) {
               src={screenshots[imageIdx]?.url || submission.imageUrl}
               alt="제출 이미지 확대"
               initial={{ scale: 0.92 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              transition={spring.default}
               className="max-w-full max-h-[88dvh] object-contain"
               onClick={(e) => e.stopPropagation()}
             />

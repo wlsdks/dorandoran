@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { WifiOff } from 'lucide-react';
 
 export default function VoteErrorToast({ message, onRetry }) {
@@ -7,7 +8,7 @@ export default function VoteErrorToast({ message, onRetry }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 8 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       role="alert"
       className="w-full rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 px-4 py-3 flex items-center gap-3"
     >

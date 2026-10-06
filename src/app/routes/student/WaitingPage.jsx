@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
+import { spring, stagger, exitTween } from '@/lib/motion';
 import { Users, Trophy, Copy, Check, Gift, Coffee, UserCircle, Award, Mic } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import QuizEventBanner from '@/components/ui/QuizEventBanner';
@@ -14,7 +15,7 @@ import { useGameResult } from '@/features/games/api/useGameResult';
 import BreakStatus from '@/features/games/components/BreakStatus';
 import PersistentAssignmentCard from '@/features/ai-judge/components/PersistentAssignmentCard';
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
-const SPRING = { type: 'spring', stiffness: 300, damping: 25 };
+const SPRING = spring.default;
 
 /** 느리게 숨 쉬는 점 세 개 — "기다리는 중"의 유일한 반복 모션. 움직임 줄이기에서는 멈춘다. */
 function BreathingDots({ className = '' }) {
@@ -114,7 +115,7 @@ export default memo(function WaitingPage({ sessionId, pendingEvent = null, cours
     <AnimatePresence>
       {winBlast && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-sm">
         <Suspense fallback={null}><ConfettiBurst /></Suspense>
-        <motion.div initial={{ scale: 0.4, rotate: -12 }} animate={{ scale: [0.4, 1.25, 1], rotate: 0 }} transition={{ type: 'spring', stiffness: 320, damping: 18 }} className="flex items-center justify-center text-amber-400">
+        <motion.div initial={{ scale: 0.4, rotate: -12 }} animate={{ scale: [0.4, 1.25, 1], rotate: 0 }} transition={spring.bouncy} className="flex items-center justify-center text-amber-400">
           {winBlast === 'randomPicker' ? <Mic size={96} strokeWidth={1.75} /> : <Trophy size={96} strokeWidth={1.75} />}
         </motion.div>
         <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="mt-6 text-4xl font-black tracking-tight text-white">{winBlast === 'randomPicker' ? '발표 차례예요!' : '당첨!'}</motion.p>
@@ -128,7 +129,7 @@ export default memo(function WaitingPage({ sessionId, pendingEvent = null, cours
     <AnimatePresence mode="wait">
       {showGameResult ? <motion.div key="game-result" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={SPRING} className="text-center w-full max-w-sm space-y-6">
         <Suspense fallback={null}><ConfettiBurst /></Suspense>
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 22, delay: 0.1 }} className="flex justify-center">
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ ...spring.bouncy, delay: 0.1 }} className="flex justify-center">
           <div className="w-20 h-20 rounded-full bg-slate-900 dark:bg-slate-100 flex items-center justify-center">
             <motion.div animate={{ rotate: [0, -12, 12, -6, 6, 0] }} transition={{ duration: 0.5, delay: 0.3, ease: 'easeInOut' }}>
               {isPickerResult ? <Mic size={36} className="text-white dark:text-slate-900" /> : <Trophy size={36} className="text-white dark:text-slate-900" />}
@@ -142,7 +143,7 @@ export default memo(function WaitingPage({ sessionId, pendingEvent = null, cours
         <div className="flex flex-col items-center gap-3">
           {winnerNames.map((name, i) => {
             const isMeWinner = name === nickname;
-            return <motion.div key={name + i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.1, type: 'spring', stiffness: 400, damping: 22 }}
+            return <motion.div key={name + i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring.bouncy, delay: 0.2 + stagger(i, { step: 0.1, cap: 5 }) }}
               className={`flex items-center gap-3 rounded-2xl py-3 px-5 ${isMeWinner ? 'bg-slate-900 dark:bg-slate-100' : 'bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700/60'}`}>
               <Avatar name={name} size="md" />
               <span className={`text-lg font-bold tracking-tight ${isMeWinner ? 'text-white dark:text-slate-900' : 'text-slate-900 dark:text-slate-100'}`}>{name}</span>
@@ -152,7 +153,7 @@ export default memo(function WaitingPage({ sessionId, pendingEvent = null, cours
         </div>
         {!isWinner && winnerNames.length > 0 && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="text-slate-600 dark:text-slate-400 text-sm">{isPickerResult ? '큰 박수로 응원해주세요!' : '다음 기회에 도전해보세요'}</motion.p>}
       </motion.div>
-      : <motion.div key="waiting" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ type: 'spring', stiffness: 200, damping: 20 }} className="text-center w-full max-w-sm flex flex-col items-center gap-6">
+      : <motion.div key="waiting" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8, transition: exitTween }} transition={spring.gentle} className="text-center w-full max-w-sm flex flex-col items-center gap-6">
         <div className="flex justify-center scale-[0.85] sm:scale-100 origin-bottom"><IdleMascot /></div>
         <div className="space-y-1.5">
           {nickname && <h1 className="break-keep [overflow-wrap:anywhere] text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight leading-tight">{nickname}님, 준비됐어요!</h1>}

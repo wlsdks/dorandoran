@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { exitTween, spring } from '@/lib/motion';
 import { ChevronRight } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
@@ -9,7 +10,7 @@ import { getParticipantId } from '@/lib/participant';
 import { hapticTap } from '@/lib/haptics';
 import { OPEN_RANKING_EVENT } from './StudentHeader';
 
-const SPRING = { type: 'spring', stiffness: 300, damping: 25 };
+const SPRING = spring.default;
 
 /**
  * 대기 중 살아 있는 정보 — 실제 접속 인원, 방금 들어온 사람, 내 점수.
@@ -38,7 +39,7 @@ export default memo(function WaitingLive({ sessionId }) {
             <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="최근 입장">
               <AnimatePresence mode="popLayout" initial={false}>
                 {others.map(person => (
-                  <motion.li key={person.id} layout={!reduced} initial={reduced ? false : { opacity: 0, scale: 0.85, y: 6 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={SPRING}
+                  <motion.li key={person.id} layout={!reduced} initial={reduced ? false : { opacity: 0, scale: 0.85, y: 6 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 4, transition: exitTween }} transition={SPRING}
                     className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-slate-50 dark:bg-slate-700/60 py-1 pl-1 pr-2.5 text-sm font-medium text-slate-700 dark:text-slate-200">
                     <Avatar name={person.nickname} size="xs" /><span className="truncate">{person.nickname}</span>
                   </motion.li>

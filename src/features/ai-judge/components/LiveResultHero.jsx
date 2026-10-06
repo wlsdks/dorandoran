@@ -1,5 +1,6 @@
 import { memo, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { reveal, spring } from '@/lib/motion';
 import { Trophy, Medal, Award, Lock, X, TrendingUp, AlertCircle, MessageCircle, Code2, Lightbulb } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { getJudgeById } from '@/lib/judging/judges';
@@ -58,7 +59,7 @@ export default memo(function LiveResultHero({ top3, myParticipantId, myResult, m
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          transition={spring.default}
           className={`relative overflow-hidden rounded-2xl border ${
             myRank === 'first' && myRankVisible
               ? 'border-amber-300 dark:border-amber-500/70 ring-4 ring-amber-200/80 dark:ring-amber-400/60 shadow-2xl shadow-amber-500/20'
@@ -83,7 +84,7 @@ export default memo(function LiveResultHero({ top3, myParticipantId, myResult, m
             <motion.div
               initial={{ scale: 0 }}
               animate={myRank === 'first' ? { scale: [0, 1.15, 1] } : { scale: 1 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.1 }}
+              transition={{ ...spring.bouncy, delay: 0.1 }}
               className={`absolute top-2 right-2 px-3 py-1.5 rounded-full ${myRankMeta.color} text-white text-sm font-bold shadow-lg flex items-center gap-1.5`}
             >
               <myRankMeta.Icon size={14} /> {myRankMeta.title}
@@ -237,7 +238,7 @@ export default memo(function LiveResultHero({ top3, myParticipantId, myResult, m
                     initial={{ opacity: 0, scale: 0.9, y: -8 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                    transition={reveal}
                     className={`w-full text-left flex items-start gap-3 p-3 rounded-xl transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 ${
                       isMe
                         ? 'bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200'

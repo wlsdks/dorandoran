@@ -5,6 +5,7 @@ import { ref, set, onValue, remove, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { getParticipantId } from '@/lib/participant';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Smile, Meh, Frown, RotateCcw } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { hapticTap } from '@/lib/haptics';
@@ -58,7 +59,7 @@ function StudentComprehension({ sessionId, embedded = false }) {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={spring.default}
         className="text-center space-y-8 w-full max-w-sm"
       >
         <div className="space-y-2">
@@ -76,7 +77,7 @@ function StudentComprehension({ sessionId, embedded = false }) {
                 key={level.key}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: hasVoted && !isSelected ? 0.3 : 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25, delay: i * 0.08 }}
+                transition={{ ...spring.default, delay: i * 0.08 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => handleVote(level.key)}
                 disabled={hasVoted || pending}

@@ -2,6 +2,7 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Eye } from 'lucide-react';
+import { ease } from '@/lib/motion';
 import './DrumrollOverlay.css';
 
 /** One bounded countdown. Timers and animations stop on cancellation or unmount. */
@@ -30,7 +31,7 @@ export default memo(function DrumrollOverlay({ active, onComplete, duration = 25
     transition={{ duration: reduced ? 0.08 : 0.2 }}>
     <motion.div className="reveal-scene"
       initial={{ opacity: 0, y: reduced ? 0 : 12 }} animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: reduced ? 0 : 12 }} transition={{ duration: reduced ? 0.08 : 0.32, ease: 'easeOut' }}>
+      exit={{ opacity: 0, y: reduced ? 0 : 12, transition: { duration: reduced ? 0.08 : 0.16, ease: ease.in } }} transition={{ duration: reduced ? 0.08 : 0.28, ease: ease.out }}>
       <p className="reveal-eyebrow"><Eye size={20} aria-hidden="true" />정답 공개</p>
       <h2 className="reveal-heading">어떤 답을 고르셨나요?</h2>
       <p className="reveal-description">잠시 후, 정답을 공개합니다</p>
@@ -40,7 +41,7 @@ export default memo(function DrumrollOverlay({ active, onComplete, duration = 25
           <motion.span key={phase} className={phase === 3 ? 'reveal-countdown-ready' : ''}
             initial={{ opacity: 0, y: reduced ? 0 : 24 }} animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: reduced ? 0 : -24, transition: { duration: reduced ? 0.04 : 0.12 } }}
-            transition={{ duration: reduced ? 0.08 : 0.22, ease: [0.22, 1, 0.36, 1] }}>
+            transition={{ duration: reduced ? 0.08 : 0.22, ease: ease.out }}>
             {phase < 3 ? 3 - phase : '정답은…'}
           </motion.span>
         </AnimatePresence>

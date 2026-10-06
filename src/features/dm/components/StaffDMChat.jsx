@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { useDialogLayer } from '@/hooks/useDialogLayer';
 import { X, Send, CheckCircle2, Clipboard } from 'lucide-react';
 import { formatChatTime } from '@/lib/utils';
@@ -124,7 +125,7 @@ export default function StaffDMChat({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            transition={spring.default}
             className="mobile-conversation fixed inset-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[400px] sm:h-[520px] bg-white dark:bg-slate-800 sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden outline-none"
           >
             {/* Header */}

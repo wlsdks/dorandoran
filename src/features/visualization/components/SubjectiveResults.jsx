@@ -2,6 +2,7 @@ import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useMemo, useEffect, useRef, memo } from 'react';
 import { ref, onValue, set, update,   serverTimestamp } from 'firebase/database';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Loader2, Users, X, Star, Lightbulb } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -243,7 +244,7 @@ export default memo(function SubjectiveResults({ sessionId, questionId, question
             >
               <motion.div
                 initial={{ scale: 0.9, y: 16, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                transition={spring.default}
                 className="relative w-full max-w-2xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl ring-2 ring-amber-400/70 px-8 py-7"
               >
                 <div className="flex items-center gap-2 mb-3">

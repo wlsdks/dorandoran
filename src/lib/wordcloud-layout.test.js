@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { arrangeWordCloud, wordSizeStep, arrivalLabel } from './wordcloud-layout';
+import { arrangeWordCloud, wordSizeStep, arrivalLabel, layoutWordLines, wordCloudMaxLines, wordCloudScale } from './wordcloud-layout';
 
 const texts = (words) => words.map((w) => w.text);
 
@@ -30,6 +30,46 @@ describe('워드클라우드 자리 배치', () => {
     expect(arrangeWordCloud([], {}, 12)).toEqual([]);
     expect(arrangeWordCloud(['사라짐'], null, 12)).toEqual([]);
     expect(texts(arrangeWordCloud([], JSON.parse('{"__proto__":2,"constructor":1}'), 12))).toEqual(['constructor', '__proto__']);
+  });
+});
+
+describe('전자칠판 줄 단위 배치', () => {
+  const lineTexts = (lines) => lines.map((line) => line.map((w) => w.text));
+
+  it('줄 수 상한은 단어 수에 따라 1~6, 배율은 8개까지 1에서 0.5까지 줄어든다', () => {
+    expect([0, 1, 3, 5, 12, 25, 40].map(wordCloudMaxLines)).toEqual([0, 1, 1, 2, 3, 5, 6]);
+    expect(wordCloudScale(5)).toBe(1);
+    expect(wordCloudScale(12)).toBe(0.94);
+    expect(wordCloudScale(40)).toBe(0.58);
+  });
+
+  it('처음엔 줄 수 상한까지 줄을 열고, 그다음 단어는 가장 짧은 줄 끝에 붙는다', () => {
+    const lines = layoutWordLines([], { 집중: 9, 배움: 7, 친구: 5, 열정: 3, 호기심: 1 }, { limit: 30 });
+    expect(lines).toHaveLength(2);
+    expect(lineTexts(lines)).toEqual([['집중', '열정', '호기심'], ['배움', '친구']]);
+    expect(lines[0][0]).toEqual({ text: '집중', count: 9, rank: 0 });
+  });
+
+  it('이미 보이는 단어는 빈도가 바뀌어도 줄과 자리를 지킨다 — 구름이 튀지 않는다', () => {
+    const first = layoutWordLines([], { 집중: 5, 배움: 4, 친구: 3 }, { limit: 30 });
+    const next = layoutWordLines(lineTexts(first), { 집중: 5, 배움: 40, 친구: 3, 도전: 2 }, { limit: 30 });
+    expect(lineTexts(next)[0].slice(0, 3)).toEqual(lineTexts(first)[0]);
+    expect(next.flat().find((w) => w.text === '배움').rank).toBe(0);
+    expect(next.flat().map((w) => w.text)).toContain('도전');
+  });
+
+  it('상한을 넘어 밀려난 단어는 빠지고, 빈 줄은 없어진다', () => {
+    const first = layoutWordLines([], { a: 5, b: 4, c: 3, d: 2 }, { limit: 4, maxLines: 4 });
+    expect(first).toHaveLength(4);
+    const next = layoutWordLines(lineTexts(first), { a: 5, b: 4, c: 3, d: 2, e: 9 }, { limit: 4, maxLines: 4 });
+    expect(next.flat().map((w) => w.text).sort()).toEqual(['a', 'b', 'c', 'e']);
+    expect(next.every((line) => line.length > 0)).toBe(true);
+  });
+
+  it('빈 집계와 예약된 문자열을 안전하게 다룬다', () => {
+    expect(layoutWordLines([], {}, { limit: 12 })).toEqual([]);
+    expect(layoutWordLines([['사라짐']], null, { limit: 12 })).toEqual([]);
+    expect(lineTexts(layoutWordLines([], JSON.parse('{"__proto__":2,"constructor":1}'), { limit: 12 }))).toEqual([['__proto__', 'constructor']]);
   });
 });
 

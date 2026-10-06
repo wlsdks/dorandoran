@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 import { getParticipantId, getNickname } from '@/lib/participant';
 import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Send } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import VoteConfirm from './VoteConfirm';
@@ -67,7 +68,7 @@ function AnswerDistribution({ sessionId, questionId, correctAnswer }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4, type: 'spring', stiffness: 300, damping: 25 }}
+      transition={{ ...spring.default, delay: 0.4 }}
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-3"
     >
       <div className="flex items-center justify-between">
@@ -87,7 +88,7 @@ function AnswerDistribution({ sessionId, questionId, correctAnswer }) {
           <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
             <motion.div
               animate={{ width: `${correctPct}%` }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              transition={spring.gentle}
               className="h-full bg-slate-700 dark:bg-slate-300 rounded-full"
             />
           </div>
@@ -169,7 +170,7 @@ export default memo(function FillBlankVoter({ sessionId, questionId, title, corr
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="w-full space-y-4"
     >
       <AnimatePresence>

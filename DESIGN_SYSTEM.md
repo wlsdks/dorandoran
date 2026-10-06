@@ -391,8 +391,19 @@ Error:   bg-red-50 text-red-700 / dark:bg-red-900/30 dark:text-red-400
 | `list.container` / `list.item` | staggerChildren 0.03, 항목 y 8→0 | 카드 격자, 통계, 빈 상태 단계 |
 | `snap` | spring 520/34 | 탭 표시선·선택 배경이 자리를 옮길 때 (`layoutId`) |
 | `settle` | spring 380/32 | 목록 항목이 자리를 바꿀 때 (`layout="position"`) |
+| `grow` | spring 210/28 (임계감쇠) | 막대·기둥·진행바 — 득표가 이어져도 흔들리지 않고 현재 위치에서 이어간다 |
+| `reveal` | spring 260/22 | 공개 순간의 카드·점수·단어 — 한 번 살짝 넘쳤다 멈춘다 |
+| `sheet` | spring 420/38 | 바텀시트·드로어가 닫힐 때(손을 뗀 속도를 이어받는다) |
+| `roll` | spring 320/30 | 초 카운트다운·플립 시계 자릿수가 굴러 바뀔 때 |
+| `slideInRight` | x 40→0 + scale, `snap` | 전자칠판 입장 알림 칩 — 들어온 쪽으로 나간다 |
+| `stepForward` | x 16→0, exit x -12 | 단계형 폼의 다음 단계(진행 방향이 읽힌다) |
+| `swap(kind)` | question: y 12→0 / leaderboard: y -12→0 / stage: scale .985→1 / fade | 활동·모드 교체. 전자칠판·발표 화면·폰이 같은 궤적을 쓴다 (0.22s ease.out, 퇴장 exitTween) |
+| `stagger(i, {step, cap})` | i×step, cap(기본 8) 이후 같은 지연 | 목록 항목 지연 — 긴 목록 뒤쪽이 영영 늦지 않는다 |
+| `reduceTo(reduced, preset)` | transform 프리셋 → 80ms 페이드 | `useReducedMotion()`과 함께 |
+| `dim.option` / `dim.spotlight` | .55 / .42 | 오답 흐리기 / 집중 조명 밖 줄 흐리기 |
+| `count.number` / `count.score` | 0.28s / 0.45s ease.out | AnimatedNumber / AnimatedScore·점수 공개 카운트업 |
 
-퇴장은 항상 `exitTween`(120ms ease-in) — 들어올 때보다 빨리 나간다.
+퇴장은 항상 `exitTween`(120ms ease-in) — 들어올 때보다 빨리 나간다. 인라인 `{ type: 'spring', stiffness, damping }`는 쓰지 않는다 — 위 토큰에서 고른다.
 
 ### 적용 규칙
 - **transform/opacity만** 움직인다. 진행바는 `width` 대신 `scaleX`(+`originX: 0`), 접기/펼치기(height auto)만 예외.

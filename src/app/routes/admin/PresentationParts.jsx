@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { pop } from '@/lib/motion';
 import { Users, QrCode, X, Hand, MessageSquare, ChevronDown, Trophy, Medal, Coffee, Award, HelpCircle, UserPlus, Zap, Timer } from 'lucide-react';
 import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
@@ -97,10 +98,8 @@ export function SideNoticesPanel({ sessionId }) {
         <AnimatePresence>
           {open && (
             <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.96 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+              {...pop}
+              style={{ transformOrigin: 'top left' }}
               className="w-72 space-y-3"
             >
               <HandRaiseList sessionId={sessionId} />
@@ -128,10 +127,8 @@ export function SideNoticesPanel({ sessionId }) {
           {open && (
             <motion.div
               key="notices"
-              initial={{ opacity: 0, y: -8, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.96 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+              {...pop}
+              style={{ transformOrigin: 'top left' }}
               onClick={(e) => e.stopPropagation()}
               className="mt-2 w-[min(calc(100vw-24px),288px)] space-y-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-3"
             >
@@ -180,15 +177,17 @@ export function PresentTimerButton({ isRunning, onStart, onStop }) {
         <Timer size={18} />
         <span className="hidden lg:inline">{isRunning ? '진행 중' : '타이머'}</span>
       </button>
+      <AnimatePresence>
       {open && (
-        <div className="absolute top-full right-0 mt-2 w-64 bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-xl p-3 shadow-xl ring-1 ring-white/10">
+        <motion.div key="timer-menu" {...pop} style={{ transformOrigin: 'top right' }} className="absolute top-full right-0 mt-2 w-64 bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-xl p-3 shadow-xl ring-1 ring-white/10">
           <TimerControls
             isRunning={isRunning}
             onStart={(s) => { onStart(s); setOpen(false); }}
             onStop={() => { onStop(); setOpen(false); }}
           />
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -235,8 +234,9 @@ export function PresentModeMenu({ sessionId, currentMode, currentQuestion, hasLe
           모드
         </button>
 
+        <AnimatePresence>
         {open && (
-          <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 max-h-[70vh] overflow-y-auto">
+          <motion.div key="mode-menu" {...pop} style={{ transformOrigin: 'top left' }} className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 max-h-[70vh] overflow-y-auto">
             {/* 목록은 lib/modes.js 한 곳에서 온다 — 발표 중에도 대시보드와 같은 모드를 켤 수 있다 */}
             {groups.map((group, gi) => (
               <div key={group.label}>
@@ -266,8 +266,9 @@ export function PresentModeMenu({ sessionId, currentMode, currentQuestion, hasLe
               <X size={14} />
               {hasPrevQuestion ? '질문으로 돌아가기' : '대기 화면으로'}
             </button>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </div>
   );

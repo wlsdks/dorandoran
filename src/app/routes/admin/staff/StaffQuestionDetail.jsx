@@ -3,6 +3,7 @@ import { ref, push, update, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { MessageCircle, HelpCircle, ThumbsUp, Radio, Send, MessageSquare } from 'lucide-react';
 import { QUESTION_TYPE_MAP } from '@/lib/question-types';
 import Badge from '@/components/ui/Badge';
@@ -30,7 +31,7 @@ function ActiveQuestionBanner({ session, sessionId }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 max-w-md w-full"
     >
       <div className="flex items-center gap-1.5 mb-3">
@@ -258,7 +259,7 @@ export default memo(function StaffQuestionDetail({ question, onAction, onMarkAns
       key={question._key}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="flex flex-col items-center justify-center h-full max-w-lg mx-auto"
     >
       {/* Type badge */}

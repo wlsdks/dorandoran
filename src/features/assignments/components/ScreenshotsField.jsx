@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { Image as ImageIcon, Upload, X, Plus, Loader2, Info } from 'lucide-react';
 import Tooltip from '@/components/ui/Tooltip';
 
@@ -10,7 +11,7 @@ function ScreenshotThumb({ shot, onRemove, idx }) {
       initial={{ opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.92 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      transition={spring.default}
       className="relative group rounded-lg overflow-hidden ring-1 ring-slate-200 dark:ring-slate-700 bg-slate-50 dark:bg-slate-900 aspect-square"
     >
       {shot.uploading ? (

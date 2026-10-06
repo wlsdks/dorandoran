@@ -2,6 +2,7 @@ import ParticipationSpotlight from '@/components/ui/ParticipationSpotlight';
 import { lazy, Suspense, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { swap, reduceTo, fadeUp } from '@/lib/motion';
 import { useSession } from '@/features/session/api/useSession';
 import { isSpecialMode } from '@/lib/modes';
 import { useParticipants } from '@/features/participants/api/useParticipants';
@@ -23,6 +24,7 @@ import EventStats from '@/features/participants/components/EventStats';
 import LiveHeader from './LiveHeader';
 import DrumrollOverlay from '@/components/ui/DrumrollOverlay';
 import LiveParticipation from './LiveParticipation';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
 import QuizTallyNotice from './QuizTallyNotice';
 
 const Lottery = lazy(() => import('@/features/games/components/Lottery'));
@@ -111,9 +113,9 @@ export default function LivePage() {
     return (
       <div className="dark classroom-stage min-h-dvh bg-slate-950 flex items-center justify-center px-8">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          initial={fadeUp.initial}
+          animate={fadeUp.animate}
+          transition={fadeUp.transition}
           className="text-center space-y-6"
         >
           <div className="flex justify-center"><DoranDoranMascot size="lg" mood="happy" /></div>
@@ -152,10 +154,7 @@ export default function LivePage() {
             {isGameMode ? (
               <motion.div
                 key={`game-${currentMode}`}
-                initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: reducedMotion ? 0.08 : 0.18, ease: 'easeOut' }}
+                {...reduceTo(reducedMotion, swap(currentMode === 'leaderboard' ? 'leaderboard' : 'stage'))}
                 className="w-full"
               >
                 <Suspense fallback={<GameFallback />}>
@@ -189,17 +188,17 @@ export default function LivePage() {
             ) : hasActiveQuestion ? (
               <motion.div
                 key={`question-${currentQId}`}
-                initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: reducedMotion ? 0.08 : 0.18, ease: 'easeOut' }}
+                {...reduceTo(reducedMotion, swap('question'))}
                 className="w-full space-y-6"
               >
-                {isRunning && endTime && (
-                  <div className="mx-auto w-[min(84vw,1800px)] max-w-3xl">
-                    <TimerCountdown endTime={endTime} duration={duration} presenter />
-                  </div>
-                )}
+                {/* 타이머는 AnimatePresence 안에 둔다 — 끝날 때도 들어올 때처럼 사라진다 */}
+                <AnimatePresence initial={false}>
+                  {isRunning && endTime && (
+                    <motion.div key="timer" className="mx-auto w-[min(84vw,1800px)] max-w-3xl" {...reduceTo(reducedMotion, fadeUp)}>
+                      <TimerCountdown endTime={endTime} duration={duration} presenter />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div className="w-full [&_.max-w-xl]:max-w-none">
                   <VizRenderer sessionId={sessionId} session={session} isPresenter />
@@ -209,7 +208,7 @@ export default function LivePage() {
                 {question?.type !== 'imageSlide' && <LiveParticipation voted={totalVotes} total={count} resultsHidden={audienceResultsHidden} loading={votesLoading} />}
               </motion.div>
             ) : (
-              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="flex flex-col items-center text-center space-y-5">
+              <motion.div key="empty" {...swap('fade')} className="flex flex-col items-center text-center space-y-5">
                 <motion.div animate={reducedMotion ? {} : { scale: [1, 1.03, 1] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
                   <DoranDoranMascot size="lg" mood="waiting" animated={!reducedMotion} />
                 </motion.div>
@@ -220,7 +219,7 @@ export default function LivePage() {
                   <EventStats participants={onlineList} count={count} variant="presenter" />
                 ) : (
                   <p className="text-[clamp(16px,1.1vw,26px)] tabular-nums text-slate-400 dark:text-slate-400">
-                    <span className="font-semibold text-slate-200">{count}명</span> 접속 중
+                    <span className="font-semibold text-slate-200"><AnimatedNumber value={count} />명</span> 접속 중
                   </p>
                 )}
               </motion.div>

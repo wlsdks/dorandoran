@@ -190,18 +190,18 @@ export default memo(function StudentBottomBar({ sessionId, ended = false }) {
       >
         <div className="max-w-[620px] mx-auto px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           <div className={`grid ${ended ? 'grid-cols-3' : 'grid-cols-4'} gap-1.5`}>
-            {!ended && <motion.button whileTap={{ scale: 0.96 }} onClick={toggleHand} aria-pressed={isRaised} aria-label={isRaised ? '손 내리기' : '손들기'} className={isRaised ? BTN_ACTIVE : BTN_DEFAULT}>
+            {!ended && <motion.button onClick={toggleHand} aria-pressed={isRaised} aria-label={isRaised ? '손 내리기' : '손들기'} className={isRaised ? BTN_ACTIVE : BTN_DEFAULT}>
               <motion.div animate={isRaised ? { rotate: [0, -18, 14, -10, 8, 0] } : { rotate: 0 }} transition={{ duration: 0.7, ease: 'easeInOut' }}><Hand size={22} /></motion.div>
               <span className="text-sm">{isRaised ? '손 내리기' : '손들기'}</span>
             </motion.button>}
-            <motion.button whileTap={{ scale: 0.96 }} onClick={() => { setShowQA(true); setHasNewQuestion(false); }} aria-label="수업 질문" className={BTN_DEFAULT}>
+            <motion.button onClick={() => { setShowQA(true); setHasNewQuestion(false); }} aria-label="수업 질문" className={BTN_DEFAULT}>
               <HelpCircle size={22} /><span className="text-sm">질문</span>
               {hasNewQuestion && <span className={`${UNREAD_DOT} bg-red-500`} />}
             </motion.button>
             <motion.button whileTap={{ scale: reduced ? 1 : 0.98 }} onClick={() => setShowReactions(true)} aria-label="반응 보내기" aria-haspopup="dialog" className={BTN_DEFAULT}>
               <Smile size={22} /><span className="text-sm">반응</span>
             </motion.button>
-            <motion.button whileTap={{ scale: 0.96 }} onClick={() => setShowMore(true)} aria-label="참여 도구 더보기" aria-haspopup="dialog" className={BTN_DEFAULT}>
+            <motion.button onClick={() => setShowMore(true)} aria-label="참여 도구 더보기" aria-haspopup="dialog" className={BTN_DEFAULT}>
               <MoreHorizontal size={22} /><span className="text-sm">더보기</span>
               {(hasUnread || dmUnread > 0) && <span className={`${UNREAD_DOT} bg-red-500`} />}
             </motion.button>

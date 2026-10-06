@@ -6,6 +6,7 @@ import { onDisconnect, onValue, ref, remove, set } from 'firebase/database';
 import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import { spring, exitTween } from '@/lib/motion';
 import EmptyState from '@/components/ui/EmptyState';
 import CodeEntryPage from '@/app/routes/student/CodeEntryPage';
 import JoinPage from '@/app/routes/student/JoinPage';
@@ -84,8 +85,8 @@ function StudentRouter() {
           key="join"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20, scale: 0.97 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+          exit={{ opacity: 0, y: -12, scale: 0.985, transition: exitTween }}
+          transition={spring.default}
         >
           <JoinPage
             sessionId={sessionId}
@@ -98,10 +99,10 @@ function StudentRouter() {
       ) : (
         <motion.div
           key="vote"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+          exit={{ opacity: 0, transition: exitTween }}
+          transition={spring.default}
         >
           <Suspense fallback={<SuspenseFallback />}>
             <VotePage key={sessionId} sessionId={sessionId} />

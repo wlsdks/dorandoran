@@ -1,5 +1,6 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { CheckCircle2, Loader2, Crown, Trophy, Medal, Award, Clock, Lightbulb } from 'lucide-react';
 import { JUDGES } from '@/lib/judging/judges';
 
@@ -216,7 +217,7 @@ const Leaderboard = memo(function Leaderboard({ items }) {
               layout
               initial={{ opacity: 0, scale: 0.85, y: 6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 360, damping: 22 }}
+              transition={spring.bouncy}
               className="inline-flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-1.5"
             >
               <Icon size={13} className={meta.color} />

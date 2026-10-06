@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Check, ChartColumn } from 'lucide-react';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
+import { grow, popIn } from '@/lib/motion';
 
 /** 짧은 보기 2~4개는 결과를 서로 비교할 수 있는 발표 차트로 표현한다. */
 export default function PollColumns({ options, counts, total, revealed, correctValue, resultsHidden = false, loading = false }) {
@@ -17,12 +18,13 @@ export default function PollColumns({ options, counts, total, revealed, correctV
         return <div key={option} className={`poll-column ${correct ? 'answer-glow' : dimmed ? 'answer-dim' : ''}`} data-correct={correct}>
           <div className="poll-column-bar-area">
             {total > 0 && <>
-              <motion.div className="poll-column-value" initial={false} animate={{ bottom: `calc(${proportion * 100}% - ${proportion * 64}px + 12px)` }} transition={{ type: 'spring', stiffness: 150, damping: 25 }}><span><AnimatedNumber value={percent} />%</span><span>{counts[index]}명</span></motion.div>
+              {/* 값 라벨은 bottom을 직접 두고 layout="position"으로 옮긴다 — 매 득표마다 레이아웃 속성을 애니메이션하지 않는다 */}
+              <motion.div className="poll-column-value" layout="position" transition={{ layout: grow }} style={{ bottom: `calc(${proportion * 100}% - ${proportion * 64}px + 12px)` }}><span><AnimatedNumber value={percent} />%</span><span><AnimatedNumber value={counts[index]} />명</span></motion.div>
             </>}
-            <motion.div initial={false} animate={{ scaleY: proportion }} transition={{ type: 'spring', stiffness: 150, damping: 25 }}
+            <motion.div initial={false} animate={{ scaleY: proportion }} transition={grow}
               className="poll-column-bar" style={{ background: correct ? 'var(--color-indigo-500)' : revealed && correctValue ? 'var(--color-slate-600)' : 'var(--color-indigo-400)' }} />
           </div>
-          <p className="poll-column-label"><span className="poll-option-heading"><span className="poll-option-letter">{String.fromCharCode(65 + index)}</span><span>{option}</span></span>{correct && <span className="poll-correct-chip"><Check size={18} />정답</span>}</p>
+          <p className="poll-column-label"><span className="poll-option-heading"><span className="poll-option-letter">{String.fromCharCode(65 + index)}</span><span>{option}</span></span>{correct && <motion.span {...popIn} transition={{ ...popIn.transition, delay: 0.18 }} className="poll-correct-chip"><Check size={18} />정답</motion.span>}</p>
         </div>;
       })}
     </div>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '@/lib/motion';
 import { ChevronRight, Download, Check, Snowflake, ClipboardList, Users, Code, Lightbulb, Package } from 'lucide-react';
 import { TEMPLATE_PACKS } from '@/lib/template-packs';
 import { QUESTION_TYPES } from '@/lib/question-types';
@@ -69,7 +70,7 @@ function PackCard({ pack, onImport, imported, index }) {
         </div>
         <motion.div
           animate={{ rotate: expanded ? 90 : 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          transition={spring.default}
           className="text-slate-300 dark:text-slate-500 shrink-0"
         >
           <ChevronRight size={16} />

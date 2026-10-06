@@ -5,7 +5,7 @@ import { useMyScore } from '@/features/quiz/api/useScores';
 import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { getParticipantId } from '@/lib/participant';
 import { hapticTap } from '@/lib/haptics';
-import { spring, ease, exitTween } from '@/lib/motion';
+import { spring, ease, exitTween, count } from '@/lib/motion';
 import {
   INITIAL_GAIN_STATE, GAIN_SHOW_MS, GAIN_COUNT_MS, LOSS_SHOW_MS, observeScore, trackConnection, mergeGain,
   describeGain, describeLoss, withOwnVote, isBigGain, formatSigned, gainAnnouncement, holdGain, releaseGain,
@@ -62,7 +62,8 @@ function CountUp({ from, to, delay, reduced }) {
   const text = useTransform(value, current => Math.round(current).toLocaleString('ko-KR'));
   useEffect(() => {
     if (reduced) { value.set(to); return; }
-    const control = animate(value, to, { duration: GAIN_COUNT_MS / 1000, delay, ease: ease.out });
+    // 숫자는 count.score(0.45s)로 센다 — 장면(GAIN_SHOW_MS) 안에서 읽을 시간이 남는다
+    const control = animate(value, to, { duration: Math.min(GAIN_COUNT_MS / 1000, count.score.duration), delay, ease: count.score.ease });
     return () => control.stop();
   }, [value, to, delay, reduced]);
   return <motion.span>{text}</motion.span>;
