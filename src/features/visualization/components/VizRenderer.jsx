@@ -30,6 +30,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import QuizEventBanner from '@/components/ui/QuizEventBanner';
 import AnswerExplanation from '@/components/ui/AnswerExplanation';
 import { isQuizQuestion } from '@/lib/quiz';
+import { denserOf, getQuestionDensity } from '@/lib/text-density';
 import { ref, update } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { lazy, Suspense, useState, useEffect } from 'react';
@@ -96,11 +97,13 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
   // 강사 원본에는 공개 전부터 해설이 있으므로 공개 여부를 여기서 확인한다
   const showExplanation = hasCorrectAnswer && answerRevealed && Boolean(question.answerExplanation || question.answerImageUrl);
   const sideImage = isPresenter && showExplanation;
+  // 해설이 차트 옆에 붙으면 차트 폭이 줄어드므로 한 단계 이상 촘촘하게 둔다.
+  const density = sideImage ? denserOf(getQuestionDensity(question).level, 'compact') : getQuestionDensity(question).level;
   const onDisplayPageChange = isAdmin && isPresenter ? page => update(ref(db, `sessions/${sessionId}/questions/${currentQId}`), { displayPage: page }) : undefined;
   const framed = isPresenter && !['imageSlide', 'webEmbed', 'aiJudge'].includes(question.type);
 
   return (
-    <div data-question-kind={question.type} className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : isPresenter ? 'justify-center gap-5 py-3' : 'justify-center gap-6 py-4'} ${framed ? 'paper-surface presentation-viz' : ''} relative`}>
+    <div data-question-kind={question.type} data-density={density} className={`flex flex-col w-full h-full overflow-y-auto ${isFeed ? 'pt-4' : isPresenter ? 'justify-center gap-5 py-3' : 'justify-center gap-6 py-4'} ${framed ? 'paper-surface presentation-viz' : ''} relative`}>
       {confettiWave > 0 && hasCorrectAnswer && <Suspense fallback={null}>
         <div className="absolute right-10 top-12 pointer-events-none z-10 scale-75"><ConfettiBurst key={revealedAt} /></div>
       </Suspense>}
@@ -120,7 +123,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 </span>
               )}
             </div>
-            <h2 className={`${compact ? 'text-xl' : isPresenter ? 'classroom-question-title' : 'text-3xl'} font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight`}>{question.title}</h2>
+            <h2 className={`${compact ? 'text-xl' : isPresenter ? 'classroom-question-title' : 'preview-question-title'} font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight`}>{question.title}</h2>
             {hasCorrectAnswer && isQuizQuestion(question) && answerRevealed && (options.length > 6 || !['choice','quiz','ox'].includes(question.type)) && (
               <p className={isPresenter ? "text-slate-200 text-xl lg:text-2xl" : "text-slate-400 text-sm"}>
                 <span className="inline-block rounded-xl bg-indigo-100 text-indigo-950 px-5 py-2 font-bold">정답 · {question.correctAnswer}</span>

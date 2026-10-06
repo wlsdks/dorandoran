@@ -5,6 +5,7 @@ import { Maximize2, X } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import { TYPE_LABELS } from '@/lib/question-types';
+import { getQuestionDensity } from '@/lib/text-density';
 
 /**
  * 질문 카드 헤더 — 진행도 바 + 질문 제목 + 타입 뱃지
@@ -17,8 +18,10 @@ export default function QuestionCard({ question, questionId, questionProgress })
   const reducedMotion = useReducedMotion();
   const { available } = useAIAvailability();
   const [imageOpen, setImageOpen] = useState(false);
+  const density = getQuestionDensity(question).level;
   return (
     <motion.div
+      data-density={density}
       key={`header-${questionId}`}
       initial={reducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -59,7 +62,7 @@ export default function QuestionCard({ question, questionId, questionProgress })
           <Badge variant="primary">{question.type === 'aiJudge' && !available ? '과제' : TYPE_LABELS[question.type] || question.type}</Badge>
         </div>
       </div>
-      <h2 className="[word-break:keep-all] [overflow-wrap:anywhere] text-xl font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight">
+      <h2 className="student-question-title [word-break:keep-all] [overflow-wrap:anywhere] text-balance font-bold text-slate-900 dark:text-slate-100 tracking-tight">
         {question.title}
       </h2>
       {/* 이미지 퀴즈는 세부를 봐야 할 수 있어 탭하면 앱 안에서 크게 연다(새 창으로 나가면 타이머를 놓친다) */}
