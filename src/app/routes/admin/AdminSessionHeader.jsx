@@ -35,9 +35,9 @@ function ElapsedTime({ startedAt, createdAt, status }) {
   if (elapsed < 60_000) return null;
 
   return (
-    <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-      <span className="text-slate-300">&middot;</span>
-      <Clock size={12} className="text-slate-400" />
+    <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+      <span className="text-slate-500 dark:text-slate-400">&middot;</span>
+      <Clock size={12} className="text-slate-500 dark:text-slate-400" />
       <span className="tabular-nums">{formatElapsed(elapsed)}</span>
     </span>
   );
@@ -50,9 +50,9 @@ function ReviewingCountdown({ reviewingUntil }) {
   const days = Math.ceil(remaining / (24 * 60 * 60 * 1000));
   if (days <= 0) return null;
   return (
-    <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-      <span className="text-slate-300">&middot;</span>
-      <MessageSquareDot size={12} className="text-slate-400" />
+    <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+      <span className="text-slate-500 dark:text-slate-400">&middot;</span>
+      <MessageSquareDot size={12} className="text-slate-500 dark:text-slate-400" />
       <span>{days}일 후 자동 종료</span>
     </span>
   );
@@ -120,7 +120,7 @@ export default memo(function AdminSessionHeader({
         {isTablet && onLeftDrawer && (
           <button
             onClick={onLeftDrawer}
-            className="h-12 w-12 flex items-center justify-center -ml-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90"
+            className="h-12 w-12 flex items-center justify-center -ml-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90"
             aria-label="질문 목록 열기"
           >
             <List size={20} />
@@ -128,7 +128,7 @@ export default memo(function AdminSessionHeader({
         )}
         <button
           onClick={onBack}
-          className={`h-12 w-12 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90 ${isTablet ? '' : '-ml-2'}`}
+          className={`h-12 w-12 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90 ${isTablet ? '' : '-ml-2'}`}
           aria-label="클래스 목록으로"
         >
           <ArrowLeft size={20} />
@@ -166,16 +166,16 @@ export default memo(function AdminSessionHeader({
           </div>
           <div className="flex items-center gap-2">
             {!isTablet && (
-              <span className="text-xs text-slate-400 dark:text-slate-500">세션 <span className="font-mono">{sessionId}</span></span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">세션 <span className="font-mono">{sessionId}</span></span>
             )}
             {questionProgress && (
-              <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-                {!isTablet && <span className="text-slate-300">&middot;</span>}
-                <Layers size={12} className="text-slate-400" />
+              <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                {!isTablet && <span className="text-slate-500 dark:text-slate-400">&middot;</span>}
+                <Layers size={12} className="text-slate-500 dark:text-slate-400" />
                 {questionProgress.current ? (
                   <span className="tabular-nums">
                     <span className="font-semibold text-slate-600 dark:text-slate-300">{questionProgress.current}</span>
-                    <span className="text-slate-400 dark:text-slate-500">/{questionProgress.total}</span>
+                    <span className="text-slate-500 dark:text-slate-400">/{questionProgress.total}</span>
                   </span>
                 ) : (
                   <span>{questionProgress.total}개</span>
@@ -195,7 +195,7 @@ export default memo(function AdminSessionHeader({
         {/* Theme toggle */}
         <button
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className="relative h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
+          className="relative h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
           aria-label={isDark ? '라이트 모드' : '다크 모드'}
         >
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
@@ -206,7 +206,7 @@ export default memo(function AdminSessionHeader({
         {courseId && !effectiveReadOnly && (
           <button
             onClick={() => setStaffModalOpen(true)}
-            className="relative h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
+            className="relative h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
             aria-label="스태프 관리"
           >
             <UserCog size={20} />
@@ -218,7 +218,7 @@ export default memo(function AdminSessionHeader({
         {!effectiveReadOnly && (
           <button
             onClick={onChatToggle}
-            className="relative h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
+            className="relative h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
             aria-label={chatOpen ? '채팅 닫기' : '채팅 열기'}
             aria-pressed={chatOpen}
           >
@@ -235,7 +235,7 @@ export default memo(function AdminSessionHeader({
             <button
               onClick={() => setTimerOpen(!timerOpen)}
               className={`h-12 min-w-12 flex flex-col items-center justify-center gap-0.5 px-2.5 rounded-lg transition-colors duration-150 active:scale-[0.96] ${
-                timerRunning ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700'
+                timerRunning ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700'
               }`}
               aria-label={timerRunning ? '타이머 진행 중 - 설정 열기' : '타이머 설정'}
               aria-expanded={timerOpen}
@@ -258,7 +258,7 @@ export default memo(function AdminSessionHeader({
                   transition={{ duration: 0.15 }}
                   className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-4 z-50 w-72"
                 >
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">타이머 설정</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">타이머 설정</p>
                   <TimerControls isRunning={timerRunning} onStart={(s) => { onTimerStart(s); setTimerOpen(false); }} onStop={onTimerStop} />
                 </motion.div>
               )}
@@ -269,7 +269,7 @@ export default memo(function AdminSessionHeader({
         {isTablet && onRightDrawer ? (
           <button
             onClick={onRightDrawer}
-            className="h-12 min-w-12 flex items-center justify-center gap-1.5 px-2.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
+            className="h-12 min-w-12 flex items-center justify-center gap-1.5 px-2.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.96]"
             aria-label="참여자 패널 열기"
           >
             <Users size={20} />

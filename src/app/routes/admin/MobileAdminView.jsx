@@ -68,12 +68,12 @@ function MobileHeader({
   const modeInfo = MODE_MAP[currentMode];
   return <div className="flex items-center justify-between px-5 py-3.5 bg-white dark:bg-slate-800 shrink-0">
       <div className="flex items-center gap-3 min-w-0">
-        <button onClick={activeTab !== 'progress' ? onBackToTab : onBack} className="min-h-11 min-w-11 flex items-center justify-center p-2 -ml-2 shrink-0 rounded-xl text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150" aria-label="뒤로">
+        <button onClick={activeTab !== 'progress' ? onBackToTab : onBack} className="min-h-11 min-w-11 flex items-center justify-center p-2 -ml-2 shrink-0 rounded-xl text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150" aria-label="뒤로">
           <ArrowLeft size={22} />
         </button>
         <div className="min-w-0">
           <h1 className="text-base font-bold text-slate-900 dark:text-slate-100 truncate tracking-tight">{courseName} {round}</h1>
-          <div className="flex items-center gap-1.5 text-[13px] text-slate-400">
+          <div className="flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-slate-400">
             {isActive && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
             <span><motion.span key={count} initial={{
               scale: 1.15
@@ -100,7 +100,7 @@ function MobileHeader({
           </motion.button>}
         {!effectiveReadOnly && onOpenSettings && <motion.button whileTap={{
         scale: 0.9
-      }} onClick={onOpenSettings} className="min-h-11 min-w-11 flex items-center justify-center p-2 rounded-xl text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150" aria-label="세션 설정">
+      }} onClick={onOpenSettings} className="min-h-11 min-w-11 flex items-center justify-center p-2 rounded-xl text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150" aria-label="세션 설정">
             <MoreHorizontal size={20} />
           </motion.button>}
       </div>
@@ -122,7 +122,7 @@ function MobileTabBar({
         const isActive = activeTab === tab.key;
         return <motion.button key={tab.key} whileTap={{
           scale: 0.92
-        }} onClick={() => onTabChange(tab.key)} className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors duration-150 relative ${isActive ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}>
+        }} onClick={() => onTabChange(tab.key)} className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors duration-150 relative ${isActive ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>
               {isActive && <motion.div layoutId="mobile-tab-indicator" className="absolute top-0 left-3 right-3 h-[2px] rounded-full bg-slate-900 dark:bg-slate-100" transition={{
             type: 'spring',
             stiffness: 500,

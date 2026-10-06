@@ -44,13 +44,13 @@ function ActiveQuestionBanner({ session, sessionId }) {
       </p>
       <div className="flex items-center gap-2 mt-2">
         <Badge variant="primary">{typeLabel}</Badge>
-        <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
           {isAiJudge ? `${voteCount}명 제출` : `${voteCount}명 응답`}
         </span>
       </div>
       {isAiJudge && sessionId && (
         <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-          <p className="text-[11px] text-slate-400 dark:text-slate-500">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">
             AI 심사는 강사가 시작·제어합니다. 스태프는 제출 현황만 확인 가능합니다.
           </p>
         </div>
@@ -135,7 +135,7 @@ function ChatReplyInput({ sessionId, senderName, staffId, question, onOpenDM, en
           onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleReply()}
           placeholder="답변을 입력하세요..."
           aria-label="1:1 빠른 답변"
-          className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150"
+          className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150"
         />
         <Button
           onClick={handleReply}
@@ -263,7 +263,7 @@ export default memo(function StaffQuestionDetail({ question, onAction, onMarkAns
     >
       {/* Type badge */}
       <div className="flex items-center gap-2 mb-6">
-        <Icon size={18} className="text-slate-400" />
+        <Icon size={18} className="text-slate-500 dark:text-slate-400" />
         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
           {isUrgent && <span className="w-1.5 h-1.5 rounded-full bg-red-500" />}
           {isUrgent ? '긴급 질문' : '수업 질문'}
@@ -277,15 +277,15 @@ export default memo(function StaffQuestionDetail({ question, onAction, onMarkAns
 
       {/* Meta info */}
       <div className="flex items-center gap-3 mt-4">
-        <span className="text-sm text-slate-400">
+        <span className="text-sm text-slate-500 dark:text-slate-400">
           {isUrgent && question.anonymous !== false ? '익명' : question.nickname || '익명'}
         </span>
-        <span className="text-slate-300 dark:text-slate-600">·</span>
-        <span className="text-sm text-slate-400">{timeAgo(question.timestamp)}</span>
+        <span className="text-slate-500 dark:text-slate-300">·</span>
+        <span className="text-sm text-slate-500 dark:text-slate-400">{timeAgo(question.timestamp)}</span>
         {!isUrgent && question.upvoteCount > 0 && (
           <>
-            <span className="text-slate-300 dark:text-slate-600">·</span>
-            <span className="flex items-center gap-1 text-sm text-slate-400">
+            <span className="text-slate-500 dark:text-slate-300">·</span>
+            <span className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">
               <ThumbsUp size={12} />
               {question.upvoteCount}
             </span>
@@ -321,7 +321,7 @@ export default memo(function StaffQuestionDetail({ question, onAction, onMarkAns
           </>
         )}
         {isDone && (
-          <div className="text-center text-sm text-slate-400 py-3">
+          <div className="text-center text-sm text-slate-500 dark:text-slate-400 py-3">
             {answeredLabel}
           </div>
         )}

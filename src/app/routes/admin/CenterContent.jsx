@@ -47,13 +47,13 @@ export default function CenterContent({
                 <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                   {editingQuestion ? '질문 수정' : '새 질문 추가'}
                 </h2>
-                <p className="text-slate-400 text-sm mt-1">
+                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
                   {editingQuestion ? '질문 내용을 수정하세요' : '질문을 작성하고 추가하세요'}
                 </p>
               </div>
               <button
                 onClick={onHideCenterForm}
-                className="p-2 max-sm:min-h-11 max-sm:min-w-11 rounded-lg text-slate-300 hover:text-slate-600 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90"
+                className="p-2 max-sm:min-h-11 max-sm:min-w-11 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90"
                 aria-label="취소"
               >
                 <X size={20} />

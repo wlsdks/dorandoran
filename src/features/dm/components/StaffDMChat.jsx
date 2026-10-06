@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useDialogLayer } from '@/hooks/useDialogLayer';
 import { X, Send, CheckCircle2, Clipboard } from 'lucide-react';
 import { formatChatTime } from '@/lib/utils';
 import { useDMTyping } from '@/features/dm/api/useDMTyping';
@@ -9,7 +10,7 @@ const ChatMsg = memo(function ChatMsg({ msg, isOwn, currentUserName }) {
     return (
       <div className="flex justify-center my-1">
         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-700 max-w-[85%] text-center leading-snug">
-          <Clipboard size={11} className="shrink-0 text-slate-400" />
+          <Clipboard size={11} className="shrink-0 text-slate-500 dark:text-slate-400" />
           <span>{msg.text}</span>
         </div>
       </div>
@@ -25,7 +26,7 @@ const ChatMsg = memo(function ChatMsg({ msg, isOwn, currentUserName }) {
         <div className="px-3.5 py-2.5 text-sm leading-relaxed bg-slate-900 dark:bg-slate-200 text-white dark:text-slate-900 rounded-2xl rounded-br-sm max-w-[75%]">
           {msg.text}
         </div>
-        <span className="text-[10px] text-slate-300 dark:text-slate-500 px-1">{formatChatTime(msg.timestamp)}</span>
+        <span className="text-[10px] text-slate-500 dark:text-slate-400 px-1">{formatChatTime(msg.timestamp)}</span>
       </div>
     );
   }
@@ -46,7 +47,7 @@ const ChatMsg = memo(function ChatMsg({ msg, isOwn, currentUserName }) {
       }`}>
         {msg.text}
       </div>
-      <span className="text-[10px] text-slate-300 dark:text-slate-500 px-1">{formatChatTime(msg.timestamp)}</span>
+      <span className="text-[10px] text-slate-500 dark:text-slate-400 px-1">{formatChatTime(msg.timestamp)}</span>
     </div>
   );
 });
@@ -55,9 +56,12 @@ export default function StaffDMChat({
   dm, open, onClose, onResolve, onSendMessage, staffName, staffId, senderType,
   allActiveDMs, onSwitchDM, sessionId,
 }) {
+  const reducedMotion = useReducedMotion();
+  const { dialogRef, trapFocus } = useDialogLayer(Boolean(open && dm), onClose);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   const { activeTypers, notifyTyping, clearTyping } = useDMTyping(
     sessionId,
@@ -67,24 +71,23 @@ export default function StaffDMChat({
 
   useEffect(() => {
     if (open && dm) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current?.scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth' });
     }
     // length 증가에만 스크롤. dm 자체 변경은 의도적 무시
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dm?.messageList?.length, open]);
+  }, [dm?.messageList?.length, open, reducedMotion]);
 
   // 모달 닫을 때 타이핑 신호 정리
   useEffect(() => {
     if (!open) clearTyping();
   }, [open, clearTyping]);
 
-  // Esc로 모달 닫기
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [open, onClose]);
+    // Dialog records its opener before the composer takes keyboard focus.
+    const frame = requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
 
   async function handleSend() {
     const text = inputText.trim();
@@ -117,11 +120,12 @@ export default function StaffDMChat({
             onClick={onClose}
           />
           <motion.div
+            ref={dialogRef} role="dialog" aria-modal="true" aria-label="1:1 도움 대화" tabIndex={-1} onKeyDown={trapFocus}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="fixed inset-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[400px] sm:h-[520px] bg-white dark:bg-slate-800 sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden"
+            className="mobile-conversation fixed inset-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[400px] sm:h-[520px] bg-white dark:bg-slate-800 sm:rounded-2xl sm:shadow-2xl z-50 flex flex-col overflow-hidden outline-none"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-700 shrink-0">
@@ -136,14 +140,14 @@ export default function StaffDMChat({
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={handleResolve}
-                  className="inline-flex items-center gap-1 px-3 py-2 min-h-[40px] text-xs font-medium text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20 rounded-lg transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+                  className="inline-flex items-center gap-1 px-3 py-2 min-h-[40px] text-xs font-medium text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20 rounded-lg transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
                 >
                   <CheckCircle2 size={14} />
                   해결 완료
                 </button>
                 <button
                   onClick={onClose}
-                  className="p-2 min-h-[40px] min-w-[40px] rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
+                  className="p-2 min-h-[40px] min-w-[40px] rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
                   aria-label="닫기"
                 >
                   <X size={16} />
@@ -214,11 +218,12 @@ export default function StaffDMChat({
             {/* Input */}
             <div className="flex items-center gap-2 px-4 py-3 border-t border-slate-100 dark:border-slate-700 shrink-0">
               <input
+                ref={inputRef}
                 type="text"
                 value={inputText}
                 onChange={(e) => { setInputText(e.target.value); if (e.target.value) notifyTyping(); }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
                     e.preventDefault();
                     handleSend();
                   }
@@ -227,8 +232,7 @@ export default function StaffDMChat({
                 placeholder="메시지를 입력하세요"
                 aria-label="도움 응답 메시지"
                 maxLength={500}
-                className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150"
-                autoFocus
+                className="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-300 focus:outline-none focus:border-slate-400 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150"
               />
               <button
                 onClick={handleSend}

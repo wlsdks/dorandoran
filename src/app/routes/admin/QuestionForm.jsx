@@ -1,6 +1,6 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { AlertCircle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { QUIZ_DEFAULTS } from '@/lib/quiz';
@@ -22,10 +22,11 @@ import {
 
 const COMMON_TYPES = ['choice', 'quiz', 'ox', 'wordcloud', 'subjective', 'check'];
 
-const INPUT = 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150';
+const INPUT = 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150';
 
 export default function QuestionForm({ onSubmit, onCancel, error, initialData }) {
   const { available, reason } = useAIAvailability();
+  const reducedMotion = useReducedMotion();
   const isEdit = !!initialData;
   const [type, setType] = useState(initialData?.type || 'choice');
   const [showMoreTypes, setShowMoreTypes] = useState(Boolean(initialData?.type && !COMMON_TYPES.includes(initialData.type)));
@@ -135,7 +136,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
                 }}
                 className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150 ${
                   selected ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm'
-                    : 'text-slate-400 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-300'}`}>
+                    : 'text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-300'}`}>
                 <Icon size={20} strokeWidth={selected ? 2 : 1.6} />
                 <span className="text-sm font-medium leading-tight">{t.label}</span>
               </motion.button>
@@ -149,7 +150,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
 
       {/* 질문 내용 */}
       <div className="pt-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">질문 내용</p>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">질문 내용</p>
         <textarea value={title}
           onChange={(e) => { setTitle(e.target.value); setLocalError(null); }}
           placeholder={isFillInBlank ? 'HTTP 상태코드 ___는 페이지를 찾을 수 없음을 의미한다' : type === 'check' ? '실습을 완료하셨으면 체크해주세요' : '학생들에게 보여줄 질문을 입력하세요'}
@@ -184,7 +185,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
               placeholder="example.com/docs"
               className={INPUT}
             />
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               발표 화면 안에서 그대로 엽니다. 임베드를 허용하지 않는 사이트는 새 창으로 열도록 안내합니다.
             </p>
           </div>
@@ -195,72 +196,54 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
         )}
       </div>
 
-      {/* Type-specific sections */}
-      <AnimatePresence>
+      {/* Only the selected type is mounted: departed controls cannot overlap the new form. */}
+      <motion.div key={type} initial={reducedMotion ? false : { opacity: .8 }} animate={{ opacity: 1 }} transition={{ duration: reducedMotion ? 0 : .12 }}>
         {isChoiceLike && <ChoiceOptionsSection options={options} setOptions={setOptions}
           correctAnswer={correctAnswer} setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
-      </AnimatePresence>
-      <AnimatePresence>
         {isRanking && <RankingOptionsSection options={options} setOptions={setOptions} setLocalError={setLocalError} />}
-      </AnimatePresence>
-      <AnimatePresence>
         {isFillInBlank && <FillBlankSection title={title} correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
-      </AnimatePresence>
-      <AnimatePresence>
         {isShortAnswer && <ShortAnswerSection correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} acceptableAnswers={acceptableAnswers}
           setAcceptableAnswers={setAcceptableAnswers} setLocalError={setLocalError} />}
-      </AnimatePresence>
-      <AnimatePresence>
         {isChoiceLike && <CorrectAnswerSection optional={type === 'choice'} options={options} correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
-      </AnimatePresence>
-      <AnimatePresence>
         {type === 'quiz' && <QuizSettingsSection points={points} setPoints={setPoints}
           event={event} setEvent={setEvent} betting={betting} setBetting={setBetting} />}
-      </AnimatePresence>
-      <AnimatePresence>
         {type === 'ox' && <OXAnswerSection correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
-      </AnimatePresence>
-      <AnimatePresence>
         {isMysteryBox && <MysteryBoxSection correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} mysteryItems={mysteryItems}
           setMysteryItems={setMysteryItems} answerReasons={answerReasons}
           setAnswerReasons={setAnswerReasons} winners={winners}
           setWinners={setWinners} setLocalError={setLocalError} />}
-      </AnimatePresence>
-      <AnimatePresence>
         {isHintQuiz && <HintQuizSection correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} hints={hints}
           setHints={setHints} acceptableAnswers={acceptableAnswers}
           setAcceptableAnswers={setAcceptableAnswers} winners={winners}
           setWinners={setWinners} setLocalError={setLocalError} />}
-      </AnimatePresence>
-      <AnimatePresence>
         {isSubjective && available && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+          <div className="overflow-hidden">
             <div className="pt-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">모범답안 (AI 채점 기준)</p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">모범답안 (AI 채점 기준)</p>
               <textarea value={modelAnswer}
                 onChange={(e) => { setModelAnswer(e.target.value); setLocalError(null); }}
                 placeholder="핵심 키워드와 기대하는 답변 내용을 적어주세요. AI가 이 기준으로 학생 답변을 0~100점으로 채점합니다."
                 aria-label="모범답안" rows={3}
                 className={`${INPUT} resize-none leading-relaxed`} />
-              <p className="text-[11px] text-slate-400 mt-1.5">학생에게는 보이지 않습니다. 채점 시에만 사용돼요.</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">학생에게는 보이지 않습니다. 채점 시에만 사용돼요.</p>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+
+      </motion.div>
 
       {/* Error */}
       <AnimatePresence>
         {displayError && (
           <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }} role="alert"
-            className="text-red-500 text-sm flex items-center gap-1.5 pt-3">
+            className="text-red-700 dark:text-red-400 text-sm flex items-center gap-1.5 pt-3">
             <AlertCircle size={14} />{displayError}
           </motion.p>
         )}
