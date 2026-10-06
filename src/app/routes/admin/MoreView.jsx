@@ -53,7 +53,7 @@ const SHORTCUTS = [
   ]},
   { group: '퀴즈 진행', items: [
     { label: '정답 공개', key: 'R' },
-    { label: '리더보드 표시', key: 'L' },
+    { label: '랭킹 표시', key: 'L' },
   ]},
   { group: '기타', items: [
     { label: '대기 화면으로', key: 'Esc' },

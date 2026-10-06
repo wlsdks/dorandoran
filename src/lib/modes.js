@@ -23,7 +23,7 @@ export const SPECIAL_MODES = [
   { mode: 'discussion', label: '그룹 토론', shortLabel: '토론', icon: Timer, group: '참여' },
   { mode: 'qaBoard', label: 'Q&A 보드', shortLabel: 'Q&A', icon: MessageSquare, group: '참여' },
 
-  { mode: 'leaderboard', label: '리더보드', icon: Trophy, group: '결과', requiresLeaderboard: true },
+  { mode: 'leaderboard', label: '랭킹', icon: Trophy, group: '결과', requiresLeaderboard: true },
   { mode: 'combinedRanking', label: '합산 랭킹', shortLabel: '합산', icon: Medal, group: '결과' },
   { mode: 'qaRanking', label: 'Q&A 랭킹', icon: HelpCircle, group: '결과' },
   { mode: 'awards', label: '시상식', icon: Award, group: '결과' },
@@ -47,7 +47,7 @@ export const MODE_GROUP_ORDER = ['게임', '참여', '결과', '기타'];
 
 /**
  * 메뉴에 뿌릴 그룹 구조를 만든다.
- * @param {{ hasLeaderboard?: boolean }} [opts] 점수가 있는지 — 없으면 리더보드를 감춘다
+ * @param {{ hasLeaderboard?: boolean }} [opts] 점수가 있는지 — 없으면 랭킹를 감춘다
  */
 export function modeGroups({ hasLeaderboard = false } = {}) {
   const visible = SPECIAL_MODES.filter((m) => !m.requiresLeaderboard || hasLeaderboard);

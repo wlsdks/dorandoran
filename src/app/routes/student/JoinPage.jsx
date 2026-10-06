@@ -116,7 +116,7 @@ export default function JoinPage({ sessionId, onJoin }) {
         [`participants/${participantId}/employeeId`]: employeeId.trim() || null,
         [`participants/${participantId}/joinedAt`]: existing?.joinedAt || serverTimestamp(),
       };
-      // 닉네임을 바꾸면 리더보드·시상이 읽는 점수 기록의 이름도 같이 바꾼다(점수가 있을 때만).
+      // 닉네임을 바꾸면 랭킹·시상이 읽는 점수 기록의 이름도 같이 바꾼다(점수가 있을 때만).
       if (existing?.nickname && existing.nickname !== trimmed) {
         const oldKey = nicknameKey(existing.nickname);
         if (oldKey !== key) updates[`nicknames/${oldKey}`] = null;

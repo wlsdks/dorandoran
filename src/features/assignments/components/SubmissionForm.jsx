@@ -8,6 +8,7 @@ import { ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
 import { compressImage, MAX_UPLOAD_MB, uploadErrorMessage } from '@/lib/image-utils';
 import { imageRejection, normalizeImageFile } from '@/lib/image-file';
+import { reportClientError } from '@/lib/error-report';
 import Button from '@/components/ui/Button';
 import SubmissionPreview from './SubmissionPreview';
 import SubmissionSuccessView from './SubmissionSuccessView';
@@ -109,6 +110,7 @@ export default function SubmissionForm({ onSubmit, existingSubmission, assignmen
             )
           );
         } catch (err) {
+          reportClientError('assignment-screenshot', err, { type: original.type, size: original.size });
           setScreenshots((prev) =>
             prev.map((s) =>
               s.tempId === placeholder.tempId

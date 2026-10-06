@@ -79,7 +79,7 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
       />
     );
     if (currentMode === 'breakTime') return <BreakTimer sessionId={sessionId} presenter={presentMode} />;
-    if (currentMode === 'leaderboard') return <div className="w-full px-2 md:px-0"><Leaderboard presenter={presentMode} paginate entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} onPageChange={onLeaderboardPageChange} highlight={session?.leaderboardHighlight} onHighlightChange={onHighlightChange} title="실시간 리더보드" emptyLabel="아직 점수가 없습니다" /></div>;
+    if (currentMode === 'leaderboard') return <div className="w-full px-2 md:px-0"><Leaderboard presenter={presentMode} paginate entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} onPageChange={onLeaderboardPageChange} highlight={session?.leaderboardHighlight} onHighlightChange={onHighlightChange} title="실시간 랭킹" emptyLabel="아직 점수가 없습니다" /></div>;
     if (currentMode === 'qaBoard') return <div className="w-full max-w-4xl" style={{ maxWidth: presentMode ? 1100 : undefined }}><ClassQABoard presenter={presentMode} readOnly={presentMode} sessionId={sessionId} showInput={false} isAdmin role="admin" /></div>;
     if (currentMode === 'qaRanking') return <QARanking sessionId={sessionId} presenter={presentMode} readOnly={presentMode} />;
     if (currentMode === 'joinShow') return <JoinShow sessionId={sessionId} eventMode={Boolean(session?.requireEmployeeId)} />;
@@ -421,7 +421,7 @@ export default function PresentationView({ sessionId, session, currentMode, onli
               {(current.currentSlide || 0) >= (current.slideImages?.length || 1) - 1 ? '다음 활동' : '다음'}<ChevronRight size={20} /></Button>
           </> : <>
             <Button variant="secondary" size="lg" onClick={goPrev} disabled={currentQIdx <= 0}><ChevronLeft size={18} />이전</Button>
-            {/* 리더보드 모드에서는 미리 정한 특별 순위를 한 버튼으로 차례로 공개한다 */}
+            {/* 랭킹 모드에서는 미리 정한 특별 순위를 한 버튼으로 차례로 공개한다 */}
             {currentMode === 'leaderboard' && !readOnly
               ? <RankingHighlightControls size="lg" highlight={session?.leaderboardHighlight} maxRank={leaderboard.length} onHighlightChange={config => update(ref(db, `sessions/${sessionId}`), rankingHighlightUpdates(config))} />
               : <PresentRevealControls key={session?.currentQuestion} sessionId={sessionId} session={session} onRevealQuiz={revealQuiz} onRevealAnswer={revealAnswer} />}

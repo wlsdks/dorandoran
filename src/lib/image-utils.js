@@ -72,6 +72,7 @@ export function compressImage(file, { maxWidth = 2560, maxHeight = 1440, quality
 export function uploadErrorMessage(error) {
   if (error instanceof ImageError) return error.message;
   if (error?.code === 'storage/unauthorized') return '사진을 올릴 권한이 없어요. 다시 로그인한 뒤 시도해주세요.';
+  if (error?.code === 'upload/stalled') return error.message;
   if (error?.code === 'storage/retry-limit-exceeded' || error?.code === 'storage/canceled') return '네트워크가 불안정해 업로드하지 못했어요. 다시 시도해주세요.';
   return '업로드하지 못했어요. 다시 시도해주세요.';
 }

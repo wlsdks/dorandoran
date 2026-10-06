@@ -113,7 +113,7 @@ export default memo(function QuickProgressCard({
         disabled={speedQuizActive}
         className="h-12 !px-2 py-2.5 !text-sm gap-1.5 whitespace-nowrap [&>svg]:shrink-0">
         <Trophy size={20} />
-        리더보드
+        랭킹
       </Button>
     );
     secondaryBtn = (
@@ -212,7 +212,7 @@ export default memo(function QuickProgressCard({
         {currentQ?.type === 'quiz' && (
           <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">
             {quizRevealed
-              ? '정답 공개가 완료되었습니다. 리더보드로 이어서 보여줄 수 있습니다.'
+              ? '정답 공개가 완료되었습니다. 랭킹로 이어서 보여줄 수 있습니다.'
               : '정답 공개 전까지 답안을 모으는 중입니다.'}
           </p>
         )}
@@ -335,7 +335,7 @@ export default memo(function QuickProgressCard({
           <KeyHint keys="R" label="정답 공개" />
         )}
         {currentQ?.type === 'quiz' && currentQ.revealedAt && (
-          <KeyHint keys="L" label="리더보드" />
+          <KeyHint keys="L" label="랭킹" />
         )}
       </div>
     </div>

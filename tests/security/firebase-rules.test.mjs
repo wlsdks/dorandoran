@@ -320,3 +320,13 @@ test('AI 상태 확인은 비인증을 거부하고 테스트 연결을 실제 �
   assert.equal((await api('/api/gemini/status', {}, idToken)).status, 403);
   assert.equal((await api('/api/gemini/v1beta/models/gemini-2.5-flash:generateContent', { contents: '금지된 요청' }, idToken)).status, 403);
 });
+
+test('사용자 기기 오류 보고는 로그인 사용자가 한 번만 쓰고 아무도 읽을 수 없다', async () => {
+  const me = student('error_reporter');
+  const entry = { area: 'image-upload', code: 'storage/unknown', message: '실패', context: '{}', ua: 'Windows', at: Date.now() };
+  await assertSucceeds(set(ref(me, 'clientErrors/e1'), entry));
+  await assertFails(set(ref(me, 'clientErrors/e1'), entry));
+  await assertFails(set(ref(me, 'clientErrors/e2'), { ...entry, extra: 'x' }));
+  await assertFails(get(ref(me, 'clientErrors')));
+  await assertFails(set(ref(environment.unauthenticatedContext().database(), 'clientErrors/e3'), entry));
+});

@@ -39,7 +39,7 @@ async function join(page, nickname) {
   await page.goto(`${base}/?s=${sid}`);
   await page.getByPlaceholder('닉네임 입력').fill(nickname);
   await page.getByRole('button', { name: '참여하기', exact: true }).click();
-  await expect(page.getByRole('heading', { name: '현재 리더보드', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '현재 랭킹', exact: true })).toBeVisible();
   return rememberAnonymous(page);
 }
 // Planning ranks never shows anything: the plan is stored with enabled:false until the first reveal.
@@ -58,7 +58,7 @@ async function verifyRank(rank, teacher, wall, large, phones, click = true) {
   const row = `[data-ranking-featured="true"][data-rank="${rank}"]`;
   for (const page of [wall, large]) {
     await expect(page.locator(row)).toBeVisible();
-    await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText(`${Math.floor((rank - 1) / 8) + 1} / 25`);
+    await expect(page.getByLabel('랭킹 페이지 위치', { exact: true })).toHaveText(`${Math.floor((rank - 1) / 8) + 1} / 25`);
   }
   for (const phone of phones) {
     // Different browser engines can receive the shared metadata on different
@@ -131,22 +131,22 @@ async function verifyRank(rank, teacher, wall, large, phones, click = true) {
     for (const page of [wall, large, small, ios]) {
       await page.getByRole('button', { name: '다음 랭킹 페이지', exact: true }).click();
       await page.getByRole('button', { name: '다음 랭킹 페이지', exact: true }).click();
-      await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 25');
+      await expect(page.getByLabel('랭킹 페이지 위치', { exact: true })).toHaveText('3 / 25');
     }
     await db.ref(`sessions/${sid}/scores/h_extra`).set({ nickname: '인원변경 확인', total: -5 });
-    for (const page of [wall, large, small, ios]) await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 26');
+    for (const page of [wall, large, small, ios]) await expect(page.getByLabel('랭킹 페이지 위치', { exact: true })).toHaveText('3 / 26');
     await db.ref(`sessions/${sid}/scores/h_extra`).remove();
-    for (const page of [wall, large, small, ios]) await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 25');
+    for (const page of [wall, large, small, ios]) await expect(page.getByLabel('랭킹 페이지 위치', { exact: true })).toHaveText('3 / 25');
     await revealButton(teacher).click();
     await expect.poll(async () => (await db.ref(`sessions/${sid}/leaderboardHighlight/activeRank`).get()).val()).toBe(3);
     expect((await db.ref(`sessions/${sid}/leaderboardPage`).get()).val()).toBe(0);
     for (const page of [wall, large]) {
       await expect(page.locator('[data-ranking-featured="true"][data-rank="3"]')).toBeVisible();
-      await expect(page.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('1 / 25');
+      await expect(page.getByLabel('랭킹 페이지 위치', { exact: true })).toHaveText('1 / 25');
     }
     for (const phone of [small, ios]) {
       await expect(phone.locator('[aria-label="현재 강조 순위"]')).toContainText('특별 순위 3위');
-      await expect(phone.getByLabel('리더보드 페이지 위치', { exact: true })).toHaveText('3 / 25');
+      await expect(phone.getByLabel('랭킹 페이지 위치', { exact: true })).toHaveText('3 / 25');
       await expect(phone.locator('[data-ranking-featured="true"]')).toHaveCount(0);
     }
     report.checks.push('same-page highlight command restores board focus, preserves student browsing and ignores count-only changes');
@@ -161,7 +161,7 @@ async function verifyRank(rank, teacher, wall, large, phones, click = true) {
     for (const rank of [1, 10, 50, 200]) await verifyRank(rank, teacher, wall, large, [small, ios]);
     report.checks.push('positions1/10/50/200 and page synchronization on wall/mobile');
     await shot(large, 'simulated4K-highlight200.png');
-    const card = await large.locator('section[aria-label="실시간 리더보드"]').boundingBox();
+    const card = await large.locator('section[aria-label="실시간 랭킹"]').boundingBox();
     expect(card.y + card.height).toBeLessThanOrEqual(2160);
 
     await teacher.getByRole('button', { name: '특별 순위 처음부터', exact: true }).click();

@@ -4,7 +4,7 @@ import {
 } from './helpers';
 
 /**
- * 학생 모바일 — 다크모드 전수 + 퀴즈 정답공개/결과 + 리더보드 + 가로모드 캡처.
+ * 학생 모바일 — 다크모드 전수 + 퀴즈 정답공개/결과 + 랭킹 + 가로모드 캡처.
  */
 
 const OUT = 'test-results/responsive-extra';
@@ -65,13 +65,13 @@ test('다크모드 — 학생 전 화면', async ({ page, baseURL }) => {
   await cleanupTestSession(sid);
 });
 
-// 2) 퀴즈 정답공개/결과 + 리더보드 (라이트 + 다크)
+// 2) 퀴즈 정답공개/결과 + 랭킹 (라이트 + 다크)
 for (const theme of ['light', 'dark']) {
-  test(`퀴즈 결과 + 리더보드 — ${theme}`, async ({ page, baseURL }) => {
+  test(`퀴즈 결과 + 랭킹 — ${theme}`, async ({ page, baseURL }) => {
     test.setTimeout(150_000);
     const sid = testSessionId();
     await seedSession(sid);
-    // 점수 시드 (리더보드 + 결과 점수)
+    // 점수 시드 (랭킹 + 결과 점수)
     const scores = {};
     for (let i = 0; i < 8; i++) scores[`s${i}`] = { nickname: `학생${i + 1}`, total: 300 - i * 25 };
     scores[PID] = { nickname: '김참가', total: 175 };
@@ -94,7 +94,7 @@ for (const theme of ['light', 'dark']) {
     await page.reload();
     await shoot(page, `${theme}-quiz-result-wrong`);
 
-    // 리더보드 학생 화면
+    // 랭킹 학생 화면
     await firebaseSet(`sessions/${sid}/currentMode`, 'leaderboard');
     await page.reload();
     await shoot(page, `${theme}-leaderboard`);

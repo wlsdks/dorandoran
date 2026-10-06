@@ -356,7 +356,7 @@ export function useQuestionActions(sessionId, questions, currentQuestion, _score
     try {
       await update(ref(db, `sessions/${sessionId}`), { currentMode: 'leaderboard', leaderboardPage: 0 });
     } catch {
-      setError('리더보드 전환에 실패했습니다. 다시 시도해주세요.');
+      setError('랭킹 전환에 실패했습니다. 다시 시도해주세요.');
     }
   }, [sessionId]);
 

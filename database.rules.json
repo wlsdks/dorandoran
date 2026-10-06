@@ -1014,6 +1014,31 @@
           ".validate": "newData.val() === true"
         }
       }
+    },
+    "clientErrors": {
+      ".read": "false",
+      "$id": {
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.hasChildren(['area', 'at']) && newData.child('area').isString() && newData.child('area').val().length <= 40",
+        "code": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "message": {
+          ".validate": "newData.isString() && newData.val().length <= 300"
+        },
+        "context": {
+          ".validate": "newData.isString() && newData.val().length <= 600"
+        },
+        "ua": {
+          ".validate": "newData.isString() && newData.val().length <= 300"
+        },
+        "at": {
+          ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+        },
+        "$other": {
+          ".validate": "false"
+        }
+      }
     }
   }
 }

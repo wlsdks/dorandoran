@@ -15,12 +15,12 @@ const keepLocal = event => { if (event.key === ' ' || event.key === 'Enter') eve
 function Pager({ presenter, page, pageCount, onPrev, onNext }) {
   const prev = { 'aria-label': '이전 랭킹 페이지', onKeyDown: keepLocal, onClick: onPrev, disabled: page === 0, type: 'button' };
   const next = { 'aria-label': '다음 랭킹 페이지', onKeyDown: keepLocal, onClick: onNext, disabled: page >= pageCount - 1, type: 'button' };
-  const position = <span aria-label="리더보드 페이지 위치" aria-live="polite">{page + 1} / {pageCount}</span>;
-  if (presenter) return <nav aria-label="리더보드 페이지" className="board-ranking-pager">
+  const position = <span aria-label="랭킹 페이지 위치" aria-live="polite">{page + 1} / {pageCount}</span>;
+  if (presenter) return <nav aria-label="랭킹 페이지" className="board-ranking-pager">
     <button {...prev}><ChevronLeft /></button>{position}<button {...next}><ChevronRight /></button>
   </nav>;
   const button = 'inline-flex min-h-12 flex-1 items-center justify-center gap-1 text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent';
-  return <nav aria-label="리더보드 페이지" className="mt-3 flex items-stretch overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+  return <nav aria-label="랭킹 페이지" className="mt-3 flex items-stretch overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
     <button {...prev} className={button}><ChevronLeft size={16} />이전</button>
     <div className="flex min-w-[5.5rem] items-center justify-center border-x border-slate-200 dark:border-slate-700 text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-200">{position}</div>
     <button {...next} className={button}>다음<ChevronRight size={16} /></button>
@@ -33,7 +33,7 @@ function Pager({ presenter, page, pageCount, onPrev, onNext }) {
  * external page change synchronizes viewers, but viewers can still browse locally.
  */
 export default memo(function Leaderboard({
-  entries, maxShow = 10, title = '리더보드', emptyLabel = '아직 점수가 없습니다', highlightId = null,
+  entries, maxShow = 10, title = '랭킹', emptyLabel = '아직 점수가 없습니다', highlightId = null,
   presenter = false, paginate = false, pageSize = 8, page, onPageChange, highlight = null, onHighlightChange,
 }) {
   const ranked = Array.isArray(entries) ? entries : EMPTY_ENTRIES;
@@ -131,7 +131,7 @@ export default memo(function Leaderboard({
   };
 
   if (ranked.length === 0 || totalShown === 0) return presenter
-    ? <section aria-label={title || '리더보드'} className="board-ranking"><div className="board-ranking-empty"><DoranDoranMascot size="md" /><p>{emptyLabel}</p><p>퀴즈에 정답을 맞히면 점수가 올라갑니다</p></div></section>
+    ? <section aria-label={title || '랭킹'} className="board-ranking"><div className="board-ranking-empty"><DoranDoranMascot size="md" /><p>{emptyLabel}</p><p>퀴즈에 정답을 맞히면 점수가 올라갑니다</p></div></section>
     : <div className="flex flex-col items-center space-y-2 py-8 text-center"><DoranDoranMascot size="sm" /><p className="text-sm text-slate-400">{emptyLabel}</p><p className="text-xs text-slate-400 dark:text-slate-500">퀴즈에 정답을 맞히면 점수가 올라갑니다</p></div>;
 
   const myIndex = highlightId ? ranked.findIndex(entry => entry.id === highlightId) : -1;
@@ -151,7 +151,7 @@ export default memo(function Leaderboard({
     </motion.ol>
   </div>;
 
-  if (presenter) return <section aria-label={title || '리더보드'} tabIndex={0} className="board-ranking">
+  if (presenter) return <section aria-label={title || '랭킹'} tabIndex={0} className="board-ranking">
     <header className="board-ranking-header">
       <div className="min-w-0">
         {title && <h3 className="board-ranking-title">{title}</h3>}
@@ -162,7 +162,7 @@ export default memo(function Leaderboard({
     {rows}
   </section>;
 
-  return <section aria-label={title || '리더보드'} tabIndex={paginated ? 0 : undefined} onKeyDown={handleKeyboard} className="mx-auto w-full max-w-md">
+  return <section aria-label={title || '랭킹'} tabIndex={paginated ? 0 : undefined} onKeyDown={handleKeyboard} className="mx-auto w-full max-w-md">
     {(title || onHighlightChange) && <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
       {title && <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100"><Trophy size={20} className="text-slate-500" />{title}</h3>}
       {onHighlightChange && <RankingHighlightControls highlight={highlight} onHighlightChange={onHighlightChange} maxRank={ranked.length} />}

@@ -43,7 +43,7 @@ export function HighlightPresetDialog({ open, onClose, highlight, onSave, maxRan
     <form onSubmit={submit} className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">특별 순위 설정</h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">리더보드에서 차례로 공개할 순위를 미리 정해 두세요.</p>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">랭킹에서 차례로 공개할 순위를 미리 정해 두세요.</p>
       </div>
       <label className="block space-y-2"><span className="text-sm font-medium text-slate-700 dark:text-slate-200">특별 순위</span>
         <input value={input} onChange={event => { setInput(event.target.value); setError(''); }} autoFocus disabled={saving} inputMode="numeric" placeholder="예: 1, 2, 3, 27"

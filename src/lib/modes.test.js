@@ -18,7 +18,7 @@ describe('특수 모드 목록', () => {
     expect(SPECIAL_MODE_KEYS).toEqual(expect.arrayContaining(['lottery', 'scratchCard', 'randomPicker']));
   });
 
-  it('리더보드는 점수가 있을 때만 메뉴에 나온다', () => {
+  it('랭킹는 점수가 있을 때만 메뉴에 나온다', () => {
     const without = modeGroups({ hasLeaderboard: false }).flatMap((g) => g.items).map((i) => i.mode);
     const with_ = modeGroups({ hasLeaderboard: true }).flatMap((g) => g.items).map((i) => i.mode);
     expect(without).not.toContain('leaderboard');

@@ -14,8 +14,9 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], r
   const analysis = useMemo(() => {
     const voteEntries = Object.values(votes || {});
     const totalVoters = voteEntries.length;
+    // 응답이 0명이어도 정답 공개 화면에는 정답 순서가 나와야 한다 — 맞힌 수 0으로 채운다.
     if (totalVoters === 0 || items.length === 0) {
-      return { totalVoters: 0, positionAccuracy: [], perfectCount: 0, avgScore: 0 };
+      return { totalVoters: 0, positionAccuracy: items.map((item, i) => ({ position: i + 1, item, correct: 0, total: 0, pct: 0 })), perfectCount: 0, avgScore: 0 };
     }
 
     // correctOrder is 0,1,2,3,... (items are stored in correct order)
@@ -70,13 +71,6 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], r
     </p>
   </div>;
 
-  if (analysis.totalVoters === 0) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-slate-400 dark:text-slate-500 text-sm">아직 응답이 없습니다</p>
-      </div>
-    );
-  }
 
   // 공개 후: 정답 순서 한 목록. 한 줄 = "N위 · 항목 · 막대 · 맞힌 수" — 막대를 줄 안에 넣어 빈 가로 공간과 세로 높이를 줄인다.
   // 폭은 내용에 맞춘 3xl(약 768px). 전자칠판처럼 큰 화면에서는 글자 크기(lg:)로 키운다.

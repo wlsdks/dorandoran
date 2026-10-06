@@ -1,4 +1,4 @@
-/* 전자칠판 리더보드: 제목 1 : 이름 .65 : 점수 .72 의 무대 글자 비율(--stage-*)을 그대로 쓰고,
+/* 전자칠판 랭킹: 제목 1 : 이름 .65 : 점수 .72 의 무대 글자 비율(--stage-*)을 그대로 쓰고,
    줄 높이는 화면 높이에 맞춘다. 색은 무채색 + 인디고 하나(특별 순위)만 쓴다. */
 .board-ranking { --board-line:#26262b;--board-text:#f4f4f5;--board-muted:#8a8a93;--board-soft:#1c1c21;
   width:min(100%,clamp(880px,60vw,1440px));margin-inline:auto;padding:clamp(20px,1.7vw,40px) clamp(22px,2vw,48px);
