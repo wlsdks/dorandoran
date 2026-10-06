@@ -94,8 +94,8 @@ function MainContent({ currentMode, sessionId, session, onlineList, leaderboard,
     if (currentMode === 'focus') return (
       <div className="flex flex-col items-center justify-center gap-4 md:gap-6 text-center">
         <DoranDoranMascot size="lg" mood="focus" />
-        <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">집중 모드</p>
-        <p className="text-slate-400 dark:text-white/40 text-sm md:text-lg">학생 화면이 잠겼습니다</p>
+        <p className={`${presentMode ? 'classroom-question-title' : 'text-2xl md:text-3xl'} font-bold text-slate-900 dark:text-white tracking-tight`}>집중 모드</p>
+        <p className={`${presentMode ? 'classroom-option-label' : 'text-sm md:text-lg'} text-slate-400 dark:text-slate-400`}>학생 화면이 잠겼습니다</p>
       </div>
     );
     return null;

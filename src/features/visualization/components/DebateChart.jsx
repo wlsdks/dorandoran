@@ -60,7 +60,7 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
   const shownOpinions = presenter ? filteredOpinions.slice(currentPage * 3, currentPage * 3 + 3) : filteredOpinions;
 
   return (
-    <div className={`${presenter ? 'space-y-4' : 'space-y-6'} w-full max-w-xl mx-auto px-8`}>
+    <div className={`${presenter ? 'space-y-4 max-w-3xl' : 'space-y-6 max-w-xl'} w-full mx-auto px-8`}>
       {/* Hero ratio display */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -140,7 +140,7 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <MessageCircle size={14} className="text-slate-400" />
-              <p className="text-xs font-semibold text-slate-400 tracking-wider uppercase">의견{presenter && ` ${opinions.length}개 · ${sideTotal}명 참여`}</p>
+              <p className={`${presenter ? 'text-[clamp(14px,1vw,22px)]' : 'text-xs'} font-semibold text-slate-400 tracking-wider uppercase`}>의견{presenter && ` ${opinions.length}개 · ${sideTotal}명 참여`}</p>
             </div>
             {!readOnly && !presenter && <div className="flex gap-1">
               {[
@@ -186,7 +186,7 @@ export default memo(function DebateChart({ sessionId, questionId, presenter = fa
                   >
                     {presenter ? (op.side === 'for' ? '찬성' : '반대') : (op.side === 'for' ? '찬' : '반')}
                   </span>
-                  <p className={`${presenter ? "text-2xl" : "text-sm"} text-slate-700 dark:text-slate-200 leading-relaxed flex-1 [word-break:keep-all]`}>{op.opinion}</p>
+                  <p className={`${presenter ? 'text-[clamp(20px,1.35vw,30px)]' : 'text-sm'} text-slate-700 dark:text-slate-200 leading-relaxed flex-1 [word-break:keep-all]`}>{op.opinion}</p>
                 </motion.div>
               ))}
             </AnimatePresence>

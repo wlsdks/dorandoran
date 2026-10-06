@@ -25,7 +25,7 @@ function formatTime(seconds) {
  * Shows remaining time with progress bar + color transitions.
  * Pulses in final 5 seconds.
  */
-export default function TimerCountdown({ endTime, duration, onExpire }) {
+export default function TimerCountdown({ endTime, duration, onExpire, presenter = false }) {
   const [secondsLeft, setSecondsLeft] = useState(duration);
   const firedRef = useRef(false);
 
@@ -63,7 +63,7 @@ export default function TimerCountdown({ endTime, duration, onExpire }) {
       animate={{ opacity: 1, y: 0, height: 'auto' }}
       exit={{ opacity: 0, y: -8, height: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className={`rounded-xl px-4 py-3 shadow-sm ${color.bg} transition-colors duration-300`}
+      className={`rounded-xl shadow-sm ${presenter ? 'px-6 py-4 border border-slate-700' : 'px-4 py-3'} ${color.bg} transition-colors duration-300`}
     >
       <motion.div
         animate={isUrgent ? { x: [0, -3, 3, -2, 2, 0], scale: [1, 1.04, 1] } : isPulsing ? { scale: [1, 1.03, 1] } : {}}
@@ -71,8 +71,8 @@ export default function TimerCountdown({ endTime, duration, onExpire }) {
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <Clock size={14} className={`${color.text} transition-colors duration-300`} />
-            <span className={`text-xs font-medium ${color.text} transition-colors duration-300`}>
+            <Clock size={presenter ? 20 : 14} className={`${color.text} transition-colors duration-300`} />
+            <span className={`${presenter ? 'text-[clamp(16px,1.1vw,24px)]' : 'text-xs'} font-medium ${color.text} transition-colors duration-300`}>
               남은 시간
             </span>
           </div>
@@ -80,12 +80,12 @@ export default function TimerCountdown({ endTime, duration, onExpire }) {
             key={secondsLeft}
             initial={{ opacity: 0.6, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`text-sm font-bold tabular-nums ${color.text} transition-colors duration-300`}
+            className={`${presenter ? 'text-[clamp(22px,1.7vw,38px)] leading-none' : 'text-sm'} font-bold tabular-nums ${color.text} transition-colors duration-300`}
           >
             {formatTime(secondsLeft)}
           </motion.span>
         </div>
-        <div className="h-1.5 bg-slate-200/60 dark:bg-slate-600/60 rounded-full overflow-hidden">
+        <div className={`${presenter ? 'h-2.5' : 'h-1.5'} bg-slate-200/60 dark:bg-slate-600/60 rounded-full overflow-hidden`}>
           {/* width 대신 scaleX(GPU 합성) — 활성질문 내내 300대 모바일에서 layout/paint 반복 제거 */}
           <motion.div
             className={`h-full w-full origin-left rounded-full ${color.bar}`}
