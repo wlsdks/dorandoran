@@ -226,7 +226,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
 
       <CreateSessionModal open={modalOpen} onClose={() => setModalOpen(false)} onCreated={handleCreated} sessions={sessions} adminUser={adminUser} />
       <DeleteSessionModal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} session={deleteTarget} onConfirm={deleteSession} />
-      <Toast message={toast} />
+      <Toast message={toast} raised />
       <AnimatePresence>
         {duplicating && (
           <motion.div

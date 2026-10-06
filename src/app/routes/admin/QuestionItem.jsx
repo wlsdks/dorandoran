@@ -70,9 +70,9 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
         )}
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-1.5 sm:mb-1">
-            <Icon size={13} className={!readOnly && isActive ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'} />
-            <span className={`text-xs font-semibold ${!readOnly && isActive ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>
+          <div className="flex flex-wrap items-center gap-1.5 mb-1.5 sm:mb-1">
+            <Icon size={13} className={`shrink-0 ${!readOnly && isActive ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`} />
+            <span className={`text-xs font-semibold whitespace-nowrap ${!readOnly && isActive ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>
               {qType?.label}
             </span>
             {!readOnly && isActive && <Badge variant="primary">LIVE</Badge>}
@@ -85,7 +85,7 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
             {isQuiz && q.event && <Badge variant="neutral">{q.event.label || '이벤트'}</Badge>}
             {hasReveal && q.revealedAt && <Badge variant="neutral">정답 공개</Badge>}
           </div>
-          <span className="text-slate-700 dark:text-slate-200 text-[15px] sm:text-sm leading-snug">{q.title}</span>
+          <span className="text-slate-700 dark:text-slate-200 text-[15px] sm:text-sm leading-snug break-keep [overflow-wrap:anywhere]">{q.title}</span>
           {readOnly && q.votes && (
             <span className="text-slate-400 text-xs ml-1">({Object.keys(q.votes).length}명 응답)</span>
           )}

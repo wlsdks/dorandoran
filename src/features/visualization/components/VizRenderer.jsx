@@ -117,8 +117,9 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 <span className="inline-block rounded-xl bg-indigo-100 text-indigo-950 px-5 py-2 font-bold">정답 · {question.correctAnswer}</span>
               </p>
             )}
-            {question.imageUrl && (
-              <img src={question.imageUrl} alt={question.title || '질문 이미지'} className="mt-3 max-h-[28dvh] max-w-full rounded-xl object-contain mx-auto" />
+            {/* 발표 화면은 세로 공간이 좁아 질문 이미지를 더 낮게 두고, 해설이 나오면 해설에 자리를 내준다 */}
+            {question.imageUrl && !sideImage && (
+              <img src={question.imageUrl} alt={question.title || '질문 이미지'} className={`mt-3 ${isPresenter ? 'max-h-[22dvh]' : 'max-h-[28dvh]'} max-w-full rounded-xl object-contain mx-auto`} />
             )}
           </div>
         );

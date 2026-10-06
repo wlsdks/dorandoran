@@ -136,7 +136,7 @@ export default memo(function QuestionList({
         )}
       </AnimatePresence>
 
-      <Toast message={toast} />
+      <Toast message={toast} raised />
 
       <ConfirmModal
         open={!!pendingDelete}

@@ -14,7 +14,7 @@ export default memo(function AnswerExplanation({ text, imageSrc, presenter = fal
       decoding="async"
       className={presenter
         ? `mx-auto max-w-full rounded-xl object-contain ${text ? 'max-h-[20dvh] lg:max-h-[40dvh]' : 'max-h-[24dvh] lg:max-h-[52dvh]'}`
-        : 'mx-auto max-h-[50dvh] w-full rounded-lg object-contain'}
+        : 'mx-auto max-h-[45dvh] w-auto max-w-full rounded-lg object-contain'}
     />
   );
   return (
