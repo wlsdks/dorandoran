@@ -22,10 +22,15 @@ import ModeSwitcher from './ModeSwitcher';
 import TabletDrawers from './TabletDrawers';
 import CenterContent from './CenterContent';
 import MobileAdminView from './MobileAdminView';
+import ResizeHandle from '@/components/ui/ResizeHandle';
+import { useResizableWidth } from '@/hooks/useResizableWidth';
+
+const LEFT_PANEL = { initial: 360, min: 280, max: 640, side: 'left' };
 const StaffPage = lazy(() => import('./StaffPage'));
 const StaffCourseDashboard = lazy(() => import('./StaffCourseDashboard'));
 export default function AdminPage() {
   const s = useAdminSession();
+  const leftPanel = useResizableWidth('dorandoran:admin-left-width', LEFT_PANEL);
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isTablet = useMediaQuery('(max-width: 1199px)');
 
@@ -111,13 +116,14 @@ export default function AdminPage() {
           </AnimatePresence>}
 
         {!isTablet && <motion.div animate={{
-        width: s.sidebarCollapsed ? 0 : 'clamp(280px, 22vw, 320px)',
-        minWidth: s.sidebarCollapsed ? 0 : 280
+        width: s.sidebarCollapsed ? 0 : leftPanel.width,
+        minWidth: 0
       }} transition={{
-        duration: 0.3,
+        duration: leftPanel.dragging ? 0 : 0.3,
         ease: [0.4, 0, 0.2, 1]
-      }} className="border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 min-w-0 max-w-[460px] h-full">
-            <div className="min-w-[280px] p-6 overflow-y-auto h-full scrollbar-hide">{leftSidebarContent}</div>
+      }} className="relative border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shrink-0 min-w-0 h-full">
+            <div className="h-full overflow-hidden"><div className="p-6 overflow-y-auto h-full scrollbar-hide" style={{ minWidth: LEFT_PANEL.min }}>{leftSidebarContent}</div></div>
+            {!s.sidebarCollapsed && <ResizeHandle side="left" label="수업 진행 패널 폭 조절" width={leftPanel.width} min={LEFT_PANEL.min} max={LEFT_PANEL.max} dragging={leftPanel.dragging} {...leftPanel.handleProps} />}
           </motion.div>}
 
         <div className={`flex-1 min-w-0 overflow-auto relative h-full scrollbar-hide ${isTablet ? 'p-4' : 'p-8'}`}>

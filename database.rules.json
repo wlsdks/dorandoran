@@ -736,6 +736,11 @@
             "slideImages": {
               ".validate": true
             },
+            "optionImages": {
+              "$index": {
+                ".validate": "$index.matches(/^[0-9]$/) && newData.isString() && newData.val().length <= 2000 && (newData.val() === '' || newData.val().matches(/^https?:\\/\\//))"
+              }
+            },
             "currentSlide": {
               ".validate": true
             },

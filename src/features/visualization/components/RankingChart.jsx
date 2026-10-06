@@ -1,16 +1,12 @@
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useVotes } from '@/hooks/useVotes';
-import { Check, X } from 'lucide-react';
-import { boardRankingOrder, rankingItemLabels } from '@/lib/ranking-order';
+import { boardRankingOrder } from '@/lib/ranking-order';
 
 /**
  * RankingChart — instructor visualization for ranking questions.
  *
- * Shows:
- * - Each item with its correct position and how many students placed it correctly
- * - Overall accuracy percentage hero number
- * - Per-position accuracy bars
+ * 공개 전: 섞인 항목(번호 없음). 공개 후: 정답 순서 목록 + 자리별 맞힌 학생 수 + 전부 맞힌 학생 수.
  */
 export default memo(function RankingChart({ sessionId, questionId, items = [], revealed = true, presenter = false }) {
   const { votes } = useVotes(sessionId, questionId);
@@ -56,24 +52,21 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], r
 
     return { totalVoters, positionAccuracy, perfectCount, avgScore };
   }, [votes, items]);
-  // 항목 번호(①②③…) — 공개 전 발표 화면, 학생 화면, 정답 공개가 모두 같은 번호로 항목을 가리킨다.
-  const labels = useMemo(() => rankingItemLabels(items, questionId), [items, questionId]);
+  // 숫자는 순위(1위·2위…)에만 쓴다. 항목에 따로 번호를 붙이면 "④ → ③"처럼 정답이 틀려 보인다.
+  const boardOrder = useMemo(() => boardRankingOrder(items, questionId), [items, questionId]);
 
-  // 공개 전에도 무엇을 정렬하는지는 보여야 한다. 저장 순서가 곧 정답이라 문항별로 고정해 섞어서 보여준다.
+  // 공개 전: 무엇을 정렬하는지만 보여준다. 저장 순서가 곧 정답이라 문항별로 고정해 섞고, 번호는 붙이지 않는다.
   if (!revealed) return <div className={`w-full ${presenter ? 'max-w-4xl' : 'max-w-xl'} mx-auto px-4 space-y-5`}>
-    <ul className={`grid gap-3 ${presenter ? 'lg:gap-4' : ''} ${items.length > 4 ? 'md:grid-cols-2' : ''}`}>
-      {boardRankingOrder(items, questionId).map((itemIndex, position) => (
+    <ul className={`flex flex-wrap justify-center gap-3 ${presenter ? 'lg:gap-4' : ''}`}>
+      {boardOrder.map((itemIndex, position) => (
         <motion.li key={itemIndex} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 25, delay: position * 0.05 }}
-          className={`flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-600/70 dark:bg-slate-800/60 ${presenter ? 'p-4 lg:p-5' : 'p-3'}`}>
-          <p className={`${presenter ? 'classroom-option-label' : 'text-base'} flex items-start gap-3 font-semibold leading-snug text-slate-900 dark:text-slate-100`}>
-            <span className="shrink-0 tabular-nums">{labels[itemIndex]}</span>
-            <span className="min-w-0 [word-break:keep-all] [overflow-wrap:anywhere]">{items[itemIndex]}</span>
-          </p>
+          className={`rounded-xl border border-slate-200 bg-white dark:border-slate-600/70 dark:bg-slate-800/60 ${presenter ? 'px-6 py-4 lg:px-7 lg:py-5 classroom-option-label' : 'px-4 py-3 text-base'} font-semibold leading-snug text-slate-900 dark:text-slate-100 [word-break:keep-all]`}>
+          {items[itemIndex]}
         </motion.li>
       ))}
     </ul>
     <p className={`text-center ${presenter ? 'text-xl lg:text-2xl' : 'text-base'} text-slate-600 dark:text-slate-300`}>
-      <span className="font-bold tabular-nums text-slate-900 dark:text-slate-100">{analysis.totalVoters}명</span> 제출 · 정답 순서는 잠시 후 함께 공개합니다
+      <span className="font-bold tabular-nums text-slate-900 dark:text-slate-100">{analysis.totalVoters}명</span> 제출 · 1위부터 순서대로 맞춰보세요
     </p>
   </div>;
 
@@ -85,107 +78,33 @@ export default memo(function RankingChart({ sessionId, questionId, items = [], r
     );
   }
 
+  // 공개 후: 정답 순서 한 목록. 각 줄 = "N위 · 항목 · 그 자리에 맞게 놓은 학생 수".
   return (
-    <div className={`w-full max-w-xl mx-auto space-y-6 px-4 ${presenter ? 'ranking-chart-stage' : ''}`}>
-      {/* 정답 순서(시험 문제처럼 번호열) + 평균 정확도. 발표 화면은 세로 공간이 좁아 한 줄에 나란히 둔다. */}
-      <div className={presenter ? 'flex flex-wrap items-end justify-center gap-x-14 gap-y-3 text-center' : 'space-y-4 text-center'}>
-        <div>
-          <p className={`${presenter ? 'text-lg lg:text-xl' : 'text-xs'} font-medium text-slate-500 dark:text-slate-400`}>정답 순서</p>
-          <p className={`${presenter ? 'text-4xl lg:text-5xl' : 'text-2xl'} font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums`}>
-            {items.map((_, index) => labels[index]).join(' → ')}
-          </p>
-        </div>
-        <div className="space-y-1">
-          {presenter && <p className="text-lg lg:text-xl font-medium text-slate-500 dark:text-slate-400">평균 정확도</p>}
-          <motion.p
-            key={analysis.avgScore}
-            initial={{ scale: 1.1, opacity: 0.7 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-            className={`${presenter ? 'text-4xl lg:text-5xl' : 'text-5xl'} font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums`}
-          >
-            {analysis.avgScore}%
-          </motion.p>
-          {!presenter && <p className="text-sm text-slate-400">평균 정확도</p>}
-          <div className="flex items-center justify-center gap-4 mt-2">
-            <span className={`${presenter ? 'text-base' : 'text-xs'} text-slate-500 dark:text-slate-400`}>
-              <span className="font-semibold text-slate-700 dark:text-slate-200">{analysis.totalVoters}</span>명 응답
-            </span>
-            <span className={`${presenter ? 'text-base' : 'text-xs'} text-slate-500 dark:text-slate-400`}>
-              <span className="font-semibold text-slate-700 dark:text-slate-200">{analysis.perfectCount}</span>명 전부 정답
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Per-position accuracy */}
-      <div className="space-y-2">
+    <div className={`w-full ${presenter ? 'max-w-4xl' : 'max-w-xl'} mx-auto space-y-5 px-4 ${presenter ? 'ranking-chart-stage' : ''}`}>
+      <p className={`text-center ${presenter ? 'text-xl lg:text-2xl' : 'text-sm'} text-slate-600 dark:text-slate-300`}>
+        순서를 모두 맞힌 학생 <span className={`font-bold tabular-nums text-slate-900 dark:text-slate-100 ${presenter ? 'text-3xl lg:text-4xl' : 'text-lg'}`}>{analysis.perfectCount}명</span>
+        <span className="text-slate-400"> / {analysis.totalVoters}명</span>
+      </p>
+      <ol className="space-y-2.5">
         {analysis.positionAccuracy.map((pos, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
+          <motion.li key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, type: 'spring', stiffness: 300, damping: 25 }}
-            className="flex items-center gap-3"
-          >
-            {/* Position number */}
-            <span className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-300 shrink-0">
-              {pos.position}
-            </span>
-
-            {/* Item name + bar */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <span className={`${presenter ? 'text-lg' : 'text-sm'} font-medium text-slate-700 dark:text-slate-200 truncate`}><span className="mr-1.5 tabular-nums">{labels[pos.position - 1]}</span>{pos.item}</span>
-                <span className="text-xs tabular-nums text-slate-400 shrink-0 ml-2">
-                  {pos.correct}/{pos.total}
-                </span>
-              </div>
-              <div className="h-6 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden relative">
-                <motion.div
-                  className={`h-full rounded-lg ${
-                    pos.pct >= 70
-                      ? 'bg-slate-700 dark:bg-slate-300'
-                      : pos.pct >= 40
-                        ? 'bg-slate-400 dark:bg-slate-500'
-                        : 'bg-slate-200 dark:bg-slate-600'
-                  }`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.max(pos.pct, 2)}%` }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 20, delay: i * 0.05 + 0.1 }}
-                />
-                {/* Percentage label inside bar */}
-                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold tabular-nums ${
-                  pos.pct >= 50 ? 'text-white' : 'text-slate-500'
-                }`}>
-                  {pos.pct}%
-                </span>
-              </div>
+            className={`rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 ${presenter ? 'px-5 py-4' : 'px-4 py-3'}`}>
+            <div className="flex items-center gap-4">
+              <span className={`shrink-0 font-bold tabular-nums text-slate-900 dark:text-slate-100 ${presenter ? 'text-2xl lg:text-3xl w-16' : 'text-base w-10'}`}>{pos.position}위</span>
+              <span className={`flex-1 min-w-0 font-semibold text-slate-900 dark:text-slate-100 [word-break:keep-all] ${presenter ? 'text-2xl lg:text-3xl' : 'text-base'}`}>{pos.item}</span>
+              <span className={`shrink-0 tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'text-lg lg:text-xl' : 'text-xs'}`}>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{pos.correct}명</span> 맞힘
+              </span>
             </div>
-
-            {/* Correct/incorrect indicator — 표시가 없어도 자리를 비워 둬 막대 길이를 맞춘다 */}
-            <div className="shrink-0 w-4">
-              {pos.pct >= 70 ? (
-                <Check size={16} className="text-slate-600" />
-              ) : pos.pct < 30 ? (
-                <X size={16} className="text-slate-300" />
-              ) : null}
+            <div className={`mt-2.5 ${presenter ? 'h-2.5' : 'h-1.5'} bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden`} role="progressbar" aria-valuenow={pos.pct} aria-valuemin={0} aria-valuemax={100} aria-label={`${pos.position}위를 맞힌 비율 ${pos.pct}%`}>
+              <motion.div className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400"
+                initial={{ width: 0 }} animate={{ width: `${pos.pct}%` }}
+                transition={{ type: 'spring', stiffness: 200, damping: 20, delay: i * 0.05 + 0.1 }} />
             </div>
-          </motion.div>
+          </motion.li>
         ))}
-      </div>
-
-      {/* Correct order reference */}
-      {!presenter && <div className="rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 px-4 py-3">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">정답 순서</p>
-        <div className="flex flex-wrap gap-1.5">
-          {items.map((item, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs text-slate-600 dark:text-slate-300">
-              <span className="font-bold text-slate-500 dark:text-slate-400">{i + 1}.</span> {labels[i]} {item}
-            </span>
-          ))}
-        </div>
-      </div>}
+      </ol>
     </div>
   );
 });

@@ -20,6 +20,7 @@ import {
   ShortAnswerSection,
   AnswerExplanationSection,
 } from './QuestionFormSections';
+import { choiceNames } from '@/lib/option-images';
 
 const COMMON_TYPES = ['choice', 'quiz', 'ox', 'wordcloud', 'subjective', 'check'];
 // 공개할 정답이 있는 유형. 객관식(choice)은 정답을 지정했을 때만 해당한다.
@@ -47,6 +48,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
   const [acceptableAnswers, setAcceptableAnswers] = useState(initialData?.acceptableAnswers?.length ? [...initialData.acceptableAnswers] : []);
   const [winners, setWinners] = useState(initialData?.winners?.length ? [...initialData.winners] : []);
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
+  const [optionImages, setOptionImages] = useState(initialData?.optionImages?.length ? [...initialData.optionImages] : []);
   const [answerImageUrl, setAnswerImageUrl] = useState(initialData?.answerImageUrl || '');
   const [answerExplanation, setAnswerExplanation] = useState(initialData?.answerExplanation || '');
   const [hideTitle, setHideTitle] = useState(initialData?.hideTitle || false);
@@ -63,11 +65,17 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
   const isSubjective = type === 'subjective';
   const isShortAnswer = type === 'shortAnswer';
   const isWebEmbed = type === 'webEmbed';
-  const hasAnswer = ANSWER_TYPES.includes(type) || (type === 'choice' && options.includes(correctAnswer) && !!correctAnswer);
+  // 사진만 있는 보기는 '사진 A'처럼 이름을 채운다 — 투표 값이 보기 글자라 비어 있으면 안 된다.
+  const optionNames = choiceNames(options, optionImages);
+  const hasAnswer = ANSWER_TYPES.includes(type) || (type === 'choice' && optionNames.includes(correctAnswer) && !!correctAnswer);
 
   async function handleAdd() {
     if (!title.trim()) { setLocalError('질문 내용을 입력해주세요.'); return; }
-    const cleanOptions = options.filter((o) => o.trim());
+    const choicePairs = isChoiceLike
+      ? optionNames.map((text, i) => ({ text, image: optionImages[i] || '' })).filter(p => p.text)
+      : null;
+    const cleanOptions = choicePairs ? choicePairs.map(p => p.text) : options.filter((o) => o.trim());
+    if (choicePairs && new Set(cleanOptions).size !== cleanOptions.length) { setLocalError('선택지 내용이 서로 달라야 합니다.'); return; }
     if (isChoiceLike && cleanOptions.length < 2) { setLocalError('최소 2개의 선택지가 필요합니다.'); return; }
     if (isRanking && cleanOptions.length < 3) { setLocalError('순위 맞추기는 최소 3개 항목이 필요합니다.'); return; }
     if (isFillInBlank && !title.includes('___')) { setLocalError('빈칸 위치를 ___ (밑줄 3개)로 표시해주세요.'); return; }
@@ -90,6 +98,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
     setLocalError(null);
     const submitData = { type, title, options: cleanOptions, correctAnswer, points, event, betting, hideTitle };
     if (imageUrl) submitData.imageUrl = imageUrl;
+    if (choicePairs?.some(p => p.image)) submitData.optionImages = choicePairs.map(p => p.image);
     if (hasAnswer && answerImageUrl) submitData.answerImageUrl = answerImageUrl;
     if (hasAnswer && answerExplanation.trim()) submitData.answerExplanation = answerExplanation.trim();
     if (isWebEmbed) submitData.embedUrl = safeEmbed;
@@ -119,7 +128,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
     // 호출부가 오류 문구를 넘기지 않아도 실패는 반드시 보이게 한다(아무 반응 없이 멈춘 것처럼 보이지 않게).
     if (!success && !error) setLocalError(isEdit ? '질문을 수정하지 못했어요. 연결 상태를 확인하고 다시 시도해주세요.' : '질문을 저장하지 못했어요. 연결 상태를 확인하고 다시 시도해주세요.');
     if (success) {
-      setTitle(''); setOptions(['', '']); setCorrectAnswer('');
+      setTitle(''); setOptions(['', '']); setOptionImages([]); setCorrectAnswer('');
       setPoints(QUIZ_DEFAULTS.points); setEvent(null); setBetting(false);
       setModelAnswer('');
       onCancel();
@@ -205,14 +214,14 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
           <div>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">질문 이미지 <span className="normal-case font-normal">(선택)</span></p>
             <ImageUpload value={imageUrl} onChange={setImageUrl} uploadLabel="질문 이미지 첨부" />
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">이미지 퀴즈는 여기에 문제 사진을 넣으세요. 학생 화면과 발표 화면에 질문과 함께 나와요.</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">문제 전체에 쓰는 사진이에요. 보기마다 사진을 넣으려면 아래 선택지 옆 사진 버튼을 누르세요.</p>
           </div>
         )}
       </div>
 
       {/* Only the selected type is mounted: departed controls cannot overlap the new form. */}
       <motion.div key={type} initial={reducedMotion ? false : { opacity: .8 }} animate={{ opacity: 1 }} transition={{ duration: reducedMotion ? 0 : .12 }}>
-        {isChoiceLike && <ChoiceOptionsSection options={options} setOptions={setOptions}
+        {isChoiceLike && <ChoiceOptionsSection options={options} setOptions={setOptions} optionImages={optionImages} setOptionImages={setOptionImages}
           correctAnswer={correctAnswer} setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
         {isRanking && <RankingOptionsSection options={options} setOptions={setOptions} setLocalError={setLocalError} />}
         {isFillInBlank && <FillBlankSection title={title} correctAnswer={correctAnswer}
@@ -220,7 +229,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
         {isShortAnswer && <ShortAnswerSection correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} acceptableAnswers={acceptableAnswers}
           setAcceptableAnswers={setAcceptableAnswers} setLocalError={setLocalError} />}
-        {isChoiceLike && <CorrectAnswerSection optional={type === 'choice'} options={options} correctAnswer={correctAnswer}
+        {isChoiceLike && <CorrectAnswerSection optional={type === 'choice'} options={optionNames} optionImages={optionImages} correctAnswer={correctAnswer}
           setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
         {type === 'quiz' && <QuizSettingsSection points={points} setPoints={setPoints}
           event={event} setEvent={setEvent} betting={betting} setBetting={setBetting} />}

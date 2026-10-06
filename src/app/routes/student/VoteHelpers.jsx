@@ -133,7 +133,7 @@ export function QuizResultFromVote({
   const expected = speedRound && reward.isCorrect ? Math.round(reward.points * quizComboMultiplier(streak)) : reward.points;
   const points = matchingReceipt ? receipt.points : matchingLegacy ? score.lastPoints : 0;
   return <>
-    <QuizResult isCorrect={reward.isCorrect} points={points} correctAnswer={question.correctAnswer} bet={reward.bet || 1} streak={scoreApplied && reward.isCorrect ? streak : 0} scoreApplied={scoreApplied} scoreDetails={<QuizScoreGuide question={question} vote={currentVote} points={scoreApplied ? points : undefined} streak={streak} isSpeedQuiz={speedRound} />} />
+    <QuizResult isCorrect={reward.isCorrect} points={points} correctAnswer={question.correctAnswer} correctImage={question.optionImages?.[(question.options || []).indexOf(question.correctAnswer)] || null} correctLetter={(question.options || []).indexOf(question.correctAnswer) >= 0 ? String.fromCharCode(65 + (question.options || []).indexOf(question.correctAnswer)) : null} bet={reward.bet || 1} streak={scoreApplied && reward.isCorrect ? streak : 0} scoreApplied={scoreApplied} scoreDetails={<QuizScoreGuide question={question} vote={currentVote} points={scoreApplied ? points : undefined} streak={streak} isSpeedQuiz={speedRound} />} />
     {!scoreApplied && <p role="status" className="text-center text-sm text-slate-500 dark:text-slate-300">점수 반영을 확인하고 있어요{expected ? ` · 예상 ${expected}점` : ''}</p>}
   </>;
 

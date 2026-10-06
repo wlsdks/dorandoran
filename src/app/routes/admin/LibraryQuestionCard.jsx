@@ -40,6 +40,7 @@ export default function LibraryQuestionCard({ question, onDelete, onEdit, index 
                       : 'bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                   }`}
                 >
+                  {question.optionImages?.[i] && <img src={question.optionImages[i]} alt="" loading="lazy" className="mr-1 inline-block h-4 w-4 rounded-sm object-cover align-[-2px]" />}
                   {opt}
                 </span>
               ))}

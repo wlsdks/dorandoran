@@ -13,13 +13,16 @@ export function buildQuestionData(type, fields = {}) {
   const {
     options: cleanOptions = [], correctAnswer, points, event, betting,
     hints, mysteryItems, answerReasons, acceptableAnswers, winners,
-    imageUrl, answerImageUrl, answerExplanation, slideImages, hideTitle, modelAnswer, embedUrl,
+    imageUrl, answerImageUrl, answerExplanation, slideImages, hideTitle, modelAnswer, embedUrl, optionImages,
   } = fields;
   const data = {};
 
   const isChoiceLike = type === 'choice' || type === 'quiz';
   if (isChoiceLike) {
     data.options = cleanOptions;
+    // 보기 이미지는 options와 같은 순서로 맞춘 배열. 하나도 없으면 저장하지 않는다.
+    const images = cleanOptions.map((_, i) => (typeof optionImages?.[i] === 'string' ? optionImages[i] : ''));
+    if (images.some(Boolean)) data.optionImages = images;
     if (type === 'quiz') data.correctAnswer = cleanOptions.includes(correctAnswer) ? correctAnswer : cleanOptions[0];
     else if (cleanOptions.includes(correctAnswer)) data.correctAnswer = correctAnswer;
   }
@@ -79,5 +82,5 @@ export function buildQuestionData(type, fields = {}) {
 export const QUESTION_TYPE_FIELDS = [
   'speedWindowMs', 'maxSpeedBonus', 'event', 'betting', 'options', 'correctAnswer', 'points', 'hints', 'revealedHints',
   'mysteryItems', 'answerReasons', 'acceptableAnswers', 'winners', 'slideImages',
-  'imageUrl', 'answerImageUrl', 'answerExplanation', 'hideTitle', 'modelAnswer', 'embedUrl',
+  'imageUrl', 'optionImages', 'answerImageUrl', 'answerExplanation', 'hideTitle', 'modelAnswer', 'embedUrl',
 ];

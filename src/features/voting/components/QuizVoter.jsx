@@ -13,6 +13,8 @@ import { useMyVoteFull } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import BetSelector from './BetSelector';
 import StudentLiveResults from './StudentLiveResults';
+import ImageOptionGrid from './ImageOptionGrid';
+import { hasOptionImages } from '@/lib/option-images';
 // 보기 배지는 한 가지 색으로 통일한다 — 순서마다 진하기가 달라지면 의미 없는 위계가 생긴다.
 const OPTION_STYLES = [{
   bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700',
@@ -118,7 +120,7 @@ export default memo(function QuizVoter({
   if (question?.revealedAt && currentVote) {
     return <div className="space-y-4">
       {typeof renderResult === 'function' ? renderResult(currentVote) : null}
-      <StudentLiveResults sessionId={sessionId} questionId={questionId} options={question.options || []} myAnswer={currentVote.value} revealed />
+      <StudentLiveResults sessionId={sessionId} questionId={questionId} options={question.options || []} images={question.optionImages} myAnswer={currentVote.value} revealed />
     </div>;
   }
   if (currentVote) {
@@ -128,7 +130,7 @@ export default memo(function QuizVoter({
     const betLabel = currentVote.bet ? BET_LABELS[parseInt(currentVote.bet, 10)] : null;
     return <div className="space-y-4">
       <VoteConfirm submittedLabel="답안 제출 완료!" waitingLabel="정답 공개를 기다리는 중..." waitingDescription="강사가 정답과 순위를 공개하면 결과를 확인할 수 있습니다" selectedAnswer={ansLetter ? `${ansLetter}. ${votedValue}` : votedValue} selectedAnswerLabel={betLabel ? `내 답안 (${betLabel})` : '내 답안'} />
-      <StudentLiveResults sessionId={sessionId} questionId={questionId} options={question.options || []} myAnswer={votedValue} />
+      <StudentLiveResults sessionId={sessionId} questionId={questionId} options={question.options || []} images={question.optionImages} myAnswer={votedValue} />
     </div>;
   }
   if (question?.revealedAt) {
@@ -186,6 +188,7 @@ export default memo(function QuizVoter({
                   <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${isCorrect ? 'bg-white/20 dark:bg-slate-900/20 text-white dark:text-slate-900' : `${style.badge} text-white`}`}>
                     {letter}
                   </span>
+                  {question?.optionImages?.[index] && <img src={question.optionImages[index]} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
                   <span className={`flex-1 min-w-0 text-sm font-medium leading-snug ${isCorrect ? 'text-white dark:text-slate-900' : 'text-slate-600 dark:text-slate-400'}`}>
                     {option}
                   </span>
@@ -234,7 +237,10 @@ export default memo(function QuizVoter({
               {bettingEnabled ? '배율은 답을 고르기 전까지 바꿀 수 있어요. 답을 고르면 바로 제출됩니다.' : question?.event ? '이벤트 라운드 — 보너스 점수가 적용됩니다' : (question?.maxSpeedBonus ?? QUIZ_DEFAULTS.maxSpeedBonus) > 0 ? '빠르게 답할수록 더 높은 점수를 받을 수 있습니다' : '답을 고르면 바로 제출됩니다.'}
             </p>
 
-            <div className="space-y-2.5">
+            {hasOptionImages(question?.optionImages) ? (
+              <ImageOptionGrid options={question.options || []} images={question.optionImages} selected={selected}
+                disabled={disabled} onPick={handleVote} />
+            ) : <div className="space-y-2.5">
               {(question?.options || []).map((option, index) => {
             const style = OPTION_STYLES[index % OPTION_STYLES.length];
             const letter = String.fromCharCode(65 + index);
@@ -264,7 +270,7 @@ export default memo(function QuizVoter({
                     <span className="text-left leading-snug">{option}</span>
                   </motion.button>;
           })}
-            </div>
+            </div>}
 
           </motion.div>
     </div>;

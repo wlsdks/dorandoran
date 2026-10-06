@@ -4,25 +4,35 @@ import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useVotes } from '@/hooks/useVotes';
 import { formatPercent } from '@/lib/utils';
 import PollColumns from './PollColumns';
+import ImageOptionBoard from './ImageOptionBoard';
 import AnimatedNumber from '@/components/ui/AnimatedNumber';
 
 // columns=false: 옆에 정답 해설이 붙어 폭이 좁을 때. 세로 막대는 좁으면 보기 글자가 한 음절씩 끊기므로 가로 막대로 그린다.
-export default memo(function BarChart({ sessionId, questionId, options, correctValue = null, revealed = false, presenter = false, hideResults = false, page = 0, onPageChange, columns = true }) {
+export default memo(function BarChart({ sessionId, questionId, options, correctValue = null, revealed = false, presenter = false, hideResults = false, page = 0, onPageChange, columns = true, optionImages = null }) {
   const { totalVotes, countByValue, resultsHidden, loading } = useVotes(sessionId, questionId);
   const concealed = resultsHidden || hideResults;
   const visibleTotal = concealed ? 0 : totalVotes;
   const counts = useMemo(() => options.map(option => concealed ? 0 : countByValue(option)), [options, countByValue, concealed]);
   const longest = Math.max(0, ...options.map(option => String(option).length));
   // 긴 보기여도 일반 퀴즈(최대 4개)는 한 화면에 모두 보여야 한다. 5개 이상일 때만 나눈다.
+  const hasImages = Array.isArray(optionImages) && optionImages.some(Boolean);
   const pageSize = longest > 24 ? 4 : 6;
   const paged = presenter && options.length > pageSize;
   const pages = paged ? Math.ceil(options.length / pageSize) : 1;
   const currentPage = Math.min(Math.max(Number.isInteger(page) ? page : 0, 0), pages - 1);
   const shown = paged ? options.slice(currentPage * pageSize, currentPage * pageSize + pageSize) : options;
   const twoColumns = columns && presenter && shown.length > 2 && longest <= 24;
-  if (columns && presenter && options.length >= 2 && options.length <= 4 && options.every(option => String(option).length <= 12)) {
+  if (!hasImages && columns && presenter && options.length >= 2 && options.length <= 4 && options.every(option => String(option).length <= 12)) {
     return <PollColumns options={options} counts={counts} total={visibleTotal} revealed={revealed} correctValue={correctValue} resultsHidden={concealed} loading={loading} />;
   }
+  // 사진 보기는 가로 막대가 아니라 사진이 주인공인 카드판으로 그린다(보기 최대 5개라 한 화면에 모두 들어간다).
+  if (hasImages) return <div className={presenter ? 'classroom-results' : 'w-full'}>
+    <ImageOptionBoard options={options} optionImages={optionImages} counts={counts} total={visibleTotal} revealed={revealed}
+      correctValue={correctValue} concealed={concealed} loading={loading} presenter={presenter} />
+    <p className={`mt-4 text-center ${presenter ? 'text-lg lg:text-2xl' : 'text-sm'} text-slate-600 dark:text-slate-300`}>
+      {resultsHidden ? '정답 공개 후 집계됩니다' : loading ? '응답 집계를 불러오는 중' : <>총 <AnimatedNumber value={totalVotes} className="font-bold tabular-nums" />명 응답</>}
+    </p>
+  </div>;
   return <div className={presenter ? 'classroom-results classroom-bar-chart' : 'w-full max-w-xl mx-auto px-4'}>
     <div className={`classroom-result-grid grid ${twoColumns ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} ${presenter ? 'gap-4 lg:gap-5' : 'gap-4'}`}>
       {shown.map((option, offset) => {

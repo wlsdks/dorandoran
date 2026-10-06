@@ -148,7 +148,7 @@ export default memo(function ActivePollView({
               {question.type === 'choice' && (
                 question.revealedAt && question.correctAnswer
                   ? <AnswerRevealCard correctAnswer={question.correctAnswer} myAnswer={myVote} />
-                  : <ChoiceVoter sessionId={sessionId} questionId={questionId} options={question.options || []} disabled={votingLocked} />
+                  : <ChoiceVoter sessionId={sessionId} questionId={questionId} options={question.options || []} optionImages={question.optionImages} disabled={votingLocked} />
               )}
               {question.type === 'quiz' && (
                 <QuizVoter
@@ -182,7 +182,7 @@ export default memo(function ActivePollView({
                 <DebateVoter sessionId={sessionId} questionId={questionId} disabled={votingLocked} />
               )}
               {question.type === 'ranking' && (
-                <RankingVoter sessionId={sessionId} questionId={questionId} options={question.options || []} disabled={votingLocked} />
+                <RankingVoter sessionId={sessionId} questionId={questionId} options={question.options || []} disabled={votingLocked} revealed={!!(question.revealedAt && question.correctAnswer)} />
               )}
               {question.type === 'fillinblank' && (
                 question.revealedAt && question.correctAnswer

@@ -151,6 +151,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 sessionId={sessionId}
                 questionId={currentQId}
                 options={options}
+                optionImages={question.optionImages}
                 presenter={isPresenter}
                 hideResults={isPresenter && question.type === 'quiz' && !answerRevealed}
                 page={question.displayPage || 0}
@@ -176,6 +177,7 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
                 sessionId={sessionId}
                 questionId={currentQId}
                 options={options}
+                optionImages={question.optionImages}
                 presenter={isPresenter}
                 hideResults={false}
                 page={question.displayPage || 0}

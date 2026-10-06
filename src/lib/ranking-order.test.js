@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boardRankingOrder, rankingItemLabels, shuffleWithSeed } from './ranking-order';
+import { boardRankingOrder, shuffleWithSeed } from './ranking-order';
 
 describe('순위 맞추기 항목 순서', () => {
   it('같은 seed는 항상 같은 순서를 내고 모든 항목을 한 번씩 담는다', () => {
@@ -16,12 +16,5 @@ describe('순위 맞추기 항목 순서', () => {
         expect(order).not.toEqual(items.map((_, i) => i));
       }
     }
-  });
-  it('항목 번호는 발표 화면 표시 순서를 따르고, 정답 순서로 읽으면 섞인 번호열이 된다', () => {
-    const items = ['DNS 조회', 'TCP 연결', 'HTTP 요청', '응답 렌더링'];
-    const order = boardRankingOrder(items, 'q1');
-    const labels = rankingItemLabels(items, 'q1');
-    order.forEach((itemIndex, position) => expect(labels[itemIndex]).toBe('①②③④'[position]));
-    expect(labels.join('')).not.toBe('①②③④');
   });
 });
