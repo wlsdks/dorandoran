@@ -2,7 +2,8 @@ import { useVotes } from '@/hooks/useVotes';
 import { useState, memo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
-import { arrangeWordCloud } from '@/lib/wordcloud-layout';
+import { arrangeWordCloud, wordSizeStep } from '@/lib/wordcloud-layout';
+import { settle } from '@/lib/motion';
 // Monochromatic slate palette — Tailwind classes for dark mode support
 const WORD_CLASSES = [
   'text-slate-900 dark:text-slate-100',
@@ -39,29 +40,34 @@ export default memo(function WordCloud({ sessionId, questionId, presenter = fals
   const maxCount = Math.max(...words.map(w => w.count), 1);
   const isNarrow = typeof window !== 'undefined' && window.innerWidth < 640;
 
+  // 크기는 6단계로 끊는다 — 응답 하나마다 전부 미세하게 줄 바꿈되지 않고, 단계가 바뀔 때만 자란다.
   // 긴 단어는 한 줄 폭(한글 한 글자 ≈ 1em)에 들어가도록 상한을 둔다. 읽을 수 있는 최소 크기는 지킨다.
   function getFontSize(count, text) {
     const min = isNarrow ? 18 : 24;
     const max = isNarrow ? 40 : 68;
-    const size = min + ((count / maxCount) * (max - min));
+    const size = min + wordSizeStep(count, maxCount) * (max - min);
     return Math.max(min, Math.min(size, (isNarrow ? 300 : 640) / Math.max(1, text.length)));
   }
+  // 전자칠판: 12단어가 1080p 한 화면에 들어가야 한다(최대 4.6rem). 폭은 글자 수로 다시 한번 제한한다.
+  const presenterFontSize = (word) => `clamp(1.6rem, min(${1.5 + 3 * wordSizeStep(word.count, maxCount)}vw, ${Math.floor(860 / Math.max(1, word.text.length))}px), 4.6rem)`;
 
   return (
     <div className={presenter ? "w-full classroom-results" : "w-full max-w-3xl mx-auto"}>
       <div
-        className={`flex flex-wrap content-center items-center justify-center ${presenter ? 'gap-x-8 gap-y-3 min-h-[40dvh] p-4 max-w-4xl mx-auto' : 'gap-x-4 gap-y-2.5 p-6 min-h-[300px]'}`}
+        className={`flex flex-wrap content-center items-center justify-center ${presenter ? 'gap-x-7 gap-y-2 min-h-[36dvh] p-4 max-w-5xl mx-auto' : 'gap-x-4 gap-y-2.5 p-6 min-h-[300px]'}`}
       >
         <AnimatePresence initial={false}>
           {words.map((word) => (
-            // 자리는 고정(FLIP 없음) — 새 단어만 바깥쪽 끝에서 피어나고, 크기는 CSS transition으로 자란다
+            // 순서는 고정 — 새 단어만 바깥쪽 끝에서 피어나고, 크기는 CSS transition으로 자란다.
+            // 전자칠판(12단어)은 줄 바꿈으로 자리가 옮겨질 때 transform으로 미끄러진다(layout). 폰(40단어)은 비용을 아껴 생략.
             <motion.span
               key={word.text}
+              layout={presenter && !reduced ? 'position' : false}
               initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.6 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.5 }}
-              transition={reduced ? { duration: 0.12 } : { type: 'spring', stiffness: 260, damping: 22 }}
-              style={{ fontSize: presenter ? `clamp(1.5rem, min(${1.6 + 4 * word.count / maxCount}vw, ${Math.floor(860 / Math.max(1, word.text.length))}px), 6.5rem)` : getFontSize(word.count, word.text) }}
+              transition={reduced ? { duration: 0.12 } : { type: 'spring', stiffness: 260, damping: 22, layout: settle }}
+              style={{ fontSize: presenter ? presenterFontSize(word) : getFontSize(word.count, word.text) }}
               className={`wordcloud-token font-bold cursor-default max-w-full break-keep [overflow-wrap:anywhere] ${WORD_CLASSES[word.rank % WORD_CLASSES.length]}`}
               title={`${word.text}: ${word.count}회`}
             >

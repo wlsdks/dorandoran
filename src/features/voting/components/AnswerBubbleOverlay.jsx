@@ -2,11 +2,13 @@ import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { onValue, ref } from 'firebase/database';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '@/lib/firebase';
+import { arrivalLabel } from '@/lib/wordcloud-layout';
 
 const MAX_BUBBLES = 12;
 const MAX_TEXT_LEN = 15;
 const BUBBLE_LIFETIME_MS = 3400;
 const THROTTLE_MS = 200; // 버블 간 최소 간격
+const COALESCE_MS = 1200; // 내용을 숨기는 화면: 이 간격 안에 들어온 응답은 '+N 응답' 하나로 모은다
 
 function hashSeed(value) {
   return String(value).split('').reduce((s, c, i) => (s * 33 + c.charCodeAt(0) + i) % 2147483647, 7);
@@ -20,6 +22,7 @@ export default memo(function AnswerBubbleOverlay({ sessionId, questionId, hideTe
   const prevKeysRef = useRef(new Set());
   const queueRef = useRef([]);
   const drainTimerRef = useRef(null);
+  const pendingRef = useRef({ count: 0, timer: null, seed: 0 });
 
   const active = !!(sessionId && questionId);
 
@@ -76,17 +79,9 @@ export default memo(function AnswerBubbleOverlay({ sessionId, questionId, hideTe
         return;
       }
 
-      // 새 키만 큐에 추가
-      for (const key of currentKeys) {
-        if (prevKeysRef.current.has(key)) continue;
-        const vote = data[key];
-        if (!vote?.value) continue;
-        const text = hideText ? '응답' : String(vote.value).trim();
-        if (!text) continue;
-
+      const enqueue = (key, text) => {
         const seed = hashSeed(key);
         if (queueRef.current.length > 50) queueRef.current.shift(); // 큐 제한
-
         queueRef.current.push({
           id: `${key}-${Date.now()}-${Math.random()}`,
           text: text.length > MAX_TEXT_LEN ? text.slice(0, MAX_TEXT_LEN) + '…' : text,
@@ -95,11 +90,29 @@ export default memo(function AnswerBubbleOverlay({ sessionId, questionId, hideTe
           duration: (BUBBLE_LIFETIME_MS + (seed % 600)) / 1000,
           rotate: (Math.floor(seed / 13) % 8) - 4,
         });
+        startDrain();
+      };
+      // 새 키만 큐에 추가
+      for (const key of currentKeys) {
+        if (prevKeysRef.current.has(key)) continue;
+        const vote = data[key];
+        if (!vote?.value) continue;
+        if (hideText) {
+          // 내용 없는 '응답' 알갱이를 200개 띄우면 화면만 덮는다 — 1.2초 안에 온 응답을 '+N 응답' 하나로 모은다.
+          const pending = pendingRef.current;
+          pending.count += 1;
+          pending.seed = hashSeed(key);
+          if (!pending.timer) pending.timer = setTimeout(() => {
+            pending.timer = null;
+            const count = pending.count; pending.count = 0;
+            if (mountedRef.current && count > 0) enqueue(`arrivals-${pending.seed}`, arrivalLabel(count));
+          }, COALESCE_MS);
+          continue;
+        }
+        const text = String(vote.value).trim();
+        if (text) enqueue(key, text);
       }
       prevKeysRef.current = currentKeys;
-
-      // 큐 드레인 시작
-      if (queueRef.current.length > 0) startDrain();
     });
 
     return () => {
@@ -107,6 +120,8 @@ export default memo(function AnswerBubbleOverlay({ sessionId, questionId, hideTe
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
       queueRef.current = [];
+      clearTimeout(pendingRef.current.timer);
+      pendingRef.current = { count: 0, timer: null, seed: 0 };
       prevKeysRef.current = new Set();
       if (drainTimerRef.current) { clearInterval(drainTimerRef.current); drainTimerRef.current = null; }
       setBubbles([]);

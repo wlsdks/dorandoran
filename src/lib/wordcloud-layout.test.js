@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { arrangeWordCloud } from './wordcloud-layout';
+import { arrangeWordCloud, wordSizeStep, arrivalLabel } from './wordcloud-layout';
 
 const texts = (words) => words.map((w) => w.text);
 
@@ -30,5 +30,20 @@ describe('워드클라우드 자리 배치', () => {
     expect(arrangeWordCloud([], {}, 12)).toEqual([]);
     expect(arrangeWordCloud(['사라짐'], null, 12)).toEqual([]);
     expect(texts(arrangeWordCloud([], JSON.parse('{"__proto__":2,"constructor":1}'), 12))).toEqual(['constructor', '__proto__']);
+  });
+});
+
+describe('단어 크기 단계와 응답 버블 글귀', () => {
+  it('빈도를 6단계로 끊고 최다 단어는 항상 1이다', () => {
+    expect(wordSizeStep(10, 10)).toBe(1);
+    expect(wordSizeStep(1, 10)).toBe(0.2);
+    expect(wordSizeStep(1, 100)).toBe(0);
+    expect(wordSizeStep(3, 10)).toBe(0.4);
+    expect(wordSizeStep(4, 10)).toBe(0.4);
+    expect(wordSizeStep(0, 0)).toBe(0);
+  });
+  it('모은 응답 수를 한 버블로 적는다', () => {
+    expect(arrivalLabel(1)).toBe('응답');
+    expect(arrivalLabel(12)).toBe('+12 응답');
   });
 });

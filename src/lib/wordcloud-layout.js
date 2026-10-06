@@ -25,3 +25,17 @@ export function arrangeWordCloud(previousOrder, tallied, limit) {
   }
   return order.map((text) => ({ text, count: ranked[rank.get(text)].count, rank: rank.get(text) }));
 }
+
+/**
+ * 빈도 → 크기 단계(0~1, 6단계). 응답 하나가 들어올 때마다 모든 단어가 미세하게 커지며 줄이 다시 바뀌지 않도록,
+ * 단계가 바뀔 때만 크기가 변한다. 최다 단어는 항상 1.
+ */
+export function wordSizeStep(count, maxCount, steps = 5) {
+  if (!(maxCount > 0) || !(count > 0)) return 0;
+  return Math.min(1, Math.round((count / maxCount) * steps) / steps);
+}
+
+/** 전자칠판처럼 답 내용을 숨기는 화면의 응답 버블 글귀 — 모아서 하나로 보여준다. */
+export function arrivalLabel(count) {
+  return count > 1 ? `+${count} 응답` : '응답';
+}
