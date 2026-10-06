@@ -25,6 +25,7 @@ import { questionEditLocks, EDIT_LOCK_MESSAGES } from '@/lib/question-edit';
 import { choiceNames, isAutoPhotoName } from '@/lib/option-images';
 import { normalizeTimeLimit, supportsTimeLimit } from '@/lib/question-timer';
 import TimeLimitSection from './TimeLimitSection';
+import { snap } from '@/lib/motion';
 
 const COMMON_TYPES = ['choice', 'quiz', 'ox', 'wordcloud', 'subjective', 'check'];
 // 공개할 정답이 있는 유형. 객관식(choice)은 정답을 지정했을 때만 해당한다.
@@ -164,11 +165,14 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
                   setType(t.value); setLocalError(null);
                   if (t.value === 'ranking' && options.length < 3) setOptions(['', '', '']);
                 }}
-                className={`flex flex-col items-center justify-center gap-1 py-3 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150 ${
-                  selected ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm'
+                className={`relative flex flex-col items-center justify-center gap-1 py-3 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150 ${
+                  selected ? 'text-white dark:text-slate-900'
                     : 'text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-300'}`}>
-                <Icon size={20} strokeWidth={selected ? 2 : 1.6} />
-                <span className="text-sm font-medium leading-tight">{t.label}</span>
+                {/* 선택 배경은 한 장이 칸 사이를 미끄러져 옮겨간다 */}
+                {selected && !reducedMotion && <motion.span layoutId="question-type-selected" transition={snap} className="absolute inset-0 rounded-xl bg-slate-900 dark:bg-slate-100 shadow-sm" aria-hidden="true" />}
+                {selected && reducedMotion && <span className="absolute inset-0 rounded-xl bg-slate-900 dark:bg-slate-100 shadow-sm" aria-hidden="true" />}
+                <Icon size={20} strokeWidth={selected ? 2 : 1.6} className="relative z-10" />
+                <span className="relative z-10 text-sm font-medium leading-tight">{t.label}</span>
               </motion.button>
             );
           })}
@@ -233,7 +237,7 @@ export default function QuestionForm({ onSubmit, onCancel, error, initialData })
       </div>
 
       {/* Only the selected type is mounted: departed controls cannot overlap the new form. */}
-      <motion.div key={type} initial={reducedMotion ? false : { opacity: .8 }} animate={{ opacity: 1 }} transition={{ duration: reducedMotion ? 0 : .12 }}>
+      <motion.div key={type} initial={reducedMotion ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : .18, ease: [0.22, 1, 0.36, 1] }}>
         {isChoiceLike && <ChoiceOptionsSection lockedNames={locks.lockedOptions} options={options} setOptions={setOptions} optionImages={optionImages} setOptionImages={setOptionImages}
           correctAnswer={correctAnswer} setCorrectAnswer={setCorrectAnswer} setLocalError={setLocalError} />}
         {isRanking && <fieldset disabled={locks.rankingLocked || locks.answerLocked} className="min-w-0 disabled:opacity-70">

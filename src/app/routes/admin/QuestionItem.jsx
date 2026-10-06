@@ -1,6 +1,8 @@
 import { memo, useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { list, popIn, settle } from '@/lib/motion';
 import Tooltip from '@/components/ui/Tooltip';
 import { GripVertical, BookmarkPlus, Check, Copy, MessageSquare, Pencil, Play, Square, Trash2, Trophy, Loader2, Pin, PinOff, RotateCcw, MoreHorizontal, ArrowUp, ArrowDown, Timer } from 'lucide-react';
 import Badge from '@/components/ui/Badge';
@@ -55,7 +57,7 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
     <div
       {...dragProps}
       onClick={readOnly && onView ? () => onView(qId) : undefined}
-      className={`p-4 sm:p-3.5 rounded-xl border transition-colors duration-150 group ${
+      className={`p-4 sm:p-3.5 rounded-xl border transition-[color,background-color,border-color,box-shadow] duration-200 group ${
         isDragging ? 'shadow-lg opacity-80 scale-[1.03] bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-500 cursor-grabbing touch-none' :
         readOnly
           ? `bg-white dark:bg-slate-800 ${currentQuestion === qId ? 'border-slate-400 dark:border-slate-500 shadow-sm' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer'}`
@@ -76,7 +78,7 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
             <span className={`text-xs font-semibold whitespace-nowrap ${!readOnly && isActive ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>
               {qType?.label}
             </span>
-            {!readOnly && isActive && <Badge variant="primary">LIVE</Badge>}
+            {!readOnly && isActive && <motion.span initial={popIn.initial} animate={popIn.animate} transition={popIn.transition} className="inline-flex"><Badge variant="primary">LIVE</Badge></motion.span>}
             {q.timerDuration > 0 && <span className="inline-flex items-center gap-0.5 text-[11px] font-medium tabular-nums text-slate-500 dark:text-slate-400" title="시간 제한"><Timer size={11} aria-hidden="true" />{formatTimeLimit(q.timerDuration)}</span>}
             {!readOnly && isPersistent && (
               <Badge variant="neutral">
@@ -191,9 +193,13 @@ export const SortableItem = memo(function SortableItem(props) {
     zIndex: isDragging ? 10 : undefined,
   };
 
+  // 바깥 motion.div: 추가·삭제 등장/퇴장 + 순서가 바뀐 뒤 자리로 미끄러짐(layout).
+  // 안쪽 div: dnd-kit이 끌기 중 transform을 직접 쓴다 — 둘을 한 요소에 두면 서로 덮어쓴다.
   return (
-    <div ref={setNodeRef} style={style}>
-      <QuestionItemContent {...props} isDragging={isDragging} dragProps={{ ...attributes, ...listeners, className: 'touch-none' }} />
-    </div>
+    <motion.div layout="position" variants={list.item} initial="initial" animate="animate" exit="exit" transition={settle}>
+      <div ref={setNodeRef} style={style}>
+        <QuestionItemContent {...props} isDragging={isDragging} dragProps={{ ...attributes, ...listeners, className: 'touch-none' }} />
+      </div>
+    </motion.div>
   );
 });

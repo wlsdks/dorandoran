@@ -8,6 +8,8 @@ import TimerRing from '@/features/timer/components/TimerRing';
 import { Check, Tv, ArrowLeft, Clock, MessageCircle, Users, UserCog, Monitor, Play, Square, Layers, List, Zap, MessageSquareDot, XCircle, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { lazy, Suspense } from 'react';
+import AnimatedNumber from '@/components/ui/AnimatedNumber';
+import { pop } from '@/lib/motion';
 
 // 전자칠판 주소 복사 — 강사가 수업 중 바로 찾도록 발표 모드 옆에 둔다.
 function BoardLinkButton({ sessionId, compact }) {
@@ -270,10 +272,8 @@ export default memo(function AdminSessionHeader({
             <AnimatePresence>
               {timerOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: -4, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
+                  {...pop}
+                  style={{ transformOrigin: 'top right' }}
                   className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-4 z-50 w-72"
                 >
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">타이머 설정</p>
@@ -296,7 +296,7 @@ export default memo(function AdminSessionHeader({
         ) : (
           <Badge variant="neutral" className="h-12 px-3.5 text-sm tabular-nums">
             <Users size={20} className="mr-1.5" />
-            <motion.span key={count} initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="inline-block">{count}</motion.span>명
+            <AnimatedNumber value={count} className="inline-block" />명
           </Badge>
         )}
         {!effectiveReadOnly && <BoardLinkButton sessionId={sessionId} compact={isTablet} />}

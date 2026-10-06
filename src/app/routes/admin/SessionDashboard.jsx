@@ -10,6 +10,7 @@ import Toast from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import ClassesTab from './ClassesTab';
 import { Loader2, LogOut } from 'lucide-react';
+import { fadeIn, fadeUp, snap } from '@/lib/motion';
 
 const StatsView = lazy(() => import('./StatsView'));
 const QuestionLibraryView = lazy(() => import('./QuestionLibraryView'));
@@ -155,7 +156,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
                   <motion.div
                     layoutId="tab-indicator"
                     className="absolute inset-0 bg-slate-900 dark:bg-slate-100 rounded-lg"
-                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                    transition={snap}
                   />
                 )}
                 <span className="relative z-10">{tab.label}</span>
@@ -166,7 +167,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
 
         <AnimatePresence mode="wait">
           {activeTab === 'classes' && (
-            <motion.div key="classes" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }} className="space-y-4">
+            <motion.div key="classes" {...fadeUp} className="space-y-4">
               <ClassesTab
                 loading={loading}
                 isStaff={isStaff}
@@ -190,7 +191,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
             </motion.div>
           )}
           {activeTab === 'history' && (
-            <motion.div key="history" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
+            <motion.div key="history" {...fadeUp}>
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-3"><DoranDoranMascot size="sm" mood="thinking" /><p className="text-sm text-slate-500 dark:text-slate-400">불러오는 중...</p></div>
               ) : (
@@ -201,21 +202,21 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
             </motion.div>
           )}
           {activeTab === 'library' && (
-            <motion.div key="library" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
+            <motion.div key="library" {...fadeUp}>
               <Suspense fallback={<SuspenseFallback fullPage={false} />}>
                 <QuestionLibraryView adminUid={adminUser?.uid} />
               </Suspense>
             </motion.div>
           )}
           {activeTab === 'assignments' && (
-            <motion.div key="assignments" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
+            <motion.div key="assignments" {...fadeUp}>
               <Suspense fallback={<SuspenseFallback fullPage={false} />}>
                 <AssignmentsTab sessions={sessions} />
               </Suspense>
             </motion.div>
           )}
           {activeTab === 'more' && (
-            <motion.div key="more" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
+            <motion.div key="more" {...fadeUp}>
               <Suspense fallback={<SuspenseFallback fullPage={false} />}>
                 <MoreView adminUser={adminUser} sessions={sessions} />
               </Suspense>
@@ -230,9 +231,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
       <AnimatePresence>
         {duplicating && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            {...fadeIn}
             className="fixed inset-0 bg-black/20 z-40 flex items-center justify-center"
           >
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg px-6 py-4 flex items-center gap-3">

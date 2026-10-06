@@ -25,6 +25,11 @@ import MobileAdminView from './MobileAdminView';
 import ResizeHandle from '@/components/ui/ResizeHandle';
 import ConnectionBanner from '@/components/ui/ConnectionBanner';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
+import { ease, exitTween, pop } from '@/lib/motion';
+
+// 발표 모드 ↔ 운영 화면: 운영 화면은 짧게 사라지고, 무대는 살짝 확대되며 들어온다(투영기 앞에서 뚝 바뀌지 않게).
+const stageIn = { initial: { opacity: 0, scale: 0.985 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, transition: exitTween }, transition: { duration: 0.24, ease: ease.out } };
+const dashboardIn = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0, transition: exitTween }, transition: { duration: 0.2, ease: ease.out } };
 
 // 기본 폭 = 화면의 25% (14인치 1512px → 378, 16인치 1728px → 432, 17인치 1920px → 480, 큰 모니터 최대 560)
 const LEFT_PANEL = { initial: (viewport) => Math.round(Math.min(560, Math.max(360, viewport * 0.25))), min: 300, max: 760, side: 'left' };
@@ -69,13 +74,14 @@ export default function AdminPage() {
   }
   const currentMode = s.session?.currentMode;
   const isSpecialMode = isSpecialModeKey(currentMode);
-  if (s.presentMode) {
-    return <><ConnectionBanner /><PresentationView sessionId={s.sessionId} session={s.session} currentMode={currentMode} onlineList={s.onlineList} leaderboard={s.leaderboard} drawParticipants={s.drawParticipants} studentUrl={s.studentUrl} count={s.count} onExit={s.handleExitPresent} readOnly={s.effectiveReadOnly} scores={s.scores} participants={s.participants} /></>;
-  }
+  // 발표 모드와 운영 화면은 같은 AnimatePresence 아래에서 교차한다 — return을 둘로 나누면 퇴장 애니메이션이 없다.
+  const presentView = s.presentMode ? <motion.div key="present" {...stageIn} className="h-dvh overflow-hidden">
+      <ConnectionBanner /><PresentationView sessionId={s.sessionId} session={s.session} currentMode={currentMode} onlineList={s.onlineList} leaderboard={s.leaderboard} drawParticipants={s.drawParticipants} studentUrl={s.studentUrl} count={s.count} onExit={s.handleExitPresent} readOnly={s.effectiveReadOnly} scores={s.scores} participants={s.participants} />
+    </motion.div> : null;
   const leftSidebarContent = <>
       <QuestionManager onCollapse={isTablet ? undefined : s.effectiveReadOnly ? undefined : s.handleCollapseClose} sessionId={s.sessionId} questions={s.session?.questions || {}} currentQuestion={s.session?.currentQuestion} scores={s.scores} participants={s.participants} pendingEvent={s.session?.pendingEvent || null} readOnly={s.effectiveReadOnly} formOpen={s.showCenterForm} onAddClick={s.effectiveReadOnly ? undefined : s.handleShowCenterForm} onEditClick={s.effectiveReadOnly ? undefined : s.handleEditQuestion} onViewQuestion={s.handleViewQuestion} adminUid={s.adminUser?.uid} speedQuizActive={s.speedQuizActive} onStartSpeedQuiz={s.startSpeedQuiz} onEndSpeedQuiz={s.endSpeedQuiz} speedQuizCount={s.speedQuizCount} modeButton={!s.effectiveReadOnly ? <ModeSwitcher currentMode={currentMode} isSpecialMode={isSpecialMode} onAddModeCard={s.addModeCard} leaderboard={s.leaderboard} modeOpen={s.modeOpen} onToggle={s.handleModeToggle} onSwitchMode={s.switchMode} /> : null} />
     </>;
-  return <div className="h-dvh bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden">
+  return <AnimatePresence mode="wait" initial={false}>{s.presentMode ? presentView : <motion.div key="dashboard" {...dashboardIn} className="h-dvh bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden">
       {/* 강사 화면은 문항 공개·퀴즈 집계를 학생과 전자칠판에 중계한다 — 끊기면 바로 알 수 있어야 한다 */}
       <ConnectionBanner />
       <JoinToast sessionId={s.sessionId} />
@@ -104,18 +110,7 @@ export default function AdminPage() {
 
       <div className="flex flex-1 overflow-hidden">
         {!isTablet && <AnimatePresence>
-            {s.sidebarCollapsed && <motion.button initial={{
-          opacity: 0,
-          x: -8
-        }} animate={{
-          opacity: 1,
-          x: 0
-        }} exit={{
-          opacity: 0,
-          x: -8
-        }} transition={{
-          duration: 0.15
-        }} onClick={s.handleCollapseOpen} className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 border-l-0 rounded-r-xl p-3 shadow-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-150 active:scale-[0.96]" aria-label="사이드바 열기">
+            {s.sidebarCollapsed && <motion.button {...pop} style={{ transformOrigin: 'left center' }} onClick={s.handleCollapseOpen} className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 border-l-0 rounded-r-xl p-3 shadow-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-150 active:scale-[0.96]" aria-label="사이드바 열기">
                 <PanelLeftOpen size={22} />
               </motion.button>}
           </AnimatePresence>}
@@ -124,8 +119,8 @@ export default function AdminPage() {
         width: s.sidebarCollapsed ? 0 : leftPanel.width,
         minWidth: 0
       }} transition={{
-        duration: leftPanel.dragging ? 0 : 0.3,
-        ease: [0.4, 0, 0.2, 1]
+        duration: leftPanel.dragging ? 0 : 0.26,
+        ease: ease.out
       }} className="relative border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 min-w-0 h-full">
             <div className="h-full overflow-hidden"><div className="p-6 overflow-y-auto h-full scrollbar-hide" style={{ minWidth: LEFT_PANEL.min }}>{leftSidebarContent}</div></div>
             {!s.sidebarCollapsed && <ResizeHandle side="left" label="수업 진행 패널 폭 조절" width={leftPanel.width} min={LEFT_PANEL.min} max={LEFT_PANEL.max} dragging={leftPanel.dragging} {...leftPanel.handleProps} />}
@@ -143,5 +138,5 @@ export default function AdminPage() {
       {!s.effectiveReadOnly && <div className="shrink-0 has-[button]:border-t has-[button]:border-slate-200 dark:has-[button]:border-slate-700 has-[button]:px-4 has-[button]:pt-2.5 has-[button]:pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <PresentRevealControls sessionId={s.sessionId} session={s.session} onRevealQuiz={s.revealQuiz} onRevealAnswer={s.revealAnswer} />
       </div>}
-    </div>;
+    </motion.div>}</AnimatePresence>;
 }

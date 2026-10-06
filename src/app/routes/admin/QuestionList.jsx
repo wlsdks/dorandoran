@@ -8,6 +8,7 @@ import { ChevronDown } from 'lucide-react';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 import { QuestionItemContent, SortableItem } from './QuestionItem';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import { ease, list, settle } from '@/lib/motion';
 
 /** Detect mobile once for DnD gating (no drag on mobile). */
 function useIsMobile() {
@@ -94,13 +95,15 @@ export default memo(function QuestionList({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            transition={{ duration: 0.22, ease: ease.out }}
             className="overflow-hidden"
           >
+            {/* 추가·삭제는 자리에서 나타나고 사라지며, 순서 이동(버튼·드롭)은 항목이 미끄러져 자리를 바꾼다 */}
             <div className="p-2 space-y-2">
               {!readOnly && questionList.length > 1 && !isMobile ? (
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} accessibility={{ announcements: dragAnnouncements, screenReaderInstructions: { draggable: '스페이스로 문항을 집고 위·아래 화살표로 옮긴 뒤 스페이스로 놓으세요. Esc로 취소합니다.' } }}>
                   <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+                    <AnimatePresence initial={false}>
                     {questionList.map(([qId, q], index) => (
                       <SortableItem
                         key={qId} qId={qId} q={q} currentQuestion={currentQuestion} readOnly={readOnly}
@@ -116,12 +119,15 @@ export default memo(function QuestionList({
                         onMoveDown={index < questionList.length - 1 ? onMoveDown : null}
                       />
                     ))}
+                    </AnimatePresence>
                   </SortableContext>
                 </DndContext>
               ) : (
-                questionList.map(([qId, q], index) => (
+                <AnimatePresence initial={false}>
+                {questionList.map(([qId, q], index) => (
+                  <motion.div key={qId} layout="position" variants={list.item} initial="initial" animate="animate" exit="exit" transition={settle}>
                   <QuestionItemContent
-                    key={qId} qId={qId} q={q} currentQuestion={currentQuestion} readOnly={readOnly}
+                    qId={qId} q={q} currentQuestion={currentQuestion} readOnly={readOnly}
                     onView={onView} onActivate={onActivate} onReveal={onReveal} onRevealAnswer={onRevealAnswer} onShowLeaderboard={onShowLeaderboard}
                     onClearActive={onClearActive} onEdit={onEdit}
                     onDuplicate={handleDuplicateWithToast}
@@ -133,7 +139,9 @@ export default memo(function QuestionList({
                     onMoveUp={!readOnly && index > 0 ? onMoveUp : null}
                     onMoveDown={!readOnly && index < questionList.length - 1 ? onMoveDown : null}
                   />
-                ))
+                  </motion.div>
+                ))}
+                </AnimatePresence>
               )}
 
               {questionList.length === 0 && (

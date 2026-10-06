@@ -120,8 +120,8 @@ export default memo(function ClassSummary({ session, participants, scores, leade
           <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight">{activityRate}%</p>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">참여율</p>
           <div className="mt-2 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-            <motion.div className="h-full bg-indigo-500 dark:bg-indigo-400 rounded-full"
-              initial={{ width: 0 }} animate={{ width: `${activityRate}%` }}
+            <motion.div className="h-full w-full bg-indigo-500 dark:bg-indigo-400 rounded-full" style={{ originX: 0 }}
+              initial={{ scaleX: 0 }} animate={{ scaleX: Math.min(1, activityRate / 100) }}
               transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.2 }} />
           </div>
         </div>
@@ -224,9 +224,10 @@ export default memo(function ClassSummary({ session, participants, scores, leade
                   <div className="w-16 shrink-0">
                     <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-indigo-400 dark:bg-indigo-500 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${q.responseRate}%` }}
+                        className="h-full w-full bg-indigo-400 dark:bg-indigo-500 rounded-full"
+                        style={{ originX: 0 }}
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: Math.min(1, q.responseRate / 100) }}
                         transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.1 + i * 0.05 }}
                       />
                     </div>

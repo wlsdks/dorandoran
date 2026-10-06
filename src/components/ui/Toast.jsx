@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
+import { rise } from '@/lib/motion';
 
 /**
  * Floating toast notification — fixed bottom-center.
@@ -13,14 +14,13 @@ export default function Toast({ message, raised = false }) {
     <AnimatePresence>
       {message && (
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 12 }}
+          {...rise}
           role="status"
           aria-live="polite"
           className={`fixed left-1/2 -translate-x-1/2 ${raised ? 'bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4rem))]' : 'bottom-[max(1.5rem,env(safe-area-inset-bottom))]'} bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 rounded-lg shadow-lg text-sm flex items-center gap-2 z-[60]`}
         >
-          <CheckCircle size={16} className="text-emerald-400 shrink-0" />
+          {/* 다크모드 토스트는 밝은 바탕이라 연한 초록이 묻힌다 — 짙은 단계로 바꾼다 */}
+          <CheckCircle size={16} className="text-emerald-400 dark:text-emerald-600 shrink-0" />
           {message}
         </motion.div>
       )}

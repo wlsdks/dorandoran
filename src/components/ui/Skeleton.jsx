@@ -1,4 +1,5 @@
 // 미사용 Skeleton/SkeletonText/SkeletonCard 제거 — 실사용: VotePageSkeleton, SuspenseFallback.
+import { motion } from 'framer-motion';
 
 /** Layout-matching skeleton for student vote page. */
 export function VotePageSkeleton() {
@@ -48,12 +49,13 @@ export function VotePageSkeleton() {
 
 /** Lightweight Suspense fallback — centered mascot for lazy-loaded routes/sections. */
 export function SuspenseFallback({ fullPage = true }) {
-  // 로딩 중에는 정적 SVG를 직접 표시해 애니메이션 모듈을 불러오지 않는다.
+  // 로딩 중에는 정적 SVG를 직접 표시한다. 150ms 안에 끝나는 로딩은 아예 보이지 않게 늦게 나타난다(깜빡임 방지).
   return (
-    <div className={`${fullPage ? 'min-h-dvh' : 'min-h-[200px]'} bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-3`}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.2 }}
+      className={`${fullPage ? 'min-h-dvh' : 'min-h-[200px]'} bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-3`}>
       <img src="/characters/dorandoran-waiting.svg" alt="" aria-hidden="true" width={64} height={48}
         style={{ objectFit: 'contain' }} />
       <span className="text-sm text-slate-600 dark:text-slate-300">불러오는 중...</span>
-    </div>
+    </motion.div>
   );
 }

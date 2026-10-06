@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import DoranDoranMascot from './DoranDoranMascot';
+import { fadeUp, list, spring } from '@/lib/motion';
+
 
 /**
  * Friendly empty-state component for admin screens.
@@ -25,9 +27,9 @@ export default function EmptyState({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+      initial={fadeUp.initial}
+      animate={fadeUp.animate}
+      transition={spring.gentle}
       className={`flex flex-col items-center text-center ${className}`}
     >
       <DoranDoranMascot size={mascotSize} mood={mood} />
@@ -40,13 +42,11 @@ export default function EmptyState({
       </div>
 
       {steps && steps.length > 0 && (
-        <div className="mt-6 space-y-2.5 w-full max-w-xs">
+        <motion.div variants={{ initial: {}, animate: { transition: { staggerChildren: 0.04, delayChildren: 0.12 } } }} initial="initial" animate="animate" className="mt-6 space-y-2.5 w-full max-w-xs">
           {steps.map((step, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.25, delay: 0.15 + i * 0.06 }}
+              variants={list.item}
               className="flex items-start gap-3 text-left"
             >
               <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-700 text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0 mt-0.5">
@@ -55,7 +55,7 @@ export default function EmptyState({
               <span className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{step}</span>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {children && <div className="mt-5">{children}</div>}

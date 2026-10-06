@@ -1,5 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { fadeIn } from '@/lib/motion';
+
+// 서랍: 빠르게 닫히고 튀지 않는 스프링. 숫자를 바꾸면 양쪽 서랍이 같이 바뀐다.
+const drawerSpring = { type: 'spring', stiffness: 420, damping: 38 };
 
 export default function TabletDrawers({
   leftOpen,
@@ -16,18 +20,15 @@ export default function TabletDrawers({
         {leftOpen && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              {...fadeIn}
               className="fixed inset-0 bg-black/30 z-40"
               onClick={onCloseLeft}
             />
             <motion.div
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              exit={{ x: '-100%', transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
+              transition={drawerSpring}
               className="fixed inset-y-0 left-0 z-50 w-[340px] max-w-[85vw] bg-white dark:bg-slate-800 shadow-xl overflow-hidden flex flex-col"
             >
               <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
@@ -53,18 +54,15 @@ export default function TabletDrawers({
         {rightOpen && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              {...fadeIn}
               className="fixed inset-0 bg-black/30 z-40"
               onClick={onCloseRight}
             />
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              exit={{ x: '100%', transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
+              transition={drawerSpring}
               className="fixed inset-y-0 right-0 z-50 w-[340px] max-w-[85vw] bg-white dark:bg-slate-800 shadow-xl overflow-hidden flex flex-col"
             >
               <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">

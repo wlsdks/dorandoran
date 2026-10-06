@@ -1,6 +1,7 @@
 import { memo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import { ease } from '@/lib/motion';
 
 /**
  * CollapsibleSection — 탭/리스트 허브 카드에 "접기/펼치기" 껍데기를 씌우는 공통 래퍼.
@@ -59,7 +60,7 @@ export default memo(function CollapsibleSection({
             </span>
           )}
         </div>
-        <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+        <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.22, ease: ease.out }}>
           <ChevronDown size={14} className="text-slate-400 shrink-0" />
         </motion.div>
       </button>
@@ -67,7 +68,7 @@ export default memo(function CollapsibleSection({
       {/* 접혀도 입력 중인 메모와 선택한 탭 상태를 보존한다. 숨긴 도구는 포커스 대상에서 제외. */}
       <motion.div initial={false}
         animate={{ height: expanded ? 'auto' : 0, opacity: expanded ? 1 : 0 }}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        transition={{ duration: 0.22, ease: ease.out }}
         inert={!expanded} aria-hidden={!expanded}
         className={`overflow-hidden ${expanded ? 'border-t border-slate-100 dark:border-slate-700' : ''}`}>
         {children}
