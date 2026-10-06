@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, memo } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
 import { compressImage } from '@/lib/image-utils';
+import { imageRejection } from '@/lib/image-file';
 import { AnimatePresence } from 'framer-motion';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -12,7 +13,6 @@ import { logger } from '@/lib/logger';
 
 const MAX_SIZE_MB = 20;
 const MAX_IMAGES = 10;
-const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp,';
 
 function SortableImage({ url, index, onRemove }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: url });
@@ -71,9 +71,11 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
       return;
     }
 
-    const valid = toUpload.filter(f => f.size <= MAX_SIZE_MB * 1024 * 1024);
-    if (valid.length < toUpload.length) {
-      showError(`${toUpload.length - valid.length}개 파일이 ${MAX_SIZE_MB}MB 초과`);
+    // 형식·용량 문제는 파일별 이유를 그대로 보여준다(형식 이름 포함).
+    const rejected = toUpload.map(f => imageRejection(f, MAX_SIZE_MB)).filter(Boolean);
+    const valid = toUpload.filter(f => !imageRejection(f, MAX_SIZE_MB));
+    if (rejected.length) {
+      showError(rejected.length === 1 ? rejected[0] : `${rejected.length}개 파일은 올릴 수 없어요. ${rejected[0]}`, 7000);
     }
     if (valid.length === 0) return;
 
@@ -84,7 +86,6 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
       try {
         const file = valid[i];
         await ensureAuthentication();
-        if (!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)) throw new Error('지원하지 않는 이미지 형식');
         const blob = await compressImage(file);
         const ext = (blob.type || '').includes('jpeg') ? 'jpg' : file.name.split('.').pop() || 'jpg';
         const path = `questions/${auth.currentUser.uid}/${Date.now()}_${i}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
@@ -141,9 +142,9 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
         </button>
       )}
 
-      {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+      {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400 text-center leading-relaxed [word-break:keep-all]">{error}</p>}
 
-      <input ref={inputRef} type="file" accept={ACCEPTED} multiple onChange={handleFiles} className="hidden" />
+      <input ref={inputRef} type="file" accept="image/*,.heic,.heif" multiple onChange={handleFiles} className="hidden" />
     </div>
   );
 });
