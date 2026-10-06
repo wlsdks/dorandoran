@@ -3,7 +3,7 @@ import { useState, useRef, memo } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
 import { compressImage, uploadErrorMessage, MAX_UPLOAD_MB } from '@/lib/image-utils';
-import { imageRejection } from '@/lib/image-file';
+import { imageRejection, normalizeImageFile } from '@/lib/image-file';
 import { logger } from '@/lib/logger';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
@@ -20,7 +20,8 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
   const inputRef = useRef(null);
 
   async function handleFile(e) {
-    const file = e.target.files?.[0];
+    // 윈도우는 MIME을 비우거나 옛 이름으로 주므로 파일 내용으로 형식을 다시 확인한다
+    const file = await normalizeImageFile(e.target.files?.[0]);
     if (!file) return;
     if (inputRef.current) inputRef.current.value = '';
 

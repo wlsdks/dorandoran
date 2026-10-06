@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Check, AlertCircle } from 'lucide-react';
 import { ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
+import { compressImage, MAX_UPLOAD_MB, uploadErrorMessage } from '@/lib/image-utils';
+import { imageRejection, normalizeImageFile } from '@/lib/image-file';
 import Button from '@/components/ui/Button';
 import SubmissionPreview from './SubmissionPreview';
 import SubmissionSuccessView from './SubmissionSuccessView';
@@ -15,7 +17,6 @@ import IdentityFields from './IdentityFields';
 import ScreenshotsField from './ScreenshotsField';
 
 const MAX_SCREENSHOTS = 10;
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // Storage rules와 같은 상한
 const MAX_PRD_CHARS = 10000;
 const MAX_CODE_CHARS = 50000; // HTML 코드 길이 제한 (라이브 AI 심사와 동일)
 
@@ -79,21 +80,21 @@ export default function SubmissionForm({ onSubmit, existingSubmission, assignmen
 
     // 2) 병렬 업로드
     await Promise.all(
-      toUpload.map(async (file, i) => {
+      toUpload.map(async (original, i) => {
+        let file = original;
         const placeholder = placeholders[i];
         try {
-          if (!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)) {
-            throw new Error('이미지 파일만 업로드 가능');
-          }
-          if (file.size > MAX_IMAGE_SIZE) {
-            throw new Error(`10MB 초과 (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
-          }
+          // 윈도우는 MIME을 비우거나 옛 이름으로 주므로 파일 내용으로 형식을 확인하고, 큰 사진은 줄여서 올린다
+          file = await normalizeImageFile(file);
+          const rejection = imageRejection(file, MAX_UPLOAD_MB);
+          if (rejection) throw new Error(rejection);
+          file = await compressImage(file);
           if (!assignmentId) {
             throw new Error('assignmentId 없음');
           }
-          const dotIdx = file.name.lastIndexOf('.');
-          const ext = (dotIdx > 0 ? file.name.slice(dotIdx + 1) : 'png').toLowerCase();
-          const stem = dotIdx > 0 ? file.name.slice(0, dotIdx) : file.name;
+          const dotIdx = original.name.lastIndexOf('.');
+          const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' })[file.type] || 'jpg';
+          const stem = dotIdx > 0 ? original.name.slice(0, dotIdx) : original.name;
           const safeStem = (stem.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50)) || 'img';
           await ensureAuthentication();
           const path = `assignments/${assignmentId}/${auth.currentUser.uid}/screenshots/${placeholder.tempId}_${safeStem}.${ext}`;
@@ -111,7 +112,7 @@ export default function SubmissionForm({ onSubmit, existingSubmission, assignmen
           setScreenshots((prev) =>
             prev.map((s) =>
               s.tempId === placeholder.tempId
-                ? { ...s, uploading: false, error: err.message || '업로드 실패' }
+                ? { ...s, uploading: false, error: err?.code ? uploadErrorMessage(err) : (err.message || '업로드하지 못했어요') }
                 : s
             )
           );
