@@ -45,8 +45,17 @@ const MIME_ALIASES = { 'image/pjpeg': 'image/jpeg', 'image/jpg': 'image/jpeg', '
 /** 실제 형식을 확인해, 지원 형식이면 올바른 MIME을 붙인 File로 돌려준다(윈도우 대응). */
 export async function normalizeImageFile(file) {
   if (!file) return file;
-  let sniffed = '';
-  try { sniffed = sniffImageType(new Uint8Array(await file.slice(0, 16).arrayBuffer())); } catch { /* 읽기 실패 시 MIME으로 판단 */ }
+  let sniffed;
+  try {
+    sniffed = sniffImageType(new Uint8Array(await file.slice(0, 16).arrayBuffer()));
+  } catch (error) {
+    // 윈도우에서 자주 나는 경우: 캡처 도구가 아직 파일을 쓰는 중이거나, OneDrive 등 클라우드에만 있는(내려받지 않은) 파일,
+    // 보안 프로그램이 검사 중이라 잠긴 파일. 조용히 넘기면 아무 반응 없이 실패하므로 이유를 알린다.
+    const unreadable = new Error('사진 파일을 열 수 없어요. 방금 만든 캡처라면 잠시 후 다시 시도하거나, 바탕화면에 저장한 뒤 그 파일을 올려주세요. (OneDrive 등 클라우드에만 있는 파일은 먼저 내려받아 주세요)');
+    unreadable.code = 'file/unreadable';
+    unreadable.cause = error;
+    throw unreadable;
+  }
   const type = sniffed || MIME_ALIASES[file.type] || file.type;
   if (type === file.type) return file;
   return new File([file], file.name, { type, lastModified: file.lastModified });

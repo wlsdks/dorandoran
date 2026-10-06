@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { uploadErrorMessage, MAX_UPLOAD_MB } from '@/lib/image-utils';
 import { uploadImage } from '@/lib/image-upload';
+import { reportClientError } from '@/lib/error-report';
 import { imageRejection, normalizeImageFile } from '@/lib/image-file';
 import { AnimatePresence } from 'framer-motion';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
@@ -60,7 +61,13 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
 
   async function handleFiles(e) {
     // 윈도우는 MIME을 비우거나 옛 이름으로 주므로 파일 내용으로 형식을 다시 확인한다
-    const files = await Promise.all(Array.from(e.target.files || []).map(normalizeImageFile));
+    const picked = Array.from(e.target.files || []);
+    const unreadable = [];
+    const files = (await Promise.all(picked.map(f => normalizeImageFile(f).catch(err => {
+      reportClientError('image-read', err, { type: f.type, size: f.size, cause: err.cause?.name });
+      unreadable.push(uploadErrorMessage(err)); return null;
+    })))).filter(Boolean);
+    if (unreadable.length) showError(unreadable[0], 9000);
     if (inputRef.current) inputRef.current.value = '';
     if (files.length === 0) return;
 
