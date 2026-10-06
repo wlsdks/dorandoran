@@ -47,7 +47,7 @@ export default memo(function AnswerRevealCard({ correctAnswer, myAnswer }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-3 px-4 py-3 bg-white dark:bg-slate-700 rounded-lg"
+          className="answer-glow mt-3 px-4 py-3 bg-white dark:bg-slate-700 rounded-lg"
         >
           <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">정답</p>
           <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{correctAnswer}</p>

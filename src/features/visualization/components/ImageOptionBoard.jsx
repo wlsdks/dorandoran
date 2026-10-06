@@ -30,8 +30,9 @@ export default memo(function ImageOptionBoard({ options, optionImages, counts, t
           <motion.figure key={index} data-correct={correct}
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: dimmed ? 0.55 : 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25, delay: index * 0.05 }}
-            className={`relative flex flex-col overflow-hidden rounded-2xl border bg-white dark:bg-slate-800 ${correct ? 'border-indigo-500 ring-4 ring-indigo-500/40' : 'border-slate-200 dark:border-slate-700'}`}>
-            <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-900">
+            // overflow-hidden은 사진 칸에만 — 카드에 두면 정답 공개 때 바깥 후광(answer-glow)이 잘린다
+            className={`relative flex flex-col rounded-2xl border bg-white dark:bg-slate-800 ${correct ? 'answer-glow border-indigo-500' : 'border-slate-200 dark:border-slate-700'}`}>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-t-[15px] bg-slate-100 dark:bg-slate-900">
               {image
                 ? <img src={image} alt={`${letter} 보기 사진`} className="absolute inset-0 h-full w-full object-contain" />
                 : <div className="absolute inset-0 flex items-center justify-center text-slate-400"><ImageOff size={presenter ? 40 : 24} aria-hidden="true" /></div>}

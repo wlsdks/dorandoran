@@ -120,7 +120,7 @@ export default memo(function QuizVoter({
   if (question?.revealedAt && currentVote) {
     return <div className="space-y-4">
       {typeof renderResult === 'function' ? renderResult(currentVote) : null}
-      <StudentLiveResults sessionId={sessionId} questionId={questionId} options={question.options || []} images={question.optionImages} myAnswer={currentVote.value} revealed />
+      <StudentLiveResults sessionId={sessionId} questionId={questionId} options={question.options || []} images={question.optionImages} myAnswer={currentVote.value} revealed correctValue={question.correctAnswer ?? null} />
     </div>;
   }
   if (currentVote) {
@@ -184,7 +184,7 @@ export default memo(function QuizVoter({
             stiffness: 300,
             damping: 25,
             delay: 0.12 + index * 0.05
-          }} className={`w-full py-3 px-4 rounded-xl border flex items-center gap-3 ${isCorrect ? 'bg-slate-900 dark:bg-slate-100 border-slate-900 dark:border-slate-100' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
+          }} className={`w-full py-3 px-4 rounded-xl border flex items-center gap-3 ${isCorrect ? 'answer-glow bg-slate-900 dark:bg-slate-100 border-slate-900 dark:border-slate-100' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
                   <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${isCorrect ? 'bg-white/20 dark:bg-slate-900/20 text-white dark:text-slate-900' : `${style.badge} text-white`}`}>
                     {letter}
                   </span>

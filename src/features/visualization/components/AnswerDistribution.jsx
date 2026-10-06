@@ -6,7 +6,7 @@ export default function AnswerDistribution({ answers, revealed = false, presente
   const max = Math.max(1, ...answers.map(answer => answer.count));
   const limit = presenter ? 4 : 10;
   return <div className="answer-distribution space-y-4">
-    {answers.slice(0, limit).map(answer => <div key={answer.answer}>
+    {answers.slice(0, limit).map(answer => <div key={answer.answer} className={`answer-distribution-row ${revealed && answer.isCorrect ? 'answer-glow' : revealed ? 'answer-dim' : ''}`}>
       <div className="answer-distribution-label flex items-start justify-between gap-4 mb-2 text-slate-700 dark:text-slate-100">
         <span className="min-w-0 break-words">{answer.answer}{revealed && answer.isCorrect && <span className="answer-distribution-correct"><Check size={18} />정답</span>}</span>
         <span className="shrink-0 tabular-nums text-slate-500 dark:text-slate-300">{answer.count}명</span>

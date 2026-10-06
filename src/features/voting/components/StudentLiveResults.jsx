@@ -17,7 +17,7 @@ import { Users, Check } from 'lucide-react';
  * @param {string[]} props.options - vote option labels
  * @param {string} props.myAnswer - the option this student voted for
  */
-export default memo(function StudentLiveResults({ sessionId, questionId, options, myAnswer, revealed = false, images = null }) {
+export default memo(function StudentLiveResults({ sessionId, questionId, options, myAnswer, revealed = false, images = null, correctValue = null }) {
   const { connected } = useConnectionStatus();
   const { totalVotes, countByValue, resultsHidden, loading } = useVotes(sessionId, questionId);
 
@@ -45,25 +45,32 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
           const count = countByValue(option);
           const proportion = totalVotes > 0 ? count / totalVotes : 0;
           const isMine = option === myAnswer;
+          // 정답 공개 뒤: 정답 행은 answer-glow로 빛나고 나머지는 가라앉는다(막대도 정답만 인디고)
+          const isCorrect = revealed && correctValue != null && option === correctValue;
+          const dimmed = revealed && correctValue != null && !isCorrect;
+          const emphasized = isCorrect || (isMine && !dimmed);
 
           return (
-            <div key={option} className="space-y-1">
+            <div key={option} className={`student-result-row space-y-1 ${isCorrect ? 'answer-glow' : dimmed ? 'answer-dim' : ''}`}>
               <div className="flex items-baseline justify-between gap-2">
                 <span
                   className={`text-sm break-words ${
-                    isMine
+                    emphasized
                       ? 'font-semibold text-slate-900 dark:text-slate-100'
                       : 'font-medium text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {images?.[index] && <img src={images[index]} alt="" className="mr-2 inline-block h-8 w-8 rounded-md object-contain bg-slate-100 dark:bg-slate-900 align-middle" />}<span className="font-semibold mr-2">{String.fromCharCode(65 + index)}</span>{images?.[index] && isAutoPhotoName(option) ? null : option}
-                  {isMine && (
+                  {isCorrect && (
+                    <span className="ml-1.5 inline-flex items-center gap-0.5 align-middle text-xs font-bold text-indigo-600 dark:text-indigo-300"><Check size={12} strokeWidth={3} />정답</span>
+                  )}
+                  {isMine && !isCorrect && (
                     <Check size={12} className="inline ml-1 text-slate-500 dark:text-slate-400" />
                   )}
                 </span>
                 <span
                   className={`text-xs tabular-nums shrink-0 ${
-                    isMine ? 'font-bold text-slate-900 dark:text-slate-100' : 'font-medium text-slate-600 dark:text-slate-400'
+                    emphasized ? 'font-bold text-slate-900 dark:text-slate-100' : 'font-medium text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   {formatPercent(count, totalVotes)}
@@ -75,7 +82,7 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
                   animate={{ scaleX: proportion }}
                   transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                   className={`h-full w-full origin-left rounded-full ${
-                    isMine ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-slate-200 dark:bg-slate-600'
+                    isCorrect || (isMine && !dimmed) ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-slate-200 dark:bg-slate-600'
                   }`}
                 />
               </div>

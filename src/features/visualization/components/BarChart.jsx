@@ -40,8 +40,10 @@ export default memo(function BarChart({ sessionId, questionId, options, correctV
         const count = counts[index];
         const percent = visibleTotal ? count / visibleTotal * 100 : 0;
         const correct = revealed && correctValue === option;
-        return <motion.div key={`${questionId}:${index}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-          data-correct={correct} className={`classroom-option-card rounded-xl border ${presenter ? 'px-4 py-3 lg:px-5 lg:py-3.5' : 'p-4'} ${correct ? 'border-indigo-300 bg-indigo-50 text-indigo-950 shadow-sm dark:border-indigo-400/70 dark:bg-indigo-500/15 dark:text-slate-50 dark:shadow-none' : 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-600/70 dark:bg-slate-800/60 dark:text-slate-100'}`}>
+        // 정답 공개 뒤 틀린 보기는 살짝 가라앉힌다 — Framer가 inline opacity를 쥐고 있어 CSS 클래스 대신 여기서 애니메이션한다
+        const dimmed = revealed && correctValue != null && !correct;
+        return <motion.div key={`${questionId}:${index}`} initial={{ opacity: 0, y: 5 }} animate={{ opacity: dimmed ? 0.55 : 1, y: 0 }} transition={{ duration: 0.2 }}
+          data-correct={correct} className={`classroom-option-card rounded-xl border ${presenter ? 'px-4 py-3 lg:px-5 lg:py-3.5' : 'p-4'} ${correct ? 'answer-glow border-indigo-300 bg-indigo-50 text-indigo-950 dark:border-indigo-400/70 dark:bg-indigo-500/15 dark:text-slate-50' : 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-600/70 dark:bg-slate-800/60 dark:text-slate-100'}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               {/* 정답 배지는 보기와 같은 줄에 둔다 — 따로 한 줄을 쓰면 긴 보기 4개가 발표 화면을 넘친다 */}

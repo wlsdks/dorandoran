@@ -21,7 +21,8 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
     <div className="w-full max-w-xl mx-auto space-y-10">
       {/* Split display */}
       <div className="flex items-center justify-between text-center gap-2">
-        <div className={`flex-1 space-y-3 py-8 rounded-2xl transition-[opacity,background-color,box-shadow] duration-300 ${oCorrect ? 'ring-2 ring-indigo-500/30 bg-slate-50/50 dark:bg-slate-800/50' : revealed && !oCorrect ? 'opacity-50' : ''}`}>
+        {/* 정답 쪽은 answer-glow(공개 순간 빛 + 테두리 빛), 반대쪽은 answer-dim으로 가라앉힌다 */}
+        <div className={`flex-1 space-y-3 py-8 rounded-2xl transition-[opacity,background-color] duration-300 ${oCorrect ? 'answer-glow bg-indigo-500/10 dark:bg-indigo-400/10' : revealed && correctValue ? 'answer-dim' : ''}`}>
           <div className="relative inline-block">
             {/* key 제거 — 득표 변할 때마다 거대 숫자/글자 remount+spring 재시작하던 렉 방지 (텍스트는 그대로 갱신됨) */}
             <div
@@ -55,7 +56,7 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
           <div className="text-slate-400 dark:text-slate-500 text-2xl font-bold">VS</div>
         </div>
 
-        <div className={`flex-1 space-y-3 py-8 rounded-2xl transition-[opacity,background-color,box-shadow] duration-300 ${xCorrect ? 'bg-slate-100/80 dark:bg-slate-700/50 ring-2 ring-slate-400/30 dark:ring-slate-500/30' : revealed && !xCorrect ? 'opacity-50' : ''}`}>
+        <div className={`flex-1 space-y-3 py-8 rounded-2xl transition-[opacity,background-color] duration-300 ${xCorrect ? 'answer-glow bg-indigo-500/10 dark:bg-indigo-400/10' : revealed && correctValue ? 'answer-dim' : ''}`}>
           <div className="relative inline-block">
             <div
               className={`text-7xl font-black transition-colors duration-300 ${

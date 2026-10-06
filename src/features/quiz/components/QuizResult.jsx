@@ -15,7 +15,8 @@ export default function QuizResult({ isCorrect, points, correctAnswer, correctIm
         <span className={`shrink-0 ${isCorrect ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true">{isCorrect ? <Check size={36} strokeWidth={2.5} /> : <X size={36} strokeWidth={2.5} />}</span>
         <div><p className="text-xl font-bold text-slate-900 dark:text-slate-100">{isCorrect ? '정답!' : '오답'}</p><p className="text-sm text-slate-500 dark:text-slate-300">{isCorrect ? '잘 하셨어요!' : '다음 문제에 다시 도전해보세요'}</p></div>
       </div>
-      {correctAnswer && <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-4 py-3 [word-break:keep-all] [overflow-wrap:anywhere]"><p className="text-xs text-slate-500 dark:text-slate-300 mb-1">정답</p>{correctImage
+      {/* 정답 칸은 공개 순간 answer-glow로 한 번 빛나고 테두리 빛이 남는다 — 맞았든 틀렸든 정답이 먼저 눈에 들어온다 */}
+      {correctAnswer && <div className="answer-glow rounded-xl bg-slate-50 dark:bg-slate-700/50 px-4 py-3 [word-break:keep-all] [overflow-wrap:anywhere]"><p className="text-xs text-slate-500 dark:text-slate-300 mb-1">정답</p>{correctImage
         ? <div className="flex items-center gap-3"><img src={correctImage} alt={`정답 ${correctLetter || ''} 사진`} className="h-20 w-20 shrink-0 rounded-lg object-contain bg-slate-100 dark:bg-slate-900" /><p className="text-base font-semibold text-slate-900 dark:text-slate-100">{correctLetter}{correctLetter && !/^사진 [A-Z]$/.test(correctAnswer) ? `. ${correctAnswer}` : ''}{!correctLetter && correctAnswer}</p></div>
         : <p className="text-base font-semibold text-slate-900 dark:text-slate-100">{correctAnswer}</p>}</div>}
       <div className="flex flex-wrap items-center justify-between gap-3">
