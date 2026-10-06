@@ -51,7 +51,7 @@ export function useQuizDistributionPublisher(sessionId, session, enabled) {
         // 활성화 직후 round가 아직 직전 값인 첫 전송은 거부된다 — 다음 payload가 다시 보낸다. 반복 실패만 알린다.
         if (shouldReportPublishFailure(current.failures)) logger.error('Quiz distribution publish failed:', error);
       });
-    }, 100);
+    }, 40);
   }, [scope, payload, sessionId, questionId]);
 
   // 응답이 없어도 주기적으로 신호를 보내 전자칠판이 "강사 화면이 살아 있음"을 알 수 있게 한다.

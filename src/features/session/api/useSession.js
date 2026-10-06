@@ -31,8 +31,8 @@ const SECONDARY_FIELDS = [
 const SECONDARY_FIELDS_WITH_POINTER = ['currentQuestion', ...SECONDARY_FIELDS];
 const SESSION_FIELDS = ['questions', ...SECONDARY_FIELDS_WITH_POINTER];
 // 강사 화면의 questions 칸에는 모든 학생 투표가 들어 있다. 300명이 몰려 답할 때 투표마다 화면 전체를
-// 다시 그리지 않도록 120ms로 묶는다(첫 값은 즉시). 메타 칸(currentQuestion 등)은 묶지 않는다.
-const SESSION_THROTTLE = Object.freeze({ questions: 120 });
+// 다시 그리지 않도록 60ms로 묶는다(첫 값은 즉시). 메타 칸(currentQuestion 등)은 묶지 않는다.
+const SESSION_THROTTLE = Object.freeze({ questions: 60 });
 
 /** 학생에게는 본인 투표만 표시한다. 네트워크 전송량은 기존 중첩 스키마의 한계가 남는다. */
 export function useSession(sessionId, { participantId, readOnly = false } = {}) {
