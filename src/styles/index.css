@@ -19,8 +19,21 @@ html {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
   letter-spacing: -0.01em;
-  color: #0F172A;
-  background: #F8FAFC;
+  color: #18181B;
+  background: #F1F1F3;
+  /* 라이트 팔레트: 거의 흰색끼리 겹쳐 구분이 안 되던 slate 대신 무채색 단계를 또렷하게.
+     무대(50) 회색 → 패널·카드 흰색, 테두리(200)와 보조 글자(400~500)를 한 단계 진하게. */
+  --color-slate-50: #f1f1f3;
+  --color-slate-100: #e9e9ec;
+  --color-slate-200: #dcdce0;
+  --color-slate-300: #c4c4ca;
+  --color-slate-400: #8a8a93;
+  --color-slate-500: #66666f;
+  --color-slate-600: #4b4b53;
+  --color-slate-700: #36363c;
+  --color-slate-800: #232327;
+  --color-slate-900: #18181b;
+  --color-slate-950: #0c0c0e;
 }
 
 html.dark {
