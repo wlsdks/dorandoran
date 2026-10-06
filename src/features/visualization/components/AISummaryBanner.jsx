@@ -1,7 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, RefreshCw, Loader2 } from 'lucide-react';
+import { RefreshCw, Loader2, Lightbulb } from 'lucide-react';
 import { useVotes } from '@/hooks/useVotes';
 import { summarizeResponses } from '@/features/questions/api/summarizeResponses';
 
@@ -48,8 +48,8 @@ export default function AISummaryBanner({ sessionId, questionId, questionTitle, 
     <div className="w-full max-w-xl mx-auto mb-4">
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
-            <Sparkles size={15} className="text-slate-500 dark:text-slate-400" />
+          <div className="w-6 flex items-center justify-center shrink-0">
+            <Lightbulb size={15} className="text-slate-500 dark:text-slate-400" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">AI 응답 요약</p>
@@ -69,7 +69,7 @@ export default function AISummaryBanner({ sessionId, questionId, questionTitle, 
                 : 'bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
             }`}
           >
-            {loading ? <Loader2 size={12} className="animate-spin" /> : result ? <RefreshCw size={12} /> : <Sparkles size={12} />}
+            {loading ? <Loader2 size={12} className="animate-spin" /> : result ? <RefreshCw size={12} /> : <Lightbulb size={12} />}
             {loading ? '분석 중' : result ? '새로 분석' : '분석하기'}
           </button>
         </div>

@@ -1,4 +1,4 @@
-import { ThumbsUp, Sparkles } from 'lucide-react';
+import { ThumbsUp, Lightbulb } from 'lucide-react';
 import { timeAgo } from '@/lib/utils';
 
 export default function AnswerItem({ answer: a, questionId, pid, onUpvote }) {
@@ -24,7 +24,7 @@ export default function AnswerItem({ answer: a, questionId, pid, onUpvote }) {
                 ? 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                 : 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
             }`}>
-              {isAi && <Sparkles size={8} className="text-indigo-500" />}{roleLabel}
+              {isAi && <Lightbulb size={8} className="text-indigo-500" />}{roleLabel}
             </span>
           )}
           {isOwn && <span className="text-[10px] text-slate-400">나</span>}

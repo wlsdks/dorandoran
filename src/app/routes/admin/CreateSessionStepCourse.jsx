@@ -25,7 +25,7 @@ export default function CreateSessionStepCourse({ courses, onSelectCourse, onNew
             className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 hover:shadow-sm transition-colors duration-150 active:scale-[0.98] text-left group"
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+              <div className="w-6 flex items-center justify-center">
                 <BookOpen size={18} className="text-slate-600" />
               </div>
               <div>
@@ -44,7 +44,7 @@ export default function CreateSessionStepCourse({ courses, onSelectCourse, onNew
           onClick={onNewCourse}
           className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-[0.98] text-left"
         >
-          <div className="w-9 h-9 rounded-lg bg-slate-50 dark:bg-slate-700 flex items-center justify-center">
+          <div className="w-6 flex items-center justify-center">
             <Plus size={18} className="text-slate-400" />
           </div>
           <p className="font-medium text-slate-500 text-sm">새 강의 만들기</p>

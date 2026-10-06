@@ -1,6 +1,6 @@
 import { memo, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pin, Users, Sparkles, PinOff, Code2 } from 'lucide-react';
+import { Pin, Users, PinOff, Code2, Lightbulb } from 'lucide-react';
 import { useLiveSubmissions, useLiveJudgeResults, usePersistentAssignment } from '../api/useLiveJudging';
 import Button from '@/components/ui/Button';
 import ConfirmModal from '@/components/ui/ConfirmModal';
@@ -134,7 +134,7 @@ export default memo(function PersistentAssignmentBar({ sessionId, session, onAct
               size="sm"
               aria-label="상시 과제 활성화 — 심사 패널을 엽니다"
             >
-              <Sparkles size={13} /> 심사 화면으로
+              <Lightbulb size={13} /> 심사 화면으로
             </Button>
           )}
           <button

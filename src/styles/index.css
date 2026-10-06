@@ -174,7 +174,7 @@ html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'
 .paper-surface .classroom-results { width:100%; }
 .paper-surface .classroom-result-grid { gap:24px; }
 .paper-surface .classroom-option-card { border:0;border-radius:12px;background:transparent!important;color:#f1f5f9;padding:16px 8px; }
-.paper-surface .classroom-option-card[data-correct='true'] { background:#312e81!important;box-shadow:inset 3px 0 0 #a5b4fc;padding-inline:20px; }
+.paper-surface .classroom-option-card[data-correct='true'] { background:#312e81!important;box-shadow:0 0 0 2px #a5b4fc;padding-inline:20px; }
 .paper-surface .classroom-option-label { color:#f1f5f9;font-size:clamp(22px,2.1vw,42px);font-weight:600; }
 .paper-surface .classroom-option-statistics { color:#f1f5f9; }
 .paper-surface .classroom-option-statistics p { color:#cbd5e1; }

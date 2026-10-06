@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import './DrumrollOverlay.css';
 
 /** One bounded countdown. Timers and animations stop on cancellation or unmount. */
@@ -31,7 +31,7 @@ export default memo(function DrumrollOverlay({ active, onComplete, duration = 25
     <motion.div className="reveal-scene"
       initial={{ opacity: 0, y: reduced ? 0 : 12 }} animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: reduced ? 0 : 12 }} transition={{ duration: reduced ? 0.08 : 0.32, ease: 'easeOut' }}>
-      <p className="reveal-eyebrow"><Sparkles size={20} aria-hidden="true" />정답 공개</p>
+      <p className="reveal-eyebrow"><Eye size={20} aria-hidden="true" />정답 공개</p>
       <h2 className="reveal-heading">어떤 답을 고르셨나요?</h2>
       <p className="reveal-description">잠시 후, 정답을 공개합니다</p>
 

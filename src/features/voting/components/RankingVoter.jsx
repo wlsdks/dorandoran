@@ -14,23 +14,22 @@ import { GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import { useMyVote } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import VoteErrorToast from './VoteErrorToast';
-import { shuffleWithSeed } from '@/lib/ranking-order';
+import { rankingItemLabels, shuffleWithSeed } from '@/lib/ranking-order';
 
 // 학생마다(questionId + participantId) 고정된 순서로 섞는다 — 새로고침해도 바뀌지 않는다.
 
-function SortableRankItem({ id, label, position, total, disabled, onMove }) {
+function SortableRankItem({ id, label, tag, position, total, disabled, onMove }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
   return (
     <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 10 : undefined }}
-      className={`rounded-xl border bg-white dark:bg-slate-800 px-3 py-2 ${isDragging ? 'shadow-lg border-slate-300' : 'border-slate-200 dark:border-slate-700'}`}>
-      <div className="flex items-center gap-2">
+      className={`rounded-xl border bg-white dark:bg-slate-800 pl-3 pr-1.5 py-1.5 ${isDragging ? 'shadow-lg border-slate-300' : 'border-slate-200 dark:border-slate-700'}`}>
+      {/* 한 줄 배치 — 위/아래 버튼을 따로 한 줄에 두면 카드가 두 배로 길어져 4개도 한 화면에 안 들어간다 */}
+      <div className="flex items-center gap-1.5">
         <span className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-500 dark:text-slate-300 shrink-0 tabular-nums">{position}</span>
-        <span className="flex-1 min-w-0 break-words text-base font-medium text-slate-800 dark:text-slate-200 leading-snug">{label}</span>
-        <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} disabled={disabled} aria-label={`${label} 순서 끌어서 변경`} className="w-12 h-12 shrink-0 flex items-center justify-center rounded-lg text-slate-400 touch-none cursor-grab disabled:opacity-40"><GripVertical size={20} /></button>
-      </div>
-      <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-700 mt-1">
-        <button type="button" onClick={() => onMove(position - 1, -1)} disabled={disabled || position === 1} aria-label={`${label} 위로 이동`} className="min-h-12 px-3 flex items-center justify-center gap-1 rounded-lg text-sm font-medium border border-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowUp size={20} />위로</button>
-        <button type="button" onClick={() => onMove(position - 1, 1)} disabled={disabled || position === total} aria-label={`${label} 아래로 이동`} className="min-h-12 px-3 flex items-center justify-center gap-1 rounded-lg text-sm font-medium border border-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"><ArrowDown size={20} />아래로</button>
+        <span className="flex-1 min-w-0 pl-1 [word-break:keep-all] [overflow-wrap:anywhere] text-base font-medium text-slate-800 dark:text-slate-200 leading-snug">{tag && <span className="mr-1.5 text-slate-500 dark:text-slate-400 tabular-nums">{tag}</span>}{label}</span>
+        <button type="button" onClick={() => onMove(position - 1, -1)} disabled={disabled || position === 1} aria-label={`${label} 위로 이동`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.94] disabled:opacity-25 disabled:cursor-not-allowed"><ArrowUp size={20} /></button>
+        <button type="button" onClick={() => onMove(position - 1, 1)} disabled={disabled || position === total} aria-label={`${label} 아래로 이동`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.94] disabled:opacity-25 disabled:cursor-not-allowed"><ArrowDown size={20} /></button>
+        <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} disabled={disabled} aria-label={`${label} 순서 끌어서 변경`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-400 touch-none cursor-grab disabled:opacity-40"><GripVertical size={20} /></button>
       </div>
     </div>
   );
@@ -45,6 +44,9 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
     const seed = `${questionId}-${pid}`;
     return shuffleWithSeed(options, seed);
   }, [questionId, options, pid]);
+
+  // 발표 화면과 같은 항목 번호(①②③…) — 앞 화면을 보고 어떤 항목인지 바로 찾을 수 있게
+  const itemLabels = useMemo(() => rankingItemLabels(options, questionId), [options, questionId]);
 
   const { myVote } = useMyVote(sessionId, questionId);
   const { begin, finish, canRestore } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
@@ -153,6 +155,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
                 key={`rank-${idx}`}
                 id={`rank-${idx}`}
                 label={options[idx]}
+                tag={itemLabels[idx]}
                 position={pos + 1}
                 total={order.length}
                 disabled={disabled || submitting}

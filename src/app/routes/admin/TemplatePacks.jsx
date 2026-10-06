@@ -60,7 +60,7 @@ function PackCard({ pack, onImport, imported, index }) {
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left px-4 py-4 flex items-center gap-3 active:bg-slate-50 dark:active:bg-slate-700 transition-colors duration-150 bg-white dark:bg-slate-800"
       >
-        <div className="w-9 h-9 rounded-lg bg-slate-50 dark:bg-slate-700 flex items-center justify-center shrink-0">
+        <div className="w-6 flex items-center justify-center shrink-0">
           <PackIcon size={18} className="text-slate-500 dark:text-slate-400" />
         </div>
         <div className="flex-1 min-w-0">

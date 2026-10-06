@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Sparkles, Medal, Award, Lock, X, TrendingUp, AlertCircle, MessageCircle, Code2 } from 'lucide-react';
+import { Trophy, Medal, Award, Lock, X, TrendingUp, AlertCircle, MessageCircle, Code2, Lightbulb } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { getJudgeById } from '@/lib/judging/judges';
 
@@ -94,7 +94,7 @@ export default memo(function LiveResultHero({ top3, myParticipantId, myResult, m
                   className="inline-block"
                   aria-hidden="true"
                 >
-                  <Sparkles size={14} />
+                  <Lightbulb size={14} />
                 </motion.span>
               )}
             </motion.div>
@@ -115,7 +115,7 @@ export default memo(function LiveResultHero({ top3, myParticipantId, myResult, m
 
           <div className="p-5 space-y-3">
             <div className="flex items-center gap-2">
-              <Sparkles size={14} className="text-slate-400" />
+              <Lightbulb size={14} className="text-slate-400" />
               <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">내 결과</p>
             </div>
             {mySubmission.title && (
@@ -168,14 +168,14 @@ export default memo(function LiveResultHero({ top3, myParticipantId, myResult, m
             {!myRank && myOverallRank && typeof myAvg === 'number' && (
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed pt-1">
                 {myAvg >= 8
-                  ? `🌟 ${myAvg.toFixed(1)}점! 점수만 보면 충분히 잘했어요 — TOP3는 정말 박빙이었네요`
+                  ? `${myAvg.toFixed(1)}점! 점수만 보면 충분히 잘했어요 — TOP3는 정말 박빙이었네요`
                   : myAvg >= 7 && myOverallRank.topPercent <= 50
-                  ? `👏 ${myAvg.toFixed(1)}점, 상위 ${myOverallRank.topPercent}%! 다음 번엔 TOP3 가능해요`
+                  ? `${myAvg.toFixed(1)}점, 상위 ${myOverallRank.topPercent}%! 다음 번엔 TOP3 가능해요`
                   : myOverallRank.topPercent <= 33
-                  ? '🎯 상위권이에요! 조금만 더 다듬으면 TOP3도 가능해요'
+                  ? '상위권이에요! 조금만 더 다듬으면 TOP3도 가능해요'
                   : myOverallRank.topPercent <= 66
                   ? `전체 ${myOverallRank.total}명 중 ${myOverallRank.rank}등! 좋은 시도였어요`
-                  : '시도 자체가 의미 있었어요. 다음엔 더 좋은 결과 기대할게요 ✨'}
+                  : '시도 자체가 의미 있었어요. 다음엔 더 좋은 결과 기대할게요'}
               </p>
             )}
             {myResult?.judges && <JudgeBars judges={myResult.judges} />}
@@ -284,7 +284,7 @@ export default memo(function LiveResultHero({ top3, myParticipantId, myResult, m
               const meta = RANK_META.find(r => r.key === key);
               return (
                 <div key={`locked-${key}`} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 border border-dashed border-slate-200 dark:border-slate-600">
-                  <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                  <div className="w-6 flex items-center justify-center shrink-0">
                     <Lock size={14} className="text-slate-300" />
                   </div>
                   <span className="text-sm text-slate-400">{meta.title} · 공개 대기</span>

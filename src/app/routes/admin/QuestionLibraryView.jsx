@@ -11,6 +11,7 @@ import TemplatePacks from './TemplatePacks';
 import LibraryQuestionCard from './LibraryQuestionCard';
 import LibrarySearchFilter from './LibrarySearchFilter';
 import { QUIZ_DEFAULTS } from '@/lib/quiz';
+import { buildQuestionData } from '@/lib/question';
 import { useToast } from '@/hooks/useToast';
 export default memo(function QuestionLibraryView({
   adminUid
@@ -19,9 +20,12 @@ export default memo(function QuestionLibraryView({
     questions,
     loading,
     saveQuestion,
-    deleteQuestion
+    deleteQuestion,
+    updateQuestion
   } = useQuestionLibrary(adminUid);
   const [showForm, setShowForm] = useState(false);
+  // 보관함 질문 수정 — 수업 화면과 같은 질문 폼을 기존 값으로 연다
+  const [editing, setEditing] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const {
@@ -39,29 +43,20 @@ export default memo(function QuestionLibraryView({
     }
     return true;
   });
-  async function handleSubmit({
-    type,
-    title,
-    options: cleanOptions,
-    correctAnswer,
-    points
-  }) {
+  // 수업에서 만드는 질문과 같은 조립 함수를 쓴다 — 이미지·정답 해설·힌트 등이 보관함에서 빠지지 않게.
+  async function handleSubmit(fields) {
     const questionData = {
-      type,
-      title: title.trim()
+      type: fields.type,
+      title: fields.title.trim(),
+      ...buildQuestionData(fields.type, fields)
     };
-    const isChoiceLike = type === 'choice' || type === 'quiz';
-    if (isChoiceLike) {
-      questionData.options = cleanOptions;
-      questionData.correctAnswer = cleanOptions.includes(correctAnswer) ? correctAnswer : cleanOptions[0];
-    }
-    if (type === 'ox') {
-      questionData.correctAnswer = correctAnswer || 'O';
-    }
-    if (type === 'quiz') {
-      questionData.points = points || QUIZ_DEFAULTS.points;
-      questionData.speedWindowMs = QUIZ_DEFAULTS.speedWindowMs;
-      questionData.maxSpeedBonus = QUIZ_DEFAULTS.maxSpeedBonus;
+    if (editing) {
+      const ok = await updateQuestion(editing.id, questionData);
+      if (ok) {
+        showToast('질문이 수정되었습니다');
+        setEditing(null);
+      }
+      return ok;
     }
     const qId = await saveQuestion(questionData);
     if (qId) {
@@ -69,6 +64,10 @@ export default memo(function QuestionLibraryView({
       return true;
     }
     return false;
+  }
+  function handleEdit(question) {
+    setShowForm(false);
+    setEditing(question);
   }
   async function handleImportPack(packQuestions) {
     let count = 0;
@@ -108,14 +107,14 @@ export default memo(function QuestionLibraryView({
             {questions.length > 0 ? `${questions.length}개의 질문이 저장됨` : '자주 쓰는 질문을 저장하세요'}
           </p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} variant={showForm ? 'ghost' : 'primary'} size="sm">
+        <Button onClick={() => { setEditing(null); setShowForm(!showForm); }} variant={showForm ? 'ghost' : 'primary'} size="sm">
           {showForm ? '취소' : <><Plus size={14} /> 새 질문</>}
         </Button>
       </div>
 
       {/* New question form */}
       <AnimatePresence>
-        {showForm && <motion.div initial={{
+        {(showForm || editing) && <motion.div key={editing?.id || 'new'} initial={{
         opacity: 0,
         height: 0
       }} animate={{
@@ -128,7 +127,8 @@ export default memo(function QuestionLibraryView({
         duration: 0.2
       }} className="overflow-hidden">
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5">
-              <QuestionForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} error={null} />
+              {editing && <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">보관함 질문 수정</p>}
+              <QuestionForm key={editing?.id || 'new'} initialData={editing || undefined} onSubmit={handleSubmit} onCancel={() => { setShowForm(false); setEditing(null); }} error={null} />
             </div>
           </motion.div>}
       </AnimatePresence>
@@ -139,7 +139,7 @@ export default memo(function QuestionLibraryView({
       {/* Question list */}
       {questions.length === 0 && !showForm ? <EmptyState title="저장된 질문이 없습니다" description="자주 사용하는 질문을 보관함에 저장해두면 클래스에 바로 추가할 수 있습니다" steps={['위의 "새 질문" 버튼으로 질문을 만드세요', '세션에서 사용한 질문도 여기에 저장할 수 있습니다', '보관함의 질문은 언제든 클래스에 추가할 수 있습니다']} mascotSize="md" mood="thinking" className="py-8" /> : <div className="space-y-3">
           <AnimatePresence mode="popLayout">
-            {filtered.map((q, i) => <LibraryQuestionCard key={q.id} question={q} onDelete={handleDelete} index={i} />)}
+            {filtered.map((q, i) => <LibraryQuestionCard key={q.id} question={q} onDelete={handleDelete} onEdit={handleEdit} index={i} />)}
           </AnimatePresence>
 
           {filtered.length === 0 && questions.length > 0 && <motion.div initial={{

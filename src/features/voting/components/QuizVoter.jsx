@@ -3,7 +3,7 @@ import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { hapticTap } from '@/lib/haptics';
 import { ref, set, serverTimestamp } from 'firebase/database';
-import { Lock } from 'lucide-react';
+import { Check, Lock } from 'lucide-react';
 import VoteErrorToast from './VoteErrorToast';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
@@ -13,10 +13,11 @@ import { useMyVoteFull } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import BetSelector from './BetSelector';
 import StudentLiveResults from './StudentLiveResults';
+// 보기 배지는 한 가지 색으로 통일한다 — 순서마다 진하기가 달라지면 의미 없는 위계가 생긴다.
 const OPTION_STYLES = [{
   bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700',
   text: 'text-slate-800 dark:text-slate-200',
-  badge: 'bg-slate-800 dark:bg-slate-200 dark:text-slate-900',
+  badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900',
   letter: 'A'
 }, {
   bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700',
@@ -26,17 +27,17 @@ const OPTION_STYLES = [{
 }, {
   bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700',
   text: 'text-slate-800 dark:text-slate-200',
-  badge: 'bg-slate-600 dark:bg-slate-400 dark:text-slate-900',
+  badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900',
   letter: 'C'
 }, {
   bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700',
   text: 'text-slate-800 dark:text-slate-200',
-  badge: 'bg-slate-500 dark:bg-slate-500',
+  badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900',
   letter: 'D'
 }, {
   bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700',
   text: 'text-slate-800 dark:text-slate-200',
-  badge: 'bg-slate-500 dark:bg-slate-500',
+  badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900',
   letter: 'E'
 }];
 const BET_LABELS = {
@@ -155,8 +156,8 @@ export default memo(function QuizVoter({
           stiffness: 400,
           damping: 22,
           delay: 0.1
-        }} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
-            <Lock size={18} className="text-slate-600 dark:text-slate-400" />
+        }} className="flex items-center justify-center shrink-0">
+            <Lock size={24} className="text-slate-500 dark:text-slate-400" />
           </motion.div>
           <div>
             <p className="text-slate-900 dark:text-slate-100 font-bold text-base">정답이 공개되었습니다</p>
@@ -185,9 +186,11 @@ export default memo(function QuizVoter({
                   <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${isCorrect ? 'bg-white/20 dark:bg-slate-900/20 text-white dark:text-slate-900' : `${style.badge} text-white`}`}>
                     {letter}
                   </span>
-                  <span className={`text-sm font-medium leading-snug ${isCorrect ? 'text-white dark:text-slate-900' : 'text-slate-600 dark:text-slate-400'}`}>
+                  <span className={`flex-1 min-w-0 text-sm font-medium leading-snug ${isCorrect ? 'text-white dark:text-slate-900' : 'text-slate-600 dark:text-slate-400'}`}>
                     {option}
                   </span>
+                  {/* 선택한 보기처럼 보이지 않게 정답임을 글자로 표시한다 */}
+                  {isCorrect && <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-white dark:text-slate-900"><Check size={14} strokeWidth={3} />정답</span>}
                 </motion.div>;
         })}
           </div>}

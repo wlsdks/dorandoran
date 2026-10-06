@@ -1,7 +1,7 @@
 import './LargeDisplayGames.css';
 import { useState, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Gift, Minus, Plus, RotateCcw, Sparkles, Trophy, Monitor, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Gift, Loader2, Minus, Plus, RotateCcw, Trophy, Monitor, ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
@@ -139,7 +139,7 @@ function BigSlot({
         {stopped ? `#${slotIdx + 1} 당첨` : '추첨 중...'}
       </span>
       {stopped && isLast && <p className={`mt-2 text-white/60 ${presenter ? 'text-sm' : 'text-xs'}`}>
-          🎉 추첨 완료
+          추첨 완료
         </p>}
     </motion.div>;
 }
@@ -443,7 +443,7 @@ export default function Lottery({
           repeat: reduced ? 0 : Infinity,
           ease: 'easeInOut'
         }}>
-              <Sparkles size={presenter ? 24 : 18} className="text-amber-500" />
+              <Gift size={presenter ? 24 : 18} className="text-amber-500" />
             </motion.div>
             <p className={`text-slate-700 dark:text-slate-200 font-bold tracking-tight ${presenter ? 'text-2xl' : 'text-lg'}`}>
               {currentWinner ? `${viewSlot + 1}등 발표!` : '두근두근...'}
@@ -549,7 +549,7 @@ export default function Lottery({
             repeat: reduced ? 0 : Infinity,
             ease: 'linear'
           }}>
-                <Sparkles size={presenter ? 24 : 20} />
+                <Loader2 size={presenter ? 24 : 20} />
               </motion.span>
               발표 중...
             </span> : <span className="flex items-center gap-2">

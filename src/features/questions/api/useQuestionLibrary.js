@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ref, get, set, remove, onValue } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { generateQuestionId } from '@/lib/utils';
+import { QUESTION_TYPE_FIELDS } from '@/lib/question';
 
 /**
  * Hook for managing the admin's personal question library.
@@ -82,8 +83,12 @@ export function useQuestionLibrary(adminUid) {
       const snap = await get(ref(db, `questionLibrary/${adminUid}/${qId}`));
       const existing = snap.val();
       if (!existing) return false;
+      // 유형별 필드는 새 값으로 통째로 바꾼다 — 유형을 바꾸거나 이미지를 지웠을 때 예전 값이 남지 않게.
+      const base = { ...existing };
+      QUESTION_TYPE_FIELDS.forEach((key) => delete base[key]);
+      delete base.id;
       await set(ref(db, `questionLibrary/${adminUid}/${qId}`), {
-        ...existing,
+        ...base,
         ...updates,
         savedAt: existing.savedAt,
         updatedAt: Date.now(),

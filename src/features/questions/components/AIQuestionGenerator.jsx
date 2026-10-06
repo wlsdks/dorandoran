@@ -1,7 +1,7 @@
 import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Loader2, Plus, RefreshCw, Check } from 'lucide-react';
+import { X, Loader2, Plus, RefreshCw, Check, Lightbulb } from 'lucide-react';
 import { generateQuestions } from '@/features/questions/api/generateQuestions';
 
 const TYPE_LABELS = {
@@ -84,8 +84,8 @@ export default function AIQuestionGenerator({ open, onClose, onUse, onUseMany })
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-700">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-              <Sparkles size={15} className="text-slate-500 dark:text-slate-400" />
+            <div className="w-6 flex items-center justify-center">
+              <Lightbulb size={15} className="text-slate-500 dark:text-slate-400" />
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">AI 질문 생성</h3>
@@ -148,7 +148,7 @@ export default function AIQuestionGenerator({ open, onClose, onUse, onUseMany })
                     : 'bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
                 }`}
               >
-                {loading ? <Loader2 size={14} className="animate-spin" /> : drafts.length ? <RefreshCw size={14} /> : <Sparkles size={14} />}
+                {loading ? <Loader2 size={14} className="animate-spin" /> : drafts.length ? <RefreshCw size={14} /> : <Lightbulb size={14} />}
                 {loading ? 'AI가 질문을 만드는 중...' : drafts.length ? '다시 생성' : '질문 생성'}
               </button>
 

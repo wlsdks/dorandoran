@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpDown, BarChart3, Trophy, Circle, Cloud, MessageSquare, PenLine, Swords, TextCursorInput, Thermometer, AlertTriangle, CheckCircle, Image, HelpCircle, Lightbulb, Sparkles } from 'lucide-react';
+import { ArrowUpDown, BarChart3, Trophy, Circle, Cloud, MessageSquare, PenLine, Swords, TextCursorInput, Thermometer, AlertTriangle, CheckCircle, Image, HelpCircle, Lightbulb, Gavel } from 'lucide-react';
 import AchievementSummary from '@/features/quiz/components/AchievementSummary';
 import ExportMenu from './ExportMenu';
 import ClassInsightCard from '@/features/report/components/ClassInsightCard';
@@ -21,7 +21,7 @@ const QTYPE_META = {
   imageSlide: { label: '이미지', icon: Image },
   mysteryBox: { label: '미스터리 박스', icon: HelpCircle },
   hintQuiz: { label: '힌트 퀴즈', icon: Lightbulb },
-  aiJudge: { label: 'AI 심사', icon: Sparkles },
+  aiJudge: { label: 'AI 심사', icon: Gavel },
 };
 
 function getQuestionInsights(questions, participantCount) {

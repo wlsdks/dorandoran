@@ -95,9 +95,9 @@ export default memo(function SubjectiveVoter({
     stiffness: 300,
     damping: 24
   }} className="w-full rounded-xl bg-amber-50 dark:bg-amber-400/10 ring-1 ring-amber-400/60 px-4 py-3.5 flex items-center gap-3">
-      <span className="w-9 h-9 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center shrink-0"><Star size={17} fill="currentColor" /></span>
+      <Star size={22} fill="currentColor" className="shrink-0 text-amber-500 dark:text-amber-400" aria-hidden="true" />
       <span className="text-sm font-semibold text-amber-700 dark:text-amber-300 leading-snug">
-        내 답변이 전자칠판에 소개되고 있어요!  🎉
+        내 답변이 전자칠판에 소개되고 있어요!
       </span>
     </motion.div>;
   if (available && grade && typeof grade.score === 'number') return <div className="space-y-3">{spotBanner}<GradeCard grade={grade} /></div>;

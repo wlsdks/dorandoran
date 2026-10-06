@@ -2,7 +2,7 @@ import { useAIAvailability } from '@/hooks/useAIAvailability';
 import { useState, useMemo, useEffect, useRef, memo } from 'react';
 import { ref, onValue, set, update,   serverTimestamp } from 'firebase/database';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2, Users, X, Star } from 'lucide-react';
+import { Loader2, Users, X, Star, Lightbulb } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { useVotes } from '@/hooks/useVotes';
@@ -224,7 +224,7 @@ export default memo(function SubjectiveResults({ sessionId, questionId, question
                   : 'bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
               }`}
             >
-              {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <Lightbulb size={14} />}
               {loading ? '채점 중' : gradedCount > 0 ? '다시 채점' : 'AI 채점'}
             </button>
           )}
