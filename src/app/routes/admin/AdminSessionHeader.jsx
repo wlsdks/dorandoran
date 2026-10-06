@@ -5,9 +5,27 @@ import Button from '@/components/ui/Button';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import TimerControls from '@/features/timer/components/TimerControls';
 import TimerRing from '@/features/timer/components/TimerRing';
-import { ArrowLeft, Clock, MessageCircle, Users, UserCog, Monitor, Play, Square, Layers, List, Zap, MessageSquareDot, XCircle, Sun, Moon } from 'lucide-react';
+import { Check, Tv, ArrowLeft, Clock, MessageCircle, Users, UserCog, Monitor, Play, Square, Layers, List, Zap, MessageSquareDot, XCircle, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { lazy, Suspense } from 'react';
+
+// 전자칠판 주소 복사 — 강사가 수업 중 바로 찾도록 발표 모드 옆에 둔다.
+function BoardLinkButton({ sessionId, compact }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/live?s=${sessionId}`);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch { setCopied(false); }
+  }
+  return (
+    <Button onClick={copy} variant="secondary" size="sm" className="h-12" aria-label="전자칠판 링크 복사" title="전자칠판(대형 화면)에서 열 주소를 복사합니다">
+      {copied ? <Check size={20} /> : <Tv size={20} />}
+      {copied ? '복사됨' : compact ? '전자칠판' : '전자칠판 링크'}
+    </Button>
+  );
+}
 
 const CourseStaffModal = lazy(() => import('./CourseStaffModal'));
 
@@ -281,6 +299,7 @@ export default memo(function AdminSessionHeader({
             <motion.span key={count} initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }} className="inline-block">{count}</motion.span>명
           </Badge>
         )}
+        {!effectiveReadOnly && <BoardLinkButton sessionId={sessionId} compact={isTablet} />}
         {!effectiveReadOnly && isSetting && (
           <Button onClick={onStartSession} variant="primary" size="sm" className="h-12">
             <Play size={20} />

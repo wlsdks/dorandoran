@@ -12,7 +12,9 @@ function readStored(key, fallback, min, max) {
  * side: 'left'면 오른쪽 경계를, 'right'면 왼쪽 경계를 잡고 끈다.
  */
 export function useResizableWidth(key, { initial = 360, min = 280, max = 640, side = 'left' } = {}) {
-  const [width, setWidth] = useState(() => readStored(key, initial, min, max));
+  // initial이 함수면 화면 폭으로 기본값을 정한다(노트북 14·16·17인치와 큰 모니터에서 비율을 맞추기 위해).
+  const defaultWidth = () => (typeof initial === 'function' ? initial(typeof window === 'undefined' ? 1440 : window.innerWidth) : initial);
+  const [width, setWidth] = useState(() => readStored(key, defaultWidth(), min, max));
   const [dragging, setDragging] = useState(false);
 
   const save = useCallback((value) => { try { localStorage.setItem(key, String(value)); } catch { /* 저장 불가여도 동작 */ } }, [key]);
@@ -55,7 +57,7 @@ export function useResizableWidth(key, { initial = 360, min = 280, max = 640, si
     });
   }, [side, min, max, save]);
 
-  const reset = useCallback(() => { setWidth(initial); save(initial); }, [initial, save]);
+  const reset = useCallback(() => { const next = defaultWidth(); setWidth(next); save(next); }, [initial, save]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { width, dragging, handleProps: { onPointerDown, onKeyDown, onDoubleClick: reset } };
 }
