@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { ref, get, set } from 'firebase/database';
+import { ref, get, set, update } from 'firebase/database';
 import { ref as storageRef, uploadBytes } from 'firebase/storage';
 
 const projectId = process.env.QA_RULES_PROJECT_ID || 'demo-dorandoran';
@@ -149,6 +149,22 @@ test('학생은 본인 투표만 쓰고 점수·권한을 조작할 수 없다',
   await assertFails(set(ref(db, 'staffProfiles/student_a/role'), 'master'));
   await assertFails(set(ref(db, 'sessions/qa_room/qaStats/student_a'), { questions: 10000 }));
 });
+test('정답 공개된 문항도 강사는 필드 단위로 수정할 수 있고 학생 투표는 보존된다', async () => {
+  const path = 'sessions/qa_room/questions/edit_probe';
+  await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), path), {
+    title: '공개된 문항', type: 'quiz', options: ['A', 'B'], correctAnswer: 'A', revealedAt: 10,
+    votes: { s1: { value: 'A', nickname: '학생', timestamp: 1 } },
+  }));
+  const owner = staff('legacy_teacher', 'admin');
+  // 문항 전체 set은 투표까지 다시 써서 거부된다 — 수정은 update로 해야 한다.
+  await assertFails(set(ref(owner, path), { title: '바뀐 제목', type: 'quiz', options: ['A', 'B'], correctAnswer: 'A', revealedAt: 10, votes: { s1: { value: 'A', nickname: '학생', timestamp: 1 } } }));
+  await assertSucceeds(update(ref(owner, path), { title: '바뀐 제목', options: ['A', 'C'], optionImages: null }));
+  await environment.withSecurityRulesDisabled(async context => {
+    const value = (await get(ref(context.database(), path))).val();
+    assert.equal(value.title, '바뀐 제목'); assert.equal(value.votes.s1.value, 'A');
+  });
+});
+
 test('승인 강사와 스태프의 강의 제어 범위를 제한한다', async () => {
   await assertSucceeds(set(ref(staff('legacy_teacher', 'admin'), 'sessions/qa_room/currentMode'), 'quiz'));
   await assertFails(set(ref(staff('legacy_teacher', 'admin'), 'sessions/other_room/currentMode'), 'quiz'));
