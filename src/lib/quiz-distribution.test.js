@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { quizDistribution, readQuizDistribution } from './quiz-distribution';
+import { quizDistribution, readQuizDistribution, shouldReportPublishFailure } from './quiz-distribution';
 
 describe('공개 전 퀴즈 비율의 정보 경계', () => {
   it('200명의 개인 정보를 옵션별 숫자로만 표현한다', () => {
@@ -22,5 +22,14 @@ describe('공개 전 퀴즈 비율의 정보 경계', () => {
     expect(result.totalVotes).toBe(0);
     expect(Object.getPrototypeOf(result.tallied)).toBeNull();
     expect(result.tallied.__proto__).toBe(0);
+  });
+});
+
+describe('집계 전송 실패 보고 정책', () => {
+  it('활성화 직후 round가 늦게 오는 첫 거부는 다음 전송으로 넘기고, 같은 범위의 두 번째 실패부터 알린다', () => {
+    expect(shouldReportPublishFailure(0)).toBe(false);
+    expect(shouldReportPublishFailure(1)).toBe(false);
+    expect(shouldReportPublishFailure(2)).toBe(true);
+    expect(shouldReportPublishFailure(5)).toBe(true);
   });
 });
