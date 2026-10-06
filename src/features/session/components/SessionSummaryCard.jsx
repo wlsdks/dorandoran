@@ -129,7 +129,7 @@ export default function SessionSummaryCard({ session, sessionId, reviewing = fal
             className="text-sm text-slate-400 mt-1"
           >{nickname}님의 오늘 기록</motion.p>
           {session?.courseName && (
-            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, type: 'spring', stiffness: 300, damping: 25 }} className="mt-2">
+            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, type: 'spring', stiffness: 300, damping: 25 }} className="mt-2 flex justify-center [&>*]:max-w-full [&>*]:whitespace-normal [&>*]:text-center [&>*]:break-keep [&>*]:[overflow-wrap:anywhere] [&>*]:rounded-xl">
               <Badge variant="neutral">
                 {session.courseName} {session.roundNumber ? `${session.roundNumber}차` : ''}
               </Badge>

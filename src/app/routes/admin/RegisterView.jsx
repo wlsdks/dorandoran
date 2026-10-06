@@ -135,7 +135,7 @@ export default function RegisterView({ onSwitchToLogin }) {
                 }`}
               >
                 <span className="block">{r.label}</span>
-                <span className={`block text-xs mt-0.5 font-normal ${
+                <span className={`block text-xs break-keep leading-snug mt-0.5 font-normal ${
                   selectedRole === r.value ? 'text-white/70 dark:text-slate-900/60' : 'text-slate-500 dark:text-slate-400'
                 }`}>{r.desc}</span>
               </button>

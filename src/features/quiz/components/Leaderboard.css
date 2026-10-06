@@ -72,3 +72,24 @@
   .board-ranking { width:100%;padding:16px;border-radius:16px; }
   .board-ranking-header { flex-wrap:wrap; }
 }
+
+/* 1~3위 메달: 특별 순위 공개가 없어도 항상 금·은·동으로 구분한다. 금속 질감에 한해 그라데이션을 허용한다.
+   공개 중인 줄(ranking-sash)은 이 클래스를 받지 않아 띠가 우선하고, 나머지 줄은 opacity로 흐려지며 메달색이 남는다. */
+[data-medal='1'] { --m-hi:#fdf0b8;--m-mid:#e3b84c;--m-lo:#a8741a;--m-ink:#3b2904;--m-rgb:227 184 76; }
+[data-medal='2'] { --m-hi:#f8f9fc;--m-mid:#c4c8d2;--m-lo:#848a97;--m-ink:#262a33;--m-rgb:172 180 196; }
+[data-medal='3'] { --m-hi:#f5cba4;--m-mid:#cf8d55;--m-lo:#8a4f27;--m-ink:#34190a;--m-rgb:205 141 85; }
+.medal-emblem { background:linear-gradient(145deg,var(--m-hi),var(--m-mid) 52%,var(--m-lo));color:var(--m-ink)!important;font-weight:800!important;
+  box-shadow:inset 0 1px 0 rgb(255 255 255 / .6),inset 0 -1px 0 rgb(0 0 0 / .2),0 1px 3px rgb(0 0 0 / .35); }
+.medal-row { position:relative;border-color:transparent;background:rgb(var(--m-rgb) / .16);box-shadow:inset 0 0 0 1px rgb(var(--m-rgb) / .55); }
+.medal-row[data-medal='1'] { box-shadow:inset 0 0 0 1px rgb(var(--m-rgb) / .65),0 0 26px rgb(var(--m-rgb) / .22); }
+.medal-row::after { content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(105deg,transparent 42%,rgb(var(--m-rgb) / .4) 50%,transparent 58%) no-repeat;background-size:260% 100%;background-position:170% 0;
+  animation:medal-sheen 6s ease-in-out calc(var(--medal-i,0) * .7s + 1.5s) infinite; }
+:is(.dark,.board-ranking) .medal-row { background:rgb(var(--m-rgb) / .12); }
+:is(.dark,.board-ranking) .medal-row::after { background-image:linear-gradient(105deg,transparent 42%,rgb(255 255 255 / .2) 50%,transparent 58%); }
+.board-ranking-row.medal-row[data-podium='true'] { background:rgb(var(--m-rgb) / .12); }
+.board-ranking-row.medal-row[data-podium='true'] .board-ranking-name,.board-ranking-row.medal-row[data-podium='true'] .board-ranking-score { color:var(--board-text); }
+.board-ranking-rank.medal-emblem { display:inline-flex;align-items:center;justify-content:center;justify-self:center;width:1.75em;height:1.75em;max-width:100%;border-radius:999px;font-size:calc(var(--stage-label) * .86);line-height:1; }
+@keyframes medal-sheen { 0% { background-position:170% 0; } 14% { background-position:-70% 0; } 100% { background-position:-70% 0; } }
+.medal-static::after { animation:none;display:none; }
+@media (prefers-reduced-motion: reduce) { .medal-row::after { animation:none;display:none; } }

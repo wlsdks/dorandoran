@@ -89,7 +89,7 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
             {isQuiz && q.event && <Badge variant="neutral">{q.event.label || '이벤트'}</Badge>}
             {hasReveal && q.revealedAt && <Badge variant="neutral">정답 공개</Badge>}
           </div>
-          <span className="text-slate-700 dark:text-slate-200 text-[15px] sm:text-sm leading-snug break-keep [overflow-wrap:anywhere]">{q.title}</span>
+          <span className="block line-clamp-3 text-slate-700 dark:text-slate-200 text-[15px] sm:text-sm leading-snug break-keep [overflow-wrap:anywhere]" title={q.title}>{q.title}</span>
           {readOnly && q.votes && (
             <span className="text-slate-400 text-xs ml-1">({Object.keys(q.votes).length}명 응답)</span>
           )}
