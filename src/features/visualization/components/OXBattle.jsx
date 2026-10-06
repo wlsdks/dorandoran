@@ -7,8 +7,11 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
   const { totalVotes, countByValue } = useVotes(sessionId, questionId);
   const oCount = countByValue('O');
   const xCount = countByValue('X');
-  const oPct = totalVotes > 0 ? (oCount / totalVotes) * 100 : 50;
-  const xPct = totalVotes > 0 ? (xCount / totalVotes) * 100 : 50;
+  // O/X로 읽힌 응답만 분모로 쓴다. 응답이 없으면 막대를 비워 두고(50:50으로 보이지 않게),
+  // 반올림 합이 100%를 넘지 않게 X는 나머지로 계산한다.
+  const sideTotal = oCount + xCount;
+  const oPct = sideTotal > 0 ? Math.round((oCount / sideTotal) * 100) : 0;
+  const xPct = sideTotal > 0 ? 100 - oPct : 0;
   const oWinning = oCount > xCount;
   const xWinning = xCount > oCount;
   const oCorrect = revealed && correctValue === 'O';
@@ -99,9 +102,9 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
           />
         </div>
         <div className="flex justify-between text-base font-bold">
-          <span className="text-indigo-600 dark:text-indigo-400">{Math.round(oPct)}%</span>
+          <span className="text-indigo-600 dark:text-indigo-400">{oPct}%</span>
           <span className="text-slate-400 dark:text-slate-500 text-sm">총 {totalVotes}명</span>
-          <span className="text-slate-600 dark:text-slate-300">{Math.round(xPct)}%</span>
+          <span className="text-slate-600 dark:text-slate-300">{xPct}%</span>
         </div>
       </div>
     </div>

@@ -161,7 +161,7 @@ export default function LivePage() {
                   {currentMode === 'leaderboard' && <div className="w-full"><Leaderboard presenter entries={leaderboard} maxShow={10} page={session?.leaderboardPage || 0} highlight={session?.leaderboardHighlight} title="실시간 리더보드" /></div>}
                   {currentMode === 'qaBoard' && <div className="w-full max-w-4xl mx-auto" style={{ maxWidth: 1100 }}><ClassQABoard presenter readOnly sessionId={sessionId} showInput={false} role="viewer" /></div>}
                   {currentMode === 'qaRanking' && <QARanking sessionId={sessionId} presenter readOnly />}
-                  {currentMode === 'joinShow' && <JoinShow sessionId={sessionId} />}
+                  {currentMode === 'joinShow' && <JoinShow sessionId={sessionId} eventMode={Boolean(session?.requireEmployeeId)} />}
                   {currentMode === 'awards' && <AwardsCeremony presenter sessionId={sessionId} assignmentId={session?.activeAssignmentId} readOnly />}
                   {currentMode === 'randomPicker' && <RandomPicker participants={onlineList} sessionId={sessionId} role="view" presenter />}
                   {currentMode === 'comprehension' && <ComprehensionPresenter sessionId={sessionId} presenter readOnly />}
