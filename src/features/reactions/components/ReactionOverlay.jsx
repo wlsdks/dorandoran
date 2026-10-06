@@ -101,10 +101,12 @@ export default memo(function ReactionOverlay({ sessionId, presenter = false }) {
           const reaction = REACTION_META[bubble.type] || REACTION_META.thumbsup;
           const Icon = reaction.icon;
           const fillHeart = bubble.type === 'heart';
-          // 전자칠판은 1.6배 크게, 더 높이 떠오른다. 떠오르는 동안 좌우로 한 번 느리게 흔들린다(지그재그가 아니라 부유).
-          const size = presenter ? Math.round(bubble.size * 1.6) : bubble.size;
+          // 전자칠판은 1.4배 크게, 더 높이 떠오르되 무대 양옆 여백(2~12%, 88~98%)에서만 올라간다 — 보기 글자·집계를 가리지 않는다.
+          // 떠오르는 동안 좌우로 한 번 느리게 흔들린다(지그재그가 아니라 부유).
+          const size = presenter ? Math.round(bubble.size * 1.4) : bubble.size;
           const rise = presenter ? 1.3 : 1;
-          const sway = bubble.drift * (presenter ? 1.4 : 1);
+          const sway = bubble.drift * (presenter ? 0.8 : 1);
+          const left = presenter ? (bubble.left % 2 ? 2 + (bubble.left % 10) : 88 + (bubble.left % 10)) : bubble.left;
 
           return (
             <motion.div
@@ -125,7 +127,7 @@ export default memo(function ReactionOverlay({ sessionId, presenter = false }) {
                 times: [0, 0.12, 0.42, 0.72, 1],
               }}
               className="absolute bottom-[max(4.75rem,env(safe-area-inset-bottom))]"
-              style={{ left: `${bubble.left}%` }}
+              style={{ left: `${left}%` }}
             >
               {/* 무한 펄스 제거 — 외부 keyframe scale이 이미 생동감 제공. 동시 버블 최대 15개 × repeat:Infinity 제거로 프레임 비용 절감 */}
               <div
