@@ -155,7 +155,7 @@ test.describe('게임 모드 — 쉬는 시간 (BreakTimer)', () => {
   });
 });
 
-test.describe('게임 모드 — 리더보드', () => {
+test.describe('게임 모드 — 랭킹', () => {
   test.beforeAll(async () => {
     sessionId = testSessionId();
     await createTestSession(sessionId, { currentMode: 'leaderboard' });
@@ -167,7 +167,7 @@ test.describe('게임 모드 — 리더보드', () => {
     await cleanupTestSession(sessionId);
   });
 
-  test('리더보드 화면 렌더링 + 순위 표시', async ({ page }) => {
+  test('랭킹 화면 렌더링 + 순위 표시', async ({ page }) => {
     await page.goto(`/live?s=${sessionId}`);
     await waitForSync(page, 5000);
 

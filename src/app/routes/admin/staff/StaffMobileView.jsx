@@ -19,7 +19,7 @@ const TABS = [
 const MODE_LABEL = {
   lottery: { label: '추첨 진행 중', Icon: Trophy },
   breakTime: { label: '쉬는 시간', Icon: Coffee },
-  leaderboard: { label: '리더보드', Icon: Trophy },
+  leaderboard: { label: '랭킹', Icon: Trophy },
   awards: { label: '시상식', Icon: Award },
   randomPicker: { label: '발표자 뽑기', Icon: Users },
   comprehension: { label: '이해도 체크', Icon: BarChart3 },

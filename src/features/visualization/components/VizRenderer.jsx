@@ -35,6 +35,7 @@ import { db } from '@/lib/firebase';
 import { lazy, Suspense, useState, useEffect } from 'react';
 
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
+import { Check } from 'lucide-react';
 import { TYPE_LABELS } from '@/lib/question-types';
 import './PresentationViz.css';
 
@@ -110,7 +111,15 @@ export default memo(function VizRenderer({ sessionId, session, isAdmin = false, 
         const compact = isPresenter && question.type === 'aiJudge';
         return (
           <div className={`text-center self-center ${compact ? 'space-y-1' : 'space-y-2'}`}>
-            <Badge variant="primary">{TYPE_LABELS[question.type] || question.type}</Badge>
+            {/* 정답이 공개된 화면은 문제 화면과 한눈에 구분되게 유형 옆에 "정답 공개"를 붙인다 */}
+            <div className="flex items-center justify-center gap-2">
+              <Badge variant="primary">{TYPE_LABELS[question.type] || question.type}</Badge>
+              {answerRevealed && (hasCorrectAnswer || question.type === 'ranking') && (
+                <span data-answer-revealed className={`inline-flex items-center gap-1 rounded-full bg-indigo-600 text-white font-semibold ${isPresenter ? 'px-3 py-1 text-sm lg:text-base' : 'px-2.5 py-0.5 text-xs'}`}>
+                  <Check size={isPresenter ? 16 : 12} aria-hidden="true" />정답 공개
+                </span>
+              )}
+            </div>
             <h2 className={`${compact ? 'text-xl' : isPresenter ? 'classroom-question-title' : 'text-3xl'} font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight`}>{question.title}</h2>
             {hasCorrectAnswer && isQuizQuestion(question) && answerRevealed && (options.length > 6 || !['choice','quiz','ox'].includes(question.type)) && (
               <p className={isPresenter ? "text-slate-200 text-xl lg:text-2xl" : "text-slate-400 text-sm"}>

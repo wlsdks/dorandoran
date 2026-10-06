@@ -1,4 +1,4 @@
-/* 합산 랭킹: 실시간 리더보드와 같은 줄 리듬(상위 3명 블록, 가는 구분선, 머리글 페이지 알약).
+/* 합산 랭킹: 실시간 랭킹와 같은 줄 리듬(상위 3명 블록, 가는 구분선, 머리글 페이지 알약).
    무대(--stage-*)가 없는 강사 대시보드에서는 기본 크기로 떨어진다. */
 .combined-ranking-stage { --cr-text:#18181b;--cr-muted:#66666f;--cr-line:#dcdce0;--cr-soft:#f1f1f3;--cr-surface:#fff;--cr-border:#dcdce0;--cr-pager:#e9e9ec;--cr-pager-hover:#dcdce0;
   --cr-title:var(--stage-title,2rem);--cr-label:var(--stage-label,1.25rem);--cr-count:var(--stage-count,1.5rem); }

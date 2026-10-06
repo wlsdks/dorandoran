@@ -4,11 +4,11 @@ import { CheckCircle2, Loader2, Crown, Trophy, Medal, Award, Clock, Lightbulb } 
 import { JUDGES } from '@/lib/judging/judges';
 
 /**
- * 프레젠터 화면용 — AI 심사 진행 중 표시. 좌측 현재 학생 작품 + 우측 7판사 라이브 패널 + 실시간 리더보드.
+ * 프레젠터 화면용 — AI 심사 진행 중 표시. 좌측 현재 학생 작품 + 우측 7판사 라이브 패널 + 실시간 랭킹.
  *
  * 연출 요소:
  * - 헤더: 큰 진행률 + 남은 약 X초 카운트다운
- * - 우측 상단: 실시간 미니 리더보드 (지금까지 점수 상위 3명)
+ * - 우측 상단: 실시간 미니 랭킹 (지금까지 점수 상위 3명)
  * - 판사 카드: thinking dots + 점수 count-up
  * - 새 1등 등장 시 sparkle
  */
@@ -22,7 +22,7 @@ export default function PresenterJudgingOverlay({ judgeState, judgeLog, submissi
   const currentSubmission = submissions?.find((s) => s.name === currentName);
   const judgeLogs = judgeLog?.judges || {};
 
-  // 실시간 리더보드 — 완료된 학생 점수 상위 3명
+  // 실시간 랭킹 — 완료된 학생 점수 상위 3명
   const leaderboard = useMemo(() => {
     if (!results) return [];
     const entries = Object.entries(results)
@@ -78,7 +78,7 @@ export default function PresenterJudgingOverlay({ judgeState, judgeLog, submissi
         )}
       </div>
 
-      {/* 실시간 미니 리더보드 — 점수 들어올 때마다 갱신 */}
+      {/* 실시간 미니 랭킹 — 점수 들어올 때마다 갱신 */}
       <Leaderboard items={leaderboard} />
 
       {/* 본문 — 좌:현재작품 / 우:판사 패널 */}

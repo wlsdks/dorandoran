@@ -58,7 +58,7 @@ export default function LeaderboardPage({ sessionId, highlight = null }) {
       <div ref={listRef} className="scroll-mt-20">
         <Leaderboard entries={leaderboard} paginate pageSize={PAGE_SIZE} page={page} onPageChange={setPage}
           highlight={highlight}
-          title="현재 리더보드" highlightId={participantId} emptyLabel="아직 점수가 집계되지 않았습니다" />
+          title="현재 랭킹" highlightId={participantId} emptyLabel="아직 점수가 집계되지 않았습니다" />
       </div>
     </div>
     <StudentBottomBar sessionId={sessionId} />

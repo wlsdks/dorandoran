@@ -112,7 +112,7 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
                   </ActionButton></Tooltip>
                 )}
                 {isQuiz && q.revealedAt && (
-                  <Tooltip label="리더보드 보기"><ActionButton onClick={onShowLeaderboard} className={primaryBtnClass} aria-label="리더보드 보기">
+                  <Tooltip label="랭킹 보기"><ActionButton onClick={onShowLeaderboard} className={primaryBtnClass} aria-label="랭킹 보기">
                     <Trophy size={18} />
                   </ActionButton></Tooltip>
                 )}
@@ -170,8 +170,8 @@ export function QuestionItemContent({ qId, q, currentQuestion, readOnly, onView,
                 </ActionButton>
               )}
               {isQuiz && q.revealedAt && (
-                <ActionButton onClick={onShowLeaderboard} className={`flex-1 flex items-center justify-center gap-1.5 min-h-[48px] rounded-xl text-sm font-semibold active:scale-[0.96] ${primaryBtnClass}`} aria-label="리더보드">
-                  <Trophy size={16} /> 리더보드
+                <ActionButton onClick={onShowLeaderboard} className={`flex-1 flex items-center justify-center gap-1.5 min-h-[48px] rounded-xl text-sm font-semibold active:scale-[0.96] ${primaryBtnClass}`} aria-label="랭킹">
+                  <Trophy size={16} /> 랭킹
                 </ActionButton>
               )}
               <ActionButton onClick={onClearActive} className={`flex-1 flex items-center justify-center gap-1.5 min-h-[48px] rounded-xl text-sm font-semibold active:scale-[0.96] ${stopBtnClass}`} aria-label="중지">

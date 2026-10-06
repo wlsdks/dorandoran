@@ -227,7 +227,7 @@ test.describe('라이브 화면 검증', () => {
     await firebaseSet(`sessions/${sid}/currentMode`, 'poll');
   });
 
-  test('리더보드 모드', async ({ page }) => {
+  test('랭킹 모드', async ({ page }) => {
     // Add scores
     await firebaseSet(`sessions/${sid}/scores/p1`, { nickname: '1등학생', total: 350, streak: 5 });
     await firebaseSet(`sessions/${sid}/scores/p2`, { nickname: '2등학생', total: 250, streak: 3 });

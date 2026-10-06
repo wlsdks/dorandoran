@@ -1,8 +1,6 @@
-import { auth, ensureAuthentication } from '@/lib/auth-session';
 import { useState, useRef, useEffect, memo } from 'react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '@/lib/firebase-storage';
-import { compressImage, uploadErrorMessage, MAX_UPLOAD_MB } from '@/lib/image-utils';
+import { uploadErrorMessage, MAX_UPLOAD_MB } from '@/lib/image-utils';
+import { uploadImage } from '@/lib/image-upload';
 import { imageRejection, normalizeImageFile } from '@/lib/image-file';
 import { AnimatePresence } from 'framer-motion';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
@@ -38,6 +36,7 @@ function SortableImage({ url, index, onRemove }) {
 
 export default memo(function MultiImageUpload({ images = [], onChange }) {
   const [uploading, setUploading] = useState(false);
+  const [progressText, setProgressText] = useState('');
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
   const errorTimerRef = useRef(null);
@@ -86,14 +85,7 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
     let lastError = '';
     for (let i = 0; i < valid.length; i++) {
       try {
-        const file = valid[i];
-        await ensureAuthentication();
-        const blob = await compressImage(file);
-        const ext = (blob.type || '').includes('jpeg') ? 'jpg' : file.name.split('.').pop() || 'jpg';
-        const path = `questions/${auth.currentUser.uid}/${Date.now()}_${i}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const storageRef = ref(storage, path);
-        await uploadBytes(storageRef, blob, { contentType: blob.type || file.type || 'image/jpeg' });
-        const url = await getDownloadURL(storageRef);
+        const url = await uploadImage(valid[i], 'questions', { onProgress: (p) => setProgressText(`${i + 1}/${valid.length} · ${Math.round(p * 100)}%`) });
         urls.push(url);
       } catch (err) {
         logger.error('Image upload failed:', valid[i].name, err);
@@ -138,7 +130,7 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
           className="w-full py-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 transition-colors flex items-center justify-center gap-2 text-sm active:scale-[0.98]"
         >
           {uploading ? (
-            <><Loader2 size={16} className="animate-spin" /> 업로드 중...</>
+            <><Loader2 size={16} className="animate-spin" /> <span className="tabular-nums">업로드 중 {progressText}</span></>
           ) : (
             <><ImagePlus size={16} /> 이미지 추가 ({images.length}/{MAX_IMAGES})</>
           )}

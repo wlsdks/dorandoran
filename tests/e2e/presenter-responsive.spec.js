@@ -43,7 +43,7 @@ for (const res of RES) {
     await seedVotes(sid, 'q2', ['O','O','O','O','O','O','X','X','X']);
     await seedVotes(sid, 'q3', ['실습','실습','실습','협업','협업','발표','피드백','실습','협업','코딩','재미','실습']);
     await seedVotes(sid, 'q4', ['서울','서울','서울','서울','서울','부산','인천','대구']);
-    // 참여자/점수 시드 (복권·리더보드용)
+    // 참여자/점수 시드 (복권·랭킹용)
     const parts = {}; const scores = {};
     for (let i = 0; i < 24; i++) {
       parts[`pp${i}`] = { nickname: `학생${i + 1}`, online: true };
@@ -74,7 +74,7 @@ for (const res of RES) {
     await activateQuestion(sid, 'q4');
     await shoot(page, sid, res, '05-quiz');
 
-    // 6) 리더보드
+    // 6) 랭킹
     await firebaseSet(`sessions/${sid}/currentMode`, 'leaderboard');
     await shoot(page, sid, res, '06-leaderboard');
 

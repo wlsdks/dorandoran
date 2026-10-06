@@ -44,7 +44,7 @@ const MODE_MAP = {
     icon: Coffee
   },
   leaderboard: {
-    label: '리더보드',
+    label: '랭킹',
     icon: Trophy
   }
 };
