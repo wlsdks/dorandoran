@@ -111,7 +111,7 @@ export default function QuestionCard({ question: originalQuestion, index, pid, n
         {/* Actions row */}
         <div className="flex flex-wrap items-center gap-3 pt-0.5">
           <button
-            disabled={readonly} onClick={() => onUpvote(q.id, pid)} aria-label={hasUpvoted ? '질문 공감 취소' : '질문에 공감하기'} aria-pressed={!!hasUpvoted}
+            disabled={readonly || isOwn} title={isOwn ? '내 질문에는 공감할 수 없어요' : undefined} onClick={() => onUpvote(q.id, pid)} aria-label={hasUpvoted ? '질문 공감 취소' : '질문에 공감하기'} aria-pressed={!!hasUpvoted}
             className={`min-h-11 min-w-11 px-2 flex items-center justify-center gap-1.5 text-sm font-medium transition-colors duration-150 ${
               hasUpvoted
                 ? 'text-slate-900 dark:text-slate-100'

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ref, set, onValue, remove, serverTimestamp } from 'firebase/database';
+import { ref, set, update, onValue, remove, serverTimestamp } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
@@ -50,6 +50,19 @@ export default function DiscussionPresenter({ sessionId, readOnly = false, prese
       duration: selectedDuration,
       endTime,
       startedAt: serverTimestamp(),
+    });
+  }
+
+  // 진행 중 조정 — 지금 끝내기(종료 시각을 현재로) / 1분 연장
+  async function endNow() {
+    if (readOnly) return;
+    await update(ref(db, `sessions/${sessionId}/discussion`), { endTime: getServerNow() });
+  }
+  async function extendOneMinute() {
+    if (readOnly || !discussion?.endTime) return;
+    await update(ref(db, `sessions/${sessionId}/discussion`), {
+      endTime: Math.max(discussion.endTime, getServerNow()) + 60000,
+      duration: (discussion.duration || 0) + 60,
     });
   }
 
@@ -169,6 +182,12 @@ export default function DiscussionPresenter({ sessionId, readOnly = false, prese
       )}
 
       {presenter && isFinished && memoPages > 1 && <p className="text-lg text-slate-300">메모 {(memoPage % memoPages) + 1} / {memoPages} · 12초마다 다음 메모</p>}
+      {!isFinished && discussion?.endTime && !readOnly && !presenter && (
+        <div className="flex gap-2">
+          <Button onClick={extendOneMinute} variant="secondary" size="md">1분 연장</Button>
+          <Button onClick={endNow} variant="secondary" size="md">지금 끝내기</Button>
+        </div>
+      )}
       {isFinished && !readOnly && (
         <Button onClick={resetDiscussion} variant="secondary" size="md">새 토론</Button>
       )}

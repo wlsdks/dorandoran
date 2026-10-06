@@ -25,7 +25,8 @@ const BTN_BASE = 'h-[56px] w-full rounded-xl font-medium text-sm flex flex-col i
 const BTN_DEFAULT = `${BTN_BASE} bg-slate-50 text-slate-600 hover:bg-slate-100 active:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:active:bg-slate-600`;
 const BTN_ACTIVE = `${BTN_BASE} bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900`;
 
-export default memo(function StudentBottomBar({ sessionId }) {
+// ended: 수업이 끝난 뒤(질문 받는 기간)에는 손들기를 숨긴다 — 받아줄 강사가 없다.
+export default memo(function StudentBottomBar({ sessionId, ended = false }) {
   const reduced = useReducedMotion();
   const [showMore, setShowMore] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
@@ -150,7 +151,7 @@ export default memo(function StudentBottomBar({ sessionId }) {
             <MessageCircle size={24} className="text-slate-900 dark:text-slate-100 mx-auto mb-2" />
             <p className="text-slate-900 dark:text-slate-100 font-bold text-lg tracking-tight">긴급 질문</p>
           </div>
-          <button type="button" onClick={() => setIsAnonymous(prev => !prev)} className="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-slate-50 dark:bg-slate-700 transition-colors duration-150 active:scale-[0.98]">
+          <button type="button" role="switch" aria-checked={isAnonymous} onClick={() => setIsAnonymous(prev => !prev)} className="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-slate-50 dark:bg-slate-700 transition-colors duration-150 active:scale-[0.98]">
             <span className="text-sm text-slate-600 dark:text-slate-300">익명으로 보내기</span>
             <span className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${isAnonymous ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-200 dark:bg-slate-600'}`}>
               <span className={`inline-block h-5 w-5 rounded-full bg-white dark:bg-slate-900 shadow-sm transform transition-transform duration-200 mt-0.5 ${isAnonymous ? 'translate-x-5.5 ml-0.5' : 'translate-x-0.5'}`} />
@@ -202,11 +203,11 @@ export default memo(function StudentBottomBar({ sessionId }) {
         className="mobile-learning-tools fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200/70 dark:border-slate-700/50 z-30 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
       >
         <div className="max-w-[620px] mx-auto px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
-          <div className="grid grid-cols-4 gap-1.5">
-            <motion.button whileTap={{ scale: 0.96 }} onClick={toggleHand} aria-pressed={isRaised} aria-label={isRaised ? '손 내리기' : '손들기'} className={isRaised ? BTN_ACTIVE : BTN_DEFAULT}>
+          <div className={`grid ${ended ? 'grid-cols-3' : 'grid-cols-4'} gap-1.5`}>
+            {!ended && <motion.button whileTap={{ scale: 0.96 }} onClick={toggleHand} aria-pressed={isRaised} aria-label={isRaised ? '손 내리기' : '손들기'} className={isRaised ? BTN_ACTIVE : BTN_DEFAULT}>
               <motion.div animate={isRaised ? { rotate: [0, -18, 14, -10, 8, 0] } : { rotate: 0 }} transition={{ duration: 0.7, ease: 'easeInOut' }}><Hand size={22} /></motion.div>
               <span className="text-sm">{isRaised ? '손 내리기' : '손들기'}</span>
-            </motion.button>
+            </motion.button>}
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => { setShowQA(true); setHasNewQuestion(false); }} aria-label="수업 질문" className={BTN_DEFAULT}>
               <HelpCircle size={22} /><span className="text-sm">질문</span>
               {hasNewQuestion && <span className={`${UNREAD_DOT} bg-red-500`} />}

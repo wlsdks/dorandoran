@@ -3,7 +3,8 @@ import { memo } from 'react';
 
 /** 과거 응답을 접속 인원으로 나누면 10/0 같은 표시가 생긴다. 두 상태를 명확히 구분한다. */
 export default memo(function LiveParticipation({ voted, total, resultsHidden = false, loading = false }) {
-  return <div className="classroom-results flex justify-end items-center gap-3 text-base lg:text-lg text-slate-300">
+  // 반응 버블(z-40)이 이 줄을 가리지 않게 위에 둔다
+  return <div className="classroom-results relative z-50 flex justify-end items-center gap-3 text-base lg:text-lg text-slate-300">
     {resultsHidden ? <span>응답 집계는 정답 공개 후 표시됩니다</span> : loading ? <span>응답 집계를 불러오는 중</span> : <span>응답 <AnimatedNumber value={voted} className="font-semibold tabular-nums text-slate-100" />명</span>}
     <span className="text-slate-500" aria-hidden="true">·</span>
     <span>현재 접속 <AnimatedNumber value={total} className="font-semibold tabular-nums text-slate-100" />명</span>

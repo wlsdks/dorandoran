@@ -3,10 +3,11 @@ import AIAvailabilityProvider from '@/components/ui/AIAvailabilityProvider';
 import VisualViewportSupport from '@/components/ui/VisualViewportSupport';
 import AuthenticationBoundary from '@/components/ui/AuthenticationBoundary';
 import { onDisconnect, onValue, ref, remove, set } from 'firebase/database';
-import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import EmptyState from '@/components/ui/EmptyState';
+import CodeEntryPage from '@/app/routes/student/CodeEntryPage';
 import JoinPage from '@/app/routes/student/JoinPage';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { SuspenseFallback } from '@/components/ui/Skeleton';
@@ -73,7 +74,7 @@ function StudentRouter() {
     };
   }, [joined, sessionId]);
 
-  if (!sessionId) return <Navigate to="/admin" replace />;
+  if (!sessionId) return <CodeEntryPage />;
 
   return (
     <AnimatePresence mode="wait">

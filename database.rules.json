@@ -421,7 +421,7 @@
             "upvotes": {
               "$participantId": {
                 ".write": "(auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && auth.uid === $participantId",
-                ".validate": "newData.val() === true"
+                ".validate": "newData.val() === true && newData.parent().parent().child('participantId').val() !== $participantId"
               }
             },
             "answeredBy": {
@@ -615,7 +615,8 @@
           "$participantId": {
             ".validate": "newData.hasChild('nickname') && newData.hasChild('total')",
             "nickname": {
-              ".validate": "newData.isString() && newData.val().length <= 10"
+              ".validate": "newData.isString() && newData.val().length <= 10",
+              ".write": "auth != null && auth.uid === $participantId && data.exists() && newData.val() === newData.parent().parent().parent().child('participants').child($participantId).child('nickname').val()"
             },
             "total": {
               ".validate": "newData.isNumber()"
@@ -695,7 +696,7 @@
           ".write": "((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'master') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'master'))) || ((auth != null && ((root.child('staffProfiles').child(auth.uid).child('approved').val() === true && root.child('staffProfiles').child(auth.uid).child('role').val() === 'admin') || (!root.child('staffProfiles').child(auth.uid).exists() && root.child('admins').child(auth.uid).child('approved').val() === true && root.child('admins').child(auth.uid).child('role').val() === 'admin'))) && root.child('sessions').child($sid).child('creatorId').val() === auth.uid))",
           "memos": {
             "$memoId": {
-              ".write": "(auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && !data.exists()"
+              ".write": "(auth != null && root.child('sessions').child($sid).child('participants').child(auth.uid).exists()) && !data.exists() && (!root.child('sessions').child($sid).child('discussion').child('endTime').exists() || now <= root.child('sessions').child($sid).child('discussion').child('endTime').val() + 5000)"
             }
           }
         },
@@ -855,6 +856,9 @@
             },
             "$other": {
               ".validate": false
+            },
+            "heartbeat": {
+              ".validate": "newData.isNumber() && newData.val() <= now"
             }
           }
         },
@@ -881,6 +885,12 @@
           },
           "$other": {
             ".validate": false
+          }
+        },
+        "nicknames": {
+          "$nicknameKey": {
+            ".write": "auth != null && (!data.exists() || data.val() === auth.uid) && (!newData.exists() || newData.val() === auth.uid)",
+            ".validate": "newData.isString() && $nicknameKey.length <= 40"
           }
         }
       }

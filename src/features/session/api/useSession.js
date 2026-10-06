@@ -3,7 +3,8 @@ import { useRealtimeRecord } from '@/hooks/useRealtimeRecord';
 import { useRealtimeValue } from '@/hooks/useRealtimeValue';
 import { EMPTY_RECORD } from '@/lib/realtime';
 import { getStaffSession, authenticatedRequest } from '@/lib/auth-session';
-import { publicQuestions, publicQuestionUpdates } from '@/lib/public-questions';
+import { publicQuestions, publicQuestionUpdates, groupUpdatesByQuestion } from '@/lib/public-questions';
+import { logger } from '@/lib/logger';
 import { db } from '@/lib/firebase';
 import { ref, update } from 'firebase/database';
 
@@ -57,7 +58,20 @@ export function useSession(sessionId, { participantId, readOnly = false } = {}) 
     signature.current = next;
     previousView.current = { sessionId, value: view };
     if (!Object.keys(changes).length) return;
-    update(ref(db, `sessions/${sessionId}/publicQuestions`), changes).catch(() => { if (signature.current === next) signature.current = null; });
+    // 문항별로 나눠 보낸다 — 한 문항이 규칙에 막혀도 나머지는 학생에게 전달된다.
+    // 실패한 문항은 기록하고, 다음 변경 때 다시 비교되도록 이전 공개본에서 뺀다(조용한 무한 재시도 없음).
+    const groups = groupUpdatesByQuestion(changes);
+    Promise.allSettled(Object.entries(groups).map(([id, patch]) =>
+      update(ref(db, `sessions/${sessionId}/publicQuestions`), patch).catch((err) => { throw Object.assign(err || new Error('sync failed'), { questionId: id }); })))
+      .then(results => {
+        const failed = results.filter(r => r.status === 'rejected').map(r => r.reason?.questionId).filter(Boolean);
+        if (!failed.length) return;
+        logger.error('공개 문항 동기화 실패:', failed.join(', '));
+        if (previousView.current?.sessionId !== sessionId) return;
+        const rest = { ...previousView.current.value };
+        failed.forEach(id => { delete rest[id]; });
+        previousView.current = { sessionId, value: rest };
+      });
   }, [canPublish, sessionId, loading, value]);
   useEffect(() => {
     if (!privileged && sessionId && !viewLoading && !visible) {

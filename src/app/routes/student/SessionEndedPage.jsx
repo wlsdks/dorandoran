@@ -87,7 +87,7 @@ export default function SessionEndedPage({ sessionId, session, reviewing = false
       {copyError && <p role="alert" className="w-full max-w-xl mt-3 px-1 text-sm text-red-600 dark:text-red-300">{copyError}</p>}
 
       {/* reviewing: full bottom bar (chat + questions) */}
-      {reviewing && <StudentBottomBar sessionId={sessionId} />}
+      {reviewing && <StudentBottomBar sessionId={sessionId} ended />}
 
       {/* ended: question-only floating button (사후 질문) */}
       {isEnded && (
