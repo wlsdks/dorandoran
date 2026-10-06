@@ -12,6 +12,8 @@ import { useMyVote } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import StudentLiveResults from './StudentLiveResults';
 import VoteErrorToast from './VoteErrorToast';
+import ImageOptionGrid from './ImageOptionGrid';
+import { hasOptionImages } from '@/lib/option-images';
 
 // 보기 배지는 한 가지 색으로 통일한다 — 순서마다 진하기가 달라지면 의미 없는 위계가 생긴다.
 const OPTION_STYLES = [
@@ -22,7 +24,7 @@ const OPTION_STYLES = [
   { bg: 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700', text: 'text-slate-800 dark:text-slate-200', badge: 'bg-slate-700 dark:bg-slate-300 dark:text-slate-900', letter: 'E' },
 ];
 
-export default memo(function ChoiceVoter({ sessionId, questionId, options, disabled = false }) {
+export default memo(function ChoiceVoter({ sessionId, questionId, options, optionImages, disabled = false }) {
   const { myVote } = useMyVote(sessionId, questionId);
   const { begin, finish, canRestore, isCurrent } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
   const [voted, setVoted] = useState(false);
@@ -92,6 +94,7 @@ export default memo(function ChoiceVoter({ sessionId, questionId, options, disab
           sessionId={sessionId}
           questionId={questionId}
           options={options}
+          images={optionImages}
           myAnswer={selected}
         />
       </div>
@@ -103,7 +106,10 @@ export default memo(function ChoiceVoter({ sessionId, questionId, options, disab
       <AnimatePresence>
         {error && <VoteErrorToast message={error} />}
       </AnimatePresence>
-      {options.map((option, i) => {
+      {hasOptionImages(optionImages) ? (
+        <ImageOptionGrid options={options} images={optionImages} selected={selected} disabled={disabled}
+          pendingOption={submitting ? selected : null} onPick={handleVote} />
+      ) : options.map((option, i) => {
         const style = OPTION_STYLES[i % OPTION_STYLES.length];
         const letter = String.fromCharCode(65 + i); // A, B, ..., Z+
         const isSelected = selected === option;

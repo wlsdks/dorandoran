@@ -1,3 +1,4 @@
+import { isAutoPhotoName } from '@/lib/option-images';
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
@@ -16,7 +17,7 @@ import { Users, Check } from 'lucide-react';
  * @param {string[]} props.options - vote option labels
  * @param {string} props.myAnswer - the option this student voted for
  */
-export default memo(function StudentLiveResults({ sessionId, questionId, options, myAnswer, revealed = false }) {
+export default memo(function StudentLiveResults({ sessionId, questionId, options, myAnswer, revealed = false, images = null }) {
   const { connected } = useConnectionStatus();
   const { totalVotes, countByValue, resultsHidden, loading } = useVotes(sessionId, questionId);
 
@@ -55,7 +56,7 @@ export default memo(function StudentLiveResults({ sessionId, questionId, options
                       : 'font-medium text-slate-500 dark:text-slate-400'
                   }`}
                 >
-                  <span className="font-semibold mr-2">{String.fromCharCode(65 + index)}</span>{option}
+                  {images?.[index] && <img src={images[index]} alt="" className="mr-2 inline-block h-8 w-8 rounded-md object-contain bg-slate-100 dark:bg-slate-900 align-middle" />}<span className="font-semibold mr-2">{String.fromCharCode(65 + index)}</span>{images?.[index] && isAutoPhotoName(option) ? null : option}
                   {isMine && (
                     <Check size={12} className="inline ml-1 text-slate-500 dark:text-slate-400" />
                   )}

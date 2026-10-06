@@ -77,6 +77,7 @@ export default function QuestionPreview({ questionList, open, onClose }) {
                     <span className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center text-sm font-bold shrink-0">
                       {String.fromCharCode(65 + i)}
                     </span>
+                    {question.optionImages?.[i] && <img src={question.optionImages[i]} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />}
                     <span className="text-sm font-medium">{opt}</span>
                     {question.correctAnswer === opt && (
                       <span className="ml-auto text-xs text-emerald-400 font-semibold">정답</span>

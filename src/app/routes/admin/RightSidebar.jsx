@@ -9,6 +9,10 @@ import Leaderboard from '@/features/quiz/components/Leaderboard';
 import InstructorCommHub from './InstructorCommHub';
 import InstructorPeopleHub from './InstructorPeopleHub';
 import Button from '@/components/ui/Button';
+import ResizeHandle from '@/components/ui/ResizeHandle';
+import { useResizableWidth } from '@/hooks/useResizableWidth';
+
+const RIGHT_PANEL = { initial: 380, min: 280, max: 640, side: 'right' };
 import { isResponseQuestion, questionParticipationKind } from '@/lib/response-questions';
 
 const SIDEBAR_TABS = [
@@ -153,13 +157,15 @@ function ReadOnlyRightSidebar({ session, participants, leaderboard, voteCounts }
 }
 
 export default memo(function RightSidebar({ session, sessionId, effectiveReadOnly, participants, onlineList, count, leaderboard, voteCounts, studentUrl, sidebarCollapsed, isDrawer = false, courseId }) {
+  const panel = useResizableWidth('dorandoran:admin-right-width', RIGHT_PANEL);
   const content = effectiveReadOnly
     ? <ReadOnlyRightSidebar key={sessionId} session={session} participants={participants} leaderboard={leaderboard} voteCounts={voteCounts} />
     : <ActiveRightSidebar key={sessionId} session={session} sessionId={sessionId} count={count} participants={participants} onlineList={onlineList} leaderboard={leaderboard} voteCounts={voteCounts} studentUrl={studentUrl} courseId={courseId} />;
   if (isDrawer) return content;
   return (
-    <motion.div animate={{ width: sidebarCollapsed ? 0 : 'clamp(280px, 22vw, 320px)', minWidth: sidebarCollapsed ? 0 : 280 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }} className="border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0 min-w-0 max-w-[460px] h-full">
-      <div className="min-w-[280px] p-5 overflow-y-auto h-full scrollbar-hide">{content}</div>
+    <motion.div animate={{ width: sidebarCollapsed ? 0 : panel.width, minWidth: 0 }} transition={{ duration: panel.dragging ? 0 : 0.3, ease: [0.4, 0, 0.2, 1] }} className="relative border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shrink-0 min-w-0 h-full">
+      <div className="h-full overflow-hidden"><div className="p-5 overflow-y-auto h-full scrollbar-hide" style={{ minWidth: RIGHT_PANEL.min }}>{content}</div></div>
+      {!sidebarCollapsed && <ResizeHandle side="right" label="소통 패널 폭 조절" width={panel.width} min={RIGHT_PANEL.min} max={RIGHT_PANEL.max} dragging={panel.dragging} {...panel.handleProps} />}
     </motion.div>
   );
 });

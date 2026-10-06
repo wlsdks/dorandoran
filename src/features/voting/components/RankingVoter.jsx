@@ -10,23 +10,23 @@ import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { DndContext, closestCenter, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
+import { GripVertical, ArrowUp, ArrowDown, Check, X } from 'lucide-react';
 import { useMyVote } from '@/hooks/useMyVote';
 import VoteConfirm from './VoteConfirm';
 import VoteErrorToast from './VoteErrorToast';
-import { rankingItemLabels, shuffleWithSeed } from '@/lib/ranking-order';
+import { shuffleWithSeed } from '@/lib/ranking-order';
 
 // 학생마다(questionId + participantId) 고정된 순서로 섞는다 — 새로고침해도 바뀌지 않는다.
 
-function SortableRankItem({ id, label, tag, position, total, disabled, onMove }) {
+function SortableRankItem({ id, label, position, total, disabled, onMove }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
   return (
     <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 10 : undefined }}
       className={`rounded-xl border bg-white dark:bg-slate-800 pl-3 pr-1.5 py-1.5 ${isDragging ? 'shadow-lg border-slate-300' : 'border-slate-200 dark:border-slate-700'}`}>
       {/* 한 줄 배치 — 위/아래 버튼을 따로 한 줄에 두면 카드가 두 배로 길어져 4개도 한 화면에 안 들어간다 */}
       <div className="flex items-center gap-1.5">
-        <span className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-500 dark:text-slate-300 shrink-0 tabular-nums">{position}</span>
-        <span className="flex-1 min-w-0 pl-1 [word-break:keep-all] [overflow-wrap:anywhere] text-base font-medium text-slate-800 dark:text-slate-200 leading-snug">{tag && <span className="mr-1.5 text-slate-500 dark:text-slate-400 tabular-nums">{tag}</span>}{label}</span>
+        <span className="w-10 shrink-0 text-center text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums">{position}위</span>
+        <span className="flex-1 min-w-0 pl-1 [word-break:keep-all] [overflow-wrap:anywhere] text-base font-medium text-slate-800 dark:text-slate-200 leading-snug">{label}</span>
         <button type="button" onClick={() => onMove(position - 1, -1)} disabled={disabled || position === 1} aria-label={`${label} 위로 이동`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.94] disabled:opacity-25 disabled:cursor-not-allowed"><ArrowUp size={20} /></button>
         <button type="button" onClick={() => onMove(position - 1, 1)} disabled={disabled || position === total} aria-label={`${label} 아래로 이동`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.94] disabled:opacity-25 disabled:cursor-not-allowed"><ArrowDown size={20} /></button>
         <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} disabled={disabled} aria-label={`${label} 순서 끌어서 변경`} className="w-11 h-11 shrink-0 flex items-center justify-center rounded-lg text-slate-400 touch-none cursor-grab disabled:opacity-40"><GripVertical size={20} /></button>
@@ -35,7 +35,7 @@ function SortableRankItem({ id, label, tag, position, total, disabled, onMove })
   );
 }
 
-export default memo(function RankingVoter({ sessionId, questionId, options = [], disabled = false }) {
+export default memo(function RankingVoter({ sessionId, questionId, options = [], disabled = false, revealed = false }) {
   const reducedMotion = useReducedMotion();
   const pid = getParticipantId();
 
@@ -45,8 +45,6 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
     return shuffleWithSeed(options, seed);
   }, [questionId, options, pid]);
 
-  // 발표 화면과 같은 항목 번호(①②③…) — 앞 화면을 보고 어떤 항목인지 바로 찾을 수 있게
-  const itemLabels = useMemo(() => rankingItemLabels(options, questionId), [options, questionId]);
 
   const { myVote } = useMyVote(sessionId, questionId);
   const { begin, finish, canRestore } = useVoteAcknowledgement(`${sessionId}:${questionId}`);
@@ -117,8 +115,36 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
     }
   }, [sessionId, questionId, order, pid, disabled, submitting, begin, finish]);
 
+  // 정답 공개 후: 정답 순서와 내 순서를 자리별로 나란히 비교한다(정답은 저장 순서 0,1,2…).
+  if (revealed) {
+    const mine = submitted || savedOrder ? (savedOrder || order) : null;
+    const hits = mine ? mine.filter((idx, pos) => idx === pos).length : 0;
+    return (
+      <div className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-3">
+        <p className="text-center text-sm text-slate-600 dark:text-slate-300">
+          {mine ? <><span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">{options.length}개 중 {hits}개</span> 자리를 맞혔어요</> : '제출하지 않았어요. 정답 순서를 확인해보세요'}
+        </p>
+        <ol className="space-y-2">
+          {options.map((item, pos) => {
+            const ok = mine ? mine[pos] === pos : null;
+            return (
+              <li key={pos} className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-10 shrink-0 text-center text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums">{pos + 1}위</span>
+                  <span className="flex-1 min-w-0 text-base font-semibold text-slate-900 dark:text-slate-100 [word-break:keep-all]">{item}</span>
+                  {ok !== null && (ok ? <Check size={18} className="shrink-0 text-emerald-600 dark:text-emerald-400" aria-label="맞음" /> : <X size={18} className="shrink-0 text-red-500" aria-label="틀림" />)}
+                </div>
+                {ok === false && <p className="mt-1 pl-12 text-xs text-slate-500 dark:text-slate-400 [word-break:keep-all]">내 답: {options[mine[pos]]}</p>}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+    );
+  }
+
   if (submitted) {
-    const answerStr = order.map((idx, pos) => `${pos + 1}. ${options[idx]}`).join(' → ');
+    const answerStr = order.map((idx, pos) => `${pos + 1}위 ${options[idx]}`).join(' → ');
     return (
       <VoteConfirm
         submittedLabel="순위 제출 완료!"
@@ -144,7 +170,7 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
       className="w-full rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm space-y-4"
     >
       <p className="text-sm text-slate-500 dark:text-slate-300 text-center leading-relaxed [word-break:keep-all]">
-        1번부터 차례대로 맞춰주세요. 손잡이를 끌거나 위·아래 버튼으로 순서를 바꿀 수 있어요.
+        맨 위가 1위예요. 화살표나 오른쪽 손잡이를 끌어 순서를 바꾸세요.
       </p>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -155,7 +181,6 @@ export default memo(function RankingVoter({ sessionId, questionId, options = [],
                 key={`rank-${idx}`}
                 id={`rank-${idx}`}
                 label={options[idx]}
-                tag={itemLabels[idx]}
                 position={pos + 1}
                 total={order.length}
                 disabled={disabled || submitting}

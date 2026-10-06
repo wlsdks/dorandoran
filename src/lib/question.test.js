@@ -4,6 +4,14 @@ import { buildQuestionData, QUESTION_TYPE_FIELDS } from './question';
 // 특성화 테스트 — handleSubmit/updateQuestion에서 추출한 buildQuestionData가
 // 기존 인라인 로직과 동일한 questionData를 생성하는지 고정.
 describe('buildQuestionData', () => {
+  it('보기 사진은 options와 같은 순서로 저장하고, 없으면 저장하지 않는다', () => {
+    const withImages = buildQuestionData('quiz', { options: ['사진 A', '고양이'], optionImages: ['https://x/a.jpg'], correctAnswer: '사진 A' });
+    expect(withImages.optionImages).toEqual(['https://x/a.jpg', '']);
+    expect(buildQuestionData('choice', { options: ['A', 'B'], optionImages: ['', ''] }).optionImages).toBeUndefined();
+    expect(buildQuestionData('ox', { optionImages: ['https://x/a.jpg'] }).optionImages).toBeUndefined();
+    expect(QUESTION_TYPE_FIELDS).toContain('optionImages');
+  });
+
   it('choice: options + correctAnswer(목록 내) 설정', () => {
     expect(buildQuestionData('choice', {
       options: ['A', 'B'],

@@ -14,7 +14,7 @@ const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp';
  * ImageUpload — 이미지 업로드 + 미리보기.
  * Firebase Storage에 저장하고 URL을 반환.
  */
-export default memo(function ImageUpload({ value, onChange, folder = 'questions', uploadLabel = '이미지 첨부 (선택)' }) {
+export default memo(function ImageUpload({ value, onChange, folder = 'questions', uploadLabel = '이미지 첨부 (선택)', compact = false }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
@@ -53,6 +53,35 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
 
   function handleRemove() {
     onChange('');
+  }
+
+  const fileInput = (
+    // sr-only — display:none이면 일부 브라우저(Safari)에서 click() 트리거가 차단되어 파일 선택기가 안 열리는 사례 존재
+    <input ref={inputRef} type="file" accept={ACCEPTED} onChange={handleFile} className="sr-only" />
+  );
+
+  // 보기 한 줄 옆에 붙는 작은 정사각형 — 비어 있으면 첨부 버튼, 있으면 썸네일 + 삭제
+  if (compact) {
+    return (
+      <div className="relative shrink-0">
+        {value ? (
+          <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-600">
+            <img src={value} alt={uploadLabel} className="w-full h-full object-cover" />
+            <button type="button" onClick={handleRemove} aria-label={`${uploadLabel} 삭제`}
+              className="absolute inset-0 flex items-center justify-center bg-slate-900/0 hover:bg-slate-900/60 text-transparent hover:text-white focus-visible:bg-slate-900/60 focus-visible:text-white transition-colors">
+              <X size={18} />
+            </button>
+          </div>
+        ) : (
+          <button type="button" onClick={(e) => { e.preventDefault(); inputRef.current?.click(); }} disabled={uploading}
+            aria-label={uploadLabel} title={error || uploadLabel}
+            className={`w-12 h-12 rounded-lg border border-dashed flex items-center justify-center transition-colors active:scale-95 ${error ? 'border-red-300 text-red-500' : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:border-slate-300 hover:text-slate-700 dark:hover:text-slate-100'}`}>
+            {uploading ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
+          </button>
+        )}
+        {fileInput}
+      </div>
+    );
   }
 
   return (
@@ -110,14 +139,7 @@ export default memo(function ImageUpload({ value, onChange, folder = 'questions'
         <p className="text-xs text-red-500 text-center">{error}</p>
       )}
 
-      {/* sr-only — display:none이면 일부 브라우저(Safari)에서 click() 트리거가 차단되어 파일 선택기가 안 열리는 사례 존재 */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ACCEPTED}
-        onChange={handleFile}
-        className="sr-only"
-      />
+      {fileInput}
     </div>
   );
 });

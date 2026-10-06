@@ -2,19 +2,22 @@ import { motion } from 'framer-motion';
 import { Plus, Trash2, Check, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { QUIZ_DEFAULTS, QUIZ_EVENT_PRESETS } from '@/lib/quiz';
 import ImageUpload from '@/components/ui/ImageUpload';
+import { choiceNames } from '@/lib/option-images';
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D', 'E'];
-const RANKING_LABELS = ['1', '2', '3', '4', '5', '6'];
+const RANKING_LABELS = ['1위', '2위', '3위', '4위', '5위', '6위'];
 const GAP = 'pt-4';
 const MOBILE_ICON_TARGET = 'max-sm:min-h-11 max-sm:min-w-11 max-sm:flex max-sm:items-center max-sm:justify-center max-sm:shrink-0 max-sm:dark:text-slate-300 max-sm:[&>svg]:size-5';
 const INPUT = 'w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors duration-150';
 
-export function ChoiceOptionsSection({ options, setOptions, correctAnswer, setCorrectAnswer, setLocalError }) {
+export function ChoiceOptionsSection({ options, setOptions, optionImages = [], setOptionImages, correctAnswer, setCorrectAnswer, setLocalError }) {
   function removeOption(index) {
     if (options.length <= 2) return;
     const next = options.filter((_, i) => i !== index);
     setOptions(next);
-    if (correctAnswer && !next.includes(correctAnswer)) setCorrectAnswer('');
+    const nextImages = options.map((_, i) => optionImages[i] || '').filter((_, i) => i !== index);
+    setOptionImages?.(nextImages);
+    if (correctAnswer && !choiceNames(next, nextImages).includes(correctAnswer)) setCorrectAnswer('');
   }
 
   return (
@@ -29,11 +32,19 @@ export function ChoiceOptionsSection({ options, setOptions, correctAnswer, setCo
             <input value={opt}
               onChange={(e) => {
                 const next = [...options]; next[i] = e.target.value; setOptions(next);
-                if (correctAnswer && !next.includes(correctAnswer)) setCorrectAnswer('');
+                if (correctAnswer && !choiceNames(next, optionImages).includes(correctAnswer)) setCorrectAnswer('');
                 setLocalError(null);
               }}
-              placeholder={`선택지 ${OPTION_LABELS[i]}`} aria-label={`선택지 ${OPTION_LABELS[i]}`}
-              className={`flex-1 ${INPUT} py-2.5`} />
+              placeholder={optionImages[i] ? `사진 ${OPTION_LABELS[i]} (설명 선택)` : `선택지 ${OPTION_LABELS[i]}`} aria-label={`선택지 ${OPTION_LABELS[i]}`}
+              className={`flex-1 min-w-0 ${INPUT} py-2.5`} />
+            {setOptionImages && (
+              <ImageUpload compact value={optionImages[i] || ''} uploadLabel={`선택지 ${OPTION_LABELS[i]} 이미지`}
+                onChange={(url) => {
+                  const next = options.map((_, k) => optionImages[k] || ''); next[i] = url; setOptionImages(next);
+                  if (correctAnswer && !choiceNames(options, next).includes(correctAnswer)) setCorrectAnswer('');
+                  setLocalError(null);
+                }} />
+            )}
             {options.length > 2 && (
               <button onClick={() => removeOption(i)}
                 className={`p-1.5 ${MOBILE_ICON_TARGET} rounded-lg text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors duration-150 active:scale-90`}
@@ -48,11 +59,12 @@ export function ChoiceOptionsSection({ options, setOptions, correctAnswer, setCo
           </button>
         )}
       </div>
+      {setOptionImages && <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">선택지마다 사진을 붙일 수 있어요. 사진만 넣고 글을 비워 두면 '사진 A'처럼 표시돼요.</p>}
     </div>
   );
 }
 
-export function CorrectAnswerSection({ optional = false, options, correctAnswer, setCorrectAnswer, setLocalError }) {
+export function CorrectAnswerSection({ optional = false, options, optionImages = [], correctAnswer, setCorrectAnswer, setLocalError }) {
   return (
     <div className={GAP}>
       <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">{optional ? '정답 선택 (선택)' : '정답 선택'}</p>
@@ -61,14 +73,17 @@ export function CorrectAnswerSection({ optional = false, options, correctAnswer,
         <button type="button" aria-pressed={!correctAnswer} onClick={() => { setCorrectAnswer(''); setLocalError(null); }} className="min-h-11 px-3 mb-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200">정답 없음 · 의견 투표</button>
       </>}
       <div className="flex flex-wrap gap-2">
-        {options.filter((o) => o.trim()).map((option, i) => {
+        {options.map((option, i) => {
+          if (!option.trim()) return null;
           const isCorrect = correctAnswer === option;
           return (
             <button key={option} aria-pressed={isCorrect} onClick={() => { setCorrectAnswer(option); setLocalError(null); }}
               className={`min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 active:scale-[0.96] flex items-center gap-1.5 ${
                 isCorrect ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'}`}>
               {isCorrect && <Check size={14} />}
-              <span className="font-bold">{OPTION_LABELS[i]}</span>{option}
+              <span className="font-bold">{OPTION_LABELS[i]}</span>
+              {optionImages[i] && <img src={optionImages[i]} alt="" className="w-7 h-7 rounded object-cover" />}
+              {option}
             </button>
           );
         })}
@@ -95,25 +110,25 @@ export function RankingOptionsSection({ options, setOptions, setLocalError }) {
     <div className={GAP}>
       <div className="flex items-baseline gap-2 mb-2 max-sm:flex-col max-sm:items-start max-sm:gap-1">
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">정답 순서</p>
-        <span className="text-[11px] text-slate-500 dark:text-slate-400">아래 순서가 정답입니다. 화살표로 조정하세요</span>
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">맨 위가 1위예요. 입력한 이 순서가 그대로 정답이 되고, 학생에게는 섞여서 보여요</span>
       </div>
       <div className="rounded-xl border border-slate-200 dark:border-slate-600 p-3 space-y-2">
         {options.map((opt, i) => (
           <div key={i} className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-sm font-bold text-slate-500 dark:text-slate-300 shrink-0">
-              {RANKING_LABELS[i]}
+            <span className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-sm font-bold text-slate-700 dark:text-slate-200 shrink-0 tabular-nums">
+              {RANKING_LABELS[i] || `${i + 1}위`}
             </span>
             <input value={opt}
               onChange={(e) => { const next = [...options]; next[i] = e.target.value; setOptions(next); setLocalError(null); }}
-              placeholder={`${i + 1}번째 항목`} aria-label={`순위 ${i + 1}번째 항목`}
+              placeholder={`${i + 1}위 항목`} aria-label={`${i + 1}위 항목`}
               className={`flex-1 ${INPUT} py-2.5`} />
-            <div className="flex flex-col gap-0.5 shrink-0">
+            <div className="flex items-center gap-0.5 shrink-0">
               <button onClick={() => moveRankingItem(i, 'up')} disabled={i === 0}
                 className={`p-1 ${MOBILE_ICON_TARGET} rounded text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 transition-colors duration-150 active:scale-90`}
-                aria-label="위로 이동"><ArrowUp size={12} /></button>
+                aria-label={`${i + 1}위 항목 위로 이동`}><ArrowUp size={16} /></button>
               <button onClick={() => moveRankingItem(i, 'down')} disabled={i === options.length - 1}
                 className={`p-1 ${MOBILE_ICON_TARGET} rounded text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 transition-colors duration-150 active:scale-90`}
-                aria-label="아래로 이동"><ArrowDown size={12} /></button>
+                aria-label={`${i + 1}위 항목 아래로 이동`}><ArrowDown size={16} /></button>
             </div>
             {options.length > 3 && (
               <button onClick={() => removeOption(i)}
