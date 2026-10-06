@@ -25,10 +25,12 @@ CSV는 Excel 열람 시 사용자 문자열이 수식으로 실행되지 않게 
 ```sh
 npm ci
 npm ci --prefix functions
+npm ci --prefix functions-ai
 VITE_GEMINI_API_KEY= npm run check
 npm run test:integration
 npm audit
 npm audit --prefix functions
+npm audit --prefix functions-ai
 ```
 
 통합 검증은 `demo-dorandoran`의 Auth/Database/Storage 에뮬레이터에서만 수행합니다. 운영 프로젝트의 데이터는 쓰거나 정리하지 않습니다. SDK 구독 계측은 Vite `qa` 모드에서만 사용합니다.
@@ -39,11 +41,18 @@ npm audit --prefix functions
 
 1. Firebase Authentication 익명 로그인을 활성화하고 기존 계정과 같은 UID의 custom-token 로그인이 가능한 서버 서비스 계정을 준비합니다. 토큰 서명에 필요한 `iam.serviceAccounts.signBlob` 권한은 해당 서명 계정에만 부여합니다.
 2. Functions Node.js 22, `APP_DATABASE_URL`, 실제 운영 출처의 `APP_ALLOWED_ORIGINS`를 설정합니다. 운영 도메인은 DNS나 저장소명 변경과 별개입니다.
-3. 아래 **이 프로젝트의 함수만 지정**해 배포합니다. 같은 Firebase 프로젝트의 다른 함수는 변경하지 않습니다.
+3. 아래 **이 프로젝트의 함수만 지정**해 배포합니다. 같은 Firebase 프로젝트의 다른 함수는 변경하지 않습니다. 수업 함수(`functions/`, codebase `default`)는 AI 키 없이 배포됩니다.
 
 ```sh
-firebase deploy --only functions:staffApi,functions:assignmentApi,functions:classroomApi,functions:geminiProxy
+firebase deploy --only functions:default:staffApi,functions:default:assignmentApi,functions:default:classroomApi
 firebase deploy --only database,storage,hosting
+```
+
+4. AI 기능은 선택입니다. 쓰기로 했을 때만 키를 등록하고 AI 코드베이스(`functions-ai/`, codebase `ai`)를 따로 배포합니다. 처음 배포하면 기존 `geminiProxy`를 이 코드베이스가 이어받습니다.
+
+```sh
+firebase functions:secrets:set GEMINI_API_KEY
+firebase deploy --only functions:ai:geminiProxy
 ```
 
 2026-10-04 읽기 전용 점검 당시 기존 계정 19개의 UID/역할을 삭제하거나 수정하는 작업은 포함하지 않습니다. `publicQuestions`, 과제 조회 권한, 강의 연결 권한은 원자료를 덮어쓰지 않는 별도 데이터입니다. 학생의 과거 로컬 UUID는 인증 증명이 아니므로 보안 전환 후 다시 참여해야 할 수 있습니다. 과거 운영 데이터가 공개됐는지 여부나 운영 Auth/App Check·quota 설정은 저장소 테스트로 확정할 수 없습니다. 공개됐던 자격 증명의 교체는 원자료 보존 정책과 별도로 운영자가 결정해야 합니다.

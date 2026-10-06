@@ -46,7 +46,7 @@ export default defineConfig([
   },
   {
     // Firebase Functions run as CommonJS on Node.js.
-    files: ['functions/**/*.js'],
+    files: ['functions/**/*.js', 'functions-ai/**/*.js'],
     languageOptions: {
       sourceType: 'commonjs',
       globals: globals.node,

@@ -1,12 +1,24 @@
 {
-  "functions": {
-    "source": "functions",
-    "ignore": [
-      "node_modules",
-      ".git",
-      "*.log"
-    ]
-  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "*.log"
+      ]
+    },
+    {
+      "source": "functions-ai",
+      "codebase": "ai",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "*.log"
+      ]
+    }
+  ],
   "hosting": {
     "public": "dist",
     "ignore": [

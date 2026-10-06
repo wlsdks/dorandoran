@@ -64,11 +64,18 @@ function generate(scope) {
   return Buffer.concat(chunks);
 }
 
+// AI 코드베이스(functions-ai)는 수업 함수와 같은 의존성을 쓴다. 고지문을 공유하려면 잠금 파일이 같아야 한다.
+if (!(await read('functions/package-lock.json')).equals(await read('functions-ai/package-lock.json'))) {
+  throw new Error('functions-ai/package-lock.json must match functions/package-lock.json (shared license notices).');
+}
+const functionNotices = generate('functions');
 const outputs = new Map([
   ['public/LICENSE.txt', projectLicense],
   ['functions/LICENSE.txt', projectLicense],
   ['public/THIRD_PARTY_NOTICES.txt', generate('root')],
-  ['functions/THIRD_PARTY_NOTICES.txt', generate('functions')],
+  ['functions/THIRD_PARTY_NOTICES.txt', functionNotices],
+  ['functions-ai/LICENSE.txt', projectLicense],
+  ['functions-ai/THIRD_PARTY_NOTICES.txt', functionNotices],
 ]);
 for (const font of inventory.fonts) outputs.set(`public/licenses/${font.file}`, originals.get(font.licenseSha256));
 if (process.argv.includes('--check')) {
