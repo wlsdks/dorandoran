@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react';
+import { createReactionBucket, takeReaction, refundReaction } from '@/lib/reaction-rate';
 import { motion, useReducedMotion } from 'framer-motion';
 import { MessageCircle, X } from 'lucide-react';
 import { ref, push, serverTimestamp } from 'firebase/database';
@@ -7,7 +8,7 @@ import { getParticipantId, getNickname } from '@/lib/participant';
 import { useReactions } from '@/features/reactions/api/useReactions';
 import { REACTIONS } from '@/features/reactions/reactionConfig';
 
-const COOLDOWN_MS = 3000;
+const COOLDOWN_MS = 3000; // 한마디(글) 전용
 const BUBBLE_MAX = 20;
 // Match the existing RTDB string-length limit without leaving a lone surrogate.
 function clampMessage(value) {
@@ -28,7 +29,9 @@ export default function ReactionBar({ sessionId, bubbleSessionId, onInputFocus }
   const { sendReaction } = useReactions(sessionId, { subscribe: false });
   const reduced = useReducedMotion();
   const mounted = useRef(false);
-  const lastReactionAt = useRef(-Infinity);
+  const bucket = useRef(createReactionBucket());
+  const [waitUntil, setWaitUntil] = useState(0);
+  const [, forceTick] = useState(0);
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState('');
   const [bubbleOpen, setBubbleOpen] = useState(false);
@@ -56,21 +59,29 @@ export default function ReactionBar({ sessionId, bubbleSessionId, onInputFocus }
     if (bubbleOpen) inputRef.current?.focus({ preventScroll: true });
   }, [bubbleOpen]);
 
+  // 대기 안내를 0.1초 단위로 갱신해 "0.6초 후"처럼 남은 시간이 자연스럽게 줄어들게 한다.
+  useEffect(() => {
+    if (!waitUntil) return;
+    const timer = setInterval(() => {
+      if (performance.now() >= waitUntil) { setWaitUntil(0); clearInterval(timer); } else forceTick(t => t + 1);
+    }, 100);
+    return () => clearInterval(timer);
+  }, [waitUntil]);
+
   const handleReaction = useCallback(async (type) => {
     const now = performance.now();
-    if (now - lastReactionAt.current < COOLDOWN_MS) {
-      setFeedback('잠시 후 다시 보낼 수 있어요.');
-      return;
-    }
-    lastReactionAt.current = now;
+    const result = takeReaction(bucket.current, now);
+    bucket.current = result.bucket;
+    if (!result.allowed) { setWaitUntil(now + result.waitMs); return; }
     setSelected(type);
     setFeedback('');
     if (!reduced && 'vibrate' in navigator) navigator.vibrate(8);
     const sent = await sendReaction(type);
     if (!mounted.current) return;
-    if (!sent) lastReactionAt.current = -Infinity;
-    setFeedback(sent ? `${LABELS[type]} 반응을 보냈어요.` : '반응을 보내지 못했어요. 다시 시도해 주세요.');
+    if (!sent) { bucket.current = refundReaction(bucket.current); setFeedback('반응을 보내지 못했어요. 다시 시도해 주세요.'); }
   }, [sendReaction, reduced]);
+
+  const waitSeconds = waitUntil ? Math.max(0.1, (waitUntil - performance.now()) / 1000) : 0;
 
   const handleBubbleSend = useCallback(async (event) => {
     event?.preventDefault();
@@ -120,6 +131,9 @@ export default function ReactionBar({ sessionId, bubbleSessionId, onInputFocus }
       </div>
       <p className="text-xs text-slate-500 dark:text-slate-400">{bubbleText.length}/{BUBBLE_MAX}자 · 일부 이모지는 2자 이상으로 셉니다</p>
     </form>}
-    {feedback && <p role="status" className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{feedback}</p>}
+    {/* 연속 3번까지는 바로 보내지고, 그 뒤엔 남은 시간만 짧게 안내한다 */}
+    <p role="status" aria-live="polite" className="min-h-5 text-sm text-slate-500 dark:text-slate-400 leading-relaxed tabular-nums">
+      {waitSeconds ? `${waitSeconds.toFixed(1)}초 후에 다시 보낼 수 있어요` : feedback}
+    </p>
   </div>;
 }
