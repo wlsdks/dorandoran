@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { authenticatedRequest, restoreStaffProfile, auth } from '@/lib/auth-session';
+import { authenticatedRequest, restoreStaffProfile, auth, notifyStaffProfileChange } from '@/lib/auth-session';
 import Button from '@/components/ui/Button';
 import { User, Check, AlertCircle } from 'lucide-react';
 
@@ -28,6 +28,7 @@ export default function ProfileSection({ adminUser }) {
       const stored = JSON.parse(sessionStorage.getItem('dorandoran_admin') || '{}');
       stored.displayName = trimmed;
       sessionStorage.setItem('dorandoran_admin', JSON.stringify(stored));
+      notifyStaffProfileChange();
       setSaved(true); setEditing(false);
       setTimeout(() => setSaved(false), 2000);
     } catch { setError('저장에 실패했습니다'); }

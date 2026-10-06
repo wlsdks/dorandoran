@@ -133,3 +133,50 @@ test('proxy aborts on disconnect and releases its close listener after completio
     assert.equal(response.listenerCount('close'), 0);
   } finally { global.fetch = previousFetch; }
 });
+
+const { releaseIndex } = require('../../functions/access');
+const { createStaffService } = require('../../functions/staff-service');
+// Admin SDK 트랜잭션처럼: 처음엔 캐시값(null)으로 부르고, 서버 값과 다르면 서버 값으로 다시 부른다.
+function fakeIndex(initial) {
+  const box = { value: initial };
+  box.ref = { transaction: async (update) => {
+    let local = null;
+    for (;;) {
+      const next = update(local);
+      if (next === undefined) return { committed: false };
+      if (local === box.value) { box.value = next; return { committed: true }; }
+      local = box.value;
+    }
+  } };
+  return box;
+}
+test('releaseIndex frees the owner claim even though the first transaction call sees null', async () => {
+  const owned = fakeIndex('sub_1');
+  await releaseIndex(owned.ref, 'sub_1');
+  assert.equal(owned.value, null);
+  const other = fakeIndex('sub_2');
+  await releaseIndex(other.ref, 'sub_1');
+  assert.equal(other.value, 'sub_2');
+});
+
+test('staff search is server-side, instructor-only and returns display fields of approved staff', async () => {
+  const data = {
+    staffProfiles: {
+      teacher: { username: 'kim', displayName: '김강사', role: 'admin', approved: true },
+      s1: { username: 'park-staff', displayName: '박스태프', role: 'staff', approved: true },
+      s2: { username: 'lee-staff', displayName: '이대기', role: 'staff', approved: false },
+      lone: { username: 'solo', displayName: '혼자', role: 'staff', approved: true },
+    },
+    admins: { s1: { username: 'park-staff', credential: 'secret' } },
+  };
+  const read = path => path.split('/').reduce((node, key) => node?.[key], data) ?? null;
+  const db = { ref: path => ({ get: async () => ({ val: () => read(path), exists: () => read(path) != null }) }) };
+  const auth = { verifyIdToken: async token => ({ uid: token }) };
+  const service = createStaffService({ auth, db });
+  const call = (uid, body) => service({ ip: `search-${uid}`, path: '/search', body, get: () => `Bearer ${uid}` });
+  const { results } = await call('teacher', { query: 'STAFF' });
+  assert.deepEqual(results, [{ uid: 's1', displayName: '박스태프', username: 'park-staff' }]);
+  assert.equal(JSON.stringify(results).includes('secret'), false);
+  await assert.rejects(call('s1', { query: 'staff' }), err => err.status === 403);
+  await assert.rejects(call('teacher', { query: '' }), err => err.status === 400);
+});

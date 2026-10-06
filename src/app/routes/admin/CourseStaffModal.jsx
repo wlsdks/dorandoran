@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import { useStaffAssignment } from '@/features/course/api/useStaffAssignment';
 
 export default function CourseStaffModal({ open, onClose, courseId, courseName }) {
-  const { staffList, loading, searchStaff, searchResults, searchLoading, assignStaff, removeStaff } = useStaffAssignment(courseId);
+  const { staffList, loading, searchStaff, searchResults, searchLoading, searchError, assignStaff, removeStaff } = useStaffAssignment(courseId);
   const [query, setQuery] = useState('');
   const [assigning, setAssigning] = useState(null);
   const [removing, setRemoving] = useState(null);
@@ -71,8 +71,10 @@ export default function CourseStaffModal({ open, onClose, courseId, courseName }
                 <div className="flex items-center justify-center py-4">
                   <Loader2 size={16} className="animate-spin text-slate-400" />
                 </div>
+              ) : searchError ? (
+                <p role="alert" className="text-sm text-red-600 dark:text-red-400 text-center py-3">{searchError}</p>
               ) : searchResults.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-3">검색 결과가 없습니다</p>
+                <p className="text-sm text-slate-400 text-center py-3">검색 결과가 없습니다 · 승인된 스태프 계정만 찾을 수 있어요</p>
               ) : (
                 <div className="space-y-1 max-h-40 overflow-y-auto">
                   {searchResults.map((staff) => (
