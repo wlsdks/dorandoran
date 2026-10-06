@@ -29,7 +29,7 @@ export const SPECIAL_MODES = [
   { mode: 'awards', label: '시상식', icon: Award, group: '결과' },
 
   { mode: 'focus', label: '집중!', icon: Eye, group: '기타' },
-  { mode: 'breakTime', label: '쉬는 시간', shortLabel: '쉬는시간', icon: Coffee, group: '기타' },
+  { mode: 'breakTime', label: '쉬는·대기 시간', shortLabel: '쉬는시간', icon: Coffee, group: '기타' },
 ];
 
 /** 모드 키만 필요한 곳(현재 모드가 특수 화면인지 판정)용. */

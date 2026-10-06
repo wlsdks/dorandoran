@@ -9,10 +9,11 @@ import { Smile, Meh, Frown, RotateCcw } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { hapticTap } from '@/lib/haptics';
 
+// 이해도는 위계가 있는 3단계라 색도 한 계열로: 이해됨 = 강조색, 보통 = 중립 회색, 모르겠음 = 차분한 호박색.
 const LEVELS = [
-  { key: 'good', label: '이해됨', icon: Smile, color: 'bg-emerald-700', ring: 'ring-emerald-500/30', chartColor: '#10B981' },
-  { key: 'okay', label: '보통', icon: Meh, color: 'bg-amber-700', ring: 'ring-amber-500/30', chartColor: '#F59E0B' },
-  { key: 'confused', label: '모르겠음', icon: Frown, color: 'bg-red-700', ring: 'ring-red-500/30', chartColor: '#EF4444' },
+  { key: 'good', label: '이해됨', icon: Smile, dot: 'bg-indigo-500 dark:bg-indigo-400', stroke: 'stroke-indigo-500 dark:stroke-indigo-400' },
+  { key: 'okay', label: '보통', icon: Meh, dot: 'bg-slate-400 dark:bg-slate-500', stroke: 'stroke-slate-400 dark:stroke-slate-500' },
+  { key: 'confused', label: '모르겠음', icon: Frown, dot: 'bg-amber-500/80 dark:bg-amber-400/70', stroke: 'stroke-amber-500/80 dark:stroke-amber-400/70' },
 ];
 
 /** Student voting UI */
@@ -81,7 +82,7 @@ function StudentComprehension({ sessionId, embedded = false }) {
                 disabled={hasVoted || pending}
                 className={`flex-1 min-w-0 min-h-12 flex flex-col items-center gap-2 px-2 py-4 rounded-2xl transition-colors duration-150 ${
                   isSelected
-                    ? `${level.color} text-white ring-4 ${level.ring} shadow-lg`
+                    ? 'bg-slate-900 text-white ring-4 ring-slate-900/15 shadow-lg dark:bg-slate-100 dark:text-slate-900 dark:ring-white/15'
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-sm'
                 } ${hasVoted && !isSelected ? 'cursor-not-allowed' : ''}`}
               >
@@ -109,61 +110,46 @@ function StudentComprehension({ sessionId, embedded = false }) {
   );
 }
 
-/** Donut chart for presenter/admin */
+/** 도넛 — 얇은 링, 조각 사이 작은 틈. 가운데는 '이해됨' 비율을 크게. */
 function DonutChart({ counts, total, presenter = false }) {
-  const size = presenter ? 300 : 200;
-  const strokeWidth = presenter ? 36 : 28;
+  const size = presenter ? 280 : 180;
+  const strokeWidth = presenter ? 18 : 14;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
+  const gap = total > 0 && LEVELS.filter(l => counts[l.key] > 0).length > 1 ? 4 : 0;
 
-  // reduce로 cumulative offset 누적 — let 변수 reassign 회피
-  const segments = useMemo(() => {
-    return LEVELS.reduce((acc, level) => {
-      const count = counts[level.key] || 0;
-      const pct = total > 0 ? count / total : 0;
-      const dashLength = pct * circumference;
-      const offset = acc.length > 0
-        ? acc[acc.length - 1].offset + acc[acc.length - 1].dashLength
-        : 0;
-      return [...acc, { ...level, count, pct, dashLength, offset }];
-    }, []);
-  }, [counts, total, circumference]);
+  const segments = useMemo(() => LEVELS.reduce((acc, level) => {
+    const count = counts[level.key] || 0;
+    const length = total > 0 ? (count / total) * circumference : 0;
+    const offset = acc.length ? acc[acc.length - 1].offset + acc[acc.length - 1].length : 0;
+    return [...acc, { ...level, count, length, offset }];
+  }, []), [counts, total, circumference]);
+  const goodPct = total > 0 ? Math.round((counts.good / total) * 100) : 0;
 
   return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth}
-          className="text-slate-100 dark:text-slate-700" />
-        {segments.filter(seg => seg.count > 0).map(seg => (
-          <motion.circle
-            key={seg.key}
-            cx={size / 2} cy={size / 2} r={radius}
-            fill="none" stroke={seg.chartColor} strokeWidth={strokeWidth}
-            strokeLinecap="round"
-            strokeDasharray={`${seg.dashLength} ${circumference - seg.dashLength}`}
-            strokeDashoffset={-seg.offset}
-            initial={{ strokeDasharray: `0 ${circumference}` }}
-            animate={{ strokeDasharray: `${seg.dashLength} ${circumference - seg.dashLength}` }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-          />
-        ))}
+    <div className="relative inline-flex shrink-0 items-center justify-center">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden="true">
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={strokeWidth} className="stroke-slate-200 dark:stroke-slate-800" />
+        {segments.filter(seg => seg.count > 0).map(seg => {
+          const visible = Math.max(seg.length - gap, 1);
+          return (
+            <motion.circle key={seg.key} cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={strokeWidth}
+              className={seg.stroke} strokeDashoffset={-(seg.offset + gap / 2)}
+              initial={{ strokeDasharray: `0 ${circumference}` }}
+              animate={{ strokeDasharray: `${visible} ${circumference - visible}` }}
+              transition={{ duration: 0.6, ease: 'easeOut' }} />
+          );
+        })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <motion.span
-          key={total}
-          initial={{ scale: 1.2 }}
-          animate={{ scale: 1 }}
-          className={`${presenter ? "text-5xl" : "text-3xl"} font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight`}
-        >
-          {total}
-        </motion.span>
-        <span className={presenter ? "text-xl text-slate-300" : "text-xs text-slate-600 dark:text-slate-300"}>명 응답</span>
+        <span className={`${presenter ? 'text-6xl' : 'text-4xl'} font-bold tabular-nums tracking-tight text-slate-900 dark:text-slate-100`}>{goodPct}<span className={presenter ? 'text-3xl' : 'text-xl'}>%</span></span>
+        <span className={`${presenter ? 'text-lg' : 'text-xs'} font-medium text-slate-500 dark:text-slate-400`}>이해됨</span>
       </div>
     </div>
   );
 }
 
-/** Presenter view — donut chart + breakdown */
+/** Presenter view — 도넛 + 범례(인원·비율). 전자칠판은 16:9라 가로로 나란히 둔다. */
 export function ComprehensionPresenter({ sessionId, onReset, presenter = false, readOnly = false }) {
   const [responses, setResponses] = useState({});
   const [resetting, setResetting] = useState(false);
@@ -182,29 +168,28 @@ export function ComprehensionPresenter({ sessionId, onReset, presenter = false, 
   entries.forEach(e => { if (counts[e.level] !== undefined) counts[e.level]++; });
 
   return (
-    <div className={`flex flex-col items-center gap-8 w-full mx-auto ${presenter ? "paper-surface max-w-[1000px]" : "max-w-lg"}`} onClick={e => e.stopPropagation()}>
-      <h3 className={`${presenter ? "text-3xl md:text-4xl" : "text-2xl"} font-bold tracking-tight text-slate-900 dark:text-slate-100`}>이해도 체크</h3>
+    <div className={`flex flex-col items-center w-full mx-auto ${presenter ? 'paper-surface max-w-[1000px] gap-10' : 'max-w-lg gap-6'}`} onClick={e => e.stopPropagation()}>
+      <div className="text-center space-y-1">
+        <h3 className={`${presenter ? 'text-3xl md:text-4xl' : 'text-2xl'} font-bold tracking-tight text-slate-900 dark:text-slate-100`}>이해도 체크</h3>
+        <p className={`${presenter ? 'text-xl' : 'text-sm'} text-slate-500 dark:text-slate-400`}><span className="font-semibold tabular-nums text-slate-700 dark:text-slate-200">{total}명</span> 응답</p>
+      </div>
 
-      <DonutChart counts={counts} total={total} presenter={presenter} />
-
-      {/* Breakdown */}
-      <div className={`flex gap-6 ${presenter ? "md:gap-16" : ""}`}>
-        {LEVELS.map(level => {
-          const count = counts[level.key] || 0;
-          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-          return (
-            <motion.div
-              key={level.key}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center space-y-1"
-            >
-              <div className={`w-3 h-3 rounded-full mx-auto ${level.color}`} />
-              <p className={`${presenter ? "text-4xl" : "text-2xl"} font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight`}>{pct}%</p>
-              <p className={presenter ? "text-2xl text-slate-300" : "text-xs text-slate-600 dark:text-slate-300"}>{level.label} ({count})</p>
-            </motion.div>
-          );
-        })}
+      <div className={`flex items-center ${presenter ? 'gap-16' : 'flex-col gap-6 sm:flex-row sm:gap-10'}`}>
+        <DonutChart counts={counts} total={total} presenter={presenter} />
+        <ul className={`${presenter ? 'min-w-[340px] space-y-5' : 'min-w-[220px] space-y-3'}`}>
+          {LEVELS.map(level => {
+            const count = counts[level.key] || 0;
+            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            return (
+              <motion.li key={level.key} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
+                <span className={`shrink-0 rounded-full ${level.dot} ${presenter ? 'h-3.5 w-3.5' : 'h-2.5 w-2.5'}`} aria-hidden="true" />
+                <span className={`flex-1 font-medium text-slate-700 dark:text-slate-200 ${presenter ? 'text-2xl' : 'text-sm'}`}>{level.label}</span>
+                <span className={`tabular-nums text-slate-500 dark:text-slate-400 ${presenter ? 'text-xl w-16' : 'text-xs w-10'} text-right`}>{count}명</span>
+                <span className={`tabular-nums font-bold text-slate-900 dark:text-slate-100 ${presenter ? 'text-3xl w-24' : 'text-base w-12'} text-right`}>{pct}%</span>
+              </motion.li>
+            );
+          })}
+        </ul>
       </div>
 
       {!readOnly && (total > 0 || resetting) && (

@@ -10,6 +10,7 @@ import IdleMascot from './IdleMascot';
 import { getNickname } from '@/lib/participant';
 import ReviewingBanner from '@/components/ui/ReviewingBanner';
 import { useGameResult } from '@/features/games/api/useGameResult';
+import BreakStatus from '@/features/games/components/BreakStatus';
 import PersistentAssignmentCard from '@/features/ai-judge/components/PersistentAssignmentCard';
 const ConfettiBurst = lazy(() => import('@/components/ui/ConfettiBurst'));
 const TIPS = [{
@@ -403,7 +404,7 @@ export default memo(function WaitingPage({
             stiffness: 300,
             damping: 25
           }}>
-                {GAME_MODES[currentMode] ? <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700/60 text-slate-600 dark:text-slate-300 text-sm font-medium">
+                {currentMode === 'breakTime' ? <BreakStatus sessionId={sessionId} /> : GAME_MODES[currentMode] ? <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 shadow-sm ring-1 ring-slate-200/70 dark:ring-slate-700/60 text-slate-600 dark:text-slate-300 text-sm font-medium">
                     {(() => {
                 const MIcon = GAME_MODES[currentMode].icon;
                 return <MIcon size={16} className="text-slate-400" />;
