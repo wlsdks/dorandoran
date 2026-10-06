@@ -47,9 +47,8 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
           <div
             className={`text-3xl font-bold tracking-tight tabular-nums ${oCorrect ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-900 dark:text-slate-100'}`}
           >
-            {oCount}
+            {oCount}<span className="ml-0.5 text-base font-medium text-slate-400 dark:text-slate-500">명</span>
           </div>
-          <div className="text-slate-400 dark:text-slate-500 text-sm">명</div>
         </div>
 
         <div className="px-4">
@@ -81,9 +80,8 @@ export default memo(function OXBattle({ sessionId, questionId, correctValue = nu
           <div
             className={`text-3xl font-bold tracking-tight tabular-nums ${xCorrect ? 'text-slate-800 dark:text-slate-200' : 'text-slate-900 dark:text-slate-100'}`}
           >
-            {xCount}
+            {xCount}<span className="ml-0.5 text-base font-medium text-slate-400 dark:text-slate-500">명</span>
           </div>
-          <div className="text-slate-400 dark:text-slate-500 text-sm">명</div>
         </div>
       </div>
 

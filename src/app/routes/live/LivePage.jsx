@@ -16,7 +16,6 @@ import ChatBubbleOverlay from '@/features/reactions/components/ChatBubbleOverlay
 import AnswerBubbleOverlay from '@/features/voting/components/AnswerBubbleOverlay';
 import JoinToast from '@/features/participants/components/JoinToast';
 import TimerCountdown from '@/features/timer/components/TimerCountdown';
-import Badge from '@/components/ui/Badge';
 import DoranDoranMascot from '@/components/ui/DoranDoranMascot';
 
 import ConnectionBanner from '@/components/ui/ConnectionBanner';
@@ -181,8 +180,8 @@ export default function LivePage() {
                   {currentMode === 'focus' && (
                     <div className="flex flex-col items-center justify-center gap-6 text-center">
                       <DoranDoranMascot size="lg" mood="focus" />
-                      <p className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">집중 모드</p>
-                      <p className="text-slate-400 dark:text-white/40 text-lg">학생 화면이 잠겼습니다</p>
+                      <p className="classroom-question-title font-bold text-slate-900 dark:text-white tracking-tight">집중 모드</p>
+                      <p className="classroom-option-label text-slate-400 dark:text-slate-400">학생 화면이 잠겼습니다</p>
                     </div>
                   )}
                 </Suspense>
@@ -197,8 +196,8 @@ export default function LivePage() {
                 className="w-full space-y-6"
               >
                 {isRunning && endTime && (
-                  <div className="max-w-xl mx-auto">
-                    <TimerCountdown endTime={endTime} duration={duration} />
+                  <div className="mx-auto w-[min(84vw,1800px)] max-w-3xl">
+                    <TimerCountdown endTime={endTime} duration={duration} presenter />
                   </div>
                 )}
 
@@ -214,15 +213,15 @@ export default function LivePage() {
                 <motion.div animate={reducedMotion ? {} : { scale: [1, 1.03, 1] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
                   <DoranDoranMascot size="lg" mood="waiting" animated={!reducedMotion} />
                 </motion.div>
-                <h2 className="text-xl font-semibold text-slate-500 dark:text-slate-300 tracking-tight">
+                <h2 className="classroom-option-label font-semibold text-slate-500 dark:text-slate-300 tracking-tight">
                   다음 질문을 기다리는 중...
                 </h2>
                 {session?.requireEmployeeId ? (
                   <EventStats participants={onlineList} count={count} variant="presenter" />
                 ) : (
-                  <Badge variant="neutral">
-                    {count}명 접속 중
-                  </Badge>
+                  <p className="text-[clamp(16px,1.1vw,26px)] tabular-nums text-slate-400 dark:text-slate-400">
+                    <span className="font-semibold text-slate-200">{count}명</span> 접속 중
+                  </p>
                 )}
               </motion.div>
             )}
