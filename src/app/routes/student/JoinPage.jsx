@@ -180,11 +180,11 @@ export default function JoinPage({ sessionId, onJoin }) {
             </motion.div>
             <div>
               <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</h1>
-              <p className={`text-sm mt-1.5 ${courseName ? 'text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
+              <p className={`text-sm mt-1.5 ${courseName ? 'text-slate-500 dark:text-slate-400 font-medium' : 'text-slate-600 dark:text-slate-400'}`}>
                 {courseName || '닉네임을 정하고 참여하세요'}
               </p>
             </div>
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
               {sessionId}
             </span>
           </motion.div>
@@ -200,9 +200,9 @@ export default function JoinPage({ sessionId, onJoin }) {
             <div className="flex items-center gap-2">
               <span className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</span>
               {courseName && (
-                <span className="text-sm text-slate-400 dark:text-slate-500 truncate">{courseName}</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400 truncate">{courseName}</span>
               )}
-              <span className="ml-auto text-xs text-slate-400 dark:text-slate-500 font-medium">{sessionId}</span>
+              <span className="ml-auto text-xs text-slate-600 dark:text-slate-400 font-medium">{sessionId}</span>
             </div>
           </motion.div>
 
@@ -245,7 +245,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                   enterKeyHint="go"
                   animate={isValid ? { paddingLeft: '3rem' } : { paddingLeft: '1rem' }}
                   transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-                  className={`w-full bg-white dark:bg-slate-800 border rounded-2xl pr-4 py-4 text-lg text-center text-slate-900 dark:text-slate-100 font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal focus:outline-none focus:ring-2 focus:bg-white dark:focus:bg-slate-700 transition-colors duration-150 ${
+                  className={`w-full bg-white dark:bg-slate-800 border rounded-2xl pr-4 py-4 text-lg text-center text-slate-900 dark:text-slate-100 font-medium placeholder:text-slate-600 dark:placeholder:text-slate-300 placeholder:font-normal focus:outline-none focus:ring-2 focus:bg-white dark:focus:bg-slate-700 transition-colors duration-150 ${
                     tooShort || error
                       ? 'border-red-300 focus:ring-red-500/15 focus:border-red-400'
                       : 'border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 focus:border-indigo-500 dark:focus:border-indigo-400'
@@ -316,7 +316,7 @@ export default function JoinPage({ sessionId, onJoin }) {
                       aria-required={requireEmployeeId}
                       maxLength={EMPLOYEE_ID_MAX}
                       autoComplete="off"
-                      className={`w-full bg-white dark:bg-slate-800 border rounded-2xl px-4 py-3.5 text-base text-center text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal focus:outline-none focus:ring-2 transition-colors duration-150 ${
+                      className={`w-full bg-white dark:bg-slate-800 border rounded-2xl px-4 py-3.5 text-base text-center text-slate-900 dark:text-slate-100 placeholder:text-slate-600 dark:placeholder:text-slate-300 placeholder:font-normal focus:outline-none focus:ring-2 transition-colors duration-150 ${
                         requireEmployeeId && touched && employeeId.trim().length === 0
                           ? 'border-red-300 focus:ring-red-500/15 focus:border-red-400'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 focus:border-indigo-500 dark:focus:border-indigo-400'

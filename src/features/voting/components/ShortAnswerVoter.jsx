@@ -87,7 +87,7 @@ export default memo(function ShortAnswerVoter({ sessionId, questionId, disabled 
             enterKeyHint="done"
             disabled={disabled}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleSubmit(); }}
-            className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 text-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 rounded-xl px-4 py-3.5 pr-16 text-base placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-700 transition-colors duration-150"
+            className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 text-slate-900 dark:text-slate-100 dark:placeholder:text-slate-300 rounded-xl px-4 py-3.5 pr-16 text-base placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-700 transition-colors duration-150"
             autoFocus
           />
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-300 dark:text-slate-500 font-medium tabular-nums">

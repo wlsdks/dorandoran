@@ -88,7 +88,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
     return (
       <div className="min-h-dvh bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-4">
         <DoranDoranMascot size="md" mood="thinking" />
-        <p className="text-sm text-slate-400">불러오는 중...</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">불러오는 중...</p>
       </div>
     );
   }
@@ -101,7 +101,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
           {selectedCourse ? (
             <button
               onClick={() => setSelectedCourse(null)}
-              className="p-1.5 -ml-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150"
+              className="p-1.5 -ml-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150"
             >
               <ArrowLeft size={20} />
             </button>
@@ -112,7 +112,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
             <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               {selectedCourse ? selectedCourse.name : '도란도란'}
             </h1>
-            <p className="text-slate-400 text-xs">
+            <p className="text-slate-500 dark:text-slate-400 text-xs">
               {selectedCourse ? `${selectedCourse.ownerName || '강사'} · 세션 선택` : '배정된 강의'}
             </p>
           </div>
@@ -120,7 +120,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
         <div className="flex items-center gap-3">
           <span className="text-sm text-slate-500 font-medium max-sm:hidden">{adminUser?.displayName}</span>
           <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-medium">스태프</span>
-          <button onClick={onLogout} className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors duration-150">
+          <button onClick={onLogout} aria-label="로그아웃" className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors duration-150">
             <LogOut size={16} /><span className="max-sm:hidden">로그아웃</span>
           </button>
         </div>
@@ -161,7 +161,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
                       </div>
                       <div>
                         <p className="font-bold text-slate-900 dark:text-slate-100 tracking-tight">{course.name}</p>
-                        <p className="text-slate-400 text-sm mt-0.5">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
                           {course.ownerName || '강사'}
                           {activeCountMap[course.id] > 0 && (
                             <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-medium">
@@ -171,7 +171,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
                         </p>
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-slate-300 group-hover:text-slate-500 dark:group-hover:text-slate-300 transition-colors duration-150" />
+                    <ChevronRight size={18} className="text-slate-500 dark:text-slate-400 group-hover:text-slate-500 dark:group-hover:text-slate-300 transition-colors duration-150" />
                   </motion.button>
                 ))
               )}
@@ -188,7 +188,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
               {sessionsLoading ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-3">
                   <DoranDoranMascot size="sm" mood="thinking" />
-                  <p className="text-sm text-slate-400">불러오는 중...</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">불러오는 중...</p>
                 </div>
               ) : courseSessions.length === 0 ? (
                 <EmptyState
@@ -225,13 +225,13 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
                           <Users size={12} />
                           {session.participantCount}명 접속
                         </p>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-slate-300" />
+                    <ChevronRight size={16} className="text-slate-500 dark:text-slate-400" />
                   </motion.button>
                 ))
               )}
@@ -248,7 +248,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
               <Avatar name={staffNickname || adminUser?.displayName || ''} size="lg" />
             </div>
             <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">닉네임 설정</h2>
-            <p className="text-slate-400 text-sm">세션에서 사용할 이름을 입력하세요</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">세션에서 사용할 이름을 입력하세요</p>
           </div>
           <input
             type="text"
@@ -258,7 +258,7 @@ export default function StaffCourseDashboard({ adminUser, onSelectSession, onLog
             placeholder={adminUser?.displayName || '닉네임'}
             maxLength={10}
             autoFocus
-            className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3 text-center text-lg text-slate-900 dark:text-slate-100 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3 text-center text-lg text-slate-900 dark:text-slate-100 font-medium placeholder:text-slate-500 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
           />
           <Button
             onClick={handleNicknameConfirm}

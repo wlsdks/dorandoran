@@ -36,7 +36,7 @@
     <script src="/storage-upgrade.js"></script>
     <script>
       // Apply saved theme immediately to prevent flash
-      (function(){try{var t=localStorage.getItem('dorandoran_theme')||'dark';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();
+      (function(){try{var t=localStorage.getItem('dorandoran_theme')||'dark';if(!['dark','light','system'].includes(t))t='dark';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';document.querySelector('meta[name="theme-color"]').setAttribute('content',d?'#0F172A':'#F8FAFC');}catch(e){}})();
     </script>
   </head>
   <body ontouchstart="" class="bg-white dark:bg-slate-900">

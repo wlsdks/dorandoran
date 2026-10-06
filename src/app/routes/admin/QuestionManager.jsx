@@ -23,7 +23,7 @@ function TooltipIconButton({ onClick, label, children, hoverColor = 'hover:text-
   const [show, setShow] = useState(false);
   return (
     <div className="relative" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
-      <button onClick={onClick} className={`min-h-11 min-w-11 flex items-center justify-center p-2 rounded-lg text-slate-400 dark:text-slate-500 ${hoverColor} hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90`} {...props}>
+      <button onClick={onClick} className={`min-h-11 min-w-11 flex items-center justify-center p-2 rounded-lg text-slate-500 dark:text-slate-400 ${hoverColor} hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-150 active:scale-90`} {...props}>
         {children}
       </button>
       <AnimatePresence>
@@ -176,7 +176,7 @@ export default function QuestionManager({
             !currentQuestion ? 'border-slate-400 shadow-md' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
           }`}
         >
-          <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">수업 요약</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">수업 요약</p>
           <p className="text-slate-900 dark:text-slate-100 text-sm font-medium">
             질문 {questionList.length}개 · {completedCount}개 진행 완료
           </p>
@@ -265,7 +265,7 @@ export default function QuestionManager({
           </span>
           <span className="text-sm text-slate-600 dark:text-slate-300 leading-snug">
             참여자 목록도 함께 비우기
-            <span className="block text-[11px] text-slate-400">리허설 접속자를 정리하고 본 행사를 깨끗하게 시작</span>
+            <span className="block text-[11px] text-slate-500 dark:text-slate-400">리허설 접속자를 정리하고 본 행사를 깨끗하게 시작</span>
           </span>
         </button>
       </ConfirmModal>

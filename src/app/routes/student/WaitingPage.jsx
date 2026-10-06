@@ -343,7 +343,7 @@ export default memo(function WaitingPage({
           opacity: 1
         }} transition={{
           delay: 0.6
-        }} className="text-slate-400 dark:text-slate-500 text-sm">
+        }} className="text-slate-600 dark:text-slate-400 text-sm">
                 {isPickerResult ? '큰 박수로 응원해주세요!' : '다음 기회에 도전해보세요'}
               </motion.p>}
           </motion.div> : <motion.div key="waiting" initial={{
@@ -418,7 +418,7 @@ export default memo(function WaitingPage({
                   delay: i * 0.2
                 }} />)}
                       </span>}
-                  </div> : <p className="text-slate-400 dark:text-slate-500 text-sm">
+                  </div> : <p className="text-slate-600 dark:text-slate-400 text-sm">
                     다음 질문을 기다리는 중...
                   </p>}
               </motion.div>

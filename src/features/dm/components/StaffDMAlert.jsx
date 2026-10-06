@@ -18,7 +18,7 @@ const DMAlertItem = memo(function DMAlertItem({ dm, onRespond, onDismiss }) {
       className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md p-3.5 flex items-start gap-3"
     >
       <div className="shrink-0 mt-0.5">
-        <MessageSquare size={16} className="text-slate-400" />
+        <MessageSquare size={16} className="text-slate-500 dark:text-slate-400" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -51,7 +51,7 @@ const DMAlertItem = memo(function DMAlertItem({ dm, onRespond, onDismiss }) {
       </div>
       <button
         onClick={() => onDismiss(dm.id)}
-        className="p-1 text-slate-300 hover:text-slate-500 dark:text-slate-500 dark:hover:text-slate-300 transition-colors duration-150 shrink-0"
+        className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-500 dark:text-slate-500 dark:hover:text-slate-300 transition-colors duration-150 shrink-0"
         aria-label="닫기"
       >
         <X size={14} />

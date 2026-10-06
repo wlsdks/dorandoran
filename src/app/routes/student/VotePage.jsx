@@ -95,7 +95,7 @@ export default memo(function VotePage({ sessionId }) {
           key={modeKey}
           initial={variants.initial}
           animate={variants.animate}
-          exit={variants.exit}
+          exit={{ ...variants.exit, transition: { type: 'tween', duration: 0.12, ease: 'easeIn' } }}
           transition={ENTER_TRANSITION}
         >
           <VoteModeContent

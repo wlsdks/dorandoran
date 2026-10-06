@@ -94,7 +94,7 @@ export default memo(function QuestionLibraryView({
     if (ok) showToast('질문이 삭제되었습니다');
   }
   if (loading) {
-    return <div className="flex items-center justify-center py-16 text-slate-400">
+    return <div className="flex items-center justify-center py-16 text-slate-500 dark:text-slate-400">
         <Loader2 size={20} className="animate-spin mr-2" />
         불러오는 중...
       </div>;
@@ -104,7 +104,7 @@ export default memo(function QuestionLibraryView({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-snug">질문 보관함</h2>
-          <p className="text-slate-400 text-xs mt-0.5">
+          <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">
             {questions.length > 0 ? `${questions.length}개의 질문이 저장됨` : '자주 쓰는 질문을 저장하세요'}
           </p>
         </div>
@@ -148,8 +148,8 @@ export default memo(function QuestionLibraryView({
         opacity: 1
       }} className="flex flex-col items-center text-center py-10 space-y-2">
               <DoranDoranMascot size="sm" mood="waiting" />
-              <p className="text-slate-400 text-sm">일치하는 질문이 없습니다</p>
-              <p className="text-slate-400 dark:text-slate-500 text-xs">검색어나 필터를 변경해보세요</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">일치하는 질문이 없습니다</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs">검색어나 필터를 변경해보세요</p>
             </motion.div>}
         </div>}
 

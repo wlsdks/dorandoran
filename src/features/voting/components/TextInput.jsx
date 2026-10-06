@@ -39,7 +39,7 @@ function SubmitConfirm({ type, value }) {
           <p className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             {isGuess ? '답변이 제출되었습니다' : isSubjective ? '답변이 제출되었습니다' : isQnA ? '질문이 전달되었습니다' : '단어가 등록되었습니다'}
           </p>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             {isGuess
               ? '정답 공개를 기다려주세요'
               : isSubjective
@@ -57,7 +57,7 @@ function SubmitConfirm({ type, value }) {
             transition={{ delay: 0.3 }}
             className="rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-700 dark:border-slate-600 px-4 py-3 text-center w-full"
           >
-            <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-1">내가 {isGuess ? '입력한 답' : isSubjective ? '쓴 답변' : isQnA ? '보낸 질문' : '입력한 단어'}</p>
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">내가 {isGuess ? '입력한 답' : isSubjective ? '쓴 답변' : isQnA ? '보낸 질문' : '입력한 단어'}</p>
             <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{value}</p>
           </motion.div>
         )}
@@ -124,7 +124,7 @@ export default memo(function TextInput({ sessionId, questionId, type = 'wordclou
             aria-label="답변 입력"
             maxLength={maxLength}
             rows={5}
-            className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 text-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 rounded-xl px-4 py-3.5 pb-7 text-base placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150 resize-none leading-relaxed"
+            className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 text-slate-900 dark:text-slate-100 dark:placeholder:text-slate-300 rounded-xl px-4 py-3.5 pb-7 text-base placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150 resize-none leading-relaxed"
             autoFocus
           />
         ) : (
@@ -137,7 +137,7 @@ export default memo(function TextInput({ sessionId, questionId, type = 'wordclou
             maxLength={maxLength}
             enterKeyHint="send"
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleSubmit(e); }}
-            className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 text-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 rounded-xl px-4 py-3.5 pr-16 text-base placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150"
+            className="w-full bg-slate-50 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 text-slate-900 dark:text-slate-100 dark:placeholder:text-slate-300 rounded-xl px-4 py-3.5 pr-16 text-base placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-600 transition-colors duration-150"
             autoFocus
           />
         )}

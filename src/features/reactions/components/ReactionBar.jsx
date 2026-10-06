@@ -95,7 +95,7 @@ export default function ReactionBar({ sessionId, bubbleSessionId, onInputFocus }
     }
   }, [bubbleText, bubbleSessionId, sessionId, bubbleCooldownUntil]);
 
-  return <div className="space-y-3">
+  return <div className="space-y-3" data-compose-open={bubbleOpen}>
     <div className="grid gap-2" data-reaction-grid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, max(30%, 5.25rem)), 1fr))' }}>
       {REACTIONS.map(({ type, icon: Icon }) => <motion.button key={type} type="button" onClick={() => handleReaction(type)} aria-label={LABELS[type]} aria-pressed={selected === type}
         whileTap={{ scale: reduced ? 1 : 0.97 }} transition={{ duration: 0.1 }} className={`${tileBase} ${selected === type ? tileSelected : tileRest}`}>

@@ -26,7 +26,7 @@ const QuestionItem = memo(function QuestionItem({ q, isSelected, onClick }) {
     >
       <div className="flex items-start gap-2">
         {!isDone && <div className="w-1.5 h-1.5 rounded-full bg-slate-900 dark:bg-slate-100 mt-1.5 shrink-0" />}
-        {isDone && <Check size={12} className="text-slate-400 mt-1 shrink-0" />}
+        {isDone && <Check size={12} className="text-slate-500 dark:text-slate-300 mt-1 shrink-0" />}
         <div className="flex-1 min-w-0">
           <p className="text-slate-700 dark:text-slate-200 leading-relaxed line-clamp-2">{q.text}</p>
           <div className="flex items-center gap-1.5 mt-1.5">
@@ -34,13 +34,13 @@ const QuestionItem = memo(function QuestionItem({ q, isSelected, onClick }) {
               {isUrgent && <span className="w-1.5 h-1.5 rounded-full bg-red-500" />}
               {isUrgent ? '긴급' : '수업'}
             </span>
-            <span className="text-slate-300 dark:text-slate-600 text-[10px]">
+            <span className="text-slate-500 dark:text-slate-300 text-[10px]">
               {isUrgent ? '익명' : q.nickname || '익명'}
             </span>
-            <span className="text-slate-300 dark:text-slate-600 text-[10px]">·</span>
-            <span className="text-slate-300 dark:text-slate-600 text-[10px]">{timeAgo(q.timestamp)}</span>
+            <span className="text-slate-500 dark:text-slate-300 text-[10px]">·</span>
+            <span className="text-slate-500 dark:text-slate-300 text-[10px]">{timeAgo(q.timestamp)}</span>
             {isDone && !isUrgent && (
-              <span className="text-slate-400 text-[10px] ml-auto">
+              <span className="text-slate-500 dark:text-slate-300 text-[10px] ml-auto">
                 {q.answeredByRole === 'staff' ? '스태프 답변' : '강사 답변'}
               </span>
             )}
@@ -62,7 +62,7 @@ function AccordionSection({ icon: Icon, title, count, defaultOpen, badgeVariant,
         aria-expanded={!collapsed}
       >
         <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-          <Icon size={14} className="text-slate-400" />
+          <Icon size={14} className="text-slate-500 dark:text-slate-300" />
           {title}
           {count > 0 && (
             <motion.span
@@ -80,7 +80,7 @@ function AccordionSection({ icon: Icon, title, count, defaultOpen, badgeVariant,
           )}
         </span>
         <motion.div animate={{ rotate: collapsed ? 0 : 180 }} transition={{ duration: 0.2 }}>
-          <ChevronDown size={14} className="text-slate-400" />
+          <ChevronDown size={14} className="text-slate-500 dark:text-slate-300" />
         </motion.div>
       </button>
 
@@ -139,10 +139,10 @@ export default function StaffQuestionPanel({ urgentList, classList, selectedId, 
       {/* Header */}
       <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 shrink-0">
         <div className="flex items-center gap-2">
-          <MessageCircle size={16} className="text-slate-400" />
+          <MessageCircle size={16} className="text-slate-500 dark:text-slate-300" />
           <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">질문</h2>
           {totalCount > 0 && (
-            <span className="text-xs text-slate-400 tabular-nums">{totalCount}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-300 tabular-nums">{totalCount}</span>
           )}
         </div>
       </div>
@@ -168,7 +168,7 @@ export default function StaffQuestionPanel({ urgentList, classList, selectedId, 
               badgeVariant="red"
             >
               {unanswered.length === 0 ? (
-                <p className="text-slate-400 dark:text-slate-500 text-xs py-1">미답변 질문이 없습니다</p>
+                <p className="text-slate-500 dark:text-slate-300 text-xs py-1">미답변 질문이 없습니다</p>
               ) : (
                 <AnimatePresence>
                   {unanswered.map((q) => (

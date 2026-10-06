@@ -108,9 +108,9 @@ export function getModeVariants(modeKey) {
 
 // Spring transition for mode changes (~0.3s enter)
 export const ENTER_TRANSITION = {
-  type: 'spring',
-  stiffness: 280,
-  damping: 26
+  type: 'tween',
+  duration: 0.18,
+  ease: [0.22, 1, 0.36, 1]
 };
 
 /** Renders QuizResult from vote data passed by QuizVoter. */

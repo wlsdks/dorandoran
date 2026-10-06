@@ -24,7 +24,7 @@ function ThemeSection() {
   return (
     <motion.div variants={stagger.item} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
       <div className="flex items-center gap-3 mb-5">
-        <Moon size={18} className="text-slate-400" />
+        <Moon size={18} className="text-slate-500 dark:text-slate-400" />
         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">화면 테마</h3>
       </div>
       <div className="grid grid-cols-3 gap-2">
@@ -76,7 +76,7 @@ function ShortcutsSection() {
   return (
     <motion.div variants={stagger.item} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
       <div className="flex items-center gap-3 mb-5">
-        <Keyboard size={18} className="text-slate-400" />
+        <Keyboard size={18} className="text-slate-500 dark:text-slate-400" />
         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">키보드 단축키</h3>
       </div>
       <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">세션 진행 중 키보드로 빠르게 수업을 진행하세요. 입력 필드에 포커스 시 비활성화됩니다.</p>
@@ -123,14 +123,14 @@ function QuickStats({ sessions }) {
   return (
     <motion.div variants={stagger.item} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
       <div className="flex items-center gap-3 mb-5">
-        <Trophy size={18} className="text-slate-400" />
+        <Trophy size={18} className="text-slate-500 dark:text-slate-400" />
         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">나의 활동</h3>
       </div>
       <div className="grid grid-cols-2 gap-4">
         {items.map((item) => (
           <div key={item.label}>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium uppercase tracking-wide">{item.label}</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight">{item.value}<span className="text-xs text-slate-400 font-normal ml-0.5">{item.suffix}</span></p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight">{item.value}<span className="text-xs text-slate-500 dark:text-slate-400 font-normal ml-0.5">{item.suffix}</span></p>
           </div>
         ))}
       </div>
@@ -143,7 +143,7 @@ function AppInfo() {
   return (
     <motion.div variants={stagger.item} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
       <div className="flex items-center gap-3 mb-5">
-        <Info size={18} className="text-slate-400" />
+        <Info size={18} className="text-slate-500 dark:text-slate-400" />
         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">앱 정보</h3>
       </div>
       <div className="space-y-3">
@@ -165,7 +165,7 @@ function AppInfo() {
         </div>
         <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
           <a href="/THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener noreferrer" className="min-h-11 flex items-center justify-center text-sm text-slate-600 dark:text-slate-300 hover:underline">오픈소스 라이선스 고지</a>
-          <p className="text-xs text-slate-400 dark:text-slate-500 text-center">도란도란 &mdash; 실시간 강의 참여 플랫폼</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 text-center">도란도란 &mdash; 실시간 강의 참여 플랫폼</p>
         </div>
       </div>
     </motion.div>

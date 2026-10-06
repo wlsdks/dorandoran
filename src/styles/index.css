@@ -132,6 +132,7 @@ input, textarea, select {
  .presentation-footer { font-size:.875rem; }
  .presentation-footer button { padding-inline:.75rem;font-size:.875rem; }
 }
+html[data-keyboard-open='true'] [data-reaction-scroll] [data-compose-open='true'] > [data-reaction-grid] { display:none; }
 .viewport-overlay { top:var(--app-visible-top,0px);height:var(--app-visible-height,100dvh);bottom:auto; }
 .viewport-overlay > [role='dialog'] { max-height:calc(var(--app-visible-height,100dvh) - 2rem); }
 .mobile-conversation { max-height:calc(var(--app-visible-height,100dvh) - 2rem);container:conversation / size; }

@@ -58,9 +58,9 @@ function CurrentContext({ session }) {
         className="px-5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 shrink-0"
         aria-live="polite"
       >
-        <Icon size={14} className="text-slate-400 shrink-0" />
+        <Icon size={14} className="text-slate-500 dark:text-slate-400 shrink-0" />
         {content.secondary && (
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0">
+          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0">
             {content.secondary}
           </span>
         )}
@@ -84,7 +84,7 @@ export default function StaffMobileView({ sessionId, session, adminUser, onBack,
       <header className="bg-white dark:bg-slate-800 shrink-0">
         <div className="flex items-center gap-3 px-5 py-3.5">
           <button onClick={activeTab !== 'questions' ? () => setActiveTab('questions') : onBack}
-            className="p-2 -ml-2 rounded-xl text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150"
+            className="p-2 -ml-2 rounded-xl text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150"
             aria-label="뒤로가기">
             <ArrowLeft size={22} />
           </button>
@@ -92,7 +92,7 @@ export default function StaffMobileView({ sessionId, session, adminUser, onBack,
             <h1 className="text-base font-bold text-slate-900 dark:text-slate-100 truncate tracking-tight">
               {courseName} {round}
             </h1>
-            <div className="flex items-center gap-1.5 text-[13px] text-slate-400">
+            <div className="flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-slate-400">
               <span><motion.span key={count} initial={{ scale: 1.15 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 22 }} className="inline-block tabular-nums">{count}</motion.span>명 접속</span>
               <span>·</span>
               <span>스태프</span>
@@ -100,7 +100,7 @@ export default function StaffMobileView({ sessionId, session, adminUser, onBack,
           </div>
           {onLogout && (
             <button onClick={onLogout}
-              className="p-2 rounded-xl text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150"
+              className="p-2 rounded-xl text-slate-500 dark:text-slate-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors duration-150"
               aria-label="로그아웃">
               <LogOut size={18} />
             </button>
@@ -149,7 +149,7 @@ export default function StaffMobileView({ sessionId, session, adminUser, onBack,
               className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors duration-150 ${
                 isActive
                   ? 'text-slate-900 dark:text-slate-100'
-                  : 'text-slate-400 dark:text-slate-500'
+                  : 'text-slate-500 dark:text-slate-400'
               }`}
             >
               <Icon size={24} strokeWidth={isActive ? 2 : 1.5} />

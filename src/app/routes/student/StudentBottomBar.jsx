@@ -158,7 +158,7 @@ export default memo(function StudentBottomBar({ sessionId }) {
           </button>
           {!isAnonymous && <p className="text-center text-slate-400 text-sm -mt-2">{nickname} (으)로 표시됩니다</p>}
           {isAnonymous && <p className="text-center text-slate-400 text-sm -mt-2">이름이 표시되지 않습니다</p>}
-          <textarea value={questionText} onChange={(e) => setQuestionText(e.target.value)} placeholder="질문을 입력하세요..." aria-label="긴급 질문 내용" maxLength={200} rows={3} className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-colors duration-150" autoFocus />
+          <textarea value={questionText} onChange={(e) => setQuestionText(e.target.value)} placeholder="질문을 입력하세요..." aria-label="긴급 질문 내용" maxLength={200} rows={3} className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-3.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-600 dark:placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-colors duration-150" autoFocus />
           <Button type="submit" variant="primary" size="lg" disabled={!questionText.trim()} className="w-full"><Send size={16} />보내기</Button>
         </form>
       </Modal>

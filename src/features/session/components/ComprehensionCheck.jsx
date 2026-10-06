@@ -10,9 +10,9 @@ import Button from '@/components/ui/Button';
 import { hapticTap } from '@/lib/haptics';
 
 const LEVELS = [
-  { key: 'good', label: '이해됨', icon: Smile, color: 'bg-emerald-500', ring: 'ring-emerald-500/30', chartColor: '#10B981' },
-  { key: 'okay', label: '보통', icon: Meh, color: 'bg-amber-500', ring: 'ring-amber-500/30', chartColor: '#F59E0B' },
-  { key: 'confused', label: '모르겠음', icon: Frown, color: 'bg-red-500', ring: 'ring-red-500/30', chartColor: '#EF4444' },
+  { key: 'good', label: '이해됨', icon: Smile, color: 'bg-emerald-700', ring: 'ring-emerald-500/30', chartColor: '#10B981' },
+  { key: 'okay', label: '보통', icon: Meh, color: 'bg-amber-700', ring: 'ring-amber-500/30', chartColor: '#F59E0B' },
+  { key: 'confused', label: '모르겠음', icon: Frown, color: 'bg-red-700', ring: 'ring-red-500/30', chartColor: '#EF4444' },
 ];
 
 /** Student voting UI */
@@ -62,7 +62,7 @@ function StudentComprehension({ sessionId, embedded = false }) {
       >
         <div className="space-y-2">
           <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">이해도 체크</p>
-          <p className="text-slate-400 text-[15px]">지금까지 내용이 이해되시나요?</p>
+          <p className="text-slate-600 dark:text-slate-300 text-[15px]">지금까지 내용이 이해되시나요?</p>
         </div>
 
         <div className="flex gap-2 justify-center w-full">
@@ -99,7 +99,7 @@ function StudentComprehension({ sessionId, embedded = false }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-slate-400 text-sm"
+            className="text-slate-600 dark:text-slate-300 text-sm"
           >
             응답이 기록되었습니다
           </motion.p>
@@ -157,7 +157,7 @@ function DonutChart({ counts, total, presenter = false }) {
         >
           {total}
         </motion.span>
-        <span className={presenter ? "text-xl text-slate-300" : "text-xs text-slate-400"}>명 응답</span>
+        <span className={presenter ? "text-xl text-slate-300" : "text-xs text-slate-600 dark:text-slate-300"}>명 응답</span>
       </div>
     </div>
   );
@@ -201,7 +201,7 @@ export function ComprehensionPresenter({ sessionId, onReset, presenter = false, 
             >
               <div className={`w-3 h-3 rounded-full mx-auto ${level.color}`} />
               <p className={`${presenter ? "text-4xl" : "text-2xl"} font-bold text-slate-900 dark:text-slate-100 tabular-nums tracking-tight`}>{pct}%</p>
-              <p className={presenter ? "text-2xl text-slate-300" : "text-xs text-slate-400"}>{level.label} ({count})</p>
+              <p className={presenter ? "text-2xl text-slate-300" : "text-xs text-slate-600 dark:text-slate-300"}>{level.label} ({count})</p>
             </motion.div>
           );
         })}

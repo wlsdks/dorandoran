@@ -73,10 +73,10 @@ export default function StaffQuestionsTab({ sessionId, adminUser }) {
                       {isUrgent && <span className="w-1.5 h-1.5 rounded-full bg-red-500" />}
                       {isUrgent ? '긴급' : '수업'}
                     </span>
-                    <span className="text-slate-400 text-xs">{isUrgent ? '익명' : q.nickname}</span>
-                    <span className="text-slate-300 dark:text-slate-600 text-xs">{timeAgo(q.timestamp)}</span>
+                    <span className="text-slate-500 dark:text-slate-400 text-xs">{isUrgent ? '익명' : q.nickname}</span>
+                    <span className="text-slate-500 dark:text-slate-300 text-xs">{timeAgo(q.timestamp)}</span>
                     {isDimmed && (
-                      <span className="flex items-center gap-0.5 text-slate-400 text-[10px] ml-auto">
+                      <span className="flex items-center gap-0.5 text-slate-500 dark:text-slate-400 text-[10px] ml-auto">
                         <Check size={10} />
                         {isUrgent ? '확인됨' : (q.answeredByRole === 'staff' ? '스태프 답변' : '강사 답변')}
                       </span>
@@ -93,14 +93,14 @@ export default function StaffQuestionsTab({ sessionId, adminUser }) {
         {selected && (
           <div className="text-center">
             {selected._type === 'urgent' ? (
-              <MessageCircle size={28} className="text-slate-400 mx-auto mb-3" />
+              <MessageCircle size={28} className="text-slate-500 dark:text-slate-400 mx-auto mb-3" />
             ) : (
-              <HelpCircle size={28} className="text-slate-400 mx-auto mb-3" />
+              <HelpCircle size={28} className="text-slate-500 dark:text-slate-400 mx-auto mb-3" />
             )}
             <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
               {selected._type === 'urgent' ? '긴급 질문' : '수업 질문'}
             </h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               {selected._type === 'urgent' ? '익명' : selected.nickname}
             </p>
             <p className="text-lg text-slate-700 dark:text-slate-200 leading-relaxed mt-6 mb-8">
@@ -112,7 +112,7 @@ export default function StaffQuestionsTab({ sessionId, adminUser }) {
               </Button>
               <button
                 onClick={() => setSelected(null)}
-                className="w-full py-2 text-sm font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
+                className="w-full py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-150"
               >
                 닫기
               </button>

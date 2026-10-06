@@ -129,13 +129,13 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
           <DoranDoranMascot size="sm" />
           <div>
             <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">도란도란</h1>
-            <p className="text-slate-400 text-xs">{TABS.find((t) => t.key === activeTab)?.label}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs">{TABS.find((t) => t.key === activeTab)?.label}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {adminUser && <span className="text-sm text-slate-500 font-medium max-sm:hidden">{adminUser.displayName}</span>}
           {isMaster && <AdminApproval pendingAdmins={pendingAdmins} pendingCount={pendingCount} approveAdmin={approveAdmin} rejectAdmin={rejectAdmin} />}
-          <button onClick={onLogout} className="flex items-center justify-center min-h-12 min-w-12 gap-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors duration-150 active:scale-[0.97]">
+          <button onClick={onLogout} aria-label="로그아웃" className="flex items-center justify-center min-h-12 min-w-12 gap-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors duration-150 active:scale-[0.97]">
             <LogOut size={16} /><span className="max-sm:hidden">로그아웃</span>
           </button>
         </div>
@@ -150,7 +150,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
             {TABS.map((tab) => (
               <button key={tab.key} onClick={() => handleTabChange(tab.key)}
                 className={`relative min-h-12 px-4 max-sm:px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 active:scale-[0.97] whitespace-nowrap ${
-                  activeTab === tab.key ? 'text-white dark:text-slate-900' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}>
+                  activeTab === tab.key ? 'text-white dark:text-slate-900' : 'text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>
                 {activeTab === tab.key && (
                   <motion.div
                     layoutId="tab-indicator"
@@ -192,7 +192,7 @@ export default function SessionDashboard({ onSelectSession, onLogout, adminUser,
           {activeTab === 'history' && (
             <motion.div key="history" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-16 gap-3"><DoranDoranMascot size="sm" mood="thinking" /><p className="text-sm text-slate-400">불러오는 중...</p></div>
+                <div className="flex flex-col items-center justify-center py-16 gap-3"><DoranDoranMascot size="sm" mood="thinking" /><p className="text-sm text-slate-500 dark:text-slate-400">불러오는 중...</p></div>
               ) : (
                 <Suspense fallback={<SuspenseFallback fullPage={false} />}>
                   <StatsView sessions={sessions} />

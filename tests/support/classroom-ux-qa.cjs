@@ -199,6 +199,29 @@ async function questionNamed(title) {
     });
     for (const page of [teacher, student]) expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
     expect(modelRequests).toEqual([]);
+    await checked('offline discussion memo is queued once and allows another memo after ACK', async () => {
+      await sessionRef.update({ currentMode: 'discussion', discussion: { topic: '함께 배운 내용', duration: 60, endTime: Date.now() + 60000 } });
+      const memo = student.getByPlaceholder('토론 내용을 메모하세요...');
+      await memo.fill('연결을 기다리는 메모');
+      await student.evaluate(async () => {
+        const { db } = await import('/src/lib/firebase.js');
+        const { goOffline } = await import('/node_modules/.vite/deps/firebase_database.js');
+        goOffline(db);
+      });
+      await student.getByRole('button', { name: '메모 제출' }).evaluate(button => { button.click(); button.click(); });
+      await expect(student.getByRole('button', { name: '보내는 중...' })).toBeDisabled();
+      expect((await sessionRef.child('discussion/memos').get()).exists()).toBe(false);
+      await student.evaluate(async () => {
+        const { db } = await import('/src/lib/firebase.js');
+        const { goOnline } = await import('/node_modules/.vite/deps/firebase_database.js');
+        goOnline(db);
+      });
+      await expect.poll(async () => Object.keys((await sessionRef.child('discussion/memos').get()).val() || {}).length).toBe(1);
+      await expect(memo).toHaveValue('');
+      await memo.fill('새로 보낸 다음 메모');
+      await student.getByRole('button', { name: '메모 제출' }).click();
+      await expect.poll(async () => Object.keys((await sessionRef.child('discussion/memos').get()).val() || {}).length).toBe(2);
+    });
     expect(errors).toEqual([]);
     console.log(JSON.stringify({ result: 'PASS', checks, durationMs: Date.now() - started, errors, modelRequests }));
   } finally {

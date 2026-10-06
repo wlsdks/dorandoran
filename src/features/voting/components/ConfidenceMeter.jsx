@@ -30,7 +30,7 @@ export default memo(function ConfidenceMeter({ onConfirm }) {
       data-confidence-meter
     >
       <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-1 font-medium">얼마나 확신하나요?</p>
-      <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center mb-3">확신도에 따라 보너스 점수가 달라집니다</p>
+      <p className="text-[11px] text-slate-600 dark:text-slate-400 text-center mb-3">확신도에 따라 보너스 점수가 달라집니다</p>
       <div className="grid grid-cols-3 gap-2">
         {LEVELS.map(({ key, label }) => (
           <button

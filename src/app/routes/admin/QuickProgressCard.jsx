@@ -5,7 +5,7 @@ import { QUIZ_EVENT_PRESETS, isQuizQuestion } from '@/lib/quiz';
 
 function KeyHint({ keys, label }) {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500">
+    <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
       <kbd className="px-1 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-mono text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 leading-none">
         {keys}
       </kbd>
@@ -202,7 +202,7 @@ export default memo(function QuickProgressCard({
   return (
     <div className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 space-y-4">
       <div className="space-y-1.5">
-        <p className="text-slate-400 dark:text-slate-500 text-sm font-semibold tracking-tight">지금 수업</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm font-semibold tracking-tight">지금 수업</p>
         <p className="text-slate-900 dark:text-slate-100 text-base font-semibold">
           {currentEntry
             ? `${activeIndex + 1}/${questionList.length}번째 활동 진행 중`
@@ -266,7 +266,7 @@ export default memo(function QuickProgressCard({
       )}
 
       {nextEntry && currentEntry && !quizUnrevealed && !quizRevealed && (
-        <p className="text-slate-400 text-xs">
+        <p className="text-slate-500 dark:text-slate-400 text-xs">
           다음 예정: <span className="text-slate-600 dark:text-slate-300">{nextEntry[1].title}</span>
         </p>
       )}
@@ -323,7 +323,7 @@ export default memo(function QuickProgressCard({
                 <Zap size={14} className="text-slate-500" />
                 스피드 퀴즈
               </span>
-              <span className="text-xs text-slate-400 dark:text-slate-500">{speedQuizCount}문제 · 10초씩</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">{speedQuizCount}문제 · 10초씩</span>
             </button>
           )}
           </div>

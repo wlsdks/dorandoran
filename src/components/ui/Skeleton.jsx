@@ -53,7 +53,7 @@ export function SuspenseFallback({ fullPage = true }) {
     <div className={`${fullPage ? 'min-h-dvh' : 'min-h-[200px]'} bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-3`}>
       <img src="/characters/dorandoran-waiting.svg" alt="" aria-hidden="true" width={64} height={48}
         style={{ objectFit: 'contain' }} />
-      <span className="text-sm text-slate-400">불러오는 중...</span>
+      <span className="text-sm text-slate-600 dark:text-slate-300">불러오는 중...</span>
     </div>
   );
 }

@@ -65,7 +65,7 @@ function PackCard({ pack, onImport, imported, index }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-slate-900 dark:text-slate-100 text-sm font-semibold">{pack.name}</p>
-          <p className="text-slate-400 text-xs mt-0.5">{pack.questions.length}개 질문 · {typeLabels.length}가지 유형</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{pack.questions.length}개 질문 · {typeLabels.length}가지 유형</p>
         </div>
         <motion.div
           animate={{ rotate: expanded ? 90 : 0 }}
@@ -134,7 +134,7 @@ export default function TemplatePacks({ onImportPack }) {
       <div className="flex items-center gap-2 pt-2">
         <Package size={14} className="text-slate-400" />
         <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300">템플릿 팩</h3>
-        <span className="text-[11px] text-slate-400 dark:text-slate-500">바로 사용할 수 있는 질문 모음</span>
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">바로 사용할 수 있는 질문 모음</span>
       </div>
       <div className="space-y-2.5">
         {TEMPLATE_PACKS.map((pack, i) => (

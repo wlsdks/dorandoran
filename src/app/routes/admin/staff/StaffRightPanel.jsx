@@ -24,7 +24,7 @@ function Accordion({ title, icon: Icon, count, defaultOpen = false, children }) 
         aria-expanded={open}
       >
         <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-          <Icon size={14} className="text-slate-400" />
+          <Icon size={14} className="text-slate-500 dark:text-slate-400" />
           {title}
           {count > 0 && (
             <motion.span
@@ -38,7 +38,7 @@ function Accordion({ title, icon: Icon, count, defaultOpen = false, children }) 
           )}
         </span>
         <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown size={14} className="text-slate-400" />
+          <ChevronDown size={14} className="text-slate-500 dark:text-slate-400" />
         </motion.div>
       </button>
       <AnimatePresence>
@@ -81,7 +81,7 @@ function CurrentQuestionStatus({ session }) {
       </p>
       <div className="flex items-center gap-2 mt-1.5">
         <Badge variant="primary">{typeLabel}</Badge>
-        <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums">{voteCount}명 응답</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">{voteCount}명 응답</span>
       </div>
     </div>
   );
@@ -93,7 +93,7 @@ function UrgentQuestionSection({ sessionId }) {
   return (
     <Accordion title="긴급 질문" icon={AlertTriangle} count={unreadCount} defaultOpen={unreadCount > 0}>
       {questionList.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">
+        <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
           긴급 질문이 없습니다
         </p>
       ) : (
@@ -108,7 +108,7 @@ function UrgentQuestionSection({ sessionId }) {
               }`}
             >
               <p className="text-slate-700 dark:text-slate-200 leading-relaxed">{q.text}</p>
-              <span className="text-slate-400 text-xs mt-1 block">{q.anonymous === false && q.nickname ? q.nickname : '익명'}</span>
+              <span className="text-slate-500 dark:text-slate-400 text-xs mt-1 block">{q.anonymous === false && q.nickname ? q.nickname : '익명'}</span>
             </div>
           ))}
         </div>
@@ -131,7 +131,7 @@ function HandRaiseSection({ sessionId }) {
   return (
     <Accordion title="손들기" icon={Hand} count={count} defaultOpen>
       {count === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">
+        <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
           손든 학생이 없습니다
         </p>
       ) : (
@@ -193,7 +193,7 @@ const DMItem = memo(function DMItem({ dm, onOpen, onRespond }) {
           )}
         </div>
         {truncated && (
-          <p className="text-xs text-slate-400 dark:text-slate-500 truncate mt-0.5">{truncated}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{truncated}</p>
         )}
       </div>
       {isWaiting && (
@@ -234,7 +234,7 @@ function DMSection({ sessionId, staffId, staffName, senderType }) {
     <>
       <Accordion title="1:1 도움" icon={MessageSquare} count={allDMs.length} defaultOpen={waitingDMs.length > 0}>
         {allDMs.length === 0 ? (
-          <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
             도움 요청이 없습니다
           </p>
         ) : (
@@ -272,7 +272,7 @@ function ParticipantSection({ sessionId }) {
   return (
     <Accordion title="참여자" icon={Users} count={onlineList.length} defaultOpen>
       {onlineList.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">
+        <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
           접속 중인 참여자가 없습니다
         </p>
       ) : (
