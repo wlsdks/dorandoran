@@ -2,7 +2,7 @@ import { auth, ensureAuthentication } from '@/lib/auth-session';
 import { useState, useRef, useEffect, memo } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase-storage';
-import { compressImage } from '@/lib/image-utils';
+import { compressImage, uploadErrorMessage, MAX_UPLOAD_MB } from '@/lib/image-utils';
 import { imageRejection } from '@/lib/image-file';
 import { AnimatePresence } from 'framer-motion';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
@@ -11,7 +11,7 @@ import { SortableContext, useSortable, rectSortingStrategy, arrayMove } from '@d
 import { CSS } from '@dnd-kit/utilities';
 import { logger } from '@/lib/logger';
 
-const MAX_SIZE_MB = 20;
+const MAX_SIZE_MB = MAX_UPLOAD_MB;
 const MAX_IMAGES = 10;
 
 function SortableImage({ url, index, onRemove }) {
@@ -82,6 +82,7 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
     setUploading(true);
     const urls = [];
     let failCount = 0;
+    let lastError = '';
     for (let i = 0; i < valid.length; i++) {
       try {
         const file = valid[i];
@@ -96,11 +97,12 @@ export default memo(function MultiImageUpload({ images = [], onChange }) {
       } catch (err) {
         logger.error('Image upload failed:', valid[i].name, err);
         failCount++;
+        lastError = uploadErrorMessage(err);
       }
     }
     if (urls.length > 0) onChange([...images, ...urls]);
     if (failCount > 0) {
-      showError(`${failCount}개 이미지 업로드 실패`);
+      showError(`${failCount}개 이미지를 올리지 못했어요. ${lastError}`, 7000);
     }
     setUploading(false);
   }
