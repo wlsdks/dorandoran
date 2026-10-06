@@ -9,6 +9,7 @@ import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import EmptyState from '@/components/ui/EmptyState';
 import CodeEntryPage from '@/app/routes/student/CodeEntryPage';
 import JoinPage from '@/app/routes/student/JoinPage';
+import ScoreGainOverlay from '@/app/routes/student/ScoreGainOverlay';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { SuspenseFallback } from '@/components/ui/Skeleton';
 import { db } from '@/lib/firebase';
@@ -104,6 +105,7 @@ function StudentRouter() {
         >
           <Suspense fallback={<SuspenseFallback />}>
             <VotePage key={sessionId} sessionId={sessionId} />
+            <ScoreGainOverlay sessionId={sessionId} />
           </Suspense>
         </motion.div>
       )}
