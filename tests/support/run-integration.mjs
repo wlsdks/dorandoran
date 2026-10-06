@@ -20,6 +20,7 @@ try {
     }
     await run('node', ['--test', 'tests/security/resource-lifecycle.test.cjs']);
     await run('node', ['--test', 'tests/security/firebase-rules.test.mjs']);
+    await run('node', ['--test', 'tests/security/quiz-tally-fallback.test.cjs']);
     process.exitCode = 0;
   } else {
   start('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '5175', '--strictPort', '--mode', 'qa']);
@@ -30,6 +31,7 @@ try {
   }
   await run('node', ['--test', 'tests/security/resource-lifecycle.test.cjs']);
   await run('node', ['--test', 'tests/security/firebase-rules.test.mjs']);
+  await run('node', ['--test', 'tests/security/quiz-tally-fallback.test.cjs']);
   await run('node', ['tests/support/seed-runtime.cjs']);
   await run('node', ['tests/support/realtime-stress.cjs']);
   await run('node', ['tests/support/judging-lifecycle-qa.cjs']);

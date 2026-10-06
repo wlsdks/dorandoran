@@ -178,6 +178,22 @@ test('문항 시간 제한은 5~3600초 정수만 저장된다', async () => {
   await assertSucceeds(update(ref(owner, path), { timerDuration: null }));
 });
 
+test('서버 예비 집계가 쓴 뒤에도 강사 화면은 집계를 다시 덮고 신호를 보낼 수 있다', async () => {
+  const question = 'sessions/qa_room/questions/tally_probe';
+  const aggregatePath = 'sessions/qa_room/publicQuizAggregates/tally_probe';
+  await environment.withSecurityRulesDisabled(async context => {
+    await set(ref(context.database(), question), { title: '퀴즈', type: 'quiz', options: ['A', 'B'], correctAnswer: 'A', activatedAt: 77 });
+    // 서버(Admin SDK)가 남기는 모양 — 규칙 밖 필드(source/serverAt)를 포함한다.
+    await set(ref(context.database(), aggregatePath), { round: 77, total: 2, counts: [1, 1], heartbeat: 1, source: 'server', serverAt: Date.now() });
+  });
+  const owner = staff('legacy_teacher', 'admin');
+  await assertSucceeds(update(ref(owner, aggregatePath), { heartbeat: Date.now() }));
+  await assertSucceeds(set(ref(owner, aggregatePath), { round: 77, total: 2, counts: [1, 1], heartbeat: Date.now() }));
+  // 클라이언트는 서버 표시를 흉내 낼 수 없다.
+  await assertFails(set(ref(owner, aggregatePath), { round: 77, total: 2, counts: [1, 1], source: 'server' }));
+  await assertFails(update(ref(student('student_a'), aggregatePath), { heartbeat: Date.now() }));
+});
+
 test('정답 공개된 문항도 강사는 필드 단위로 수정할 수 있고 학생 투표는 보존된다', async () => {
   const path = 'sessions/qa_room/questions/edit_probe';
   await environment.withSecurityRulesDisabled(async context => set(ref(context.database(), path), {
